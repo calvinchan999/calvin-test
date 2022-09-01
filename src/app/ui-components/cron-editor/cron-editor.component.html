@@ -1,0 +1,45 @@
+<div class="form-row">
+    <uc-dropdown lab="Recurrence" [options]="dropdownOptions.repeated" [(value)] = "ngModel.repeated" (valueChange)="range = false ; refreshCron()" [translateOption]="true" [disabled] = "frmGrp.controls[frmCtrl].disabled"></uc-dropdown>
+    <uc-dropdown *ngIf="ngModel.repeated && !_customCron" lab="Pattern" [options]="dropdownOptions.mode" [(value)] = "ngModel.mode" (valueChange)="range = false ; refreshCron()" [translateOption]="true" [allowClear] = "false" [disabled] = "frmGrp.controls[frmCtrl].disabled"></uc-dropdown>
+</div>
+
+<ng-container *ngIf="ngModel.repeated">
+    <ng-container *ngIf="!_customCron">
+        <div class="form-row week" *ngIf="ngModel.repeated == 'W'">
+            <uc-multiselect class="col" lab="On Weekday" [options]="dropdownOptions.weekday" [(value)]="ngModel.dayOfWeek" [checkboxes]="true" (valueChange)="refreshCron()" [disabled] = "frmGrp.controls[frmCtrl].disabled"></uc-multiselect>
+        </div>
+        <div class="form-row hour-minute">
+            <uc-txtbox *ngIf="ngModel.mode == '/' && (ngModel.repeated == 'W' || ngModel.repeated == 'D')" lab="Hour" [numeric]="true" [disabled] = "frmGrp.controls[frmCtrl].disabled"
+                       [numMax]="23" [numMin]="0" numFormat="n0" [numTick]="1" [(value)]="ngModel.hour" (valueChange)="refreshCron()">
+            </uc-txtbox>
+            <uc-txtbox *ngIf="ngModel.repeated == 'H' || ngModel.mode == '/'" [lab]="ngModel.repeated == 'H' || ngModel.mode == ''  ? 'Minute'  : 'At Minute' " [numeric]="true" [numMax]="59" [numMin]="0" numFormat="n0" [disabled] = "frmGrp.controls[frmCtrl].disabled"
+                       [numTick]="1" [(value)]="ngModel.minute" (valueChange)="refreshCron()">
+            </uc-txtbox>
+            <div class="form-group col"  *ngIf="ngModel.mode == '' && (ngModel.repeated == 'W' || ngModel.repeated == 'D')" >
+                <label class="col-form-label">{{'At' | label: uiSrv.langPack}}</label>
+                <kendo-timepicker [(ngModel)]="ngModel.at" (ngModelChange)="refreshCron()" [disabled] = "frmGrp.controls[frmCtrl].disabled"></kendo-timepicker>
+            </div>
+
+            <div class="col range" *ngIf="ngModel.mode == '/' || ngModel.repeated == 'H'">
+                <input class="range-checkbox" type="checkbox" kendoCheckBox [(ngModel)] = "range" (ngModelChange)="refreshCron()" [disabled] = "frmGrp.controls[frmCtrl].disabled"/>   
+                <div class="col from">            
+                    <uc-txtbox  [disabled]="!range || frmGrp.controls[frmCtrl].disabled"  lab="From Hour" [numeric]="true" 
+                                [numMax]="23" [numMin]="0" numFormat="n0" [numTick]="1" [(value)]="ngModel.startHour" (valueChange)="refreshCron()">
+                    </uc-txtbox>
+                </div>
+    
+                <div class="col to">
+                    <uc-txtbox  [disabled]="!range || frmGrp.controls[frmCtrl].disabled" lab="To Hour" [numeric]="true" 
+                                [numMax]="23" [numMin]="0" numFormat="n0" [numTick]="1" [(value)]="ngModel.endHour" (valueChange)="refreshCron()">
+                    </uc-txtbox>
+                </div>
+            </div>            
+        </div>          
+    </ng-container>
+    <div class="form-row" *ngIf="_customCron">        
+        <uc-txtbox *ngIf="ngModel.repeated" lab="Cron Expression" [frmGrp]="frmGrp" [frmCtrl]="frmCtrl" [upper] = "true" [disabled]="frmGrp.controls[frmCtrl].disabled"></uc-txtbox>
+    </div>
+    <div class="cron-description" *ngIf="cronDescription">
+        {{'Scheduled ' | label: uiSrv.langPack}} : {{cronDescription}}
+    </div>
+</ng-container>

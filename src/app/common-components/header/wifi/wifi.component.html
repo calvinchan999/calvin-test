@@ -1,0 +1,31 @@
+<div class="dialog-content wifi">
+    <kendo-dialog-titlebar (close)="dialogRef.close()">
+        <div>{{'Wifi' | label: uiSrv.langPack}}</div>
+    </kendo-dialog-titlebar>
+    
+    <div *ngIf = "connectedWifi"  class='wifi-item connected'>
+        <span [class]="'mdi mdi-wifi-strength-' + connectedWifi.signal"></span>
+        <span class="wifi-ssid">{{connectedWifi.ssid}}</span>
+        <div class="connected-text">{{'Connected' | label : uiSrv.langPack}}</div>
+    </div>
+
+    <div *ngIf="wifiSignalList.length == 0 && !connectedWifi" class="no-wifi" >
+        {{'No connectable wifi detected' | label : uiSrv.langPack}}
+    </div>
+
+    <div *ngIf="wifiSignalList.length > 0" class="wifi-list-container">
+        <ng-container *ngFor="let w of wifiSignalList">
+            <a *ngIf="!w.inUse" [class]="'wifi-item' +  (selectedSsid == w.ssid ? ' selected' : '')"       
+               (click) = "password = selectedSsid != w.ssid ? null : password; selectedSsid = w.ssid ;">
+             <span [class]="'mdi mdi-wifi-strength-' + w.signal"></span>
+             <span class="wifi-ssid">{{w.ssid}}</span>
+             <uc-txtbox *ngIf="selectedSsid == w.ssid" lab="Password" [(value)]="password" type="password"></uc-txtbox>
+             <button kendoButton *ngIf="selectedSsid == w.ssid" [disabled] = 'w.signal == 0'
+                (click)="connectWifi(w.ssid)">
+                {{'Connect' | label : uiSrv.langPack}}
+            </button>
+            </a>
+         </ng-container>
+    </div>
+
+</div>

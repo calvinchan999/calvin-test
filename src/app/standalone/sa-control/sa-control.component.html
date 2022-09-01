@@ -1,0 +1,128 @@
+<div [class]="uiSrv.isTablet? 'control card-container tablet' : 'control card-container'">
+    <div class="card-header-wrapper">
+        <!-- title -->
+        <h3 class="card-title"></h3>
+        <!-- tab buttons -->
+        <div class="card-buttons">
+            <kendo-buttongroup selection="single">
+                <button *ngFor="let tab of tabs" kendoButton [toggleable]="true" [selected]="selectedTab == tab.id"  
+                         (click)=" tab.id == selectedTab ? null : onTabChange(tab.id) ">
+                    {{ tab.label | label : uiSrv.langPack }}
+                </button>
+            </kendo-buttongroup>
+        </div>
+        <span></span>
+    </div>
+
+    <app-sa-control-buttons *ngIf="selectedTab == 'controls'"  class="controls-container" ></app-sa-control-buttons>
+    <!-- <div *ngIf="selectedTab == 'controls'" class="controls-container">
+        <div *ngFor="let row of layout" [class]="'row' +  ' ' + (row['title'] | cssClassName : 'sc-')">
+            <div class="title">
+                <span [class]="'icon ' + row['icon']"></span>
+                <span class="text">{{row['title'] | label: uiSrv.langPack}}</span>
+            </div>
+            <div class="button-container">
+                <button kendoButton *ngFor="let button of row['buttons']" [style.display] = "!button['display'] || button['display'].value ? '' : 'none'"
+                        [disabled]= "readonly.controls || (button['disabled'] && button['disabled']['value']) || 
+                                    (dataSrv.signalRSubj.navigationDisabled.value && (button['id'] == 'followMe' ||  button['id'] == 'auto' || button['id'] == 'changeMap')) ||
+                                    (button['id'] == 'changeMap' && dataSrv.signalRSubj.isMappingMode.value) ||
+                                    (button['id'] == 'charge' && dataSrv.signalRSubj.isMappingMode.value) ||
+                                    ((button['id'] == 'stop' || button['id'] == 'pause' ) && !dataSrv.signalRSubj.isAutoMode.value) "
+                        (click)="triggerControl(button['id'], (button['active']?.value ? button['textActive'] : button['text']) , button['active'])" 
+                        [class]="(button['text']  | cssClassName) +  (button['active']?.value ? ' active' : '')">
+                    <span [class]="'icon ' + button['icon']"></span>
+                    <span class="text">{{ button['active']?.value &&  button['textActive'] ? button['textActive'] : button['text'] | label: uiSrv.langPack}}</span>
+                </button>
+            </div>
+        </div>
+    </div> -->
+
+    <div *ngIf="selectedTab == 'robot'" class="robot-container">
+        <div class="form-container">
+            <form [formGroup]="frmGrpRobot" class="content">
+                <div class="form-row">
+                    <uc-txtbox lab="Code" [frmGrp]="frmGrpRobot" frmCtrl="robotCode"  [disabled]="true"></uc-txtbox>
+                    <uc-txtbox lab="Robot Name" [frmGrp]="frmGrpRobot" frmCtrl="name"  [disabled]="true"></uc-txtbox>
+                </div>
+                <div class="form-row">
+                    <uc-txtbox lab="Type" [frmGrp]="frmGrpRobot" frmCtrl="robotType"  [disabled]="true"></uc-txtbox>
+                    <!-- <uc-dropdown lab="Status" [frmGrp]="frmGrpRobot" frmCtrl="robotStatus"></uc-dropdown> -->
+                </div>
+                <ng-container *ngIf="!readonly.robot">
+                    <div class="form-row">
+                        <label>{{ "Configuration" | label : uiSrv.langPack }}</label>
+                    </div>
+                    <div class="form-row">
+                        <button kendoButton (click) = "optionObj.type = 'maxSpeed' ;  optionObj.title = 'Set Maximum Speed'" >{{ "Maximum Speed" | label : uiSrv.langPack }}</button>
+                        <button kendoButton (click) = "optionObj.type = 'safetyZone' ; optionObj.title = 'Set Safety Zone'" >{{ "Safety Zone" | label : uiSrv.langPack }}</button>
+                        <!-- <uc-txtbox lab="Maximum Speed" [frmGrp]="frmGrpRobot" frmCtrl="robotMaxSpeed" [numeric]="true"></uc-txtbox>
+                        <uc-txtbox lab="Safety Zone" [frmGrp]="frmGrpRobot" frmCtrl="robotSafetyZone" [numeric]="true"></uc-txtbox> -->
+                    </div>
+                </ng-container>
+               
+                <!-- <div class="form-row">
+                    <uc-txtbox lab="IP Address" [frmGrp]="frmGrpRobot" frmCtrl="robotIPAddress" [disabled]='true'></uc-txtbox>
+                </div> -->
+            </form>
+        </div>
+        <!-- <ng-container *ngTemplateOutlet = "buttons"></ng-container> -->
+    </div>
+
+    <!-- <div *ngIf="selectedTab == 'type'" class="type-container">
+        <div class="form-container">
+            <form [formGroup]="frmGrpType">
+                <div class="form-row">
+                    <uc-dropdown lab="Type" [frmGrp]="frmGrpType" frmCtrl="type"></uc-dropdown>
+                    <uc-dropdown lab="Status" [frmGrp]="frmGrpType" frmCtrl="status"></uc-dropdown>
+                </div>
+                <div class="form-row">
+                    <uc-dropdown lab="Code" [frmGrp]="frmGrpType" frmCtrl="code"></uc-dropdown>
+                    <uc-txtbox lab="Sub Type Name" [frmGrp]="frmGrpType" frmCtrl="subtype"></uc-txtbox>
+                </div>
+                <div class="form-row">
+                    <uc-multiselect lab="Actions" [options] = "dropdownOptions.types" [frmGrp]="frmGrpType" frmCtrl="actionIds"></uc-multiselect>
+                </div>          
+            </form>
+        </div>
+        <ng-container *ngTemplateOutlet = "buttons"></ng-container>
+    </div> -->
+
+    <div *ngIf="selectedTab == 'action'" class="action table-container">
+        <uc-table #table  [toolbarButtons] ="{new : true , action: false}" [columnDefs] = "columnDef" [(data)]="data" 
+                          dataSourceApiEndpoint = "api/robot/action/v1" functionId = "ACTION"
+                          [disabledButtons] = "tableDisabledButtons" [isLoading] = "isTableLoading"
+                          (selectedDataChange)="tableDisabledButtons = {new : false , action : $event.length == 0}"
+                          (cellClick) = "$event?.column == 'edit' ? showActionDetail($event) : null" 
+                          (createClick) = "showActionDetail()" [useColumnFilter]='true'>
+            </uc-table>
+    </div>
+</div>
+
+<ng-template #buttons>
+    <div class="buttons-container">
+        <button kendoButton>{{'Cancel' | label : uiSrv.langPack}}</button>
+        <button kendoButton (click)="saveToDB()">{{'Save' | label : uiSrv.langPack}}</button>
+    </div>
+</ng-template>
+
+
+<kendo-dialog *ngIf="optionObj.type" [title]="(optionObj.title | label : uiSrv.langPack)"
+               (close)="optionObj.type = null" [minWidth]="250" [width]="450">
+
+    <ng-container *ngIf="optionObj.type == 'safetyZone'">
+        <uc-dropdown  lab="Mode" [(value)] = "optionObj.safetyZone.mode" [allowClear] = "false"
+                      [options] = "safetyZoneOptions" [translateOption]="true"></uc-dropdown>
+    </ng-container>
+
+    
+    <ng-container *ngIf="optionObj.type == 'maxSpeed'">
+        <uc-txtbox  lab = "Maximum Speed" [(value)] = "optionObj.maxSpeed.limit"  [numeric]="true" [numMin]="0.3" [numMax] = "1.8" ></uc-txtbox>
+    </ng-container>
+
+    <kendo-dialog-actions>
+        <button kendoButton (click)="optionObj.type == 'safetyZone' ? sendSafetyZoneRequestToRV() : (optionObj.type == 'maxSpeed' ?  sendMaxSpeedRequestToRV() : null)">
+            {{ 'OK' | label : uiSrv.langPack }}
+        </button>
+        <button kendoButton (click)="optionObj.type = null">{{ 'Cancel' | label : uiSrv.langPack }}</button>
+    </kendo-dialog-actions>
+</kendo-dialog>

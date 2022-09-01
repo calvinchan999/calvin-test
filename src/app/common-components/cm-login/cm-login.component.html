@@ -1,0 +1,52 @@
+<div class="login login-bg"  *ngIf="!uiSrv.isTablet">
+    <div class="login-content">
+        <div class="login-box">
+            <div class="lang-bar">
+                <!-- <kendo-dropdownlist  [data]="uiSrv.langOptions"  textField="text" valueField="value"  [(ngModel)]="selectedLang" (ngModelChange) = "uiSrv.changeLang($event.value)">
+                </kendo-dropdownlist> -->
+                <uc-dropdown  [options]="uiSrv.langOptions"  [value]="uiSrv.lang.value" (change) = "uiSrv.changeLang($event.currentValue)" [allowClear]="false"></uc-dropdown>
+            </div>
+            <div class="login-logo"></div>
+            <div class="login-brand h3">         
+                {{(util.standaloneApp ?  'RV Robotic System' : 'Agonistic Robotic Control System')| label : uiSrv.langPack}}
+            </div>
+            <form  [formGroup]="frmGrp" class="content" (keydown.enter)="login()">
+                <uc-txtbox lab = "Login ID" [frmGrp] = "frmGrp" frmCtrl = "username"></uc-txtbox>
+                <uc-txtbox lab = "Password" type = "password" [frmGrp] = "frmGrp" frmCtrl = "password"></uc-txtbox>
+                <span class="error">{{errMsg}}</span>
+                <button class="login-button" kendoButton (click)="login()">{{'Login' | label : uiSrv.langPack}}</button>
+            </form>         
+        </div>
+    </div>
+</div>
+
+<!-- * * *  ^ PC VERSION ^   * * * -->
+
+<!-- * * *  v TABLET VERSION v  * * * -->
+
+<ng-container *ngIf="uiSrv.isTablet && !showTabletLoginDialog">
+    <div class="header header-bg power" *ngIf = "uiSrv.isTablet && !authSrv.username">
+        <div class="login topnav" (click)="showTabletLoginDialog = true">
+            <a class="k-icon k-icon-md mdi mdi-power"></a>
+        </div>
+    </div>  
+    <app-sa-home #homeComp></app-sa-home>
+</ng-container>
+
+<!-- <div *ngIf="uiSrv.isTablet &&  tabletBaseAccess">
+    {{'Activate base acess with secret key' | label : uiSrv.langPack}}
+    <ng-container  *ngTemplateOutlet = "tabletLogin"></ng-container>
+</div> -->
+
+<kendo-dialog class="tablet-login-dialog" *ngIf="showTabletLoginDialog" [title]="'Login' | label: uiSrv.langPack" (close) = " toExitGuestMode ? dialogRef.close() : showTabletLoginDialog = false">
+    <uc-txtbox lab = "Login ID" customClass = "''" [frmGrp] = "frmGrp" frmCtrl = "username"></uc-txtbox>
+    <uc-txtbox lab = "Password" customClass = "''" type = "password" [frmGrp] = "frmGrp" frmCtrl = "password"></uc-txtbox>
+    <span class="error">{{errMsg}}</span> 
+
+    <span  *ngIf="!toExitGuestMode" class="guest-mode-option">
+        <input class="checkbox" type="checkbox" kendoCheckBox [(ngModel)]="guestMode" />
+        <span class="text">{{ 'Guest Mode' | label:uiSrv.langPack }}</span>
+    </span>
+    <button class="login-button" kendoButton (click)="login()">{{'Login' | label : uiSrv.langPack}}</button>
+</kendo-dialog>
+

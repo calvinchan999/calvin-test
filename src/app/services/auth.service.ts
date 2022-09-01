@@ -1,0 +1,121 @@
+//import standard library
+import { map, mergeMap,catchError } from 'rxjs/operators';
+import { Observable } from 'rxjs';
+import { Injectable } from '@angular/core';
+import { HttpClient } from '@angular/common/http';
+
+//import custom library
+import { GeneralUtil } from 'src/app/utils/general/general.util';
+import { CldrIntlService, IntlService } from '@progress/kendo-angular-intl';
+import { RvHttpService } from './rv-http.service';
+import { Router } from '@angular/router';
+import { ConfigService } from './config.service';
+import { DataService } from './data.service';
+
+@Injectable()
+export class AuthService {
+	public username
+	public tenantId
+	public userAccessList = []
+	public isGuestMode = false
+	sessionStorageCredentialsMap = {
+		currentUser : 'user_name',
+		userId : 'user_id',
+		accessToken : 'access_token',
+		refreshToken: 'refresh_token'
+	}
+	constructor(private httpSrv: RvHttpService, private dataSrv : DataService, private generalUtil : GeneralUtil, public intlService: IntlService, private router : Router, public configSrv : ConfigService) { 
+		this.username = this.generalUtil.getCurrentUser()
+		this.isGuestMode = JSON.parse(sessionStorage.getItem('isGuestMode'))
+		this.userAccessList = JSON.parse(this.generalUtil.getUserAccess())
+	}
+
+	
+	public hasAccessToPath(path){
+		path = path?.toLowerCase()
+		if(path == 'control'){
+			return ['ACTION' , 'ROBOT' , 'CONTROL'].some(p=>this.userAccessList?.includes(p))
+		}else if(path == 'map'){
+			return ['MAP' , 'FLOORPLAN' ].some(p=>this.userAccessList?.includes(p))
+		}else if(path == 'user'){
+			return ['USER' , 'USERGROUP' ].some(p=>this.userAccessList?.includes(p))
+		}else if(path == 'task'){
+			return ['TASK' , 'TASK_TEMPLATE' ].some(p=>this.userAccessList?.includes(p))
+		}else{			
+			return true
+			// !Object.keys(this.routeAccessMap).includes(path) || this.userAccessList?.includes(this.routeAccessMap[path])
+		}
+	}
+
+	hasRight(functionId){
+		return this.userAccessList.includes(functionId.toUpperCase())
+	}
+	
+
+	public login(username, password , lang = 'EN' , guestMode = false , clientId = null) {
+		// username = "Administrator"//testing
+		// this.configSrv.loadDbConfig(true)
+		this.tenantId = clientId ? clientId : this.generalUtil.config.CLIENT_ID
+		var dataObj = {
+			localeId:  lang,
+			request: {
+				userId: username,
+				password: password,
+				clientId: clientId ? clientId : this.generalUtil.config.CLIENT_ID,
+				accountType: "W"
+			}
+		}
+
+		return this.httpSrv.http.post<any>(this.generalUtil.getAPIUrl() + '/api/Auth/login', dataObj)
+			.pipe(map((response) => {
+				if(response?.['result'] == true){
+					Object.keys(this.sessionStorageCredentialsMap).forEach(k => sessionStorage.setItem(k ,  response['validationResults'][this.sessionStorageCredentialsMap[k]]))
+					this.username = this.generalUtil.getCurrentUser()
+					this.userAccessList = response['validationResults']['accessFunctionList'].map(f=>f['functionCode'])
+					sessionStorage.setItem('userAccess',JSON.stringify(this.userAccessList))
+					sessionStorage.setItem('isGuestMode',JSON.stringify(guestMode))
+					this.isGuestMode = guestMode
+					this.dataSrv.init()
+				}
+				return response;
+			}))
+			// response['data'][this.sessionStorageCredentialsMap[k]]
+	}
+
+	public logout(lang = 'EN') {
+		let username = this.generalUtil.getCurrentUser()
+		Object.keys(this.sessionStorageCredentialsMap).forEach(k => sessionStorage.removeItem(k))
+		// sessionStorage.removeItem('userAccess')
+		sessionStorage.clear()
+		this.username = this.generalUtil.getCurrentUser()
+		this.userAccessList = []
+		this.httpSrv.stopAllPollings()
+		if(username){
+			this.httpSrv.post('api/Auth/logout', {
+				localeId: lang,
+				request: {
+					userId: username
+				}
+			})
+		}
+		if(this.dataSrv._USE_AZURE_PUBSUB){
+			this.dataSrv.pubsubSrv.webSocket.close()
+			this.dataSrv.pubsubSrv.disposeWebSocket()
+		}else{
+			this.dataSrv.signalRSrv.disconnect()
+		}
+		this.router.navigate(['login'] ,{ queryParams: { clientId : this.tenantId } })
+		// var dataObj = {
+		// 	userId : username
+		// }
+
+		// return this.http.post<any>(this.generalUtil.getAPIUrl() + '/rest/authentication/logout', this.generalUtil.convertToFormStr(dataObj))
+		// 	.pipe(map((response) => {
+		// 		sessionStorage.removeItem('currentUser');
+		// 		sessionStorage.removeItem('accessToken');
+		// 		sessionStorage.removeItem('refreshToken');
+		// 		sessionStorage.removeItem('userId');
+		// 		return true;
+		// 	}));
+    }
+}

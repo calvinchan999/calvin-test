@@ -1,0 +1,207 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta http-equiv="X-UA-Compatible" content="IE=edge">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Untitled Document</title>
+<!-- Bootstrap -->
+<link href="css/bootstrap-4.4.1.css" rel="stylesheet">
+<link href="css/materialdesignicons.css" rel="stylesheet">
+<style>
+body {
+	font-family: Roboto, "Helvetica Neue", Arial, sans-serif;
+	background: #000;
+	color: #fff;
+}
+.dashboard {
+	padding: 2%;
+	position: relative;
+	display: grid;
+	grid-template-columns: repeat(4, 1fr);
+	grid-gap: 1em;
+}
+.db-box {
+	border: 2px solid rgba(0, 184, 212, 1);
+	border-radius: 0.8em;
+	padding: 5%;
+}
+.boxlist {
+	display: grid;
+	grid-template-columns: 1fr 1fr;
+	grid-column-gap: 10px;
+	position: relative;
+}
+.box-2-1 {
+	grid-column: span 2;
+	grid-row: span 1;
+}
+.box-2-2 {
+	grid-column: span 2;
+	grid-row: span 2;
+}
+.box-4-2 {
+	grid-column: span 2;
+	grid-row: span 4;
+}
+#iaqlevel .aqlevel, #iaqlevel .boxlist {
+	height: 50%;
+	position: relative;
+}
+#iaqlevel .aqlevel {
+	margin-bottom: 0.8em;
+}
+.aq-icon {
+	font-size: 10em;
+	font-weight: 500;
+	text-align: center;
+	height: 65%;
+	position: relative;
+	display: block;
+}
+.aq-icon i {
+	display: block;
+	line-height: 0.9;
+}
+.aq-label {
+	display: block;
+	width: 100%;
+	text-align: center;
+	font-size: 1em;
+	margin-bottom: 0.25em;
+}
+.aq-result {
+	display: block;
+	width: 100%;
+	text-align: center;
+	font-size: 3em;
+	font-weight: 400;
+	line-height: 1;
+}
+.bl-item {
+}
+.bl-item:nth-child(even) {
+	margin-right: 0;
+}
+.bl-icon {
+	display: inline-block;
+}
+.bl-icon i {
+	font-size: 3em;
+	margin-right: 10px;
+	color: rgba(0, 184, 212, 0.8);
+}
+.bl-text {
+	display: inline-block;
+}
+.bl-label {
+	display: block;
+	position: relative;
+	width: 100%;
+	font-size: 0.8em;
+}
+.bl-result {
+	display: inline-block;
+	font-size: 1.5em;
+	line-height: 0.8;
+}
+.bl-unit {
+	display: inline-block;
+	font-size: 0.8em;
+	line-height: 1;
+}
+.aqlevel.excellent .aq-result, .aqlevel.excellent .aq-icon {
+	color: greenyellow;
+}
+.aqlevel.good .aq-result, .aqlevel.good .aq-icon {
+	color: cyan;
+}
+.aqlevel.fair .aq-result, .aqlevel.fair .aq-icon {
+	color: yellow;
+}
+.aqlevel.poor .aq-result, .aqlevel.poor .aq-icon {
+	color: orange;
+}
+.aqlevel.inadequate .aq-result, .aqlevel.inadequate .aq-icon {
+	color: orangered;
+}
+    
+#info1 .istatus {
+	height: 100%;
+	position: relative;
+}
+#info1 .istatus .aq-icon i {
+  -ms-transform: translateY(70%);
+  transform: translateY(70%);
+}
+</style>
+</head>
+<body>
+<!-- body code goes here -->
+<div class="info dashboard" id="idashboard">
+  <div class="db-box box-4-2" id="info1">
+    <div class="istatus working">
+      <div class="aq-icon"><i class="mdi mdi-blur"></i></div>
+      <div class="aq-text">
+        <label class="aq-label">Status</label>
+        <span class="aq-result">Working</span> </div>
+    </div>
+   
+    </div>
+  <div class="db-box box-2-1" id="info2">
+    <div class="boxlist">
+      <div class="bl-item" id="ibattery">
+        <div class="bl-icon"><i class="mdi mdi-battery-70"></i></div>
+        <div class="bl-text">
+          <label class="bl-label">Battery Level</label>
+          <span class="bl-result">75</span> <span class="bl-unit">%</span> </div>
+      </div>
+    </div>
+  </div>
+  <div class="db-box box-2-1" id="info3">
+    <div class="boxlist">
+      <div class="bl-item" id="imode">
+        <div class="bl-icon"><i class="mdi mdi-map-marker-path"></i></div>
+        <div class="bl-text">
+          <label class="bl-label">Mode</label>
+          <span class="bl-result">Follow Me</span></div>
+      </div>
+    </div>
+  </div>
+  <div class="db-box box-2-1" id="info4">
+    <div class="boxlist">
+      <div class="bl-item" id="ilocation">
+        <div class="bl-icon"><i class="mdi mdi-map-marker-outline"></i></div>
+        <div class="bl-text">
+          <label class="bl-label">Location</label>
+          <span class="bl-result">Function Room 1</span></div>
+      </div>
+    </div>
+  </div>
+  <div class="db-box box-2-1" id="info5">
+    <div class="boxlist">
+      <div class="bl-item" id="iwifi">
+        <div class="bl-icon"><i class="mdi mdi-wifi"></i></div>
+        <div class="bl-text">
+          <label class="bl-label">Wifi</label>
+          <span class="bl-result">45</span> <span class="bl-unit">%</span> </div>
+      </div>
+      <div class="bl-item" id="icell">
+        <div class="bl-icon"><i class="mdi mdi-signal-cellular-3"></i></div>
+        <div class="bl-text">
+          <label class="bl-label">Cellular</label>
+          <span class="bl-result"></span> <span class="bl-unit">/5</span> </div>
+      </div>
+    </div>
+  </div>
+</div>
+</div>
+
+<!-- jQuery (necessary for Bootstrap's JavaScript plugins) --> 
+<script src="js/jquery-3.4.1.min.js"></script> 
+
+<!-- Include all compiled plugins (below), or include individual files as needed --> 
+<script src="js/popper.min.js"></script> 
+<script src="js/bootstrap-4.4.1.js"></script>
+</body>
+</html>

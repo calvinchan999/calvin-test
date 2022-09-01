@@ -1,0 +1,70 @@
+<div class="header header-bg">
+    <div class="nav-container">
+        <a class="logo" (click)="navigateToHome()"></a>
+
+        <div class="title">
+            <!-- <h1> {{ uiSrv.isTablet? util.config['STANDALONE_ROBOT_ID'] : ('Agnostic Robotic Control System (ARCS)' | label : uiSrv.langPack ) }} </h1> -->
+            <h1> {{ app == 'STANDALONE'? (dataSrv.robotMaster? dataSrv.robotMaster.robotCode : '')   : ('Agnostic Robotic Control System (ARCS)' | label : uiSrv.langPack ) }} </h1>
+        </div>
+
+        <div class="profile topnav" *ngIf = "authSrv.username">
+            <kendo-menu [items]="[{id:'user' , items: util.standaloneApp ? [{id: 'lang'} , {id:'pw'} , {id:'wifi'}] :[{id: 'lang'} , {id:'pw'} ]}] " #settingMenu (close) = "langMenuOpened ? $event.preventDefault() : null">
+                <!-- langMenuOpened ? $event.preventDefault() : null  -->
+                <ng-template kendoMenuItemTemplate let-item="item">
+                    <ng-container *ngIf="item.id == 'user'">
+                        <span class="k-icon k-i-user k-icon-md"></span>
+                        <span *ngIf="!authSrv.isGuestMode">{{authSrv.username}}</span>
+                        <span *ngIf="authSrv.isGuestMode">{{ 'Guest' |label: uiSrv.langPack}}</span>
+                    </ng-container >
+                    <div *ngIf="item.id == 'lang'" class ="menu-lang" (click)="$event.stopPropagation()">
+                        <uc-dropdown  [options]="uiSrv.langOptions"  [value]="uiSrv.lang.value"  (open)="langMenuOpened = true" prefixIconClass = "mdi mdi-earth"
+                                      (change) = " uiSrv.changeLang($event.currentValue) ;" (close)= "closeMenu()" [allowClear]="false"></uc-dropdown>
+                                      <!-- (close)="closeMenu()"  -->
+                        <!-- <kendo-splitbutton [data]="uiSrv.langOptions" #langButton  (open)="langMenuOpened = true" (close) = "langMenuOpened = false ; settingMenu.toggle(false , '0') "
+                                              (itemClick) = "uiSrv.changeLang($event.value);settingMenu.toggle(false , '0')">
+                                    <span class="mdi mdi-earth"></span>
+                                    <span>{{uiSrv.selectedLangOption['text']}}</span>
+                        </kendo-splitbutton> -->
+                    </div>
+                    <button  kendoButton *ngIf="item.id == 'pw' && !authSrv.isGuestMode" class ="menu-pw" (click)="showDialog('pw')" >
+                        <span class="k-icon k-i-lock k-icon-md"></span>
+                        <span>{{'Change Password' | label : uiSrv.langPack}}</span>
+                    </button>
+
+                    <button kendoButton *ngIf="item.id == 'wifi'&& !authSrv.isGuestMode" class ="menu-wifi" (click)="showDialog('wifi')" >
+                        <span class="mdi mdi-wifi"></span>
+                        <span>{{'Wifi' | label : uiSrv.langPack}}</span>
+                    </button>
+
+                </ng-template>
+            </kendo-menu>
+        </div>
+        
+        <div class="settings topnav" *ngIf = "!uiSrv.isTablet && authSrv.username && hasUserManagementRight">
+            <a class=" k-icon k-i-cog k-icon-md" (click)='router.navigate(["user"])'></a>
+        </div>
+        
+        <div class="logout topnav" *ngIf = "authSrv.username ">
+            <a *ngIf=" !authSrv.isGuestMode" class="k-icon k-i-logout k-icon-md" (click) = "logout()"></a>
+            <a *ngIf=" authSrv.isGuestMode" class="k-icon k-icon-md mdi mdi-power" (click) = "showDialog('login')"></a>
+        </div>
+        
+
+
+    </div>
+</div>
+<!-- 
+<mat-menu #setting="matMenu">
+    <button mat-menu-item  [matMenuTriggerFor]="lang">Language</button>
+</mat-menu>
+
+<mat-menu #lang = "matMenu">
+    <button mat-menu-item (click) = "uiSrv.changeLang('en')">
+        English
+        <mat-icon *ngIf="uiSrv.lang.value == 'en'">done</mat-icon>
+    </button>
+    <button mat-menu-item (click) = "uiSrv.changeLang('zh')">
+        繁體中文
+        <mat-icon *ngIf="uiSrv.lang.value == 'zh'">done</mat-icon>
+    </button>
+</mat-menu> -->

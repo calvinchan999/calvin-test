@@ -1,0 +1,41 @@
+<div class="dialog-content usergroup">
+    <kendo-dialog-titlebar (close)="onClose()">
+        <div>{{'User Group Management' | label: uiSrv.langPack}}</div>
+    </kendo-dialog-titlebar>
+    <form [formGroup]="frmGrp" class="content">
+        <uc-txtbox lab="User Group Code" [frmGrp]="frmGrp" frmCtrl="userGroupCode" [upper]="true" [disabled]="!isCreate"></uc-txtbox>
+        <uc-txtbox lab="User Group Name" [frmGrp]="frmGrp" frmCtrl="name"  ></uc-txtbox>
+        <!-- <uc-txtbox lab="Current Password" [frmGrp]="frmGrp" frmCtrl="currentPassword" type = "password" ></uc-txtbox>
+        <uc-txtbox lab="New Password" [frmGrp]="frmGrp" frmCtrl="newPassword" type = "password" ></uc-txtbox>
+        <uc-txtbox lab="Confirm Password" [frmGrp]="frmGrp" frmCtrl="confirmPassword" type = "password" ></uc-txtbox> -->
+        <div class="access-control-container">
+            <kendo-expansionpanel class="function-panel" *ngFor="let funcs of accessFunctionTree;" [expanded]="true">
+                <ng-template kendoExpansionPanelTitleDirective>
+                    <div class="header-content k-expander-title">
+                       <input class="sub-function-select"  type="checkbox" kendoCheckBox  [ngModelOptions]="{standalone: true}" [disabled] = "readonly"
+                              [indeterminate] ="funcs['indeterminate']" [(ngModel)]="funcs['checked']" (ngModelChange)="changeAllSubFunction($event , funcs)"/>
+                      <span class="header-text">{{funcs.headerName | label : uiSrv.langPack}}</span>
+                    </div>
+                </ng-template>
+                <span class="sub-function" *ngFor = "let func of funcs['functions']; index as i" >
+                    <input class="sub-function-select"  type="checkbox" kendoCheckBox  [ngModelOptions]="{standalone: true}" [disabled] = "readonly"
+                           [(ngModel)]="func['checked']" (ngModelChange)="refreshExpanionPanelHeaderCheckbox(funcs)"/>
+                    <span  class="sub-function-text" >{{ (i == 0 ? 'View' : func.name) | label : uiSrv.langPack}}</span>
+                </span>
+                <!-- (action)="onAction($event, i)" -->
+                <!-- <div class="content">
+                    <div class="image-container">
+                        <img [src]="item.imageUrl" [alt]="item.country" />
+                    </div>
+                    <span class="content-text">{{ item.text }}</span>
+                </div> -->
+            </kendo-expansionpanel>
+        </div>
+    </form>
+    <div class="button-container">
+        <button kendoButton (click)="onClose()"> {{'Cancel' | label : uiSrv.langPack}}</button>
+        <button kendoButton *ngIf="!readonly" (click)="saveToDB()"> {{'Save' | label : uiSrv.langPack}}</button>
+    </div>
+
+
+</div>

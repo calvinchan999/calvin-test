@@ -1,0 +1,37 @@
+<div [class] = "'dialog-content point-type'">
+    <kendo-dialog-titlebar   (close) = "onClose()">
+        <div>{{'Waypoint Type' | label: uiSrv.langPack}}</div>
+    </kendo-dialog-titlebar>
+    <div class="container">
+        <div class="form-container">
+            <form [formGroup]="frmGrp" class="content">     
+                <div class="form-row">
+                    <uc-txtbox lab = "Point Type Code" [disabled]="parentRow" [upper]="true"  dbTable = "user_defined_point_type" [frmGrp] = "frmGrp" frmCtrl = "code"></uc-txtbox>
+                </div>  
+                <div class="form-row">
+                    <uc-txtbox lab = "Point Type Name" [frmGrp] = "frmGrp" frmCtrl = "name"></uc-txtbox>
+                </div>
+                <div class="form-row" *ngIf="!readonly && pixiElRef">
+                    <button kendoButton (click)="pixiElRef.uploader.nativeElement.click()" >{{'Upload Custom Icon' | label : uiSrv.langPack}}</button>
+                    <button kendoButton (click)="frmGrp.controls['base64Image'].setValue('') ; 
+                                                 pixiElRef.loadDemoWaypoint(this.frmGrp.controls['code'].value , undefined)">
+                             {{'Use Default Icon' | label : uiSrv.langPack}}
+                    </button>
+                </div>
+            </form>  
+        </div>   
+        <div class="viewport-container">
+            <label>{{'Waypoint Preview' | label : uiSrv.langPack}}</label>
+            <uc-drawing-board #pixi [setupWayPointIcon] = "true" (demoWaypointLoaded)="frmGrp.controls['base64Image'].setValue($event?.iconBase64);"
+                                    [canUploadMultiImg]="false"  [hideButton]="{all : true}"  [hideRelocationButton]="true" 
+                                    [testWayPointName] = "frmGrp.controls['code'].value" [readonly]="true">
+            </uc-drawing-board>   
+        </div>       
+    </div>
+    <div class="button-container">
+        <button kendoButton (click) = "onClose()" > {{'Cancel' | label : uiSrv.langPack}}</button>
+        <button *ngIf="!readonly" kendoButton (click) = "saveToDB()"> {{'Save' | label : uiSrv.langPack}}</button>
+    </div>
+</div>
+
+

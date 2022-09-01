@@ -1,0 +1,694 @@
+.block-ui-loader{
+    position: absolute;
+    display: flex;
+    justify-content: center;
+    flex-direction: column;
+    height: 100vh;
+}
+
+.loader-container{
+    background-color: rgba(250,250,250,0.5);
+    position: absolute;
+    display: flex;
+    justify-content: center;
+    width: 100vw;
+    height: 100vh;
+}
+
+.msg-dialog-content{
+    display: flex;
+    padding: 10px;
+    padding-top: 15px;
+}
+
+.msg-dialog-content mat-icon{
+    font-size: 24px;
+    margin-top: 4px;
+    margin-right: 15px;
+}
+.msg-dialog-content div{
+    font-size: 25px;
+}
+
+div.control.card-container .robot-container {
+    .name{
+        width: 500px;
+    } 
+    .ip{
+        width: 690px;
+    }
+    .type{
+        width: 500px;
+    }
+    .status{
+        width: 175px;
+    }
+}
+
+div.control.card-container .type-container {
+    .type{
+        width: 500px;
+    } 
+    .subtype{
+        width: 500px;
+    }
+    .status{
+        width: 175px;
+    }
+    .code{
+        width: 175px;
+    }
+}
+
+div.map-detail-location .map.dropdown-container, div.map-detail-location .points.dropdown-container{
+    width: 140px;
+}
+
+.k-link{
+    padding: 0px!important;
+}
+
+.k-link div , .k-link span{
+    padding: 3px;
+}
+
+.menu-lang{
+    width : 100%;
+    height:100%
+}
+.map.card-container.tablet{
+    display: flex;
+    .map-list{
+        width: 25%;
+        height: 100%;
+        overflow: auto;
+    }
+    .map-container{
+        width: 75%;
+        height: 100%;
+    }
+}
+.form-row{
+    display: flex;
+}
+
+.listview-container{
+    width: 80vw;
+}
+.listview-table{
+    width: 100%;
+    margin-top: 20px;
+    margin-bottom: 20px;
+}
+
+uc-date-input{
+    .date-input-container{
+        margin-top: 15px;
+        margin-right: 15px;
+    }
+}
+
+uc-txtbox{
+    .txtbox-container{
+        margin-top: 15px;
+        margin-right: 15px;
+    }
+    .k-textarea{
+        width: 100%;
+    }
+}
+
+uc-table{
+    .grid-container{
+        height: 100%;
+        width: 100%;
+        overflow: auto;
+    }
+    .kendo-grid{
+        height: 100%;
+    }
+}
+
+app-sa-control{
+    .tilelayout-container{
+        margin:50px ;
+        height:85%
+    }   
+    
+    .button-container{
+        display: flex;
+    }
+    
+    .row {
+        display: flex;
+        justify-content: space-between;
+    }
+    
+    .form-row{
+        display: flex;
+        justify-content: space-between;
+        width: fit-content;
+    }
+    
+}
+
+app-sa-home{
+    .container-2x3-contents{
+        display: flex;
+        justify-content: space-between;
+    }
+    .buttons-container{
+        display: flex;
+        justify-content: center;
+        margin: 5px;
+    }
+    .buttons-container button{
+        margin: 5px;
+        min-width: 120px;
+        margin-left: 20px;
+        width: 30%;
+    }
+    .ts-location-selection-container{
+        display: flex;
+    }
+    .ts-location-selection-container button{
+        margin: 5px;
+        min-width: 120px;
+    }
+    .ts-location-selection-container kendo-dropdownlist{
+        margin: 5px;
+    }
+    .viewport-container{
+        height: calc(100% - 80px);
+        width: 100%;
+    }
+    
+    .tablet-viewport-container{
+        height: 100%;
+        width: 100%;
+    }
+    
+    .subtile{
+        border-style: none !important;
+    }    
+}
+
+app-sa-login{
+    .login-bg{
+        width: 100vw;
+        height: 100vh;
+        background: url("assets/rv_login_bg.png");
+        background-position: center;
+        background-repeat: no-repeat;
+        background-size: cover;
+        overflow: hidden;
+    }
+    
+    .login-content {
+        background: rgba(0, 0, 0, 0.5);
+        color: #fff;
+        box-shadow: 2px 5px 28px 12px rgba(100, 212, 240, 0.9);
+        width: 550px;
+        height: 600px;
+        float: left; /* Login Bar position right or left */
+        margin-left: 10%;
+        margin-top: 7%;
+      }
+    
+      .login-logo {
+        background: url(assets/logo.png) no-repeat;
+        background-size: contain;
+        height: 40px;
+        width: 110px;
+      }
+    
+      .login-box {
+        margin-top: 20%;
+        padding: 0 10%;
+       /* height: calc(100vh - 220px); */
+      }
+    
+      .login-brand {
+        margin: 5px 0;
+        font-size: 1.5rem;
+        display: block;
+        color: inherit
+      }
+    
+      .login-button{
+        font-size: 1rem;
+        padding: 5px;
+        margin-top: 15px;
+        margin-right: 15px;
+        width: 100%
+      }
+    
+      .lang-bar{
+        float: right;
+        width: 100px;
+      }
+    
+      .power{
+        position: fixed;
+        right: 10px;
+        top: 10px;
+        z-index: 200;
+      }
+    
+      .tablet-login-dialog{
+        z-index: 10001;
+      }
+    
+      .error{
+         color: #FF6C6C;
+      }
+    
+}
+
+app-sa-map-detail-location{
+    .create-container{
+        display: flex;
+        width: 100%;
+    }
+    
+    .create-button{
+        margin-top: 30px;
+    }
+    
+    .button-container{
+        float:right
+    }
+    
+    .button-container .k-button{
+        margin:15px
+    }
+    
+    .link-header , .link-content{
+        display: flex;
+    }
+    
+    .header-item-1 ,.header-item-2 , .item-1 , .item-2{
+        padding-left: 10px;
+        min-width: 140px;
+        max-width: 140px;
+    }
+    
+    .link-container{
+        width: 348px;
+        padding-top: 20px;
+    }
+    
+    .link-content-container {
+        display: block;
+        height: 150px;
+        overflow: auto;
+    }
+    
+    .drag-cursor, ::ng-deep .drag-cursor .k-dialog-title{
+        cursor: move !important;
+    }
+}
+
+app-sa-map-detail{
+    .container{
+        display: flex;
+        justify-content: space-between;
+        margin-top: 40px;
+        height: calc(100% - 40px);
+        width:  100%;
+    }
+    
+    .viewport-container{
+        width: 65%;
+        height: 95%;
+    }
+    
+    .form-container{
+        width: 25%;
+        height: 95%;
+    }
+    
+    .map-detail{
+        height: 600px;
+        width: 1200px;
+        padding: 20px;
+    }
+    
+    .button-container{
+        float:right
+    }
+    
+    .button-container .k-button{
+        margin:15px
+    }   
+}
+app-sa-map-floorplan{
+    .container{
+        display: flex;
+        justify-content: space-between;
+        margin-top: 40px;
+        height: calc(100% - 40px);
+        width:  100%;
+    }
+    
+    .viewport-container{
+        width: 65%;
+        height: 95%;
+    }
+    
+    .form-container{
+        width: 25%;
+        height: 95%;
+    }
+    
+    .map-floorplan{
+        height: 600px;
+        width: 1200px;
+        padding: 20px;
+    }
+    
+    .button-container{
+        float:right
+    }
+    
+    .button-container .k-button{
+        margin:15px
+    }   
+    
+    .map-header , .map-content{
+        display: flex;
+    }
+    
+    .map-container{
+        padding-top: 20px;
+        padding-right: 15px;
+    }
+    
+    .map-content-container {
+        display: block;
+        height: 245px;
+        overflow: auto;
+    }
+    
+    .map-label{
+        margin-top: 15px;
+    }
+    
+    .selected-map-id{
+        color:aqua
+    }
+}
+
+app-sa-map{
+    .table-container{
+        height: calc(100vh - 150px);
+        width: calc(100vw - 100px);
+    }
+}
+
+uc-drawing-board{
+    .drawing-board-container{
+        height: fit-content;
+        width: fit-content;
+        pointer-events: none;
+    }
+    
+    .pixi-viewport{
+        height: 100%;
+        width: 100%;
+    }
+    
+    .buttons-container{
+        z-index: 100;
+        position: absolute;
+        padding: 15px;
+        top: 0px;
+        left: 0px;
+        display: flex;
+        flex-direction: column;
+    }
+    
+    .circle-button{
+        margin: 5px;
+        border-radius: 50%;
+        height: 30px;
+        width: 30px;
+        background: rgb(200, 200, 200);
+        border: 2px solid rgb(150,150,150);
+    }
+    
+    .btn-active{
+        background: orange;
+    }
+    
+    .brush-sector{
+        display: contents;
+    }
+    
+    .point-sector{
+        display: contents;
+    }
+    
+    .point-sector .mat-button-toggle-group {
+        height: 32px;
+        align-items: center;
+        margin-left: 15px;
+    }
+    
+    .brush-sector kendo-slider {
+        margin-left: 20px;
+        margin-bottom: 3px;
+    }
+    
+    .brush-sector kendo-colorpalette{
+        margin-left: 20px;
+        margin-bottom: 3px;
+        border: 3px solid rgba(0,0,0,0.15);
+    }
+    
+    .arrow-sector kendo-colorpalette{
+        margin-left: 20px;
+        margin-bottom: 3px;
+        border: 3px solid rgba(0,0,0,0.15);
+    }
+    
+    .brush-sector span {
+        color: black;
+        margin: 10px;
+    }
+    
+    .mat-icon-button{
+        color: #f55f54;
+        margin-left:15px;
+        top:-12px;
+    }
+    
+    .overlay{
+        z-index: 1000000;
+        position: absolute;
+        top: 0;
+        background: white;
+        color: black;
+        width: 100%;
+        height: 100%;
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+        text-align: center;
+    }
+}
+
+uc-dropdown{
+    .dropdown-container{
+        margin-top: 15px;
+        margin-right: 15px;
+    }
+    
+}
+
+app-sa-task-template , app-sa-task-job{
+    kendo-datetimepicker {
+        width: 300px!important;
+    }
+    .list-container{
+        width: 80vw;
+        height: 50vh;
+        margin-top: 20px;
+    }
+
+    uc-txtbox , uc-dropdown{
+        .desc{
+            width: 50vw;
+        }
+        .orderNo ,  .recurr , .otp,.lock, .location,  .actionId , .site , .building , .floor, .map, .code,  .type, .vehicle, .path {
+            width: 15vw;
+        }
+            
+        .remarks.txtbox-container{
+            width: 60vw;
+            .k-textarea textarea{
+                min-height: 80px;
+            }
+        }
+    }      
+    .button-container{
+        display: flex;
+        justify-content: right;
+    }
+}
+
+app-sa-control-action{
+    uc-txtbox , uc-dropdown{
+        .code {
+            width: 150px;
+        }
+        .clazz {
+            width: 515px;
+        }
+        .desc{
+            width: 350px;
+        }
+        .alias , .fieldtype1 , .fieldtype2 , .fieldtype3{
+            width: 250px;
+        }
+        .type , .lab1 , .lab2 , .lab3{
+            width: 250px;
+        }
+    }
+}
+
+
+
+// .settings-panel{
+//     position: absolute;
+//     right: 130px;
+//     top: 55px;
+//     width: 160px;
+//     height: 50px;
+//     padding: 20px;
+//     background: blueviolet;
+    
+// }
+
+// @import './variables';
+// @import './typography';
+// @import './common';
+
+// //Grid
+// .customer-photo {
+//     display: inline-block;
+//     width: 32px;
+//     height: 32px;
+//     border-radius: 50%;
+//     background-size: 32px 35px;
+//     background-position: center center;
+//     vertical-align: middle;
+//     line-height: 32px;
+//     box-shadow: inset 0 0 1px #999, inset 0 0 10px rgba(0, 0, 0, 0.2);
+//     margin-left: 5px;
+// }
+
+// .customer-name {
+//     display: inline-block;
+//     vertical-align: middle;
+//     line-height: 32px;
+//     padding-left: 10px;
+// }
+
+// .red {
+//     color: #d9534f;
+// }
+
+// .text-bold {
+//     font-weight: 600;
+// }
+
+// .badge {
+//     display: inline-block;
+//     padding: 0.25em 0.4em;
+//     font-size: 75%;
+//     font-weight: 700;
+//     line-height: 1;
+//     text-align: center;
+//     white-space: nowrap;
+//     vertical-align: baseline;
+//     border-radius: 0.25rem;
+// }
+
+// .badge-success {
+//     color: #fff;
+//     background-color: #28a745;
+// }
+
+// .badge-danger {
+//     color: #fff;
+//     background-color: #dc3545;
+// }
+
+// // Chart
+// .chart-tooltip {
+//     text-align: center;
+//     font-size: 15px;
+//     font-weight: bold;
+// }
+
+// // Card
+// .employee-photo {
+//     display: inline-block;
+//     border-radius: 50%;
+//     background-size: 38px 41px;
+//     background-position: center center;
+//     vertical-align: middle;
+//     line-height: 32px;
+// }
+
+// .card-opacity {
+//     opacity: 0.5;
+// }
+
+// // Scheduler
+// kendo-recurrence-frequency-editor .k-edit-label {
+//     width: unset;
+//     margin-right: 10px;
+// }
+
+// kendo-recurrence-frequency-editor .k-edit-field {
+//     width: unset;
+//     float: none;
+// }
+
+// .k-team-mark {
+//     width: 1em;
+//     height: 1em;
+//     display: inline-block;
+//     vertical-align: middle;
+//     margin-right: 8px;
+// }
+
+// // Header
+// .material-bg .k-input,
+// .material-bg .k-dropdown-wrap .k-i-arrow-s {
+//     color: white;
+// }
+
+// .material-bg .k-dropdown-wrap {
+//     border-color: white;
+// }
+
+// .material-bg .k-dropdown-wrap.k-state-focused {
+//     border-color: #697bcf;
+//     border-bottom-width: 2px;
+// }
+
+// .material-bg .k-dropdown-wrap:hover {
+//     border-color: #2942bb;
+//     border-bottom-width: 2px;
+// }
+
+// .ddl-theme {
+//     width: 60px;
+// }
+
+// .ddl-locale .k-dropdown-wrap {
+//     width: 98px;
+// }

@@ -1,0 +1,39 @@
+<div [class] = "'body-main' + (uiSrv.isTablet? ' tablet' : '')" >
+    <div class="loader-container" [style.zIndex] = "uiSrv.loadingShadeZindex" *ngIf="uiSrv.loadingTickets.length > 0">
+        <kendo-loader [type]="uiSrv.loaderStyle.type" [themeColor]="uiSrv.loaderStyle.themeColor" [size]="uiSrv.loaderStyle.size" class="block-ui-loader"></kendo-loader>
+    </div>
+    <div *ngIf="authSrv.username" kendoDialogContainer (keydown.esc) = "$event.preventDefault()"></div>
+    <ng-container *ngIf="authSrv.username || uiSrv.isTablet">
+        <app-header-component [selectedPage]="selected"></app-header-component>
+        <kendo-drawer-container>
+            <div class="sidebar">
+                <kendo-drawer #drawer [items]="items && authSrv.username && !authSrv.isGuestMode && router.url != '/taskProgress' ? items : []" [mode]="mode" [mini]="mini" [expanded]="false"
+                              [animation]="false" (select)="onSelect($event)">
+                </kendo-drawer>
+                <div [class]="'aicon' + ' arr-' + (drawer.expanded? 'open' : 'close') ">
+                    <span class="k-icon" (click)="toggleDrawer(drawer)"></span>
+                </div>
+            </div>
+            <kendo-drawer-content>
+                <router-outlet></router-outlet>
+            </kendo-drawer-content>
+        </kendo-drawer-container>
+        <div class="footer">
+            <span class="footer-text">
+                {{ 'Copyright © 2022 | RV Automation Technology Co. Ltd. | All Right Reserved.' | label : uiSrv.langPack }}
+            </span>
+        </div>
+    </ng-container>
+
+    <app-sa-pages-alert-overlay *ngIf="util.standaloneApp"></app-sa-pages-alert-overlay>
+
+    <ng-container *ngIf="!authSrv.username && !uiSrv.isTablet">
+        <app-cm-login></app-cm-login>
+    </ng-container>
+    <!-- <div *ngIf="!authSrv.username">
+        <router-outlet></router-outlet>
+    </div> -->
+</div>
+
+
+

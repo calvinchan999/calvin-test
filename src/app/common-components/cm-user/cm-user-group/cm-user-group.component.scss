@@ -1,0 +1,20 @@
+:host .access-control-container{
+    max-height: 60vh;
+    overflow: auto;
+    margin-top: 20px;
+}
+
+:host .sub-function-text{
+    color : #DDDDDD;
+    padding:10px
+}
+
+:host  .header-text{
+    color : Darkturquoise;
+    padding:10px
+}
+
+// :host ::ng-deep .k-expander-header {
+//    background: Darkturquoise!important;
+//    padding:5px;
+// }

@@ -1,0 +1,753 @@
+/* Tablet Version */
+
+.tablet.body-main {
+    font-size: 0.9rem;
+}
+.tablet .card-container .card-header-wrapper {
+  height: 35px;
+  margin-bottom: 15px;
+}
+.tablet .card-content, .tablet .tablet-table {
+  height: calc(100% - 50px);
+  background: none;
+}
+/* Menu & Header */
+.tablet .header {
+  height: 65px;
+}
+.tablet .header .title {
+  justify-content: center;
+  height: 65px;
+}
+.tablet .header .nav-container .logo {
+  width: 60px;
+}
+.tablet .header .k-menu {
+  font-size: 1.5em;
+}
+.tablet .k-menu-group .k-menu-item {
+    font-size: 1.2em;
+    line-height: 1.5;
+}
+.tablet .header .k-icon {
+  font-size: 1.5em;
+}
+.tablet .header .logout .k-icon {
+  font-size: 2.4em;
+}
+.tablet .k-drawer-mini .k-drawer-wrapper {
+  width: 60px !important;
+}
+.tablet .k-drawer-mini.k-drawer-expanded .k-drawer-wrapper {
+  width: 240px !important;
+}
+
+.tablet .k-drawer-item {
+  padding: 4px;
+  line-height: 2.2;
+}
+.tablet .k-drawer-item .k-item-text {
+  font-size: 1.2em;
+}
+.tablet .k-drawer-item .k-icon {
+  font-size: 2.2em;
+}
+.tablet .sidebar .aicon {
+  height: 60px;
+}
+.tablet .sidebar .aicon .k-icon {
+  top: 6px;
+}
+/* Fields & Buttons */
+
+.tablet .login .col-form-label {
+  font-size: 0.6em;
+}
+
+.tablet .k-textbox, .tablet .k-dropdown, .tablet .k-dropdowntree, .tablet .k-dropdown .k-dropdown-wrap, .tablet .k-dropdowntree .k-dropdown-wrap {
+  font-size: 1em;
+  height: 45px;
+}
+.tablet .k-button {
+  font-size: 1.2em;
+  padding: 3px 10px;
+  height: auto;
+}
+
+.tablet .robot-container .k-button {
+    height: 38px;
+}
+
+.tablet .k-dialog-buttongroup .k-button {
+  font-size: 1.1em;
+  height: 45px;
+}
+.tablet .k-input {
+  font-size: 1em;
+  padding: 3px 10px;
+  height: auto;
+}
+
+.tablet .bottom-panel .k-input {
+  font-size: 1.3em
+}
+/* Dashboard */
+.tablet .card-container.module .k-card.map {
+  padding: 0;
+}
+.tablet .card-container.module .k-card.tile1-1 {
+  display: flex;
+  align-self: center;
+  height: 100%;
+}
+/* .tablet .card-container.module .bl-icon {
+  width: 25%;
+} */
+.tablet .card-container.module .k-card.tile1-1 .bl-icon {
+  display: flex;
+  ;
+  justify-content: flex-end;
+}
+.tablet .card-container.module .bl-text {
+  margin-left: 10px;
+  width: 69%;
+}
+.tablet .card-container.module .bl-icon i {
+  margin: 0;
+}
+.tablet .card-container.module .bl-label {
+  font-size: 1em;
+}
+.tablet .card-container.module .ts-air_1 .bl-box {
+  width: auto;
+  height: 50%
+}
+.tablet .card-container.module .ts-air_1 .bl-box:first-of-type .bl-result {
+  font-size: 3em;
+}
+.tablet .card-container.module .ts-air_1 .bl-box:first-of-type .bl-item {
+  width: 100%
+}
+.tablet .k-scrollview-wrap .card-container.module .ts-air_1 .bl-box:first-of-type .bl-icon i, .tablet .k-scrollview-wrap .card-container.module .ts-air_1 .bl-box:first-of-type .bl-result {
+  font-size: 2.5em;
+}
+.tablet .k-tilelayout .k-card {
+  padding: 2%;
+}
+
+.tablet .k-tilelayout .k-card.tile1-1 {
+  padding: 4%;
+}
+
+.tablet .k-tilelayout .k-card .bl-item {
+  font-size: 1.2em;
+}
+.tablet .card-container.module .k-card.tile1-2 .k-card-body {
+  align-items: center;
+  display: flex;
+  flex-wrap: wrap;
+  align-self: center;
+  text-align: left;
+}
+/* Task List */
+.tablet .tablet-table .k-listview-content {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+.tablet .tablet-table .k-listview-item {
+  border: 1px solid turquoise;
+  width: 100%;
+  padding: 15px;
+  color: #fff;
+  display: flex;
+  align-items: center;
+  border-radius: 10px;
+}
+.tablet .tablet-table .k-listview-item .tablet-row {
+  display: flex;
+  width: calc(100% - 50px);
+  flex-wrap: wrap;
+}
+.tablet .tablet-table .k-listview-item .tablet-row .header {
+  width: 100%;
+  font-size: 2em;
+  height: auto;
+}
+.tablet .tablet-table .k-listview-item .tablet-row .content {
+  width: 50%;
+}
+.tablet .tablet-table .k-listview-item .tablet-row .content .label {
+  color: #ccc;
+  font-size: 1.2em;
+  width: 30%;
+  display: inline-block
+}
+.tablet .tablet-table .k-listview-item .tablet-row .content .value {
+  width: 70%;
+  font-size: 1.2em;
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+.tablet .tablet-table .k-listview-item .button-container {
+  padding: 0;
+}
+.tablet .tablet-table .k-listview-item .k-button {
+  width: 80px;
+  height: 80px;
+  display: block;
+  text-align: center;
+  padding: 5px;
+}
+.tablet .tablet-table .k-listview-item .tablet-row-button.detail {
+  background: none;
+  border: none;
+  color: #ccc;
+  text-align: right;
+}
+.tablet .tablet-table .k-listview-item .k-button span {
+  display: block;
+  font-size: 0.9em;
+  font-weight: 500;
+  line-height: 1;
+}
+.tablet .tablet-table .k-listview-item .k-button .mdi {
+  font-size: 2.5em;
+  line-height: 1.2;
+}
+.tablet .controls-container .button-container .k-button {
+    padding: 0;
+}
+.tablet .controls-container .button-container .k-button .text {
+  font-size: 0.9em;
+    margin-top: 0;
+ width: 100%;
+}
+.tablet .list-container .listview-row {
+  height: auto !important;
+}
+
+/* Map */
+.tablet .card-content .map-list {
+  border: 1px solid #aaa;
+  border-right: none;
+}
+.tablet .card-content .map-list {
+  width: 25%;
+  height: 100%;
+  overflow: auto;
+  display: inline-block;
+}
+.tablet .card-content .map-list-item {
+  width: 100%;
+}
+.tablet .card-content .map-list-item .k-button {
+  width: 85%;
+  text-align: left;
+  justify-content: start;
+  padding: 10px;
+  border: none;
+  border-radius: 0;
+  font-size: 1.3em;
+}
+.tablet .card-content .map-list-item .k-button.edit {
+  width: 15%;
+}
+.tablet .card-content .map-list-item .k-button.edit .k-icon {
+  font-size: 1.5em;
+}
+.tablet .card-content .map-container {
+  width: calc(75% - 2px);
+  height: 100%;
+  display: inline-block;
+  border: 1px solid #aaa;
+  border-left: none;
+}
+/* Map Edit */
+.tablet .map-detail-component-container {
+  position: relative;
+  height: 100%;
+}
+.tablet .dialog-content.map-detail .container {
+  width: 100%;
+  height: calc(100% - 120px);
+}
+
+.tablet .dialog-content.map-detail.scan .container {
+  width: 100%;
+  height: calc(100% - 40px);
+}
+.tablet uc-drawing-board .buttons-container.t4 {
+  bottom: 122px;
+}
+.tablet .home.card-container uc-drawing-board .buttons-container.t4 {
+  bottom: 85px;
+}
+.tablet .dialog-content.map-detail.scan .container .canvas-div canvas {
+  width: 100%;
+  height: calc(100% - 40px);
+}
+.tablet .map-detail-component-container .map-detail {
+  min-width: 80%;
+  padding: 5px;
+  position: relative;
+  height: 100%;
+}
+.tablet .map-detail-component-container .viewport-container {
+  width: 100%;
+}
+.tablet .map-detail-component-container .form-container.bottom, .tablet app-cm-map-floorplan .form-container.bottom {
+  width: 100%;
+  margin-top: 10px;
+  height: auto;
+  font-size: 1.2em;
+}
+.tablet .map-detail-component-container .form-container.bottom .content, .tablet app-cm-map-floorplan .form-container.bottom .content {
+  display: flex;
+  flex-direction: row;
+  gap: 15px;
+  flex-grow: 1;
+}
+.tablet uc-drawing-board .bottom-panel:empty {
+  display: none;
+}
+.tablet app-cm-map-detail .container, .tablet app-cm-map-floorplan .container {
+  width: 100%;
+}
+/* Floorplan Edit */
+.tablet .floorplan-component-container, .tablet .map-detail-component-container {
+  height: 100%;
+  position: relative;
+}
+.tablet app-cm-map-floorplan .map-floorplan {
+  padding: 0;
+  position: relative;
+  height: 100%;
+}
+.tablet app-cm-map-floorplan .map-floorplan .k-tabstrip.vertical + .container {
+  display: inline-flex;
+  width: calc(100% - 52px);
+  height: calc(100% - 120px);
+}
+.tablet app-cm-map-floorplan .viewport-container {
+  width: 100%;
+}
+/* Page Template - Number Pad */
+.tablet app-sa-pages-pin {
+  width: 100%;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  /* justify-content: center; */
+}
+.tablet app-sa-pages-pin .pin-input-container {
+  display: flex;
+  width: auto;
+  align-items: center;
+  flex-direction: column;
+  height: 100%;
+  justify-content: center;
+  margin-top: 6%;
+}
+.tablet app-sa-pages-pin .pin-input-container .pin-row {
+  width: 30%;
+  height: 68px;
+  padding: 2em 0;
+  display: flex;
+  justify-content: space-evenly;
+  gap: 15px;
+}
+.tablet app-sa-pages-pin .pin-input-container .pin-digit-container {
+  width: 100%;
+  font-size: 2em;
+}
+.tablet app-sa-pages-pin .pin-input-container .pin-digit-container.k-state-disabled {
+  opacity: 1;
+  border-color: #ccc;
+}
+.tablet app-sa-pages-pin .pin-input-container .keypad-container {
+  width: 30%;
+  display: flex;
+  height: 100%;
+  flex-direction: column;
+  gap: 30px;
+}
+.tablet app-sa-pages-pin .pin-input-container .keypad-button-row {
+  display: flex;
+  justify-content: space-between;
+  height: 100px;
+}
+.tablet app-sa-pages-pin .pin-input-container .keypad-button-container {
+  width: 100px;
+}
+.tablet app-sa-pages-pin .pin-input-container .keypad-button {
+  height: 100%;
+  width: 100%;
+  font-size: 3em;
+  font-weight: 300;
+  border-color: #ccc;
+  color: #ccc;
+}
+/* Page Template - Scan QR code*/
+.tablet app-sa-pages-scan-qr .video-container {
+  overflow: hidden;
+  height: 100%;
+  width: 100%;
+  border: 1px solid #ccc;
+}
+.tablet app-sa-pages-scan-qr .video-container #qr-code-reader {
+  border: none !important;
+}
+.tablet app-sa-pages-scan-qr #qr-code-reader__scan_region {
+  margin-top: -85px;
+}
+.tablet app-sa-pages-scan-qr #qr-code-reader__dashboard {
+  display: none;
+}
+/* Page Template - Message */
+.tablet app-sa-pages-common-message {
+  width: 100%;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  vertical-align: middle;
+  position: relative;
+  overflow: hidden;
+}
+.tablet app-sa-pages-common-message .msg-container {
+  display: flex;
+  height: 100%;
+  flex-direction: column;
+}
+.tablet app-sa-pages-common-message .msg-container .msg-icon {
+  font-size: 15em;
+  height: 65%;
+  width: 100%;
+  display: flex;
+  justify-content: center;
+  align-items: end;
+}
+.tablet app-sa-pages-common-message .msg-container .msg-text {
+  font-size: 3em;
+  height: 30%;
+  width: 100%;
+  display: flex;
+  justify-content: center;
+}
+/* Animation Screen */
+.tablet app-sa-pages-common-message .msg-container .mdi-truck-fast-outline {
+  justify-content: left;
+  color: darkturquoise;
+  position: relative;
+  animation: truckmove 25s linear infinite;
+}
+@keyframes truckmove {
+  0% {
+    left: 0;
+    transform: scaleX(1);
+  }
+  49.999% {
+    left: 80%;
+    transform: scaleX(1);
+  }
+  50% {
+    left: 0%;
+    transform: scaleX(-1);
+  }
+  100% {
+    left: -80%;
+    transform: scaleX(-1);
+  }
+}
+/* Settings - Robot */
+.tablet app-sa-control .form-container {
+  width: 100%;
+}
+/* PopUp */
+.tablet .k-dialog {
+  font-size: 1.3em;
+}
+.tablet .tablet-login-dialog .k-dialog .k-window-content {
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  min-width: 250px;
+}
+.tablet .tablet-login-dialog .k-dialog .k-window-content .guest-mode-option .text {
+  margin-left: 8px;
+  font-size: 0.8em;
+}
+.tablet .tablet-login-dialog .k-dialog .k-window-content .login-button {
+  margin-top: 20px;
+  font-size: 1em;
+}
+
+.tablet .k-window-titlebar .k-window-actions .k-button {
+  font-size: 0.9em;
+}
+
+.tablet .k-menu-group .k-menu-item {
+    font-size: 1.5em
+} 
+
+
+/* Task Details */
+.tablet app-sa-task .task-job {
+  height: calc(100% - 30px);
+}
+.tablet .k-tabstrip {
+  font-size: 1.2em;
+}
+.tablet app-sa-task .viewport-container-tablet {
+  height: 100%;
+}
+.tablet .task-job .dialog-content .list-container {
+  border: 1px solid #aaa;
+  border-radius: 5px;
+}
+.tablet .k-scrollview-pageable > .k-button, .tablet .k-scrollview-pageable > .k-link {
+  padding: 0; 
+}
+/* Popup - Task */
+.tablet .task-popup .overlay {
+ background: rgba(0, 0, 0, 0.9)
+}
+.tablet .task-popup .popup-content {
+  position: relative;
+    width: 92%;
+    height: auto;
+    padding: 4%;
+}
+.tablet .task-popup .popup-content .button-container {
+    padding: 20px 0;
+}
+.tablet .task-popup .popup-content .button-container .k-button {
+    height: 45px;
+    font-size: 1.5em;
+    padding: 15px;
+}
+
+.tablet app-sa-pages-task-overlay .no-task {
+  margin: 25%;
+    font-size: 1.5em;
+    color: #ddd;  
+}
+/* Warning Message */
+app-sa-pages-alert-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  z-index: 100000;
+}
+app-sa-pages-alert-overlay .background.expanded {
+  position: fixed;
+  width: 100vw;
+  height: 100vh;
+  background: rgba(0, 0, 0, 0.5);
+}
+app-sa-pages-alert-overlay .background.collasped {
+  position: fixed;
+  width: 70vw;
+  top: 15vh;
+  left: 15vw;
+}
+app-sa-pages-alert-overlay .wrapper.expanded {
+  position: fixed;
+  width: 70vw;
+  top: calc(50vh - 106px);
+  left: 15vw;
+  background: black;
+}
+app-sa-pages-alert-overlay .wrapper.collasped {
+  background: rgba(0, 0, 0, 0.7);
+  width: 70vw;
+  left: 15vw;
+  position: fixed;
+  top: 7%;
+}
+app-sa-pages-alert-overlay .k-expander-header {
+  padding: 0;
+  display: block;
+}
+app-sa-pages-alert-overlay .k-expander-indicator, app-sa-pages-alert-overlay .k-expander-content {
+  display: none;
+}
+app-sa-pages-alert-overlay .alertbar {
+  background-color: transparent;
+  background-image: linear-gradient(135deg, transparent, transparent 25%, hsla(51, 100%, 50%, 0.9) 25%, hsla(51, 100%, 50%, 0.9) 50%, transparent 50%, transparent 75%, hsla(51, 100%, 50%, 0.9) 75%, hsla(51, 100%, 50%, 0.9));
+  background-size: 30px 30px;
+  color: #f6f6f6;
+  display: block;
+  font: bold 16px/40px sans-serif;
+  height: 25px;
+  text-align: center;
+  text-decoration: none;
+  width: 100%;
+}
+app-sa-pages-alert-overlay .collasped .alertbar {
+  height: 15px;
+}
+app-sa-pages-alert-overlay .alertcontent {
+  display: flex;
+  height: 160px;
+  color: #ffd700;
+  position: relative;
+  vertical-align: middle;
+  text-align: center;
+  align-self: center;
+  margin: 0 auto;
+}
+app-sa-pages-alert-overlay .collasped .alertcontent {
+  height: 80px;
+  justify-content: center;
+}
+app-sa-pages-alert-overlay .alerttext {
+  display: flex;
+  flex-direction: column;
+  text-align: left;
+  margin-left: 15px;
+  height: 100%;
+  width: 75%;
+  justify-content: center;
+  font-size: x-large;
+}
+app-sa-pages-alert-overlay .collasped .alerttext {
+  flex-direction: row;
+  justify-content: start;
+  align-items: center;
+  font-size: large;
+  width: auto;
+}
+app-sa-pages-alert-overlay .alerttext .header {
+  font-size: 1.5em;
+  margin-bottom: 5px;
+  font-weight: 500;
+}
+app-sa-pages-alert-overlay .collasped .alerttext .header {
+  font-size: x-large;
+  height: auto;
+  margin-right: 10px;
+}
+app-sa-pages-alert-overlay .alertcontent .alerticon {
+  height: 100%;
+  width: 25%;
+  display: block;
+  display: flex;
+  justify-content: center;
+}
+app-sa-pages-alert-overlay .collasped .alertcontent .alerticon {
+  width: auto;
+}
+app-sa-pages-alert-overlay .alertcontent .alerticon .icon {
+  display: flex;
+  font: normal normal normal 24px/1 "Material Design Icons";
+  font-size: inherit;
+  text-rendering: auto;
+  line-height: inherit;
+  font-size: 5em;
+  align-self: center;
+}
+app-sa-pages-alert-overlay .collasped .alertcontent .alerticon .icon {
+  font-size: 3.5em;
+}
+app-sa-pages-alert-overlay .alertcontent .alerticon .icon::before {
+  content: "\F0026";
+}
+app-sa-home .tablet-viewport-container {
+  z-index: 2;
+}
+/* Start Location - Bottom Panel*/
+.tablet .bottom-panel {
+  max-height: 125px;
+  align-items: center;
+}
+.tablet .bottom-panel .buttons-container:empty {
+  display: none;
+}
+.tablet uc-drawing-board .bottom-panel .buttons-container {
+  display: flex;
+  align-self: center;
+  margin-top: 12px;
+}
+.tablet uc-drawing-board .buttons-container .k-button {
+  height: 45px;
+  width: 45px;
+  font-size: 2em;
+}
+
+.tablet uc-drawing-board .bottom-panel .bottom-sector .k-button {
+  margin-top: 0;
+  height: 45px;
+  padding: 0 10px;
+}
+
+.tablet uc-drawing-board .bottom-panel .bottom-sector.change-map .k-button {
+  margin-top: 23px;
+  align-self: center;
+}
+.tablet uc-drawing-board .bottom-panel .bottom-sector.change-map .numeric.txtbox-container .k-button {
+  margin-top: 0px;
+}
+.tablet uc-drawing-board .bottom-panel .bottom-sector.change-map .numeric.txtbox-container .k-button {
+  margin-top: 0px;
+}
+.tablet uc-drawing-board .bottom-panel .bottom-sector.change-map > .form-group {
+  margin-top: 1px;   
+}
+.tablet uc-drawing-board .bottom-panel .bottom-sector .form-group .k-button {
+  height: 43px;
+  padding: 0;
+  width: 43px;
+  min-width: 43px;
+}
+
+.tablet .k-slider-horizontal  {
+    height: 45px;
+}
+.tablet .k-slider-horizontal .k-slider-buttons .k-slider-track {
+  left: 50px;
+  width: calc(100% - 100px) !important;
+  margin-top: -8px;
+}
+.tablet .bottom-panel .bottom-sector .form-group.slider {
+  align-self: baseline;
+}
+.tablet .slider-wrapper .display-value {
+  margin-top: -10px !important;
+  position: relative;
+  top: 6px;
+}
+.tablet .k-slider .k-button .k-icon, .k-slider .k-button .k-button-icon {
+  vertical-align: baseline;
+  line-height: 1.7;
+  height: 100%;
+  font-size: 1.6em;
+}
+.tablet .txtbox-container.numeric .numeric-container .k-numerictextbox {
+  height: 43px;
+}
+.tablet .txtbox-container.numeric .numeric-container .k-button {
+  min-width: 45px;
+  height: 43px;
+}
+/* Start Location - Angle selector */
+.tablet .bottom-panel.lidar-align-sector .angle-slider-wrapper {
+  position: relative;
+  margin-top: -2px;
+  align-self: normal;
+  height: 100%;
+  order: 2;
+  max-width: 120px;
+}
+.tablet .bottom-panel.lidar-align-sector .degree-tag-container {
+  position: absolute;
+  width: 120px;
+  top: 33%;
+  text-align: center;
+}
+.tablet .bottom-panel.lidar-align-sector .degree-tag-inner-container {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+}

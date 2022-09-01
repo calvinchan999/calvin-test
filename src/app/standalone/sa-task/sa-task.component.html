@@ -1,0 +1,93 @@
+<div class="task card-container" >
+    <div class="card-header-wrapper">
+        <!-- title -->
+        <h3 class="card-title"></h3>
+        <!-- tab buttons -->
+        <div class="card-buttons">
+            <kendo-buttongroup #buttonGroup selection="single">
+                <button *ngFor="let tab of (uiSrv.isTablet ? tabletObjs.tabs : tabs)" kendoButton [toggleable]="true" [selected]="selectedTab == tab.id" 
+                         (click)=" tab.id == selectedTab ? null : onTabChange(tab.id) ">
+                    {{ tab.label | label : uiSrv.langPack }}
+                </button>
+            </kendo-buttongroup>
+        </div>
+        <span></span>
+    </div>
+
+    <div class="table-container"  *ngIf="!uiSrv.isTablet">
+        <uc-table #table  [toolbarButtons] ="tableButtons" [columnDefs] = "columnDef" [(data)]="data" [serverSidePagination] = "true"
+                          [functionId] = "selectedTab == 'template'? 'TASK_TEMPLATE' : 'TASK' "
+                          [dataSourceApiEndpoint] = "selectedTab == 'jobs' ? 'api/task/page/v1' : (selectedTab == 'template' ? 'api/task/mission/page/v1' : null)"
+                          [disabledButtons] = "tableDisabledButtons" [isLoading] = "isTableLoading"
+                          (selectedDataChange) = "tableDisabledButtons = {new : false , action : $event.length == 0}"
+                          (actionClick) = "$event.actionId == 'delete' ? delete(): null "
+                          (cellClick) = "$event.column == 'edit' || $event.column ==  'execute' ? showDetail($event) : null" (createClick) = "showDetail()" 
+                          [useColumnFilter]='true' [defaultState] = "selectedTab == 'jobs' ? {skip: 0 , take: 15 , sort:[{dir: 'desc' , field: 'createdDateTime'}]} : null">
+        </uc-table>
+    </div>
+
+    <!-- * * *  ^ PC VERSION ^   * * * -->
+
+    <!-- * * *  v TABLET VERSION v  * * * -->
+    <!-- <div *ngIf="uiSrv.isTablet && (selectedTab == 'completed' ||  selectedTab == 'pending' || selectedTab == 'template')">
+        <button kendoButton (click)="tabletObjs.openFilterDialog = !tabletObjs.openFilterDialog">
+            <span></span>
+            <span>{{'Filter' | label : uiSrv.langPack}}</span>
+        </button>
+    </div> -->
+    <ng-container #viewContainer></ng-container>
+
+    <ng-template #tabletListTemplate>
+        <div *ngIf="data && data.length == 0"> {{'No Records Available' | label : uiSrv.langPack}}</div>
+        <cdk-virtual-scroll-viewport #virtualScrollViewport   [itemSize]="tabletRowHeight" 
+                         *ngIf="uiSrv.isTablet && ( selectedTab == 'jobs' || selectedTab == 'template') && !templateId && !taskId" 
+                         [class] = "'k-listview tablet-table ' + selectedTab"  (scrollBottom)="loadMore()" >
+            <div class="k-listview-content tablet-table">
+                <div class="k-listview-item" *cdkVirtualFor = "let row of data" [style.height] = "(tabletRowHeight - 10) + 'px'">
+                    <div class="tablet-row">
+                      <div class="header">
+                          <span *ngFor="let headerLayout of  (tabletObjs.layout[selectedTab]['headers'] ? tabletObjs.layout[selectedTab]['headers'] : [] )">
+                              {{row[headerLayout['id']]}}
+                          </span>
+                      </div>
+                      <div *ngFor="let rowDetailLayout of  (tabletObjs.layout[selectedTab]['details'] ? tabletObjs.layout[selectedTab]['details'] : [] )" class="content">
+                          <span class="label">{{rowDetailLayout['label'] | label : uiSrv.langPack}}</span>
+                          <span *ngIf="rowDetailLayout.type != 'date'" class="value">{{row[rowDetailLayout['id']]}}</span>
+                          <span *ngIf="rowDetailLayout.type == 'date'" class="value">
+                            {{(row[rowDetailLayout['id']] | dateString) ? ((row[rowDetailLayout['id']] | dateString) | date : 'medium') : '' }}
+                          </span>
+                      </div>
+                    </div>
+                    <div class="button-container">
+                        <button kendoButton *ngFor="let btnLayout of (tabletObjs.layout[selectedTab]['buttons'] ? tabletObjs.layout[selectedTab]['buttons'] : [] )" 
+                            (click) = "buttonClick(row, btnLayout['id'])" class="tablet-row-button" [class]="'tablet-row-button ' + btnLayout.class ? btnLayout.class : '' ">
+                            <span [class] = "btnLayout.icon"></span>
+                            <span>{{btnLayout['label'] | label : uiSrv.langPack}}</span>
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </cdk-virtual-scroll-viewport>
+    </ng-template>
+
+    <!-- <app-sa-task-job #taskJobComp
+                     *ngIf = "uiSrv.isTablet && (selectedTab == 'add' || templateId || taskId)" 
+                     [parent] = 'me' [isTemplate] = "templateId || selectedTab == 'add'"
+                     [id] = "templateId ? templateId : taskId"  [readonly] = "taskId">
+    </app-sa-task-job> -->
+</div>
+
+<!-- <kendo-dialog  *ngIf="uiSrv.isTablet && tabletObjs.openFilterDialog">
+    <uc-txtbox lab="Task Name" [frmGrp]="tabletObjs.frmGrpFilter" frmCtrl="taskName"></uc-txtbox>
+    <kendo-buttongroup selection="single">
+        <button kendoButton [toggleable]="true">{{'Before' | label : uiSrv.langPack}}</button>
+        <button kendoButton [toggleable]="true">{{'After' | label : uiSrv.langPack}}</button>
+    </kendo-buttongroup>
+    <uc-date-input lab="Time" [frmGrp]="tabletObjs.frmGrpFilter" frmCtrl="datetime"></uc-date-input>
+    <uc-dropdown lab="Start Point" [frmGrp]="tabletObjs.frmGrpFilter" frmCtrl="startPoint"></uc-dropdown>
+    <uc-dropdown lab="End Point" [frmGrp]="tabletObjs.frmGrpFilter" frmCtrl="endPoint"></uc-dropdown>
+    <uc-dropdown lab="Action" [frmGrp]="tabletObjs.frmGrpFilter" frmCtrl="actionId"></uc-dropdown>
+</kendo-dialog> -->
+
+
+

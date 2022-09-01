@@ -1,0 +1,79 @@
+<div class="map card-container">
+    <div class="card-header-wrapper">
+        <!-- title -->
+        <h3 class="card-title"></h3>
+        <!-- tab buttons -->
+        <div class="card-buttons">
+            <kendo-buttongroup #buttonGroup selection="single">
+                <button *ngFor="let tab of tabs" kendoButton [toggleable]="true" [selected]="selectedTab == tab.id"
+                        (click)=" tab.id == selectedTab ? null : onTabChange(tab.id) ">
+                    {{ tab.label | label : uiSrv.langPack }}
+                </button>
+            </kendo-buttongroup>
+        </div>
+        <span></span>
+    </div>
+
+    <div class="table-container" *ngIf="!uiSrv.isTablet">
+        <uc-table #table [toolbarButtons]="{new : true , action: true}" [columnDefs]="columnDef" [(data)] = "data"  [serverSidePagination] = "true"
+            [functionId] = "selectedTab == 'floorplan' ? 'FLOORPLAN' : 'MAP'"
+            [dataSourceApiEndpoint] = "selectedTab == 'map' ? 'api/map/page/v1' : (selectedTab == 'floorplan' ? 'api/map/plan/page/v1' : null)"
+            [disabledButtons]="tableDisabledButtons" [isLoading]="isTableLoading"
+            (selectedDataChange)="tableDisabledButtons = {new : false , action : $event.length == 0}"
+            (dataStateChange)="loadData($event)" 
+            (actionClick)="$event.actionId == 'delete' ? delete(): null "
+            (cellClick)="$event?.column == 'edit' ? showDetail($event) : null" (createClick)="showDetail()"
+            [useColumnFilter]='true'>
+        </uc-table>
+    </div>
+    <!-- * * *  ^ PC VERSION ^   * * * -->
+
+    <!-- * * *  v TABLET VERSION v  * * * -->
+
+    <div [class]="selectedTab + ' card-content tablet'" *ngIf="uiSrv.isTablet">
+        <div class="no-record" *ngIf="(noMap && selectedTab == 'map') || (noFloorplan && selectedTab == 'floorplan') ">
+            <span class="no-record-message">{{ 'No Records Available' | label : uiSrv.langPack}}</span>
+            <button kendoButton *ngIf="canAddFloorplan" class="new-floorplan-btn" icon="plus"
+                (click)="selectedFloorplanCode = null ; editingFpKeySet = {}">
+                {{'New' | label : uiSrv.langPack}}
+            </button>
+        </div>
+        
+        <div *ngIf="!noMap && selectedTab == 'map' && !editingMapKeySet" class="map-list">
+            <div *ngFor="let map of tabletObjs['maps']"
+                [class]="selectedMapKeySet &&  selectedMapKeySet.mapCode == map['mapCode'] ? 'map-list-item selected' : 'map-list-item'">
+                <button kendoButton  class="text" (click)="selectedMapKeySet = {mapCode : map['mapCode'] , robotBase : map['robotBase']} ;showMap()">
+                    {{map['mapCode']}}
+                </button>
+                <button kendoButton  class="edit" (click)="editingMapKeySet = {mapCode : map['mapCode'] , robotBase : map['robotBase']} ; ">
+                    <span class="k-icon k-i-edit iconButton"></span>
+                </button>
+            </div>            
+        </div>        
+        <div *ngIf="!noFloorplan && selectedTab == 'floorplan' && !editingFpKeySet" class="map-list">
+            <div *ngFor="let floorplan of tabletObjs['floorplans']" [class]="selectedFloorplanCode == floorplan['floorPlanCode'] ? 'map-list-item selected' : 'map-list-item'">
+                <button kendoButton class="text"  (click)="selectedFloorplanCode = floorplan['floorPlanCode'];showFloorplan()">
+                    {{floorplan['floorPlanCode']}}
+                </button>
+                <button kendoButton class="edit" (click)="editingFpKeySet = {floorPlanCode : floorplan['floorPlanCode']}">
+                    <span class="k-icon k-i-edit iconButton"></span>
+                </button>
+            </div>
+            <div *ngIf = "canAddFloorplan" class='map-list-item new'>
+                <button kendoButton class="new-floorplan-btn"  icon="plus" (click) = "selectedFloorplanCode = null ; editingFpKeySet = {}" >
+                    {{'New' | label : uiSrv.langPack}}
+                </button>             
+            </div>
+        </div>
+        <div class="map-container" *ngIf="selectedTab!='scan' && !editingMapKeySet && !editingFpKeySet && !(selectedTab == 'map' && noMap) && !( selectedTab == 'floorplan' && noFloorplan)">
+            <uc-drawing-board #pixi  [hideButton]="{all:true}"  [customInitialViewPosition] = "true" [readonly] = "true"></uc-drawing-board>
+        </div>
+        <div class="map-detail-component-container" *ngIf="addingMap || editingMapKeySet">
+            <app-cm-map-detail [parent]="me" [parentRow]="selectedTab == 'scan' ? null : editingMapKeySet" #mapDetailComp></app-cm-map-detail>
+        </div>
+        <div class="floorplan-component-container" *ngIf="editingFpKeySet">
+            <app-cm-map-floorplan [parent]="me" [parentRow]="editingFpKeySet && editingFpKeySet['floorPlanCode'] ? editingFpKeySet : null" #floorplanComp></app-cm-map-floorplan>
+        </div>
+    </div>
+
+</div>

@@ -1,0 +1,99 @@
+
+<div *ngIf="dataSrv.signalRSubj.taskActive.value && dataSrv.signalRSubj.taskActive.value['taskItemList']" class="task-overlay">
+    <div class="header">
+     <span  *ngIf="dataSrv.signalRSubj.taskActive.value['taskItemList'][dataSrv.signalRSubj.taskItemIndex.value] &&  
+                 dataSrv.signalRSubj.taskActive.value['taskItemList'][dataSrv.signalRSubj.taskItemIndex.value]['actionList'] && 
+                 dataSrv.signalRSubj.taskActive.value['taskItemList'][dataSrv.signalRSubj.taskItemIndex.value]['actionList'][dataSrv.signalRSubj.taskActionIndex.value]">
+        {{actions[dataSrv.signalRSubj.taskActive.value['taskItemList'][dataSrv.signalRSubj.taskItemIndex.value]['actionList'][dataSrv.signalRSubj.taskActionIndex.value]['alias']]}}
+     </span>
+</div>
+
+<div class="content-panel">
+    <kendo-scrollview *ngIf="uiSrv.isTablet" [data]="scrollViewIndices" [arrows]="!uiSrv.isTablet" [pageable]="true">
+        <ng-template let-item="item">
+            <ng-container *ngIf="item == 2">
+                <app-sa-top-module class="top-module"></app-sa-top-module>
+            </ng-container>
+            <ng-container *ngIf="item == 1"> 
+               <ng-container *ngTemplateOutlet = "progress"></ng-container>
+            </ng-container>
+        </ng-template>
+    </kendo-scrollview>
+    <ng-container *ngIf="!uiSrv.isTablet">        
+        <ng-container *ngTemplateOutlet = "progress"></ng-container>
+    </ng-container>
+</div>
+
+<div class="line-panel">
+    <div *ngIf = "dataSrv.signalRSubj.taskActive.value['taskItemList'].length > 5" class="steps">
+        <span *ngIf="dataSrv.signalRSubj.taskItemIndex.value > 2" class="first-node" [class]="dataSrv.signalRSubj.taskItemIndex.value == 0 ? 'active' : ''">
+            {{dataSrv.signalRSubj.taskActive.value['taskItemList'][0]['movement']['waypointName'] | waypointName}}
+        </span>
+            
+        <span *ngIf = "dataSrv.signalRSubj.taskItemIndex.value - 1 > 1" class="dot-dot-dot">
+            <span  class="mdi mdi-chevron-right" ></span>
+            <span  class="name"> . . . </span>
+        </span>
+            
+        <span  *ngIf="dataSrv.signalRSubj.taskItemIndex.value == 2"  class="prev-2-node">
+            <span *ngIf="dataSrv.signalRSubj.taskItemIndex.value > 2"  class="mdi mdi-chevron-right" ></span>
+            <span class="name">{{dataSrv.signalRSubj.taskActive.value['taskItemList'][dataSrv.signalRSubj.taskItemIndex.value - 2]['movement']['waypointName'] | waypointName}}</span>
+        </span>
+                
+        <span  *ngIf="dataSrv.signalRSubj.taskItemIndex.value != 0"  class="prev-node">
+            <span  *ngIf="dataSrv.signalRSubj.taskItemIndex.value >= 2"  class="mdi mdi-chevron-right"></span>
+            <span class="name">{{dataSrv.signalRSubj.taskActive.value['taskItemList'][dataSrv.signalRSubj.taskItemIndex.value - 1]['movement']['waypointName'] | waypointName}} </span>
+        </span>
+                
+        <span class="center-node active">
+            <span  *ngIf="dataSrv.signalRSubj.taskItemIndex.value >= 2 || dataSrv.signalRSubj.taskItemIndex.value != 0"  class="mdi mdi-chevron-right" [class]="dataSrv.signalRSubj.isMovingInTask.value ? 'moving' : ''"></span>
+             <span class="name">{{dataSrv.signalRSubj.taskActive.value['taskItemList'][dataSrv.signalRSubj.taskItemIndex.value]['movement']['waypointName'] | waypointName}}</span>
+        </span>
+                
+        <span *ngIf="dataSrv.signalRSubj.taskItemIndex.value != dataSrv.signalRSubj.taskActive.value['taskItemList'].length -  1"  class="next-node">
+            <span  class="mdi mdi-chevron-right" ></span>
+             <span class="name"> {{dataSrv.signalRSubj.taskActive.value['taskItemList'][dataSrv.signalRSubj.taskItemIndex.value + 1]['movement']['waypointName'] | waypointName}}</span>
+        </span>
+            
+        <span *ngIf="dataSrv.signalRSubj.taskItemIndex.value == dataSrv.signalRSubj.taskActive.value['taskItemList'].length - 3"  class="next-2-node">
+            <span  class="mdi mdi-chevron-right" ></span>
+            <span class="name"> {{dataSrv.signalRSubj.taskActive.value['taskItemList'][dataSrv.signalRSubj.taskItemIndex.value + 2]['movement']['waypointName'] | waypointName}}</span>
+        </span>
+                        
+        <span *ngIf = "dataSrv.signalRSubj.taskItemIndex.value + 1 < dataSrv.signalRSubj.taskActive.value['taskItemList'].length - 2" class="dot-dot-dot">
+            <span  class="mdi mdi-chevron-right"></span>
+            <span class="name"> . . .</span>
+        </span>
+            
+        <span *ngIf="dataSrv.signalRSubj.taskItemIndex.value < dataSrv.signalRSubj.taskActive.value['taskItemList'].length - 3" class="last-node" 
+               [class]="dataSrv.signalRSubj.taskItemIndex.value == dataSrv.signalRSubj.taskActive.value['taskItemList'].length - 1 ? 'active' : ''">
+            <span  class="mdi mdi-chevron-right"></span>
+            <span class="name">{{dataSrv.signalRSubj.taskActive.value['taskItemList'][dataSrv.signalRSubj.taskActive.value['taskItemList'].length - 1]['movement']['waypointName'] | waypointName}}</span>
+        </span>
+    </div>
+            
+    <div *ngIf = "dataSrv.signalRSubj.taskActive.value['taskItemList'].length <= 5" class="steps" >
+        <span *ngFor = "let taskItem of dataSrv.signalRSubj.taskActive.value['taskItemList'] ; let i = index" [class]="dataSrv.signalRSubj.taskItemIndex.value == i ? 'active' : ''">
+            <span *ngIf="i != 0"  class="mdi mdi-chevron-right" [class]="dataSrv.signalRSubj.taskItemIndex.value == i  && dataSrv.signalRSubj.isMovingInTask.value ? 'moving' : ''"></span>
+               {{taskItem['movement']['waypointName'] | waypointName}}
+            </span>
+    </div>
+</div>
+
+</div>
+
+<div *ngIf="!dataSrv.signalRSubj.taskActive.value || !dataSrv.signalRSubj.taskActive.value['taskItemList']" class="no-task">
+    {{'No Executing Task' | label: uiSrv.langPack}}
+</div>
+
+<ng-template #progress>
+    <div class="progress">
+        <div class="outerCircle"></div>
+        <div class="innerCircle"></div>
+        <div class="icon"></div>
+        <div class="percent">
+            <span class="value">{{dataSrv.signalRSubj.taskProgress.value}}</span>
+            <span class="suffix"> % </span>
+        </div>
+    </div>   
+</ng-template>

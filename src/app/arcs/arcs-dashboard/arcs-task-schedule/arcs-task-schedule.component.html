@@ -1,0 +1,29 @@
+<div [class] = "'dialog-content task-schedule '">
+    <kendo-dialog-titlebar  (close) = "onClose()">
+        <div>{{'Task Scheduling' | label: uiSrv.langPack}}</div>
+    </kendo-dialog-titlebar>
+    <div class="container">
+        <div class="form-container">
+            <form [formGroup]="frmGrp" class="content">
+                <div class="form-row">
+                    <uc-dropdown lab = "Template" [frmGrp] = "frmGrp" frmCtrl = "missionId"  [options] = "dropdownOptions.missions" [allowClear]="false"></uc-dropdown>
+                    <uc-date-input lab = "Start Date" [frmGrp] = "frmGrp" frmCtrl = "startDateTime"></uc-date-input>
+                    <uc-date-input lab = "End Date"  [frmGrp] = "frmGrp" frmCtrl = "endDateTime"></uc-date-input>
+                </div>
+                <div class="form-row">
+                    <uc-txtbox lab = "Schedule Name" [frmGrp] = "frmGrp" frmCtrl = "name"></uc-txtbox>
+                </div>
+    
+                 <uc-cron-editor [frmGrp] = "frmGrp" frmCtrl = "cronExpress" 
+                                [customCron]="!frmGrp.controls['guiGenerated'].value" (customCronChange)="frmGrp.controls['guiGenerated'].setValue(!$event)">
+                </uc-cron-editor>
+            </form>  
+        </div>      
+    </div>
+    <div class="button-container">
+        <button kendoButton (click) = "onClose()" > {{'Cancel' | label : uiSrv.langPack}}</button>
+        <button *ngIf="!readonly" kendoButton (click) = "saveToDB()"> {{'Save' | label : uiSrv.langPack}}</button>
+    </div>
+</div>
+
+

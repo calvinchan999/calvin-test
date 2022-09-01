@@ -1,0 +1,20 @@
+<div class="pin-input-container">
+    <div class="pin-input-message">
+        
+    </div>
+    <div class="pin-row">
+        <button *ngFor = "let digit of displayDigits" kendoButton [disabled] = "true" class="pin-digit-container">{{digit}}</button>
+    </div>
+    <div class="pin-error-message">
+        
+    </div>
+    <div class="keypad-container">
+        <div *ngFor="let keyRows of keypadButtons" class="keypad-button-row">
+            <div *ngFor="let key of keyRows" class="keypad-button-container">
+                <button *ngIf="key['label']!=undefined || key['icon']!=undefined" kendoButton class="keypad-button" (click)="inputPin(key['id'])">
+                    <span [class]="key['id'] == 'backspace'? 'mdi mdi-backspace' : null">{{key['label']}}</span>
+                </button>
+            </div>
+        </div>
+    </div>
+</div>

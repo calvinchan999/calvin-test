@@ -1,0 +1,48 @@
+<div class="dialog-content map-floorplan">
+    <kendo-dialog-titlebar (close) = "onClose()">
+        <div>{{'Building' | label: uiSrv.langPack}}</div>
+    </kendo-dialog-titlebar>
+    <div class="container">
+        <div class="form-container">
+            <form [formGroup]="frmGrp" class="content">
+                <uc-txtbox lab = "Code" [frmGrp] = "frmGrp" frmCtrl = "buildingCode" [upper]="true" [disabled] = "parentRow "></uc-txtbox>
+                <uc-dropdown lab = "Default Floor Plan" [frmGrp] = "frmGrp" frmCtrl = "defaultFloorPlanCode"  [options] = "dropdownOptions.floorplans">
+                </uc-dropdown>
+                <!-- <uc-dropdown lab = "Site" [frmGrp] = "frmGrp" frmCtrl = "parentLocationId"  (change) = "onSiteChange()" [options] = "dropdownOptions.sites">
+                </uc-dropdown> -->
+                <uc-txtbox lab = "Building Name" [frmGrp] = "frmGrp" frmCtrl = "name"></uc-txtbox>
+                <div class="col default-checkbox site">
+                    <input type="checkbox" kendoCheckBox  formControlName="defaultPerSite" />                     
+                    <span >{{ 'Default Building' | label: uiSrv.langPack}}</span>
+                </div>
+                <div class="col form-group listview">
+                    <label class="col-form-label">{{'Floor Plan' | label: uiSrv.langPack}}</label>
+                    <div class="map-tree k-textbox"> 
+                        <div *ngFor="let floorplan of dropdownData.floorplans" [class]="'item'">
+                            <input type="checkbox" kendoCheckBox [ngModelOptions]="{standalone: true}"  [(ngModel)] = "floorplan['selected']" (ngModelChange)="refreshFloorPlanOptions()"/>                     
+                            <span  class="name">{{ floorplan.name }}</span>
+                        </div>
+                    </div>
+                </div>
+            </form>
+        </div>
+        <div class="viewport-container">
+            <uc-drawing-board #pixi [overlayMsg] = "frmGrp.controls['siteCode'].value!=null ? null : ('Please select a site first' | label : uiSrv.langPack) " 
+                              [canUploadMultiImg] = "false" [hideButton] = "{ line : true, brush: true, arrow : true, point: true, export: true, upload : true}" 
+                              [disableButton] = "pixiElRef?.drawingsCreated.length == 0 && pixiElRef?.selectedGraphics?.type == 'polygon'? {} :
+                                                 pixiElRef?.drawingsCreated.length == 0 && pixiElRef?.selectedGraphics?.type != 'polygon'? {delete : true } : 
+                                                 pixiElRef?.drawingsCreated.length != 0 && pixiElRef?.selectedGraphics?.type != 'polygon'? {polygon: true , delete : true } : 
+                                                 pixiElRef?.drawingsCreated.length != 0 && pixiElRef?.selectedGraphics?.type == 'polygon'? {polygon: true } :
+                                                 null"
+                              [hideRelocationButton] = "true" (onDrawingsCreated) = "onBuildingShapeAdded($event)"
+                              [palette] = "{ map: ['#000000'], path: null, location: null}">
+            </uc-drawing-board>            
+        </div>
+    </div>
+    <div class="button-container">
+        <button kendoButton (click) = "onClose()" > {{'Cancel' | label : uiSrv.langPack}}</button>
+        <button kendoButton (click) = "saveToDB()"> {{'Save' | label : uiSrv.langPack}}</button>
+    </div>
+</div>
+
+

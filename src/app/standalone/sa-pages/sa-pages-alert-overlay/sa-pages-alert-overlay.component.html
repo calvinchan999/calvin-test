@@ -1,0 +1,32 @@
+<!-- <div *ngIf="uiSrv.isTablet && (dataSrv.signalRSubj.estop.value || dataSrv.signalRSubj.obstacleDetected.value || dataSrv.signalRSubj.tiltActive.value)" 
+     [class]="'warning background ' +  (expanded ? 'expanded' : 'collasped')">
+    <div [class]="'wrapper ' +  (expanded ? 'expanded' : 'collasped')">
+        <kendo-expansionpanel [(expanded)] = "expanded">
+            <ng-template kendoExpansionPanelTitleDirective>
+                <div id="alert">
+                    <div class="alertbar"></div>
+                    <div class="alertcontent">
+                        <div class="alerticon">
+                            <i class="icon"> </i>
+                        </div>
+                        <div class="alerttext" href="#alert">
+                    <span class="header">{{'Warning' | label: uiSrv.langPack}}</span>
+                            <span class="text " *ngIf="dataSrv.signalRSubj.estop.value">{{ 'Emergency Stop Switched On' | label: uiSrv.langPack}}</span>
+                            <span class="text " *ngIf="dataSrv.signalRSubj.obstacleDetected.value">{{ 'Obstacle Detected' | label: uiSrv.langPack}}</span>
+                            <span class="text" *ngIf="dataSrv.signalRSubj.tiltActive.value">{{ 'Excess tilt detected' | label:uiSrv.langPack}}</span>
+                        </div>
+                    </div>
+                    <div class="alertbar"> </div>
+                </div>
+            </ng-template>           
+        </kendo-expansionpanel>
+    </div>
+</div> -->
+
+<!-- [title]="!expanded? (('Warning' | label: uiSrv.langPack) + 
+                                        (((dataSrv.signalRSubj.estop.value?  (' : ' + 'Emergency Stop Switched On') : '')| label: uiSrv.langPack) +
+                                         ((dataSrv.signalRSubj.obstacleDetected.value? ( ' : ' + 'Obstacle Detected') : '' )| label: uiSrv.langPack) +
+                                         ((dataSrv.signalRSubj.tiltActive.value? (' : ' + 'Excess tilt detected') : '')| label: uiSrv.langPack)
+                                        )  
+                                       ):''
+                                      " -->

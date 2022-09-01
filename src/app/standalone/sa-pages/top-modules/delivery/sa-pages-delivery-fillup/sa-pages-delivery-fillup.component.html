@@ -1,0 +1,40 @@
+<app-sa-top-module #topModule [showDeliveryOrderInput] = "true" [style.display] = "view == 'cabinet'? '' : 'none'" ></app-sa-top-module> 
+<div class="button-container">
+    <button kendoButton class="done-button" [style.display] = "view == 'cabinet'? '' : 'none'" (click) = "showPinListAndConfirmDialog()"> {{'Next' | label: uiSrv.langPack}} </button>
+</div>
+
+<kendo-dialog *ngIf="showPinList"  [minWidth]="250" [width]="450">
+    <div class="k-window-title k-dialog-title k-dialog-titlebar">
+       {{'Confirm' | label : uiSrv.langPack}}
+    </div>
+    <div class="pin-list">
+        <div *ngFor="let pinItem of pinList" class="item" >
+            <div class="container-id">
+                <span class="label">{{ 'Container ID' | label: uiSrv.langPack}}</span>
+                <span class="value">{{pinItem?.containerId}}</span>
+            </div>
+            <div class="pin">
+                <span class="label">{{ 'PIN' | label: uiSrv.langPack}}</span>
+                <span class="value">{{pinItem.pin}}</span>
+            </div>
+            <div class="order-no" *ngIf="pinItem?.order">
+                <span class="label">{{ 'Order No' | label: uiSrv.langPack}}</span>
+                <span class="value">{{pinItem?.order}}</span>
+            </div>
+        </div>
+    </div>
+
+    <kendo-dialog-actions>
+        <button kendoButton>{{'Cancel' | label : uiSrv.langPack}}</button>
+        <button kendoButton>{{'Confirm' | label : uiSrv.langPack}}</button>
+    </kendo-dialog-actions>
+</kendo-dialog>
+<!-- (onButtonClicked)="onDoorToggled($event)" -->
+
+<!-- <div [style.display] = "view == 'form'? '' : 'none'" >
+    <uc-txtbox lab = "Container ID" [value] = "currentContainerId" [disabled] = "true"></uc-txtbox>
+    <uc-txtbox lab = "Order No." [(value)] = "orderNoForm[currentContainerId]"></uc-txtbox>
+    <button kendoButton (click) = "view = 'cabinet' ;  currentContainerId = null">{{'OK'}}</button>
+</div> -->
+
+<!-- <app-sa-pages-pin *ngIf="showComp == 'pin'"></app-sa-pages-pin> -->

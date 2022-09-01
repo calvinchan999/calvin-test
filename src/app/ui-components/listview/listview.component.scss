@@ -1,0 +1,200 @@
+:host .cdk-drag-preview {
+  z-index: 10000000;
+    box-sizing: border-box;
+    border-radius: 4px;
+    box-shadow: 0 5px 5px -3px rgba(0, 0, 0, 0.2),
+                0 8px 10px 1px rgba(0, 0, 0, 0.14),
+                0 3px 14px 2px rgba(0, 0, 0, 0.12);
+  }
+  
+  :host .cdk-drag-placeholder {
+    opacity: 0;
+  }
+  
+  :host .cdk-drag-animating {
+    transition: transform 250ms cubic-bezier(0, 0, 0.2, 1);
+  }
+  
+  :host .cdk-drop-list-dragging .mat-row:not(.cdk-drag-placeholder) {
+    transition: transform 250ms cubic-bezier(0, 0, 0.2, 1);
+  }
+
+  :host .listview-header-row, :host .listview-footer-row ,.listview-row{
+    display: flex;
+    // span{
+    //     min-height: 100%;
+    //     display: inline-block;
+    //     flex-direction: column;
+    //     justify-content: center;
+    //     padding: 4px;
+    //   }
+}
+
+:host .listview-header-row , :host .listview-footer-row{
+  position: relative;
+}
+
+:host .listview-row{
+    width:fit-content ;
+    align-items: center;
+    height: 40px;
+}
+
+:host .listview-row:not(.dragging) , :host .drag-handle{
+  transform: none !important;
+}
+
+:host .listview-header-row-container{
+    width: 100%;
+    // height: 25px; 
+}
+
+:host .listview-header-row {
+  width: max-content;
+  height: 100%;
+}
+
+:host .listview-footer-row{
+  width: 100%;
+  height: 100%;
+}
+
+:host .listview-container{
+    width: 100%!important;
+    height: 100%;
+    overflow: hidden;
+    border-radius: 4px;
+    border-width: 1px;
+    border-style: solid;
+    display: flex;
+    flex-direction: column;
+}
+
+:host .resize-col-grip{
+  cursor :  col-resize;
+  border-left:3px;
+  border-right:3px;
+  border-style: solid;
+}
+
+:host .col-header-cell-container, :host .col-footer-cell-container{
+  display: flex;
+}
+:host .col-header , :host .col-footer{
+  flex-grow: 1;
+}
+
+:host .listview-row-container{
+  flex-grow: 1;
+  overflow: auto;
+  width: 100%;
+  padding-bottom: 6px;
+}
+
+:host cdk-virtual-scroll-viewport{
+  overflow:hidden
+}
+
+:host .listview-row.dragging {
+
+}
+
+:host .listview-cell {
+  height: 100%;
+  min-height: 100%;
+  display: flex;
+  align-items: center;
+}
+
+:host .listview-cell-content, .col-header-cell-content , .col-footer-cell-content{
+  padding: 4px;
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+  display: block;
+}
+
+
+:host .col-header-cell-content{
+  -webkit-user-select: none; /* Safari */        
+  -moz-user-select: none; /* Firefox */
+  -ms-user-select: none; /* IE10+/Edge */
+  user-select: none; /* Standard */
+}
+
+:host .focused-cell .plain{
+
+}
+
+:host .footer-new-row-panel{
+  width: 100%;
+}
+
+:host .listview-footer-row{
+  min-width: 100%;
+}
+
+:host ::ng-deep .footer-new-row-panel{
+  margin: 0px;
+  border: 0px;
+  ::ng-deep .k-expander-content{
+    padding: 0px!important;
+  }
+}
+
+:host ::ng-deep .k-expander-header{
+  padding: 2px 16px;
+}
+
+:host .new-row-expansion-header{
+  span{
+    padding: 0px 5px;
+  }
+}
+
+:host uc-txtbox{
+  width: 100%;
+  padding: 0 5px
+}
+
+.new-row .listview-row{
+  height: 60px;
+  width: 100%;
+}
+
+::ng-deep .list-tooltip{
+  white-space: pre-line;
+}
+
+:host .error{
+  color:#FF6C6C;
+  padding:5px
+}
+
+:host .error-row{
+  background:rgba(255,108,108 , 0.7);
+}
+
+.animated-bg {
+  background: rgba(0,206,209);
+  -webkit-animation: fadeOut 1.25s ease-in-out;
+  animation: fadeOut 1.25s ease-in-out;
+  transition: ease-in-out;
+}
+
+@keyframes fadeOut{
+  25%{background: rgba(0,206,209 , 0.75)}
+  50%{background: rgba(0,206,209 , 0.5)}
+  75%{background: rgba(0,206,209 , 0.25)}
+  100%{background: transparent}
+}
+
+@-webkit-keyframes fadeOut{
+  25%{background: rgba(0,206,209 , 0.75)}
+  50%{background: rgba(0,206,209 , 0.5)}
+  75%{background: rgba(0,206,209 , 0.25)}
+  100%{background: transparent}
+}
+
+
+

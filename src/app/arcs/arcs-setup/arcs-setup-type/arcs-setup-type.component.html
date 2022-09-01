@@ -1,0 +1,23 @@
+<div class="dialog-content map-detail">
+    <kendo-dialog-titlebar (close)="onClose()">
+        <div>{{'Type' | label: uiSrv.langPack}}</div>
+    </kendo-dialog-titlebar>
+
+    <div class="form-container">
+        <form [formGroup]="frmGrp" class="content">
+            <div class="form-row">
+                <uc-dropdown lab="Type" [frmGrp]="frmGrp" frmCtrl="typeName" [options]="dropdownOptions.types"></uc-dropdown>
+                <uc-dropdown lab="Status" [frmGrp]="frmGrp" frmCtrl="typeStatus" [options]="dropdownOptions.status"></uc-dropdown>
+            </div>
+            <div class="form-row">
+                <uc-txtbox lab="Code" [frmGrp]="frmGrp" frmCtrl="typeCode"></uc-txtbox>
+                <uc-txtbox lab="Sub Type Name" [frmGrp]="frmGrp" frmCtrl="subTypeName"></uc-txtbox>
+            </div>
+        </form>
+    </div>
+
+    <div class="button-container">
+        <button kendoButton (click)="onClose()"> {{'Cancel' | label : uiSrv.langPack}}</button>
+        <button kendoButton (click)="saveToDB()" >{{'Save' | label : uiSrv.langPack}}</button>
+    </div>
+</div>

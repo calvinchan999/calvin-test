@@ -1,0 +1,44 @@
+<div [class]="lab ? 'form-group': ''">
+    <label class="col-form-label">{{ lab | label : uiSrv.langPack}}</label>
+
+    <kendo-dropdownlist #kDropdown [ngModel] = "myValue"  [data]="options"  [textField]="textFld" [valueField]="valueFld"  (open)="open.emit($event)" (close) = "blurKdropdown();close.emit($event)"
+                        (ngModelChange) = " oldValue = value; value = $event[valueFld]; valueChange.emit(value) ; change.emit({currentValue : $event[valueFld] , previousValue: oldValue})"
+                        [class] = "(transitBackground ? 'animated-bg' : '' ) + (kendoCssClass? (' ' + kendoCssClass ) : '') "  
+                        [disabled] = "disabled || (frmGrp && frmGrp.controls[frmCtrl] && frmGrp.controls[frmCtrl].disabled)">
+        <ng-template kendoDropDownListNoDataTemplate *ngIf = "noDataMsg">
+            {{noDataMsg}}
+        </ng-template>
+        <ng-template kendoDropDownListValueTemplate let-dataItem *ngIf="translateOption || prefixIconClass || allowClear">
+            <div class="dropdown-value">
+                <span class="item">
+                    <span *ngIf = "prefixIconClass" [class]="prefixIconClass"></span>
+                    <span *ngIf= "dataItem">  {{ translateOption ? (dataItem[textFld] | label : uiSrv.langPack) : dataItem[textFld] }}</span>
+                </span>
+                <span *ngIf="dataNotFound" class="error">
+                    {{ dataNotFoundMsg | label : uiSrv.langPack}}
+                </span>
+                <a *ngIf = "value && allowClear && !disabled" class="clear k-icon mdi mdi-close" 
+                    (click) = "$event.stopPropagation(); oldValue = value; value = null; valueChange.emit(value); change.emit({currentValue : null , previousValue: oldValue})"></a>
+            </div>       
+        </ng-template>
+        <ng-template kendoDropDownListItemTemplate  let-dataItem *ngIf="trackMouseoverOption || translateOption || customDropItemTemplate">
+            <span *ngIf= "dataItem"
+                  (mouseover) = "trackMouseoverOption ? mouseoverOptionChange.emit(dataItem) : null" 
+                  (mouseleave) = "trackMouseoverOption ? onMouseLeaveOption(dataItem , $event) : null"
+                  style="width: 100%;height: 100%;">
+                  {{ translateOption ? (dataItem[textFld] | label : uiSrv.langPack) : dataItem[textFld] }}
+            </span>
+            <div  *ngIf= "dataItem && dataItem.suffix!=null"  class="suffix">
+                <span class="text">  {{ translateOption ? (dataItem['suffix'] | label : uiSrv.langPack) : dataItem['suffix'] }}</span>
+            </div>
+          
+        </ng-template>
+        
+    </kendo-dropdownlist>
+    <label *ngIf = "errMsg || frmGrp?.controls[frmCtrl].errors"  class="error"> {{errMsg ? errMsg : frmGrp.controls[frmCtrl].errors['message']}}</label>
+    <label *ngIf = "frmGrp?.controls[frmCtrl].errors?.required && frmGrp.controls[frmCtrl].touched"  class="error">
+        {{ (lab | label : uiSrv.langPack) + (' is required' | label : uiSrv.langPack)}}
+   </label>
+</div>
+   
+

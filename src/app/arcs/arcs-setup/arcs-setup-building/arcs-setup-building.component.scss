@@ -1,0 +1,17 @@
+.viewport-container{
+    width: 60vw;
+    height: 75vh;
+    margin: 20px;
+}
+
+.plan-content-container {
+    display: block;
+    height: calc(100% - 18px);
+    width: 100%;
+    overflow: auto;
+    padding: 8px;
+}
+
+.container{
+    display: flex;
+}

@@ -1,0 +1,51 @@
+<div [class] = "'dialog-content map-detail '  + (!parentRow && uiSrv.isTablet ? 'scan' : '')">
+    <kendo-dialog-titlebar [style.display]="uiSrv.isTablet?'none':''" (close) = "onClose()">
+        <div>{{'Map' | label: uiSrv.langPack}}</div>
+    </kendo-dialog-titlebar>
+    <div class="container">
+        <div *ngIf="!uiSrv.isTablet" class="form-container">
+            <ng-container *ngTemplateOutlet="form"></ng-container>
+        </div>
+        <div class="viewport-container">
+            <uc-drawing-board #pixi
+                [overlayMsg]="!isCreate || startedScanning? null : ( 'Start Scanning' | label : uiSrv.langPack) " 
+                [remoteControl] = "isCreate" 
+                [canUploadMultiImg]="false" [uploadMustMatchOriginalSize]="true"
+                [hideButton]="readonly ? {all : true} : { arrow: true, upload: true, point: true , manual : true}"
+                (fileLoad)=" frmGrp.controls['fileName'].setValue($event?.name)"
+                [showScanButton]="isCreate && !startedScanning" (scanClicked)="startScanMap()"
+                [hideRelocationButton]="true">
+            </uc-drawing-board>
+        </div>
+    </div>
+    <div *ngIf="uiSrv.isTablet && !isCreate" class="form-container bottom">
+        <ng-container *ngTemplateOutlet="form"></ng-container>
+    </div>
+    <div class="button-container">
+        <button kendoButton (click) = "onClose()" > {{'Cancel' | label : uiSrv.langPack}}</button>
+        <button *ngIf="!readonly" kendoButton (click) = "saveToDB()" [disabled] = "!occupancyGridReceived && !frmGrp.controls['fileName'].value"> {{'Save' | label : uiSrv.langPack}}</button>
+    </div>
+</div>
+
+<kendo-dialog *ngIf="showTabletSaveDialog" [title]="'Save New Map' | label : uiSrv.langPack"
+               (close)="showTabletSaveDialog = false" [minWidth]="250" [width]="450">
+            <ng-container *ngTemplateOutlet="form"></ng-container>
+            <div class="button-container">
+                <button kendoButton (click) = "saveToDB()" > {{'Save' | label : uiSrv.langPack}}</button>
+            </div>
+</kendo-dialog>
+
+
+<ng-template #form>
+        <form [formGroup]="frmGrp" class="content">
+            <uc-txtbox lab = "Code" [frmGrp] = "frmGrp" frmCtrl = "mapCode" [disabled]="parentRow" [upper] = "true" ></uc-txtbox>
+            <uc-txtbox *ngIf="util.arcsApp" lab = "Robot Base" [frmGrp] = "frmGrp" frmCtrl = "robotBase" [disabled]="parentRow" [upper] = "true"></uc-txtbox>
+            <uc-txtbox lab = "Map Name" [frmGrp] = "frmGrp" frmCtrl = "name"></uc-txtbox>
+            <uc-txtbox *ngIf = "parentRow" 
+                        lab = "Map Image File Name" [frmGrp] = "frmGrp" frmCtrl = "fileName"  
+                        [suffixButton] = "{icon : 'k-icon mdi mdi-upload'}" 
+                        (suffixButtonClick) = "pixiElRef? pixiElRef.uploader.nativeElement.click() : null">
+            </uc-txtbox>
+        </form>    
+</ng-template>
+

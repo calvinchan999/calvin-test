@@ -1,0 +1,36 @@
+<div class="dialog-content task-job-action">
+    <kendo-dialog-titlebar class="drag-cursor" (close) = "onClose()" cdkDrag cdkDragRootElement=".k-dialog" cdkDragHandle>
+        <div>{{'Action List - ' | label: uiSrv.langPack}} {{locationCode}}</div>
+    </kendo-dialog-titlebar>
+        <div class="form-container">
+            <div class="list-container">
+                <uc-listview #listview [columnDef]="actionListDef" [customAddRow] = "true" [disableAdd] = "actionNewRow['actionAlias'] == null" [editable] = "!readonly"
+                            (buttonClick)="$event.row == actionNewRow && $event.id == 'add' ? addRow() : null ;
+                                           $event.id == parent.actionRowCfg.parentRowKey ? parent.showActionDetailDialog($event) : null;"  
+                            [rowDetailCfg] = "parent.actionRowCfg"
+                            [(data)]="actionListData" (dataChange) = "refreshSeq()" [(newRow)] = "actionNewRow" 
+                            (valueChange)="$event.id == 'actionAlias'? parent.refreshActionParameter($event.row , $event.oldValue) : null "> 
+                </uc-listview>
+            </div>
+            
+            <!-- (focusChange)="$event.id == 'navigationMode' ? refreshGridNavigationOption($event) : null " -->
+
+            <!-- <form [formGroup]="frmGrp">
+                <div class="form-row create-container">
+                    <uc-dropdown lab = "Action" [frmGrp] = "frmGrp" frmCtrl = "actionAlias" [options] = "dropdownOptions['actions'] ? dropdownOptions['actions'] : [] " >
+                    </uc-dropdown>
+                    <uc-dropdown lab = "Navigation Mode" [frmGrp] = "frmGrp" frmCtrl = "navigationMode" [options] = "dropdownOptions['navigationMode'] ? dropdownOptions['navigationMode'] : [] " >
+                    </uc-dropdown>
+                    <uc-txtbox  lab = "Lock"  [frmGrp] = "frmGrp" frmCtrl = "lock"></uc-txtbox>
+                    <uc-txtbox  lab = "OTP"  [frmGrp] = "frmGrp" frmCtrl = "otp"></uc-txtbox>
+                   
+                    <button kendoButton class="create-button" (click) = "addRow()" 
+                            [disabled] = "frmGrp.controls['actionAlias'].value == null || frmGrp.controls['actionAlias'].value == undefined "> 
+                        <span class="k-icon mdi mdi-plus"></span> 
+                    </button>
+                </div>
+            </form> -->
+        </div>
+</div>
+
+

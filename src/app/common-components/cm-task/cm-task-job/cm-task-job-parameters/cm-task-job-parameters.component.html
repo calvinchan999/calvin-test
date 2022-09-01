@@ -1,0 +1,30 @@
+<div class="dialog-content task-job-parameters">
+    <kendo-dialog-titlebar class="drag-cursor" (close) = "onClose()" cdkDrag cdkDragRootElement=".k-dialog" cdkDragHandle>
+        <div>#{{row['seq']}} - {{actionName}}</div>
+    </kendo-dialog-titlebar>
+        <div class="summary" *ngFor='let itm of rowSummary'>
+            <span class="label">{{itm.label | label: uiSrv.langPack }}</span> 
+            <span class="value">{{itm.value ? ' ' + itm.value : ' - '}}</span>
+        </div>
+        <div class="detail">
+            <ng-container *ngFor="let param of (row[parent.actionRowCfg.parentRowKey] ? row[parent.actionRowCfg.parentRowKey] : [])">
+                <ng-container *ngIf="param['struct'] && param['struct']['enumList'].length > 0" >
+                    <span *ngFor="let enum of param['struct']['enumList']"  class="checkbox">
+                        <input class="radio-button" type="radio" [value]="enum.value" [(ngModel)]="param[parent.actionRowCfg.detailRowValueKey]"  [disabled]='parent.readonly' kendoRadioButton />
+                        <label class="radio-label">{{enum.label | label: uiSrv.langPack}}</label>
+                    </span>  
+                </ng-container> 
+                <uc-txtbox *ngIf="!param['struct'] || ((param['struct']['parameterType'] == 'STRING' ||  param['struct']['parameterType'] == 'NUMBER') && param['struct']['enumList'].length == 0)"
+                    [disabled]='parent.readonly' [lab]="param[parent.actionRowCfg.detailRowLabelKey]"
+                    [numeric] = "param['struct'] && param['struct']['parameterType'] == 'NUMBER'"                                        
+                    [(value)]="param[parent.actionRowCfg.detailRowValueKey]">
+                </uc-txtbox>
+                <span *ngIf="param['struct'] && param['struct']['parameterType'] == 'BOOLEAN' && param['struct']['enumList'].length == 0" >
+                    <label class="col-form-label">{{param[parent.actionRowCfg.detailRowLabelKey] | label: uiSrv.langPack }}</label>
+                    <input type="checkbox" kendoCheckBox  [disabled]='parent.readonly' [(ngModel)]="param[parent.actionRowCfg.detailRowValueKey]" />
+                </span>       
+            </ng-container>              
+        </div>
+</div>
+
+

@@ -1,0 +1,161 @@
+
+<div #container class="listview-container">
+    <div class="listview-header-row-container" >
+        <div class="listview-header-row" [style.left]="-1 * (virtualScrollViewport?.elementRef?.nativeElement?.scrollLeft) + 'px'">
+            <ng-container *ngFor="let col of columnDef">
+                <div class="col-header-cell-container" [style.width]="col['width']?  col['width'] + 'px'  : 100">
+                    <div class="col-header col-header-cell-content" (mousedown)="$event.preventDefault()"> {{col['title'] | label : uiSrv.langPack}} </div>
+                    <div [style.minWidth]="resizeGripWidth + 'px'" class="resize-col-grip" (mousedown)="onColumnResize($event ,col['id'])"></div>
+                </div>
+            </ng-container>
+        </div>
+    </div>
+
+    <cdk-virtual-scroll-viewport #list class="listview-row-container"  [itemSize]="rowHeight" (scroll)="changeDetector.detectChanges()">
+        <ng-container *cdkVirtualFor = "let row of data"  >
+              <ng-container *ngIf = "projectedDropRow == row">
+                <ng-container *ngTemplateOutlet = "rowTemplate; context:{row: draggingRow}"></ng-container>
+              </ng-container>
+              <ng-container *ngIf="row != draggingRow">
+                <ng-container *ngTemplateOutlet = "rowTemplate; context:{row: row}"></ng-container>
+              </ng-container>
+              <ng-container *ngIf = "draggingRow && !projectedDropRow && row == data[data.length - 1]">
+                <ng-container *ngTemplateOutlet = "rowTemplate; context:{row: draggingRow}"></ng-container>
+              </ng-container>
+        </ng-container>
+    </cdk-virtual-scroll-viewport>    
+    <div *ngIf="errorDetail" class="error">
+        <span class="mdi mdi-alert-circle"></span>
+        <span>{{errorDetail.message}}</span>
+    </div>
+
+    <div class="listview-footer-row-container" >
+        <div class="listview-footer-row">
+            <kendo-expansionpanel class="footer-new-row-panel" *ngIf="editable" [expanded] = "true">
+                <ng-template kendoExpansionPanelTitleDirective>
+                    <div class="k-expander-title new-row-expansion-header" [style.paddingLeft]="(virtualScrollViewport?.elementRef?.nativeElement?.scrollLeft) + 'px'">
+                        <span class="mdi mdi-plus-thick"></span>
+                        <span>{{ 'New Row'| label : uiSrv.langPack}}</span>
+                    </div>
+                </ng-template>
+                <div #footerRow class="new-row">
+                    <ng-container *ngTemplateOutlet = "rowTemplate; context:{row: newRow}"></ng-container> 
+                    <div *ngIf="rowDetailCfg.parentRowKey && newRow[rowDetailCfg.parentRowKey]" class = "new-row-detail" >
+                        <div class="form-row">
+                            <ng-container *ngFor="let detail of newRow[rowDetailCfg.parentRowKey]">
+                                <uc-txtbox *ngIf="!detail['struct'] || ((detail['struct']['parameterType'] == 'STRING' || detail['struct']['parameterType'] == 'NUMBER') &&  detail['struct']['enumList'].length == 0)" 
+                                            (valueChange)="newRowError = null" [numeric] = "detail['struct'] && detail['struct']['parameterType'] == 'NUMBER'"
+                                            [disabled] = '!editable' class="col"
+                                            [lab]="detail[rowDetailCfg.detailRowLabelKey]" [(value)]="detail[rowDetailCfg.detailRowValueKey]">
+                                </uc-txtbox>    
+                                <span *ngIf="detail['struct'] && detail['struct']['parameterType'] == 'BOOLEAN' &&  detail['struct']['enumList'].length == 0"  class="checkbox col">
+                                    <label class="col-form-label">{{detail[rowDetailCfg.detailRowLabelKey]}}</label>
+                                    <input type="checkbox" kendoCheckBox  [disabled] = '!editable'  (ngModelChange)="newRowError = null"
+                                          [(ngModel)]="detail[rowDetailCfg.detailRowValueKey]" />
+                                </span>   
+                                <ng-container *ngIf="detail['struct'] && detail['struct']['enumList'].length > 0" >
+                                    <span *ngFor="let enum of detail['struct']['enumList']"  class="checkbox col">
+                                        <input class="radio-button" type="radio" [value]="enum.value" [(ngModel)]="detail[rowDetailCfg.detailRowValueKey]" kendoRadioButton />
+                                        <label class="radio-label">{{enum.label | label: uiSrv.langPack}}</label>
+                                    </span>  
+                                </ng-container>   
+                            </ng-container>                     
+                        </div>
+                    </div>
+                    <div *ngIf="newRowError" class="new-row-error error">
+                        <span class="mdi mdi-alert-circle"></span>
+                        <span>{{newRowError.message}}</span>
+                    </div>
+                </div>              
+            </kendo-expansionpanel>         
+        </div>
+    </div>
+</div>
+
+<ng-template #rowTemplate let-row="row">
+    <div class="listview-row"  [class] = "(errorsMap.has(row)? 'error-row' : '') + (draggingRow == row ? ' dragging' : '' )"  >
+        <ng-container  *ngFor = "let col of columnDef" >
+            <ng-container *ngTemplateOutlet = "cellTemplate;  
+                                               context:{ 
+                                                         col:(row == newRow && col['newRow'] ? col['newRow']  : col) , 
+                                                         row : row ,
+                                                         orgCol : col
+                                                       }">
+            </ng-container>
+        </ng-container>
+    </div>
+</ng-template>
+
+<ng-template #cellTemplate let-orgCol="orgCol" let-col="col" let-row="row">
+    <div [style.width]="col['width'] ? (col['width'] + (row == newRow ? '%' : 'px') ): (orgCol['width']?  orgCol['width'] + 'px': null)"
+         [class]="'listview-cell ' + (col['id'] ? col['id'] : orgCol['id']) + (editable && myFocusedCell?.row == row && myFocusedCell?.id == col['id']? ' focused-cell' : '') + (animatedBgMap.get(row) && animatedBgMap.get(row)[col['id']] ?  ' animated-bg' : '')"
+         (click)="!(myFocusedCell && myFocusedCell['row'] == row && myFocusedCell['id'] == col['id']) ? focusedCell = {row : row , id : col['id']} :  null">
+        <ng-container
+            *ngIf="row!=newRow && (col['type'] == 'checkbox' || (editable && col['type'] != 'drag' && col['type'] != 'button' && ((myFocusedCell?.row == row && myFocusedCell?.id == col['id'] ))))"
+            [ngSwitch]="col['type']">
+            <uc-txtbox #textbox *ngSwitchCase="'textbox'" [(value)]="row[col['id']]" [isGridCell]="true" 
+                [disabled]="col['disabled'] || myFocusedCell['disabled'] || !editable" 
+                (valueChange)="emitValueChange({row : row , id : col['id'] , oldValue : focusedCell.value , newValue : $event})">
+            </uc-txtbox>
+            <uc-dropdown #dropdown *ngSwitchCase="'dropdown'" [(value)]="row[col['id']]"   [translateOption] = "col['translateOption']"
+                [options]="myFocusedCell['options'] ? myFocusedCell['options'] : col['options'] " 
+                [disabled]="col['disabled'] || myFocusedCell['disabled'] || !editable" 
+                [allowClear] = "col['allowClear']!= false"
+                (change)="emitValueChange({row : row , id : col['id'] , oldValue : $event.previousValue , newValue : $event.currentValue})">
+            </uc-dropdown>
+            <input type="checkbox" *ngSwitchCase="'checkbox'" kendoCheckBox  [disabled]="col['disabled'] || !editable"  [class] = "row[col['id']]? 'checked' : undefined"
+                   [(ngModel)] = "row[col['id']]"   (ngModelChange)="emitValueChange({row : row , id : col['id'] , newValue : $event})"
+            />
+            <!-- (open) = "row == newRow && col.disabled ? $event.preventDefault() : null" -->
+            <div *ngSwitchDefault [class] = "(col['type'] == 'dropdown' && ( row[col['id']] | dropdownDesc : col['options']) === false ? 'error ' : '') + 'listview-cell-content plain' ">
+              {{ col['type'] == 'dropdown' ? 
+                (( row[col['id']] | dropdownDesc : col['options']) === false ? dataNotFoundMsg : (col['translateOption'] ? (( row[col['id']] | dropdownDesc : col['options']) | label : uiSrv.langPack ) : ( row[col['id']] | dropdownDesc : col['options']))):
+                 row[col['id']]
+              }}
+            </div>
+        </ng-container>
+
+        <!-- v new ROW v -->
+        <ng-container *ngIf="row == newRow " [ngSwitch]="col['type']">
+            <uc-txtbox  *ngSwitchCase="'textbox'" [lab]="col['title']" [(value)]="row[col['id']]" [isGridCell]="true" 
+                [disabled]="col['disabled'] || col['disabled']" 
+                (valueChange)="emitValueChange({row : row , id : col['id'] , newValue : $event}); newRowError = null; ">
+            </uc-txtbox>
+            <uc-dropdown  *ngSwitchCase="'dropdown'" [lab]="col['title']" [(value)]="row[col['id']]"   [translateOption] = "col['translateOption']"
+                [options]="col['options']?col['options'] :orgCol['options'] " 
+                [disabled]="col['disabled'] || col['disabled']" 
+                [allowClear] = "col['allowClear']!= false"
+                (change)="newRowError = null ; emitValueChange({row : row , id : col['id'] , oldValue : $event.previousValue , newValue : $event.currentValue})">
+            </uc-dropdown>
+            <span *ngSwitchCase="'checkbox'" [class]="'checkbox ' + (row[col['id']]? 'checked' : undefined)">              
+                <input type="checkbox" kendoCheckBox [(ngModel)] = "row[col['id']]" 
+                       (ngModelChange)="newRowError = null ; emitValueChange({row : row , id : col['id'] , newValue : $event})"
+                />
+                <label>{{col['title'] | label : uiSrv.langPack}}</label>
+            </span>
+        </ng-container>
+        <!-- ^ new ROW ^ -->
+
+        <div [class] = "( col['type'] == 'dropdown' && (row[col['id']] | dropdownDesc : col['options']) === false ? 'error ' : '') + 'listview-cell-content' "
+            *ngIf="row!=newRow && !(editable && myFocusedCell?.row == row && myFocusedCell?.id == col['id']) && col['type'] != 'drag' && col['type'] !='button' && col['type']!='checkbox'">
+            {{ col['type'] == 'dropdown' ? 
+               (( row[col['id']] | dropdownDesc : col['options']) === false ? dataNotFoundMsg : (col['translateOption'] ? (( row[col['id']] | dropdownDesc : col['options']) | label : uiSrv.langPack ) : ( row[col['id']] | dropdownDesc : col['options']))):
+                 row[col['id']]
+            }}
+        </div>
+        <div *ngIf="editable && col['type'] == 'drag' && row!=newRow" cdkDrag class="listview-cell-content plain drag-handle" style="cursor: move;"
+            (cdkDragStarted)="dragStarted($event , row)">
+            <!-- <mat-icon  style="pointer-events: all;">drag_indicator</mat-icon> -->
+            <span *ngIf="row!=newRow" class="mdi mdi-pan-vertical"></span>
+        </div>
+        <div *ngIf="col['type'] =='button'" class="listview-cell-content plain">
+            <a *ngIf="(editable && col['id']!= rowDetailCfg.parentRowKey) || row[rowDetailCfg.parentRowKey]?.length > 0" (click)="clearErrorState();buttonClicked(row, col);" 
+                [matTooltip]="col['id'] ==  rowDetailCfg.parentRowKey? 
+                                (row[rowDetailCfg.parentRowKey] | rowDetailToolTip : rowDetailCfg.detailRowLabelKey : rowDetailCfg.detailRowValueKey : uiSrv.langPack) : 
+                                null"
+                 matTooltipClass="list-tooltip">
+                <span [class]="col['class']"></span>
+            </a>
+        </div>
+    </div>
+</ng-template>

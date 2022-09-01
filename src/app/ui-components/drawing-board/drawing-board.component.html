@@ -1,0 +1,423 @@
+<ng-container>
+  <ng-container *ngTemplateOutlet = "pixiTpl"></ng-container>
+</ng-container>
+
+<ng-template #pixiTpl>
+  <div #container class = 'drawing-board-container'
+       (contextmenu)=" !uiSrv.isTablet && selectedGraphics ? selectGraphics(null) : null ; drawObj?.type ? $event.preventDefault() : null; endDraw();"
+       style="width: 100%; height: 100%;" class="drawing-board" [style.cursor]="mode == 'draw'? 'crosshair':''">
+  <ng-pixi-viewport [fullScreen] = "_fullScreen">
+    <div class="overlay" *ngIf="dataSrv.signalRSubj.isFollowMeWithoutMap.value || (showRobot && dataSrv.signalRSubj.isMappingMode.value)  || overlayMsg "> 
+      <div class="overlay-button-container">
+        <button kendoButton class="pick-map" *ngIf="!dataSrv.signalRSubj.isFollowMeWithoutMap.value && showRobot && !(robots[0] && robots[0]['mapCode']) && authSrv.username && !dataSrv.signalRSubj.isMappingMode.value" 
+                [disabled]="authSrv.isGuestMode"
+                (click)="pickMapClicked.emit() ; getFloorplanOptions(true) ; pickSpawnPoint = true ; fullScreen = true; overlayMsg =  null" >
+          <span class="mdi mdi-crosshairs"></span>
+        </button>
+        <button kendoButton class="scan"  *ngIf="!dataSrv.signalRSubj.isFollowMeWithoutMap.value && showScanButton" (click)="scanClicked.emit()">
+          <span class="mdi mdi-focus-field"></span>
+        </button>
+        <button kendoButton class="cancel"  *ngIf="_fullScreen && !showScanButton"  (click)="fullScreen = false">
+          <span class="mdi mdi-logout"></span>
+        </button>
+      </div>
+      <span class="message">
+         {{ dataSrv.signalRSubj.isFollowMeWithoutMap.value ? ('Follow Me Standalone Mode Activated'|label : uiSrv.langPack) : 
+         ( showRobot && dataSrv.signalRSubj.isMappingMode.value) ? ('Mapping Mode Activated'|label : uiSrv.langPack)  : overlayMsg }}
+      </span>
+    </div>
+
+    <div *ngIf = "!hideHeader && !dataSrv.arcsDefaultBuilding && (pickSpawnPoint || header) " class="title">
+      {{pickSpawnPoint ? ( 'Localization' | label : uiSrv.langPack) : header}}
+    </div>
+
+
+    <div *ngIf = "dataSrv.arcsDefaultBuilding && isDashboard" class="title arcs">
+      <!-- <span>
+        <a class="site-tag" (click)="unsubscribePose_ARCS();onSiteSelected.emit()">{{arcsObjs.hierarchy.site.name}}</a> 
+        <span *ngIf="arcsObjs.hierarchy.building.id" class="site-building-delimiter mdi mdi-chevron-right"></span>
+        <span *ngIf="arcsObjs.hierarchy.building.id" class="building-tag">{{arcsObjs.hierarchy.building.name}}</span>
+      </span>   --> 
+      <span> 
+        <uc-dropdown   [options]="dropdownOptions?.floorplans"  class = "arcs-floorplan-picker"
+                       [(value)] = "selectedFloorPlanCode" (valueChange)="selectedFloorPlanCodeChange.emit($event)" [allowClear] = "false"  [customDropItemTemplate] = "true"
+                       (open)="setFloorplanRobotCount(); suspendViewportPlugin('wheel')" (close)="resumeViewportPlugin('wheel')">
+        </uc-dropdown>
+      </span>
+    </div>
+    
+
+    <div class="buttons-container t1" [ngClass]="{'tablet': uiSrv.isTablet}">
+      <ng-container *ngIf="!hideButton.all">
+        <button kendoButton class="polygon" [matTooltip]="'Draw Polygon'| label : uiSrv.langPack" matTooltipPosition="right" [disabled] = "disableButton['polygon']"
+          *ngIf="!hideButton['polygon']" [ngClass]="{'btn-active': drawObj?.type == 'polygon'}"
+          (click)="drawObj?.type == 'polygon' ? endDraw() : changeMode('draw' , 'polygon')">
+          <span class="mdi mdi-vector-polygon"> </span>
+        </button>
+
+
+        <button kendoButton class="line" [matTooltip]="'Draw Line'| label : uiSrv.langPack" matTooltipPosition="right" *ngIf="!hideButton['line']" [disabled] = "disableButton['line']"
+          [ngClass]="{'btn-active': drawObj?.type == 'line'}"
+          (click)="drawObj?.type == 'line' ? endDraw() : changeMode('draw' , 'line')">
+          <span class="mdi mdi-vector-line"> </span>
+        </button>
+
+        <button kendoButton class="brush" [matTooltip]="'Brush'| label : uiSrv.langPack" matTooltipPosition="right" *ngIf="!hideButton['brush']" [disabled] = "disableButton['brush']"
+          [ngClass]="{'btn-active': drawObj?.type == 'brush'}"
+          (click)="drawObj?.type == 'brush' ? endDraw() : changeMode('draw' , 'brush')">
+          <span class="mdi mdi-brush"></span>
+        </button>
+
+        <button kendoButton class="arrow" [matTooltip]="'Plot Path'| label : uiSrv.langPack" matTooltipPosition="right"  [disabled] = "disableButton['arrow']"
+          *ngIf="!hideButton['arrow']" [ngClass]="{'btn-active': drawObj?.type == 'arrow'}"
+          (click)="drawObj?.type == 'arrow' ? endDraw() : changeMode('draw' , 'arrow')">
+          <span class="mdi mdi-arrow-top-right"></span>
+        </button>
+
+        <button kendoButton class="bi-arrow" [matTooltip]="'Plot Bidirectional Path' | label : uiSrv.langPack" matTooltipPosition="right" [disabled] = "disableButton['arrow']"
+          *ngIf="!hideButton['arrow']" [ngClass]="{'btn-active': drawObj?.type == 'arrow_bi'}"
+          (click)="drawObj?.type == 'arrow_bi' ? endDraw() : changeMode('draw' , 'arrow_bi')">
+          <span class="mdi mdi-arrow-top-right-bottom-left"></span>
+        </button>
+
+        <button kendoButton class="curved-arrow" [matTooltip]="'Plot Curved Path'| label : uiSrv.langPack" matTooltipPosition="right" [disabled] = "disableButton['arrow']"
+          *ngIf="!hideButton['arrow']" [ngClass]="{'btn-active': drawObj?.type == 'arrow_curved'}"
+          (click)="drawObj?.type == 'arrow_curved' ? endDraw() : changeMode('draw' , 'arrow_curved')">
+          <span class="mdi mdi-redo"></span>
+        </button>
+
+        <button kendoButton class="bi-curved-arrow" [matTooltip]="'Plot Curved Bidirectional Path'| label : uiSrv.langPack" [disabled] = "disableButton['arrow']"
+          matTooltipPosition="right" *ngIf="!hideButton['arrow']"
+          [ngClass]="{'btn-active': drawObj?.type == 'arrow_bi_curved'}"
+          (click)="drawObj?.type == 'arrow_bi_curved' ? endDraw() : changeMode('draw' , 'arrow_bi_curved')">
+          <span class="mdi mdi-redo"></span>
+        </button>
+
+
+
+        <!-- <button kendoButton class="circle-button" matTooltip="Attach Image" (click)="uploader.click()" *ngIf = "!hideButton['upload']">
+        <mat-icon>attach_file</mat-icon>
+      </button> -->
+        <!-- <button kendoButton *ngIf="!util.standaloneApp && !hideButton['point']" class="location" matTooltip="Add Location" matTooltipPosition="right" [disabled] = "disableButton['point']"
+          (click)="changeMode('draw' , 'point') ; point.type ='location'" 
+          [ngClass]="{'btn-active': drawObj?.type == 'point' &&  point.type == 'location'}">
+          <span class="mdi mdi-map-marker"></span>
+        </button> -->
+        <button kendoButton class="point" [matTooltip]="'Plot Way Point'| label : uiSrv.langPack" matTooltipPosition="right" [disabled] = "disableButton['point']"
+          (click)="changeMode('draw' , 'point') ; point.type ='waypoint'" *ngIf="!hideButton['point']"
+          [ngClass]="{'btn-active': drawObj?.type == 'point' &&  point.type == 'waypoint'}">
+          <span class="mdi mdi-circle-medium"></span>
+        </button>
+        <button kendoButton class="point" [matTooltip]="'Plot Way Point at Current Location'| label : uiSrv.langPack" matTooltipPosition="right" [disabled] = "disableButton['point']"
+          (click)="changeMode(null) ; addLocalWayPointClicked.emit() ; point.type ='waypoint'" *ngIf="util.standaloneApp && !hideButton['point']">
+          <span class="mdi mdi-crosshairs"></span>
+        </button>
+        <!-- <div class="point-sector" *ngIf = "drawObj?.type == 'point'" >  
+          <mat-button-toggle-group [value] = "point.type" (change)="point.type =$event.value" >
+            <mat-button-toggle value="location" matTooltip ="Add Location"><mat-icon> place </mat-icon></mat-button-toggle>
+            <mat-button-toggle value="waypoint" matTooltip ="Add Way Point"><mat-icon> trip_origin </mat-icon></mat-button-toggle>
+          </mat-button-toggle-group>
+        </div> -->
+        <button kendoButton class="image" [matTooltip]="'Export As Image'| label : uiSrv.langPack" matTooltipPosition="right" (click)="export()" [disabled] = "disableButton['export']"
+          *ngIf="!hideButton['export']">
+          <span class="mdi mdi-content-save"></span>
+        </button>
+
+        <button *ngIf="selectedGraphics && !hideButton['delete']" kendoButton class="delete" [matTooltip]="'Delete Shape'| label : uiSrv.langPack" 
+                [disabled] = "disableButton['delete'] || (selectedGraphics?.type == 'waypoint' && (drawObj?.type == 'arrow_bi' || drawObj?.type == 'arrow_bi_curved' || drawObj?.type == 'arrow' || drawObj?.type == 'arrow_curved' ))"
+          matTooltipPosition="right" (click)="deleteSelectedGraphics()" [ngClass]="{'btn-active': mode == 'delete'}">
+          <span class="mdi mdi-trash-can-outline"></span>
+        </button>
+      </ng-container>
+
+              <!-- v * * * * * TO BE MOVED TO CONTAINER 2   * * * * * v -->
+
+              <!-- ^ * * * * * TO BE MOVED TO CONTAINER 2   * * * * * ^ -->
+
+
+      <!-- <button kendoButton class="circle-button" icon="pen"></button> -->
+
+      <!-- <button kendoButton class="circle-button" matTooltip="Add Way Point"  (click)="test()" [ngClass]="{'btn-active': mode == 'delete'}">
+   <mat-icon>location_on</mat-icon>
+  </button> -->
+    </div>
+
+    <div class="buttons-container t2">
+      <button *ngIf="isDashboard && !util.arcsApp  &&  !hideButton['tools']" kendoButton class="engineer-mode"  [matTooltip]="'More Options'| label : uiSrv.langPack" (click)="engineerMode = !engineerMode" [ngClass]="{'btn-active': engineerMode}">
+        <span class="mdi mdi-eye"></span>
+      </button>
+      <ng-container  *ngIf="engineerMode || showRosToggle">
+        <button *ngIf="engineerMode && showRobot" kendoButton class="lidar" [matTooltip]="'Show Lidar Point Cloud'| label : uiSrv.langPack" [disabled]="disableButton['lidar']"   matTooltipPosition="right" 
+                [ngClass]="{'btn-active':liveLidarObj.show}" (click)=" liveLidarObj.show ? unsubscribeLiveLidar_SA() : subscribeLiveLidar_SA()">
+                <span class="mdi mdi-border-none"></span>
+        </button>
+
+        <button *ngIf="engineerMode || showRosToggle" kendoButton class="show-ros" [matTooltip]="'Show ROS Map'| label : uiSrv.langPack"  [disabled]="liveLidarObj.show || disableButton['lidar']" 
+                matTooltipPosition="right" (click)="toggleRosMap(!showRosMap)"  [ngClass]="{'btn-active': showRosMap || liveLidarObj.show }">
+          <span class="mdi mdi-floor-plan"></span>
+        </button>
+      </ng-container>
+    </div>
+
+    <div class="buttons-container t4"  *ngIf="util.standaloneApp && (_remoteControl || (!_pickSpawnPoint  && !hideRelocationButton )) && !overlayMsg && robots.length > 0">
+      <button  kendoButton class="relocation" [matTooltip]="'Center Stage'| label : uiSrv.langPack" matTooltipPosition="right" 
+             (click)="cameraTraceEnabled = !cameraTraceEnabled ;"  [ngClass]="{'btn-active': _cameraTraceEnabled}">
+             <!-- relocateCamera() -->
+        <span class="mdi mdi-crosshairs"></span>
+      </button>
+    </div>
+
+    <div *ngIf="!authSrv.isGuestMode" class = 'bottom-panel'>
+      <div  *ngIf="_remoteControl" class="bottom-sector remote" >
+        <uc-joystick [remoteControlTurboOn] = "remoteControlTurboOn"
+                    [position]="{left: '7.5vw' , top: '80vh'}"
+                    [isRemoteController] = "true">
+        </uc-joystick>
+        <ng-container *ngTemplateOutlet = "bottomButtonsTpl"></ng-container>
+        <kendo-switch class="path-direction" [checked]="remoteControlTurboOn" (valueChange) = "remoteControlTurboOn = $event"
+                      [onLabel] = "'Fast' | label : uiSrv.langPack"   [offLabel] = "'Slow' | label : uiSrv.langPack" >
+        </kendo-switch>
+        <button *ngIf="!hideButton?.manual && (!hideButton.all || isDashboard)" kendoButton (click)="terminateRemoteControl.emit() ; dataSrv.stopManualMode();" class="cancel-btn">
+          {{ 'Cancel' | label : uiSrv.langPack}}
+        </button>
+      </div>
+
+      <!-- <div [style.display]="uiSrv.isTablet && spawnPointObj.alignLidar && spawnPointObj.markerGraphic ? '' :'none'" class="angle-slider-wrapper">
+        <div class="degree-tag-container">
+          <div class="degree-tag-inner-container">
+          <span>{{spawnPointObj.rotation | number:'1.0-1'}}°</span>
+          </div>
+        </div>
+        <canvas #angleSlider id="angleSlider" width="150" height="150"></canvas>
+      </div> -->
+
+      <div *ngIf="_pickSpawnPoint" class = "bottom-sector change-map">
+          <uc-joystick *ngIf="uiSrv.isTablet && spawnPointObj.alignLidar && spawnPointObj.markerGraphic" 
+                    [position]="{left: '7.5vw' , top: '80vh'}" 
+                    (move) = "refreshSpawnMarkerPosByJoystick($event)"
+                    (hold) = "refreshSpawnMarkerPosByJoystick($event)">
+          </uc-joystick>
+          <ng-container *ngIf="!spawnPointObj.alignLidar">
+            <ng-container *ngTemplateOutlet="dropdownTpl"></ng-container>
+          </ng-container>
+          <uc-txtbox *ngIf="spawnPointObj.alignLidar && spawnPointObj.markerGraphic" [disabled] = "disableKendoKeyboardNavigation" lab="Position X" [numDecimals] = 6
+            [(value)]="spawnPointObj.rosX" (valueChange)="refreshSpawnMarkerPosByRosValue(); refreshLidarLayerPos()" [numeric]="true" [numStep] = "0.1" [numTick] = "0.1">
+          </uc-txtbox>
+          <uc-txtbox *ngIf="spawnPointObj.alignLidar && spawnPointObj.markerGraphic" [disabled] = "disableKendoKeyboardNavigation" lab="Position Y" [numDecimals] = 6
+            [(value)]="spawnPointObj.rosY" (valueChange)="refreshSpawnMarkerPosByRosValue(); refreshLidarLayerPos()" [numeric]="true" [numStep] = "0.1" [numTick] = "0.1">
+          </uc-txtbox>
+          <!-- <uc-txtbox [style.visibility]="!spawnPointObj.markerGraphic ? 'hidden': '' " lab="Rotation (Degree)" [(value)]="spawnPointObj.rotation" 
+                           (valueChange)="refreshSpawnMarkerPos(); refreshLidarLayerPos()" [numeric]="true"></uc-txtbox> -->
+          <div  class="form-group" [style.display]="!spawnPointObj.markerGraphic  ? 'none': '' "
+            lab="Rotation (Degree)">
+            <label class="col-form-label">{{'Rotation' | label: uiSrv.langPack}}</label>
+            <div class="slider-wrapper">
+              <span class="display-value">{{spawnPointObj.rotation | number:'1.0-1'}}°</span>
+              <kendo-slider #kendoAngleSlider [fixedTickWidth]="0.25" [min]="-180" [max]="180" [smallStep]="0.5" [largeStep]="60" [readonly] = "disableKendoKeyboardNavigation"
+                tickPlacement="none" [(ngModel)]="spawnPointObj.rotation"
+                (ngModelChange)="kendoAngleSlider.blur() ; refreshSpawnMarkerPos(); refreshLidarLayerPos()">
+              </kendo-slider>
+            </div>
+          </div>
+
+          <button *ngIf="!spawnPointObj.alignLidar" kendoButton [disabled] = "!spawnPointObj.selectedMap"
+            class='lidar-btn' (click)="sendLidarRequestToRV();">
+            {{ 'Change' | label : uiSrv.langPack}}
+          </button>
+          <button  kendoButton [disabled]="spawnPointObj.footprint.length == 0" class='undo-btn' (click)="undoSpawnPosition();">
+           {{ 'Undo' | label : uiSrv.langPack}}
+          </button>
+          <button kendoButton (click)="fullScreen = false ; pickSpawnPoint = false; resetLidarLayer(); cancelFullScreen.emit()"
+            class="cancel-btn">
+           {{ 'Cancel' | label : uiSrv.langPack}}
+          </button>
+          <button *ngIf="spawnPointObj.alignLidar" kendoButton  (click)="sendLocalizeRequestToRV(); confirmSpawnPick.emit(); pickSpawnPoint = false" class="confirm-btn">
+           {{ 'Localize' |label : uiSrv.langPack}}
+          </button>
+      </div>
+
+       <!-- [disabled]="!spawnPointObj.markerGraphic" -->
+     <div class="bottom-sector navigate-sector" *ngIf="showNavigationDropdown && !_pickSpawnPoint  && !dataSrv.signalRSubj.navigationDisabled.value ">
+        <ng-container *ngTemplateOutlet = "bottomButtonsTpl"></ng-container>
+        <ng-container *ngIf="pickLocObj.rosX == null || pickLocObj.rosY == null " >
+          <ng-container *ngTemplateOutlet = "dropdownTpl"></ng-container>
+        </ng-container>
+        <ng-container *ngIf="pickLocObj.rosX != null && pickLocObj.rosY != null">
+          <uc-txtbox  class="go-ros-x" lab = "X" [(value)] = "pickLocObj.rosX" (valueChange)="refreshPickLocByRosValue()" [numeric]="true" [numDecimals] = 6></uc-txtbox>
+          <uc-txtbox  class="go-ros-y" lab = "Y" [(value)] = "pickLocObj.rosY" (valueChange)="refreshPickLocByRosValue()" [numeric]="true" [numDecimals] = 6></uc-txtbox>
+          <div class="form-group" lab="Rotation (Degree)">
+            <label class="col-form-label">{{'Rotation' | label: uiSrv.langPack}}</label>
+            <div class="slider-wrapper">
+              <span class="display-value">{{pickLocObj.angle | number:'1.0-1'}}°</span>
+              <kendo-slider class="go-ros-angle" [fixedTickWidth]="0.25" [min]="-180" [max]="180" [smallStep]="0.5"
+                [largeStep]="60" [readonly]="disableKendoKeyboardNavigation" tickPlacement="none"
+                [(ngModel)]="pickLocObj.angle" (ngModelChange)="refreshPickLocByRosValue()">
+              </kendo-slider>
+            </div>
+          </div>
+        </ng-container>
+
+        <button kendoButton [disabled] = "(!selectedLocation && (pickLocObj.rosX  == null || pickLocObj.rosY == null)) || dataSrv.signalRSubj.navigationDisabled.value || dataSrv.signalRSubj.isFollowMeMode.value"  (click) = "sendNavigationRequestToRV()">
+           {{ 'Go' | label : uiSrv.langPack}} 
+        </button>
+      </div>
+
+      <div class="bottom-sector line-sector" *ngIf="drawObj?.type == 'line'">
+        <kendo-colorpalette [palette]="palette?.map" [(value)]="selectedStyle.line.color" [tileSize]="25"
+          [matTooltip]="'Line Color'| label : uiSrv.langPack" matTooltipPosition="below"
+          (valueChange)=" selectedGraphics?.type == 'line'? selectedGraphics.draw(true , $event.replace('#','0x')) : null">
+        </kendo-colorpalette>      
+        <kendo-slider [smallStep]="1" [fixedTickWidth]="10" [min]="0.5" [max]="10" 
+          [(ngModel)]="selectedStyle.line.width" [showButtons]="uiSrv.isTablet" matTooltip="Line Width"
+          matTooltipPosition="below">
+                <kendo-slider-messages></kendo-slider-messages>
+        </kendo-slider>
+        <button kendoButton class="undo" [matTooltip]="'Undo'| label : uiSrv.langPack" matTooltipPosition="below" [disabled]="linesCreated.length == 0 "
+          (click)="removeGraphics(linesCreated[linesCreated.length - 1])">
+          <span class="mdi mdi-undo"></span>
+        </button>
+
+      </div>
+
+      <div class="bottom-sector brush-sector" *ngIf="drawObj?.type == 'brush'">
+        <kendo-colorpalette [palette]="palette.map" [(value)]="selectedStyle.brush.color" [tileSize]="25"
+          [matTooltip]="'Brush Color'| label : uiSrv.langPack" matTooltipPosition="below"></kendo-colorpalette>
+        <kendo-slider [smallStep]="4" [fixedTickWidth]="5" [min]="1" [max]="100" [(ngModel)]="selectedStyle.brush.size"
+                      [showButtons]="uiSrv.isTablet" [matTooltip]="'Brush Size'| label : uiSrv.langPack" matTooltipPosition="below"></kendo-slider>
+        <button kendoButton class="undo" [matTooltip]="'Undo'| label : uiSrv.langPack" matTooltipPosition="below" [disabled]="brushPaintings.length == 0 "
+          (click)="removeGraphics(brushPaintings[brushPaintings.length - 1])">
+          <span class="mdi mdi-undo"></span>
+        </button>
+
+      </div>
+
+      <div class="bottom-sector polygon-sector" *ngIf="(drawObj?.type == 'polygon' || selectedGraphics?.type == 'polygon') && !readonly && palette.map?.length > 1">
+        <kendo-colorpalette [palette]="palette.map" [(value)]="selectedStyle.polygon.color" [tileSize]="25"
+          [matTooltip]="'Polygon Color'| label : uiSrv.langPack" matTooltipPosition="below"
+          (valueChange)=" selectedGraphics?.type == 'polygon'? selectedGraphics.draw(true , $event.replace('#','0x')) : null">
+        </kendo-colorpalette>
+      </div>
+
+      <!-- <div  *ngIf="!util.standaloneApp && (drawObj?.type == 'arrow' || drawObj?.type == 'arrow_bi' || drawObj?.type == 'arrow_bi_curved' || drawObj?.type == 'arrow_curved')"
+            class="arrow-sector bottom-sector">
+        <kendo-colorpalette [palette]="paletteCfg?.path?.palette" [(value)]="selectedStyle.arrow.color" [tileSize]="25"
+          matTooltip="Arrow Color" matTooltipPosition="below"></kendo-colorpalette>
+      </div> -->
+
+      <div  *ngIf="selectedGraphics?.type == 'arrow' || selectedGraphics?.type == 'arrow_bi' || selectedGraphics?.type == 'arrow_bi_curved' || selectedGraphics?.type == 'arrow_curved'"
+               class="arrow-sector bottom-sector">
+        <span *ngIf = "!(selectedGraphics?.type == 'arrow_bi' || selectedGraphics?.type == 'arrow_bi_curved') && selectedGraphics?.fromShape?.text && selectedGraphics?.toShape?.text" class="path-from-to-desc">
+          {{('Path' | label: uiSrv.langPack) + ' ' + ('from' | label: uiSrv.langPack ) + ' ' +  
+            selectedGraphics.fromShape.text + ' ' +  ('to' | label: uiSrv.langPack ) + ' ' + selectedGraphics.toShape.text
+          }}
+        </span>
+        <span *ngIf = "(selectedGraphics?.type == 'arrow_bi' || selectedGraphics?.type == 'arrow_bi_curved') && selectedGraphics?.fromShape?.text && selectedGraphics?.toShape?.text" class="path-from-to-desc">
+          {{('Two Way Path for' | label: uiSrv.langPack) + ' ' + 
+              selectedGraphics.fromShape.text + ' ' + 
+              ('and' | label: uiSrv.langPack ) + ' ' + 
+              selectedGraphics.toShape.text
+          }}
+        </span>
+        <uc-txtbox  class="path-velocity" lab = "Velocity Limit" [(value)] = "selectedGraphics.velocityLimit"  [numeric]="true" [numMin]="0.3" [numMax] = "1.8" ></uc-txtbox>
+        <kendo-switch class="path-direction" [checked]="selectedGraphics.direction == 'FORWARD'" (valueChange) = "selectedGraphics.direction = $event ? 'FORWARD': 'BACKWARD' "
+                      [onLabel] = "'Forward' | label : uiSrv.langPack"   [offLabel] = "'Backward' | label : uiSrv.langPack" >
+        </kendo-switch>
+      </div>
+
+      <div class="bottom-sector edit-map-floorplan" *ngIf=" (uiSrv.isTablet || selectedGraphics?.type == 'location' || selectedGraphics?.type == 'waypoint') && !readonly &&
+                                                           ((( drawObj?.type == 'location' || drawObj?.type == 'waypoint' || !drawObj?.type ) &&  
+                                                           (selectedGraphics?.type == 'location' || selectedGraphics?.type ==  'waypoint' ))|| selectedGraphics?.type == 'mapLayer' )" >
+        <ng-container *ngIf=" selectedGraphics?.type == 'location' || selectedGraphics?.type == 'waypoint' ">
+            <uc-txtbox #ucPointTextBox [focusOnInit]="selectedGraphics.text == null || selectedGraphics.text == ''"
+                       lab="Waypoint Name" [(value)] = "selectedGraphics.text" [upper] = "true" > 
+            </uc-txtbox>
+          <div  *ngIf="uiSrv.isTablet" class="form-group">            
+            <label class="col-form-label">{{'Orientation' | label : uiSrv.langPack}}</label>
+            <div class="slider-wrapper">
+              <span class="display-value">{{selectedGraphics?.angleIndicator.angle | number:'1.0-1'}}°</span>
+              <kendo-slider [smallStep]="0.5" [largeStep]="60" [min]="0" [max]="360" [fixedTickWidth]="0.25" tickPlacement="none"
+                [(ngModel)]="selectedGraphics?.angleIndicator.angle" [showButtons]="uiSrv.isTablet" [matTooltip]="'Orientation'| label : uiSrv.langPack"
+                matTooltipPosition="below">
+              </kendo-slider>            
+            </div>
+          </div>
+          <uc-dropdown lab="Waypoint Type" [options]="dropdownOptions.pointTypes" [allowClear]="false" [(value)]="selectedGraphics.pointType" (valueChange)="selectedGraphics.onPointTypeChange()" class="col-2"></uc-dropdown>
+          <!-- <uc-txtbox  lab="Position X" [(value)] = "selectedGraphics.position.x" (valueChange) = "refreshArrows(selectedGraphics)"  [numeric] = 'true' [numDecimals] = '0' ></uc-txtbox>
+          <uc-txtbox  lab="Position Y" [(value)] = "selectedGraphics.position.y" (valueChange) = "refreshArrows(selectedGraphics)"  [numeric] = 'true' [numDecimals] = '0'></uc-txtbox> -->
+          <uc-txtbox *ngIf="util.standaloneApp && selectedGraphics.rosX !== undefined" lab="ROS Position X" [(value)] = "selectedGraphics.rosX" (valueChange)="selectedGraphics.refreshPositionByRosValue()"  [numeric] = 'true' [numDecimals] = '5' ></uc-txtbox>
+          <uc-txtbox *ngIf="util.standaloneApp && selectedGraphics.rosY !== undefined"  lab="ROS Position Y" [(value)] = "selectedGraphics.rosY" (valueChange)="selectedGraphics.refreshPositionByRosValue()"   [numeric] = 'true' [numDecimals] = '5'></uc-txtbox>
+          <uc-txtbox *ngIf="selectedGraphics.angleIndicator" lab="Angle" [(value)] = "selectedGraphics.angleIndicator.angle"  [numeric] = 'true'  [numDecimals] = '3'></uc-txtbox>
+          <button  *ngIf="uiSrv.isTablet" kendoButton class='done-btn' (click)="pointRename.emit({ id: selectedGraphics.input.text, graphics: selectedGraphics, type: selectedGraphics.type })">
+            {{ 'Done' | label : uiSrv.langPack}}
+          </button>
+        </ng-container>
+
+        <ng-container *ngIf="uiSrv.isTablet && selectedGraphics?.type == 'mapLayer'">
+          <div class="form-group">   
+            <label class="col-form-label">{{'Orientation' | label : uiSrv.langPack}}</label>
+            <div class="slider-wrapper">       
+              <span class="display-value">{{selectedGraphics.angle | number:'1.0-1'}}°</span>    
+              <kendo-slider [smallStep]="0.5" [largeStep]="60" [min]="0" [max]="360" [fixedTickWidth]="0.25" tickPlacement="none"
+                            [(ngModel)]="selectedGraphics.angle" [showButtons]="uiSrv.isTablet" [matTooltip]="'Orientation'| label : uiSrv.langPack" matTooltipPosition="below">
+              </kendo-slider>       
+            </div>
+          </div>
+        </ng-container>
+        <ng-container *ngIf=" uiSrv.isTablet && selectedGraphics?.type == 'mapLayer'">
+          <uc-txtbox lab="Scale" [(value)] = "selectedGraphics.scale.x" [numStep] = "0.05" [numTick] = "0.05"
+                     (valueChange)="selectedGraphics.scale.y = selectedGraphics.scale.x "
+                     [numeric] = 'true' [numMin] = '0.05' [numMax] = '50'>
+          </uc-txtbox>
+           <uc-txtbox lab="Position X" [value] = "selectedGraphics.position.x" [numStep] = "1" [numTick] = "1"
+                      (valueChange) = "selectedGraphics.position.set($event , selectedGraphics.position.y )"
+                     [numeric] = 'true' >
+          </uc-txtbox>
+           <uc-txtbox lab="Position Y" [value] = "selectedGraphics.position.y" [numStep] = "1" [numTick] = "1"
+                      (valueChange) = "selectedGraphics.position.set(selectedGraphics.position.x , $event)"
+                     [numeric] = 'true' >
+          </uc-txtbox>
+        </ng-container>
+      </div>
+
+    </div>
+
+
+  </ng-pixi-viewport>
+  </div>
+</ng-template>
+
+
+<input hidden type="file" #uploader (change)="onfileLoad($event)" #input />
+
+<ng-template #dropdownTpl>
+  <!-- <button kendoButton *ngIf="!pickSpawnPoint" (click) = "pickSpawnPoint = true; fullScreen = true">{{ 'Change Map' | label :  uiSrv.langPack}}</button> -->
+  <uc-dropdown *ngIf="pickSpawnPoint" [options]="dropdownOptions?.floorplans" [(value)] = "spawnPointObj.selectedPlan" [lab]="'Floor Plan' | label :  uiSrv.langPack" [allowClear] = "false"
+                     (valueChange)="onFloorplanSelected_SA();"
+                     (open)="suspendViewportPlugin('wheel')" 
+                     (close)="resumeViewportPlugin('wheel')">
+  </uc-dropdown>
+  <!-- <uc-dropdown *ngIf="pickSpawnPoint && dropdownOptions?.maps?.length > 1" [options]="dropdownOptions?.maps" [(value)] = "spawnPointObj.selectedMap" 
+                      [lab]="'Map' | label :  uiSrv.langPack" [allowClear] = "false"
+                     (valueChange)="onMapSelected();refreshPixiSelectedShape();"
+                     (open)="suspendViewportPlugin('wheel')" 
+                     (close)="resumeViewportPlugin('wheel')">
+  </uc-dropdown> -->
+  <uc-dropdown  *ngIf="!pickSpawnPoint" [options]="dropdownOptions?.locations" [(value)] = "selectedLocation"  [lab]="'Location' | label :  uiSrv.langPack"  [allowClear] = "false"
+                     [trackMouseoverOption] = "true" [(mouseoverOption)] = "spawnPointObj.mouseoverLocationOption" 
+                     (valueChange)="refreshSelectedPixiLoc();onSpawnPointSelected()"
+                     (mouseoverOptionChange)="refreshPixiLocColor($event?.value)"
+                     (open)="suspendViewportPlugin('wheel'); refreshPixiLocColor();"
+                     (close)="resumeViewportPlugin('wheel') ; refreshPixiLocColor();">
+  </uc-dropdown>
+</ng-template>
+
+<ng-template #bottomButtonsTpl>
+  <div class="buttons-container t3"  *ngIf="!_pickSpawnPoint  && !hideRelocationButton && !overlayMsg && robots.length > 0" >
+    <button  *ngIf="!_remoteControl" kendoButton [matTooltip]="'Select a position to go'| label : uiSrv.langPack" matTooltipPosition="right"  [ngClass]="{'btn-active': pickLocObj.enable}" 
+            (click)="pickLocObj.enable = !pickLocObj.enable ; 
+                     pickLocObj.enable?  changeMode('draw','pickLoc') : endDraw() ;
+                     pickLocObj.enable? null : resetPickLoc()">
+      <span class="mdi mdi-flag"></span>
+    </button>
+  </div> 
+</ng-template>

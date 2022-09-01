@@ -1,0 +1,37 @@
+<div class="dialog-content map-detail">
+    <kendo-dialog-titlebar (close) = "onClose()">
+        <div>{{'Site' | label: uiSrv.langPack}}</div>
+    </kendo-dialog-titlebar>
+    <!-- <div>{{'Map' | label: uiSrv.langPack}}</div> -->
+    <div class="container">
+        <div class="form-container">
+            <form [formGroup]="frmGrp" class="content">
+                <uc-txtbox lab = "Code" [frmGrp] = "frmGrp" frmCtrl = "siteCode"></uc-txtbox>
+                <uc-txtbox lab = "Site Name" [frmGrp] = "frmGrp" frmCtrl = "name"></uc-txtbox>
+                <uc-txtbox lab = "Site Image File Name" [frmGrp] = "frmGrp" frmCtrl = "fileName" 
+                           [suffixButton] = "{icon : 'k-icon mdi mdi-upload'}" 
+                           (suffixButtonClick) = "pixiElRef? pixiElRef.uploader.nativeElement.click() : null">
+                </uc-txtbox>
+                <!-- <uc-dropdown lab = "Site" [frmGrp] = "frmGrp" frmCtrl = "site"  (change) = "refreshDropDownOptions()" [options] = "dropdownOptions.sites">
+                </uc-dropdown>
+                <uc-dropdown  lab = "Building" [frmGrp] = "frmGrp" frmCtrl = "building" [options] = "dropdownOptions.buildings"
+                              [noDataMsg]="frmGrp.controls['site'].value ? null : ('Please select the site first' | label : uiSrv.langPack) ">
+                </uc-dropdown> -->
+                <!-- <uc-dropdown lab = "Floor" [frmGrp] = "frmGrp" frmCtrl = "floor" >
+                </uc-dropdown> -->
+            </form>
+        </div>
+        <div class="viewport-container">
+            <uc-drawing-board #pixi [overlayMsg] = "frmGrp.controls['fileName'].value? null : ('Please upload the map file first' | label : uiSrv.langPack) " 
+                              [canUploadMultiImg] = "false" [hideButton] = "{all:true}"  (fileLoad)=" frmGrp.controls['fileName'].setValue($event?.name)" 
+                              [hideRelocationButton] = "true">
+            </uc-drawing-board>
+        </div>
+    </div>
+    <div class="button-container">
+        <button kendoButton (click) = "onClose()" > {{'Cancel' | label : uiSrv.langPack}}</button>
+        <button kendoButton (click) = "saveToDB()" [disabled] = "!frmGrp.controls['fileName'].value"> {{'Save' | label : uiSrv.langPack}}</button>
+    </div>
+</div>
+
+

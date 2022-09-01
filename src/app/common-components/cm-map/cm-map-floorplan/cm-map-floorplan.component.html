@@ -1,0 +1,111 @@
+<div class="dialog-content map-floorplan">
+    <kendo-dialog-titlebar [style.display]="uiSrv.isTablet?'none':''" (close) = "onClose()">
+        <div>{{'Floor Plan' | label: uiSrv.langPack}}</div>
+    </kendo-dialog-titlebar>
+
+
+    <kendo-tabstrip #tabStrip (tabSelect)=" selectedTabChanged( $event.index )" [class] = "uiSrv.isTablet? 'vertical' : ''">
+        <kendo-tabstrip-tab [title]=" ( util.standaloneApp ? 'Map' : 'Maps') | label : uiSrv.langPack " [selected]="true">
+        </kendo-tabstrip-tab>
+        <kendo-tabstrip-tab  [title]="'Locations' | label : uiSrv.langPack">        
+        </kendo-tabstrip-tab>
+    </kendo-tabstrip>
+
+
+    <div class="container"  #container>      
+        <ng-container *ngIf="!uiSrv.isTablet">
+            <div class="form-container">
+                <ng-container *ngTemplateOutlet="form">
+                </ng-container>
+            </div>
+        </ng-container>
+        <!-- [style.minWidth] = "selectedTab == 'locations'? '100%' : ''" -->
+        <div class="viewport-container" #pixiContainer > 
+            <uc-drawing-board #pixi [overlayMsg] = "frmGrp.controls['fileName'].value? null : ('Please upload the floor plan file first' | label : uiSrv.langPack) " 
+                              (pointRename) = "onPointUpsert($event)" [readonly] = "readonly"
+                              (pointUnselected) = "onPointUnselected($event)"
+                              [showRosToggle] = "util.standaloneApp" (addLocalWayPointClicked) = "getPoseAndAddWaypoint_SA()"
+                              [canUploadMultiImg] = "false" [hideButton] = "{all:true}" [(selectedShape)] = "selectedPixiShape" [hideRelocationButton] = "true"
+                              (fileLoad)=" frmGrp.controls['fileName'].setValue($event?.name)">
+            </uc-drawing-board>
+        </div>      
+    </div>
+
+    <ng-container *ngIf="uiSrv.isTablet">
+        <div class="form-container bottom">
+            <ng-container *ngTemplateOutlet="form">
+            </ng-container>
+        </div>
+    </ng-container>
+
+    <!-- <div>{{'Floor Plan' | label: uiSrv.langPack}}</div> -->
+    <div class="button-container">
+        <button kendoButton (click) = "onClose()"> {{'Cancel' | label : uiSrv.langPack}}</button>
+        <button *ngIf="!readonly" kendoButton (click) = "saveToDB()"  [disabled] = "!frmGrp.controls['fileName'].value"> {{'Save' | label : uiSrv.langPack}}</button>
+    </div>
+</div>
+
+<ng-template #form>
+    <form [formGroup]="frmGrp" class="content">
+        <uc-txtbox lab="Floor Plan File" [frmGrp]="frmGrp" frmCtrl="fileName"
+            [suffixButton]="{icon : 'k-icon mdi mdi-upload'}"
+            (suffixButtonClick)="pixiElRef? pixiElRef.uploader.nativeElement.click() : null ; ">
+        </uc-txtbox>
+        <uc-txtbox lab="Code" [frmGrp]="frmGrp" frmCtrl="floorPlanCode" [upper] = "true" [disabled] = "parentRow"></uc-txtbox>
+        <uc-txtbox lab="Floor Plan Name" [frmGrp]="frmGrp" frmCtrl="name" dbTable="floorPlan"></uc-txtbox>
+        <uc-dropdown *ngIf="util.arcsApp" lab="Building" [frmGrp]="frmGrp" frmCtrl="buildingCode" [options] = "dropdownOptions.buildings"></uc-dropdown>
+        <uc-dropdown *ngIf="util.standaloneApp" lab="Map" [options]="dropdownOptions.maps" [disabled]="readonly || !frmGrp.controls.fileName.value"
+            [(value)]="mapCode" (valueChange)="onMapCodeSelected()">
+        </uc-dropdown>
+
+        <div class="col default-checkbox building" *ngIf="util.arcsApp" >
+            <input type="checkbox" kendoCheckBox formControlName="defaultPerBuilding" [disabled]="readonly" />
+            <span>{{'Default Floor Plan' | label : uiSrv.langPack}}</span>
+        </div>
+        
+        <div *ngIf="util.arcsApp" class="form-group treeview">
+            <label class="col-form-label">{{'Map' | label: uiSrv.langPack}}</label>
+            <div class="map-tree k-textbox"> 
+                <kendo-treeview *ngIf="util.arcsApp"  [nodes]="mapTree.data" [isExpanded] = "mapTree.isExpanded"                                  
+                                 (expand)="mapTree.addExpandedKeys($event);" (collapse)="mapTree.removeExpandedKeys($event)"
+                                 textField="name" kendoTreeViewHierarchyBinding childrenField="robotBases">
+                     <ng-template kendoTreeViewNodeTemplate let-dataItem let-index="index">
+                        <div [class]="'item' + (((dataItem.robotBases &&  mapCode == dataItem.mapCode)|| (selectedPixiShape && selectedPixiShape.robotBase == dataItem.robotBase && selectedPixiShape.mapCode == dataItem.mapCode)) ? ' selected' : '')">
+                            <input *ngIf="dataItem.robotBases" type="checkbox" kendoCheckBox [ngModelOptions]="{standalone: true}"  [disabled]="readonly"
+                            [ngModel] = "mapCode == dataItem.mapCode" (ngModelChange) = "mapCode = $event? dataItem.mapCode : null;
+                                                                                         mapTree.refreshExpandedKeys() ;
+                                                                                         onMapCodeSelected() "/>
+                            <a *ngIf="dataItem.robotBase && mapCode == dataItem.mapCode" [class]="'mdi mdi-eye' + (dataItem['hidden']? ' invisible' : ' visible')"  (click)="toggleMapVisibility(dataItem)"></a>
+                            <a *ngIf="dataItem.robotBase && mapCode == dataItem.mapCode" class="name" (click)="refreshSelectedShape(dataItem)">{{ dataItem.name }}</a>
+                            <span *ngIf="!(dataItem.robotBase && mapCode == dataItem.mapCode)" class="name">{{ dataItem.name }}</span>
+                        </div>
+                     </ng-template>
+                </kendo-treeview>
+            </div>
+        </div>
+
+
+        <!-- <uc-dropdown  lab = "Building" [frmGrp] = "frmGrp" frmCtrl = "buildingId" [options] = "dropdownOptions.buildings">
+                </uc-dropdown>
+                 -->
+        <!-- [noDataMsg]="frmGrp.controls['siteId'].value ? null : ('Please select the site first' | label : uiSrv.langPack) " -->
+
+        <!-- <div class="map-container col" *ngIf="!util.standaloneApp && frmGrp.controls['fileName'].value"
+            [style.display]="selectedTab == 'maps'? '' : 'none'">
+            <div class="form-group">
+                <label class="col-form-label">{{'Map' | label: uiSrv.langPack}}</label>
+                <div class="map-content-container k-textboxmap-content-container k-textbox">
+                    <div class="map-content" *ngFor="let map of dropdownData.maps"
+                        [class]="selectedMapIds.includes(map['mapCode'])? 'checked' :''">
+                        <input type="checkbox" [checked]="selectedMapIds.includes(map['mapCode'])"
+                            (change)="toggleMap(map['mapCode'], $event.target.checked , $event.target)" kendoCheckBox />
+                        <span (click)="refreshSelectedShape(map['mapCode'])"
+                            [class]="selectedPixiShape?.id == map['mapCode']? 'selected-map-id map-name' :'map-name'">{{map['name']}}</span>
+                    </div>
+                </div>
+            </div>
+        </div> -->
+
+    </form>
+</ng-template>
+

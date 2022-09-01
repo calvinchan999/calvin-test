@@ -1,0 +1,157 @@
+<kendo-tilelayout class="chart" [columns]="12"  [resizable]="false" [reorderable]="false">
+    <kendo-tilelayout-item class = "tile select-year" [col]="1" [row]="1"  [colSpan] = "3">
+        <div class="form-row">
+            <uc-dropdown  lab = "Year" [(value)] = 'year' [options] = "dropdownOptions.years" [allowClear]="false"></uc-dropdown>
+            <div class="date-range-label col form-group">
+                <div class="col-form-label">{{'Date Range' | label: uiSrv.langPack}}</div>
+                <div class="label">
+                    <span>{{usability.daily.min | date : 'dd/MM/yyyy'}}</span>
+                    <span> - </span>
+                    <span>{{usability.daily.max | date : 'dd/MM/yyyy'}}</span>
+                </div>
+            </div>
+            <!-- <uc-dropdown  lab = "Location" [(value)] = 'location' [options] = "dropdownOptions.locations"></uc-dropdown> -->
+        </div>       
+    </kendo-tilelayout-item>
+    <kendo-tilelayout-item class = "tile completed-jobs" [title]="'Completed Tasks'| label: uiSrv.langPack" [col]="4" [row]="1" [colSpan] = "3">
+        <kendo-tilelayout-item-body>
+            <div class="job-no">
+                <label class="ts-value">{{usability.completed}}</label>
+                <label class="ts-total">/ {{usability.total}}</label>
+            </div>
+            <label class="ts-percent">{{usability.completed * 100 / usability.total | number: '1.0-2'}}%</label>
+        </kendo-tilelayout-item-body>
+    </kendo-tilelayout-item>
+    <kendo-tilelayout-item class = "tile incomplete-jobs" [title]="'Incomplete Tasks'| label: uiSrv.langPack"  [col]="7" [row]="1" [colSpan] = "3">
+        <kendo-tilelayout-item-body>
+            <div class="job-no">
+                <label class="ts-value">{{usability.incomplete}}</label>
+                <label class="ts-total">/ {{usability.total}}</label>
+            </div>
+            <label class="ts-percent">{{usability.incomplete * 100 / usability.total | number: '1.0-2'}}%</label>
+        </kendo-tilelayout-item-body>
+    </kendo-tilelayout-item>
+    <kendo-tilelayout-item class ="tile canceled-jobs"  [title]="'Cancelled Tasks'| label: uiSrv.langPack"  [col]="10" [row]="1" [colSpan] = "3">
+        <kendo-tilelayout-item-body>
+            <div class="job-no">
+                <label class="ts-value">{{usability.canceled}}</label>
+                <label class="ts-total">/ {{usability.total}}</label>
+            </div>
+            <label class="ts-percent">{{usability.canceled * 100 / usability.total | number: '1.0-2'}}%</label>
+        </kendo-tilelayout-item-body>
+    </kendo-tilelayout-item>
+    <!-- <kendo-tilelayout-item class = "tile" [col]="5" [row]="1" [rowSpan] = "6">
+        <kendo-chart [seriesColors]="style.seriesColors">
+            <kendo-chart-area background="transparent"></kendo-chart-area>
+            <kendo-chart-title [color]="style.textColor" [align]="'left'" [text]="'Job Order By Location' | label: uiSrv.langPack"></kendo-chart-title>
+            <kendo-chart-category-axis>
+              <kendo-chart-category-axis-item  [categories]="['Office 1', 'Office 2', 'Office 3', 'Office 4' , 'F&B 1', 'Parcel 1', 'Parcel 2', 'Standby' , 'F&B2' , 'Changing']"
+                                               [majorGridLines]="{ visible : false}"  [color]="style.textColor">
+              </kendo-chart-category-axis-item>         
+            </kendo-chart-category-axis>   
+            <kendo-chart-value-axis>
+                <kendo-chart-value-axis-item [majorGridLines]="{ visible : false}" [min]="0" [color]="style.textColor">
+                </kendo-chart-value-axis-item>
+            </kendo-chart-value-axis>
+            <kendo-chart-series>
+              <kendo-chart-series-item type="bar" [data]="[1132, 1097, 1086, 1077, 1075 , 1064 , 1054, 1041, 1033, 991]"  
+                                        [labels]="{visible:true , position:'insideEnd' , color:'#FFFFFF' , background:'transparent'}">
+              </kendo-chart-series-item>      
+            </kendo-chart-series>
+          </kendo-chart>
+    </kendo-tilelayout-item> -->
+    <kendo-tilelayout-item class = "tile daily" [col]="1" [row]="2" [rowSpan] = "4" [colSpan] = "12" [title]="'Task Count per Day' | label: uiSrv.langPack"  >
+        <kendo-chart  (selectEnd)="onSelectEnd($event)"   [transitions]="usability.daily.transitions"  class="kendo-chart-time-series"
+                      [seriesColors]="[style.seriesColors[0], style.seriesColors[0]]"
+                      [categoryAxis]="[
+                      {
+                        color : style.textColor,
+                        categories: usability.daily.categories,
+                        min: usability.daily.min,
+                        max: usability.daily.max,
+                        labels: { format:'d/M'},
+                        baseUnitStep : 1,
+                        maxDivisions: 32
+                      },
+                      {
+                        categories: usability.daily.categories,
+                        name: 'navigatorAxis',
+                        labels: { step: usability.daily.navigatorStep , format:'MMM' , skip: 15 , color:style.textColor},
+                        majorGridLines: { visible: false},
+                        pane: 'navigator',
+                        select: { from: usability.daily.min, to: usability.daily.max }
+                      }]"
+                      [valueAxis]="[{color:style.textColor}, {name: 'valueNavigatorAxis', pane: 'navigator' , visible:false , majorGridLines :{visible:false } }]"
+                      [panes]="[{color:style.textColor }, { name: 'navigator', height: 100 }]">
+            <kendo-chart-area background="transparent"></kendo-chart-area>
+            <kendo-chart-tooltip format="{0}"></kendo-chart-tooltip>
+            <!-- <kendo-chart-title  [align]="'left'" [text]="'Job Order Quantity per Day' | label: uiSrv.langPack"  [color]="style.textColor"></kendo-chart-title> -->
+            <kendo-chart-series>
+                <kendo-chart-series-item type="line" [data]="usability.daily.data"  [markers]="{ visible: false }"></kendo-chart-series-item>
+                <kendo-chart-series-item type="area" [data]="usability.daily.data"  axis="valueNavigatorAxis" categoryAxis="navigatorAxis"> </kendo-chart-series-item>
+            </kendo-chart-series>
+        </kendo-chart>
+    </kendo-tilelayout-item>
+
+    <kendo-tilelayout-item class="weekly" [col]="1" [row]="6" [colSpan] = "4" [rowSpan]="2" [title]="'Average Task Count per Weekday' | label: uiSrv.langPack" >
+                <kendo-chart [seriesColors]="style.seriesColors">  
+                    <kendo-chart-area background="transparent"></kendo-chart-area>   
+                    <kendo-chart-tooltip format="{0}"></kendo-chart-tooltip>
+                    <!-- <kendo-chart-title  [align]="'left'" [text]="'Average Job Order per Weekday' | label: uiSrv.langPack" [color]="style.textColor" ></kendo-chart-title>                    -->
+                    <kendo-chart-series>
+                      <kendo-chart-series-item type="column" [data]="usability.weeklyAvg.data">
+                      </kendo-chart-series-item>
+                    </kendo-chart-series>
+                    <kendo-chart-category-axis>
+                        <kendo-chart-category-axis-item  [categories]="usability.weeklyAvg.categories" [color]="style.textColor" 
+                                                         [majorGridLines]="{ visible : false}">
+                        </kendo-chart-category-axis-item>         
+                    </kendo-chart-category-axis>   
+                    <kendo-chart-value-axis>
+                        <kendo-chart-value-axis-item [color]="style.textColor">
+                        </kendo-chart-value-axis-item>
+                    </kendo-chart-value-axis>
+                </kendo-chart>
+    </kendo-tilelayout-item>
+    <kendo-tilelayout-item  class="hourly" [col]="5" [row]="6" [colSpan] = "4" [rowSpan]="2" [title]="'Average Task Count By Hour' | label: uiSrv.langPack">
+                <kendo-chart [seriesColors]="style.seriesColors">   
+                    <kendo-chart-area background="transparent"></kendo-chart-area>  
+                    <kendo-chart-tooltip format="{0}"></kendo-chart-tooltip>
+                    <!-- <kendo-chart-title  [align]="'left'" [text]="'Average Job Order By Hour' | label: uiSrv.langPack" [color]="style.textColor" ></kendo-chart-title>                    -->
+                    <kendo-chart-series>
+                      <kendo-chart-series-item type="line" [data]="usability.hourlyAvg.data"  [markers]="{ visible: false }">
+                      </kendo-chart-series-item>
+                    </kendo-chart-series>
+                    <kendo-chart-category-axis>
+                        <kendo-chart-category-axis-item  [categories]="[0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23]"
+                                                         [majorGridLines]="{ visible : false}" [color]="style.textColor" >
+                        </kendo-chart-category-axis-item>         
+                    </kendo-chart-category-axis>   
+                    <kendo-chart-value-axis>
+                        <kendo-chart-value-axis-item [color]="style.textColor">
+                        </kendo-chart-value-axis-item>
+                    </kendo-chart-value-axis>
+                </kendo-chart>
+    </kendo-tilelayout-item>
+    <kendo-tilelayout-item  class="type"  [col]="9" [row]="6" [colSpan] = "4"  [rowSpan]="2" [title]="'Task Count by Type' | label: uiSrv.langPack">
+                <kendo-chart [seriesColors] = "style.seriesColors">
+                    <kendo-chart-area background="transparent"></kendo-chart-area>
+                    <!-- <kendo-chart-title [align]="'left'" [text]="'Job Order by Type' | label: uiSrv.langPack"  [color]="style.textColor" ></kendo-chart-title>     -->
+                    <ng-template kendoChartDonutCenterTemplate>
+                        <div [style.color]="style.textColor">{{usability.robotType.centerText}}</div>
+                    </ng-template>
+                    <kendo-chart-legend [visible]="false" ></kendo-chart-legend>
+                    <kendo-chart-series>
+                      <kendo-chart-tooltip>
+                            <ng-template kendoChartSeriesTooltipTemplate  let-value="value" let-category="category" let-series="series" >
+                              {{ category }} : {{ value}}
+                            </ng-template>
+                      </kendo-chart-tooltip>
+                      <kendo-chart-series-item type="donut" [data]="usability.robotType.data" field="value" categoryField="category" [holeSize] = "35" [padding] = "25"
+                            [labels]="{ visible: true, visual: usability.robotType.labelVisual, position : 'outsideEnd' , distance:25 , color:style.textColor }"  
+                      >
+                      </kendo-chart-series-item>
+                    </kendo-chart-series>
+                  </kendo-chart>
+    </kendo-tilelayout-item>
+</kendo-tilelayout>

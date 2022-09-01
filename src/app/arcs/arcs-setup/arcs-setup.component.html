@@ -1,0 +1,31 @@
+<div class="map card-container" *ngIf="!uiSrv.isTablet">
+    <div class="card-header-wrapper">
+        <!-- title -->
+        <h3 class="card-title"></h3>
+        <!-- tab buttons -->
+        <div class="card-buttons">
+            <kendo-buttongroup selection="single">
+                <button *ngFor="let tab of tabs" kendoButton [toggleable]="true" [selected]="selectedTab == tab.id" (click)="selectedTab == tab.id ? null : onTabChange(tab.id) ; ">
+                    {{ tab.label | label : uiSrv.langPack }}
+                </button>
+            </kendo-buttongroup>
+        </div>
+        <span></span>
+    </div>
+    <div class="table-container">
+        <uc-table #table  [toolbarButtons] ="{new : selectedTab != 'map' , action: true}" [columnDefs] = "gridSettings[selectedTab]['columns']" [(data)]="data" [serverSidePagination] = "true"
+                          [dataSourceApiEndpoint] = "gridSettings[selectedTab]['apiUrl']"    [functionId] = "gridSettings[selectedTab]['functionId']"
+                          [disabledButtons] = "tableDisabledButtons" [isLoading] = "isTableLoading"  (dataStateChange)="loadData($event)"
+                          (selectedDataChange)="tableDisabledButtons = {new : false , action : $event.length == 0}"
+                          (actionClick) = "$event.actionId == 'delete' ? delete(): null "
+                          (cellClick) = "$event?.column == 'edit' ? showDetail($event) : null" (createClick) = "showDetail()" [useColumnFilter]='true'>
+        </uc-table>
+    </div>
+    <div class="viewport-container" [style.display]  = "selectedTab == 'dashboard'">
+        <uc-drawing-board #pixi [hideButton] = "{ all : true}"></uc-drawing-board>
+    </div>
+</div>
+
+<!-- * * *  ^ PC VERSION ^   * * * -->
+
+

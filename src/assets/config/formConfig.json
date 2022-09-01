@@ -1,0 +1,15 @@
+{
+	"codeRegex":"[A-Za-z0-9_-]+",
+	"codeRegexErrorMsg":" - Only accept Alphanumeric , hyphen and underscore",
+	"maxlength" : [
+		{"key" : "floorPlanCode" , "length" : 50},
+		{"key" : "buildingCode" , "length" : 50},
+		{"key" : "name" , "length" : 100},
+		{"key" : "name" , "table" : "floorPlan", "length" : 100},
+		{"key" : "missionId" , "table" : "floorPlan", "length" : 50},
+		{"key" : "mapCode" ,  "length" : 50},
+		{"key" : "code" , "table":"user_defined_point_type" ,  "length" : 50},
+		{"key" : "userCode" ,  "length" : 50},
+		{"key" : "userGroupCode" ,  "length" : 50}
+	]
+}

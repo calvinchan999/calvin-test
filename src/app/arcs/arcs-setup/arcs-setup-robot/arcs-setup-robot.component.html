@@ -1,0 +1,29 @@
+<div class="dialog-content map-detail">
+    <kendo-dialog-titlebar (close)="onClose()">
+        <div>{{'Robot' | label: uiSrv.langPack}}</div>
+    </kendo-dialog-titlebar>
+
+    <div class="form-container">
+        <form [formGroup]="frmGrp" class="content">
+            <div class="form-row">
+                <uc-txtbox lab="Code" [disabled]="true" [frmGrp]="frmGrp" frmCtrl="robotCode"></uc-txtbox>
+                <uc-txtbox lab="Base" [disabled]="true" [frmGrp]="frmGrp" frmCtrl="robotBase"></uc-txtbox>
+            </div>
+            <div class="form-row">
+                <uc-txtbox lab="Robot Name" [frmGrp]="frmGrp" frmCtrl="name"></uc-txtbox>
+            </div>
+            <div class="form-row">
+                <uc-dropdown lab="Type" [frmGrp]="frmGrp" frmCtrl="robotType" [options]="dropdownOptions.types" (valueChange) = "refreshSubTypeOptions()" [disabled]="true">
+                </uc-dropdown>
+                <uc-txtbox lab="Sub Type" [disabled]="true" [frmGrp]="frmGrp" frmCtrl="robotSubType"></uc-txtbox>
+                <!-- <uc-dropdown lab="Sub Type" [frmGrp]="frmGrp" frmCtrl="robotSubTypeId" [options]="dropdownOptions.subTypes" [disabled]="true">
+                </uc-dropdown> -->
+            </div>
+        </form>
+    </div>
+
+    <div class="button-container">
+        <button kendoButton (click)="onClose()"> {{'Cancel' | label : uiSrv.langPack}}</button>
+        <button kendoButton (click)="saveToDB()" >{{'Save' | label : uiSrv.langPack}}</button>
+    </div>
+</div>

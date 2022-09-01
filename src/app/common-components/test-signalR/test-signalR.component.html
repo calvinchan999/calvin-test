@@ -1,0 +1,76 @@
+<h2>SignalR Playground</h2>
+<!-- <app-video-player src = "https://1gr3uomttgr31hcj1grzdnqy.ourdvsss.com/d1--ov-gotcha05.bilivideo.com/live-bvc/537308/live_282234318_26735903_1500.flv?expires=1652347244&len=0&oi=3674148446&pt=web&qn=0&trid=1000a19755adc1274297bb8f9e9b22dddccb&sigparams=cdn,expires,len,oi,pt,qn,trid&cdn=ov-gotcha05&sign=89fb9b920acb070526a4a4b25751c3c4&sk=07bbb5da854c41c11ba00e813c76c503&p2p_type=0&src=57345&sl=1&free_type=0&flowtype=1&machinezone=ylf&pp=rtmp&source=onetier&order=1&site=67f4ab99a7af49e7483108a2fef2cc7f&wsiphost=ipdbme&wshc_tag=0&wsts_tag=627cc320&wsid_tag=daff0e5e"></app-video-player>
+<app-video-player src = "https://d1--ov-gotcha07.bilivideo.com/live-bvc/775117/live_35665579_7453679.flv?expires=1652345409&len=0&oi=3674148446&pt=web&qn=0&trid=1000f3aecc3eb17d4e7bb8ca21656db7d418&sigparams=cdn,expires,len,oi,pt,qn,trid&cdn=ov-gotcha07&sign=9ed33804093c6809a721115a66cffe68&sk=2e0952014a63066fdb0aff008fb0c2ef&p2p_type=0&src=57345&sl=1&free_type=0&flowtype=0&machinezone=ylf&pp=rtmp&source=onetier&order=1&site=7bfbb3edba4e20fa28fa09076d965fb3" ></app-video-player> 
+<app-video-player src = "https://0gr5dgmttgha1hcto8yzdncjt.ourdvsss.com/d1--ov-gotcha05.bilivideo.com/live-bvc/554184/live_15626595_3375215.flv?expires=1652346348&len=0&oi=3674148446&pt=web&qn=0&trid=10004bee390ac57545bc816fc0f15dee1713&sigparams=cdn,expires,len,oi,pt,qn,trid&cdn=ov-gotcha05&sign=09a51a72cfd05d2b734a1dc26add2316&sk=ac8f272a4f8b8269cde19a21657448dd&p2p_type=0&src=57345&sl=1&free_type=0&flowtype=0&machinezone=ylf&source=onetier&order=1&site=f419592f46053d8600a324ee0b915bce&wsiphost=ipdbme&wshc_tag=0&wsts_tag=627cbfa2&wsid_tag=daff0e5e" ></app-video-player>
+<app-video-player src = "https://d1--ov-gotcha07.bilivideo.com/live-bvc/321615/live_280086112_5833735_1500.flv?expires=1652347059&len=0&oi=3674148446&pt=web&qn=0&trid=10008b8836f7cb1b4f6dac5de16efe704bdb&sigparams=cdn,expires,len,oi,pt,qn,trid&cdn=ov-gotcha07&sign=bb9713ca8854ba83009509f4fad9cd15&sk=2935686d6cb9146c7a6a6a0b4e120e2557adc0b48de99725a5887e843ee476a1&p2p_type=0&src=909441&sl=1&free_type=0&flowtype=1&machinezone=ylf&source=onetier&order=1&site=a1b0b994fee0b589a3e1f09e0e203b49" ></app-video-player> -->
+
+<!-- <video id="test_video" controls autoplay src="https://content.jwplatform.com/manifests/yp34SRmf.m3u8"></video> -->
+<div style="display: flex; margin: 10px;">
+   <span style="padding: 5px 15px 5px 0px;">Sample Data : </span>
+   <kendo-buttongroup selection="single">
+      <button kendoButton (click)="getSampleData('taskExecute')">
+         Task Execute
+      </button>
+      <button kendoButton (click)="getSampleData('taskProgress')">
+         Task Progress
+      </button>
+      <button kendoButton (click)="getSampleData('taskMoveStart')">
+         Task Start Move
+      </button>
+      <button kendoButton (click)="getSampleData('taskMoveEnd')">
+         Task End Move
+      </button>
+      <button kendoButton (click)="getSampleData('taskComplete')">
+         Task Complete
+      </button>
+      <button kendoButton (click)="getSampleData('scanMap')">
+         Scan Map
+      </button>
+      <button kendoButton (click)="getSampleData('scanMapPose')">      
+         Scan Map Pose
+      </button>
+      <button kendoButton (click)="getSampleData('pose')">
+         Robot Pose
+      </button>
+      <button kendoButton (click)="getSampleData('brake')">
+         Brake ON
+      </button>
+      <button kendoButton (click)="getSampleData('battery')">
+         Battery
+      </button>
+      <button kendoButton (click)="getSampleData('ieq')">
+         Air (IEQ)
+      </button>
+      <button kendoButton (click)="getSampleData('cellular')">
+         Cellular
+      </button>
+      <button kendoButton (click)="getSampleData('cabinet')">
+         Cabinet
+      </button>
+      <button kendoButton (click)="getSampleData('obstacleDetection')">
+         Obstacle Detection
+      </button>
+      <button kendoButton (click)="getSampleData('wifi')">
+         Wifi
+      </button>
+      <button kendoButton (click)="getSampleData('mode')">
+         Mode
+      </button>
+      <button kendoButton (click)="getSampleData('lidar')">
+         Lidar
+      </button>
+   </kendo-buttongroup>
+</div>
+<div style="display: flex; margin: 10px;">
+   <span style="padding: 5px 15px 5px 0px;">Test Dashboard : </span>
+   <button kendoButton (click) = "invokeDashboardSignalR()">Execute</button>
+</div>
+<div style="display: flex; margin: 10px;">
+   <button kendoButton (click)="getSampleData('arcsPose')">
+      ARCS Poses 
+   </button>
+</div>
+<uc-txtbox lab="Topic" [(value)] = "topic"></uc-txtbox>
+<uc-txtbox lab="Series Interval (second)" [(value)] = "seriesInterval" [numeric]="true"></uc-txtbox>
+<uc-txtbox lab="Message" [textArea] = "true" [(value)] = "content"></uc-txtbox>
+<button kendoButton (click) = "invokeSignalR(topic , content)">Publish</button>

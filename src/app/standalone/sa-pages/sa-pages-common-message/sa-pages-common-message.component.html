@@ -1,0 +1,9 @@
+<div class = "msg-container">
+    <span [class]="'msg-icon mdi ' + testIconClass"></span>
+    <div class="msg-text">{{testText}}</div>
+</div>
+
+<div class="test-input-container" style="margin: 20px">
+    <uc-txtbox lab = "Test Class" [(value)] = "testIconClass"></uc-txtbox>
+    <uc-txtbox lab = "Test Text" [(value)] = "testText"></uc-txtbox>
+</div>

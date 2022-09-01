@@ -1,0 +1,27 @@
+<!-- <div class="header">
+
+  </div>
+  
+  <div class="controls" *ngIf="isEmbedded; else embedReportFlow">
+    <button (click)="deleteVisual()">Delete Visual</button>
+    <button (click)="hideFilterPane()">Hide Filter Pane</button>
+    <button (click)="setDataSelectedEvent()">Set Event</button>
+    <div class="display-message" #status>{{ displayMessage }}</div>
+  </div>
+  <ng-template #embedReportFlow>
+    <div class="display-message position" #status>
+      <label>{{ displayMessage }}</label>
+    </div>
+    <div class="embed-report">
+      <button (click)="embedReport()" id="embed-action" #embedReportBtn>Embed Report</button>
+    </div>
+    <div class="separator"></div>
+  </ng-template> -->
+  
+ <powerbi-report [embedConfig]="reportConfig" [cssClassName]="reportClass" [phasedEmbedding]="phasedEmbeddingFlag" [eventHandlers]="eventHandlersMap">
+ </powerbi-report>
+
+  
+<!-- <iframe title="ARCS - Page 1" width="1600" height="800" src="https://app.powerbi.com/reportEmbed?reportId=5c8ce2ff-0488-4605-b4de-f90072dfc8e4&autoAuth=true&ctid=2d3a4514-961a-4aba-8d48-b0018e76e01a&config=eyJjbHVzdGVyVXJsIjoiaHR0cHM6Ly93YWJpLXNvdXRoLWVhc3QtYXNpYS1yZWRpcmVjdC5hbmFseXNpcy53aW5kb3dzLm5ldC8ifQ%3D%3D" frameborder="0" allowFullScreen="true"></iframe> -->
+
+<!-- <div class="footer"> </div> -->

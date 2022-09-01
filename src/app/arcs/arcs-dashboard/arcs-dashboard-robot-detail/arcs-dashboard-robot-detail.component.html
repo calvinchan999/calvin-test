@@ -1,0 +1,68 @@
+    <kendo-dialog-titlebar (close) = "dialogRef.close()">
+        <div>{{robotId}}</div>
+    </kendo-dialog-titlebar>
+    <div class="card-header-wrapper" >
+        <!-- title -->
+        <h3 class="card-title"></h3>
+        <!-- tab buttons -->
+        <div class="card-buttons">
+            <kendo-buttongroup #buttonGroup selection="single">
+                <button *ngFor="let tab of tabs" kendoButton [toggleable]="true" [selected]="selectedTab == tab.id" (click) = "selectedTab = tab.id "> 
+                    {{ tab.label | label : uiSrv.langPack }}
+                </button>
+            </kendo-buttongroup>
+        </div>
+        <span></span>
+    </div>
+    
+    <app-sa-top-module *ngIf="robotType && selectedTab == 'topModule'" [arcsRobotType] = "robotType"  [arcsRobotSubType] = "robotSubType"  [arcsRobotCode] = "robotId"></app-sa-top-module>    
+    <ng-container *ngIf="selectedTab == 'info'">
+        <kendo-tilelayout [columns]="2" [resizable]="false" [reorderable]="false">
+            <ng-container *ngFor = "let row of dashboardLayout ; let ri = index">
+                <kendo-tilelayout-item *ngFor = "let cell of row ; let ci = index" [class]="(cell.id | cssClassName : 'ts-') + ' tile' + (cell.rowSpan ? cell.rowSpan : 1) + '-' + (cell.colSpan ? cell.colSpan : 1)" 
+                                           [col]="( cell['col'] ? cell['col'] : ci) " [row]="cell['row'] ? cell['row'] : (ri + 1)" 
+                                           [colSpan]="cell['colSpan']? cell['colSpan']: 1"  [rowSpan]="cell['rowSpan']? cell['rowSpan']: 1">
+                    <kendo-tilelayout-item-body>
+                        <ng-container *ngFor = "let item of (cell['cells'] ? cell['cells'] : [cell])" >
+                            <ng-container *ngTemplateOutlet = "item['cells']? dashboarodNestedItems : dashboarodItem; context : {item : item , items : item['cells']}" ></ng-container>
+                            <ng-container *ngIf="cell.id == 'status' && ds.status && (ds.status['robotStatus']  == 'HOLD' || ds.status['robotStatus']  == 'IDLE')"> 
+                                <button kendoButton [class]="ds.status['robotStatus']  == 'HOLD' ? 'release' : 'reserve'" (click)="ds.status['robotStatus']  == 'HOLD'? releaseRobot() : reserveRobot() "> 
+                                    {{ (ds.status['robotStatus']  == 'HOLD' ? 'Release' : 'Reserve') | label : uiSrv.langPack }}
+                                </button>
+                            </ng-container>
+                        </ng-container>   
+                    </kendo-tilelayout-item-body>      
+                </kendo-tilelayout-item>
+            </ng-container>
+        </kendo-tilelayout>
+        
+            
+        <ng-template #dashboarodNestedItems let-items="items">
+            <div class='bl-box'>
+                <ng-container *ngFor="let item of items">
+                    <ng-container *ngTemplateOutlet="dashboarodItem; context : {item : item}"></ng-container>
+                </ng-container>
+            </div>
+        </ng-template>
+        
+        <ng-template #dashboarodItem let-item ="item">
+            <div class='bl-item' [class]="(item['id'] | cssClassName) + (item['type'] == 'button' ? ' bl-button' : '') + (ds[item['id']]?.cssClass ? (' ' + (ds[item['id']]?.cssClass | cssClassName)): '')">
+                <ng-container >
+                    <div class="bl-icon"><i class="k-icon mdi" [ngClass]="ds[item['id']] && ds[item['id']].icon? ds[item['id']].icon : (item.id | cssClassName : 'ts-')"></i></div>
+                    <div class="bl-text">
+                        <label class="bl-label">{{ds[item['id']]?.title | label : uiSrv.langPack}}</label>
+                        <span class="bl-result">{{(ds[item['id']]?.content ? ds[item['id']].content :  
+                                                   ( ds[item['id']]?.signalRfld!=null &&  ds[item['id']]?.signalRfld!=undefined && ds[item['id']].signalR?.value? 
+                                                     ds[item['id']].signalR?.value[ds[item['id']].signalRfld] : 
+                                                     ds[item['id']]?.signalR?.value ) 
+                                                  ) | label : uiSrv.langPack }}</span>
+                        <span class="bl-unit">{{ (ds[item['id']]?.suffixSignalR && ds[item['id']]?.suffixSignalR.value ?  ds[item['id']]?.suffixSignalR.value : ds[item['id']]?.suffix ) | label : uiSrv.langPack }}</span>
+                    </div>   
+                </ng-container>
+            </div>
+        </ng-template>
+        
+    </ng-container>    
+
+
+<!-- (click)=" tab.id == selectedTab ? null : onTabChange(tab.id) " -->

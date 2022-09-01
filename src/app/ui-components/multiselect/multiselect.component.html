@@ -1,0 +1,20 @@
+
+        <label class="col-form-label">{{ lab |label : uiSrv.langPack}}</label>
+        <div class="form-group">
+            <kendo-multiselect #multiselect [ngModel] = "myValue"  [data]="dispOptions"  [textField]="textFld" [valueField]="valueFld"  [filterable] = "true"   [disabled] = "disabled"
+                              [autoClose]="false"  [checkboxes]="checkboxes ? { checkOnClick: true } : undefined "
+                              (ngModelChange) = "oldValue = value; value = $event; 
+                                                 change.emit({currentValue : $event[valueFld] , previousValue: oldValue});
+                                                 valueChange.emit(value)">
+                <ng-template kendoMultiSelectItemTemplate let-dataItem>
+                    <span [innerHTML] = "dataItem[textFld] | highlight : filterVal"></span>
+                </ng-template>
+            </kendo-multiselect>
+        </div>
+        <!-- <ng-template kendoDropDownListNoDataTemplate *ngIf = "noDataMsg">
+            {{noDataMsg}}
+        </ng-template> -->
+    <label *ngIf = "errMsg || frmGrp.controls[frmCtrl].errors"  class="error"> {{errMsg ? errMsg : frmGrp.controls[frmCtrl].errors['message']}}</label>
+    <label *ngIf = "frmGrp.controls[frmCtrl].errors?.required && frmGrp.controls[frmCtrl].touched"  class="error">
+        {{ (lab | label : uiSrv.langPack) + (' is required' | label : uiSrv.langPack)}}
+   </label>

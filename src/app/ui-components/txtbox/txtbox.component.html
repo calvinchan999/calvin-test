@@ -1,0 +1,97 @@
+
+  
+    <form *ngIf = "frmGrp && frmCtrl" [formGroup]="frmGrp" [class]="lab ? 'form-group': ''" >
+        <label class="col-form-label">{{ lab | label : uiSrv.langPack}}</label>
+        <kendo-textbox  *ngIf="!textArea && !numeric" [maxlength]="maxlength" #textbox [placeholder]="placeholder"  [formControlName]="frmCtrl" 
+                                          [disabled]="disabled || frmGrp.controls[frmCtrl].disabled" >
+            <ng-template kendoTextBoxPrefixTemplate *ngIf= "prefixButton">
+                <ng-container *ngTemplateOutlet = "prefixButtonTpl"></ng-container>
+            </ng-template>
+            <ng-template kendoTextBoxSuffixTemplate>
+                <ng-container *ngTemplateOutlet = "suffixButtonTpl"></ng-container>
+            </ng-template>
+        </kendo-textbox>
+
+        <div *ngIf="uiSrv.isTablet && numeric" class="numeric-container">
+            <a *ngIf="uiSrv.isTablet && numeric" class="k-button k-button-decrease" title="decrement" aria-label="decrement" (touchstart)="changeNumericValueBy(-1 * numTick)"><span class="k-icon k-i-arrow-w"></span></a>
+            <ng-container *ngTemplateOutlet = "numeric_frmCtrl"></ng-container>
+            <a *ngIf="uiSrv.isTablet && numeric"  class="k-button k-button-increase " title="increment" aria-label="increment" (touchstart)="changeNumericValueBy(numTick)"><span class="k-icon k-i-arrow-e"></span></a>
+        </div>
+
+        <ng-container *ngIf="!uiSrv.isTablet && numeric" >
+            <ng-container *ngTemplateOutlet = "numeric_frmCtrl"></ng-container>
+        </ng-container>
+           
+        <kendo-textarea *ngIf="textArea" [maxlength]="maxlength" #textbox [placeholder]="placeholder"  [formControlName]="frmCtrl"   [disabled]="disabled || frmGrp.controls[frmCtrl].disabled" ></kendo-textarea>
+        <label *ngIf = "frmGrp.controls[frmCtrl].errors?.message" class="error"> {{frmGrp.controls[frmCtrl].errors['message']}}</label>
+        <label *ngIf = "frmGrp.controls[frmCtrl].errors?.required && frmGrp.controls[frmCtrl].touched"  class="error">
+             {{ (lab | label : uiSrv.langPack) + (' is required' | label : uiSrv.langPack)}}
+        </label>
+        <label *ngIf = "frmGrp.controls[frmCtrl].errors?.pattern && frmGrp.controls[frmCtrl].touched"  class="error">
+            {{ ('Invalid Pattern' | label : uiSrv.langPack) +  ( dataSrv.codeRegexErrorMsg | label : uiSrv.langPack ) }}
+       </label>
+        <label *ngIf = "frmGrp.controls[frmCtrl].errors?.pattern && frmGrp.controls[frmCtrl].touched && frmGrp.controls[frmCtrl].errors.pattern.requiredPattern.startsWith('^[^')"  class="error">
+            {{ ('Input must not contains  ' | label : uiSrv.langPack) + (frmGrp.controls[frmCtrl].errors?.pattern.requiredPattern.replace('^[^','').replace(']+$' , '').split('').join(' '))}}
+       </label>
+        <!-- <input kendoTextBox [placeholder]="placeholder" [type]="type"  [formControlName]="frmCtrl" /> -->
+    </form>
+
+    <div *ngIf = "!frmGrp || !frmCtrl" [class]="lab ? 'form-group': ''" >
+        <label class="col-form-label">{{ lab | label : uiSrv.langPack}}</label>
+        <kendo-textbox *ngIf="!textArea && !numeric" [maxlength]="maxlength" #textbox [placeholder]="placeholder" [disabled]="disabled" [value] = "myValue" (valueChange) = "valueChange.emit($event)" (inputFocus) = "setErrors(null)">
+            <ng-template kendoTextBoxPrefixTemplate *ngIf= "prefixButton">
+                <ng-container *ngTemplateOutlet = "prefixButtonTpl"></ng-container>
+            </ng-template>
+            <ng-template kendoTextBoxSuffixTemplate>
+                <ng-container *ngTemplateOutlet = "suffixButtonTpl"></ng-container>
+            </ng-template>
+        </kendo-textbox>   
+
+
+        <div *ngIf="uiSrv.isTablet && numeric" class="numeric-container">
+            <a *ngIf="uiSrv.isTablet && numeric" class="k-button k-button-decrease" title="decrement" aria-label="decrement" (touchstart)="changeNumericValueBy(-1 * numTick)"><span class="k-icon k-i-arrow-w"></span></a>
+            <ng-container *ngTemplateOutlet = "numeric_ngModel"></ng-container>
+            <a *ngIf="uiSrv.isTablet && numeric"  class="k-button k-button-increase " title="increment" aria-label="increment" (touchstart)="changeNumericValueBy(numTick)"><span class="k-icon k-i-arrow-e"></span></a>
+        </div>
+
+        <ng-container *ngIf="!uiSrv.isTablet && numeric" >
+            <ng-container *ngTemplateOutlet = "numeric_ngModel"></ng-container>
+        </ng-container>
+           
+            
+        <kendo-textarea *ngIf="textArea && !numeric" [maxlength]="maxlength" #textbox [placeholder]="placeholder" [disabled]="disabled"  [value] = "myValue"  (valueChange) = "valueChange.emit($event)" (inputFocus) = "setErrors(null)"></kendo-textarea>
+        <label *ngIf = "errMsg"  class="error"> {{errMsg}}</label>     
+        <!-- <input kendoTextBox [placeholder]="placeholder" [type]="type" [value] = "myValue"/> -->
+        <!-- <kendo-textbox [placeholder]="placeholder" [value] = "myValue"></kendo-textbox> -->
+    </div>
+
+
+    
+<ng-template #prefixButtonTpl>
+    <button *ngIf="prefixButton" kendoButton look="clear"  (click) = "prefixButtonClick.emit()">
+        <span *ngIf="prefixButton['icon']" [class] = "prefixButton['icon']"></span>
+        <span *ngIf="prefixButton['text']">{{prefixButton['text']}}</span>
+    </button>
+</ng-template>
+
+<ng-template #suffixButtonTpl>
+    <button *ngIf="suffixButton" kendoButton look="clear" (click) = "suffixButtonClick.emit()">
+        <span *ngIf="suffixButton['icon']" [class] = "suffixButton['icon']"></span>
+        <span *ngIf="suffixButton['text']">{{suffixButton['text']}}</span>
+    </button>
+</ng-template>
+
+<ng-template #numeric_frmCtrl>
+    <kendo-numerictextbox *ngIf="numeric"  #textbox [placeholder]="placeholder"  [formControlName]="frmCtrl" [autoCorrect] = 'true' [step] = "numStep" 
+                           [decimals] = "numDecimals" [max] = "numMax" [min]="numMin" [selectOnFocus] = "!uiSrv.isTablet" [spinners] = "!uiSrv.isTablet"
+                           [disabled]="disabled || frmGrp.controls[frmCtrl].disabled" [format] = "numFormat"> 
+    </kendo-numerictextbox>
+</ng-template>
+
+<ng-template #numeric_ngModel>
+    <kendo-numerictextbox *ngIf="numeric"  #textbox [placeholder]="placeholder" [disabled]="disabled" [maxlength]="maxlength" (inputFocus) = "setErrors(null)"  
+                           [decimals] = "numDecimals" [max] = "numMax" [min]="numMin" [selectOnFocus] = "!uiSrv.isTablet" [step] = "numStep"  [spinners] = "!uiSrv.isTablet"
+                           [value] = "myValue" (valueChange) = "valueChange.emit($event)"  [autoCorrect] = 'true' [format] = "numFormat">  
+    </kendo-numerictextbox>
+</ng-template>
+

@@ -1,0 +1,140 @@
+<div class="task-job">
+    <kendo-dialog-titlebar *ngIf="!uiSrv.isTablet" (close)="onClose()">
+        <div>{{ (isExecuteTemplate ? 'Execute Template' : (isTemplate ? 'Template' : 'Task')) | label: uiSrv.langPack}}</div>
+    </kendo-dialog-titlebar>
+
+    <div class="dialog-content flex-container" [class]="uiSrv.isTablet? 'tablet-container' : ''">
+        <kendo-tabstrip #tabstrip *ngIf="mapObj.enable" (tabSelect)=" actionViewModeChanged( $event ) ;">
+            <kendo-tabstrip-tab [title]="'Detail' | label : uiSrv.langPack " [selected]="true">
+                <ng-template kendoTabContent>
+                    <div class="flex-container">
+                        <ng-container *ngTemplateOutlet="form"></ng-container>
+                        <ng-container *ngTemplateOutlet="table"></ng-container>
+                    </div>
+                </ng-template>
+            </kendo-tabstrip-tab>
+            <kendo-tabstrip-tab [title]="(isTemplate || !frmGrp.controls['taskId'].value? 'Map Preview' : 'Map View') | label : uiSrv.langPack">
+                <ng-template kendoTabContent>
+                    <ng-container *ngTemplateOutlet="map"></ng-container>
+                </ng-template>
+            </kendo-tabstrip-tab>
+        </kendo-tabstrip>
+        <ng-container *ngIf="!mapObj.enable">
+            <ng-container *ngTemplateOutlet="form"></ng-container>
+            <ng-container *ngTemplateOutlet="table"></ng-container>
+        </ng-container>
+        <div class="button-container">
+            <button *ngIf="!uiSrv.isTablet || parent.selectedTab != 'add'" kendoButton (click)="onClose()"> {{ uiSrv.isTablet ? 'Back' : 'Cancel' | label : uiSrv.langPack}}</button>
+            <button *ngIf="isExecuteTemplate || !readonly" kendoButton (click)="saveToDB()"> {{ ( isExecuteTemplate ? 'Execute' : 'Save' )| label : uiSrv.langPack}}</button>
+        </div>
+    </div>
+</div>
+
+
+<ng-template #form>
+    <form [formGroup]="frmGrp" class="content">
+        <div class="form-row">
+            <uc-txtbox *ngIf="!isTemplate || isExecuteTemplate" lab="Order No" [frmGrp]="frmGrp" frmCtrl="taskId" [upper]="true" [disabled] = "parentRow"></uc-txtbox>
+            <uc-txtbox *ngIf="isTemplate && !isExecuteTemplate" lab="Template Code" [frmGrp]="frmGrp" frmCtrl="missionId"  [upper]="true" [disabled] = "parentRow"></uc-txtbox>
+            <uc-txtbox [lab]="isTemplate ? 'Template Description' : 'Task Description'" [frmGrp]="frmGrp" [frmCtrl]="'name'"></uc-txtbox>
+            <uc-dropdown *ngIf="util.standaloneApp"  lab="Floor Plan"  [(value)] = "selectedFloorPlanCode" [disabled] = 'readonly'
+                         (change) = "onFloorplanChange_SA($event)" [options] = "dropdownOptions.floorplans" [allowClear] = "false">
+            </uc-dropdown>
+            <!-- <uc-dropdown #fpdropdown *ngIf="util.standaloneApp" lab="Floor" [frmGrp]="frmGrp" frmCtrl="floorPlanCode"  [disabled] = 'readonly'
+                        [options]="dropdownOptions.floorplans" (change) = "onFloorplanChange_SA($event)">
+            </uc-dropdown> -->
+            <!-- <uc-txtbox *ngIf="(isCreate && !isTemplate) || isExecuteTemplate" lab="Loop" [frmGrp]="frmGrp2" frmCtrl="loop"
+                        [numeric]="true" [numDecimals] = "0" numFormat="n0" [disabled] = 'readonly'>
+            </uc-txtbox> -->
+        </div>
+        <!-- <div class="form-row">
+            <uc-txtbox lab="Remarks" [frmGrp]="frmGrp" frmCtrl="remarks" [textArea]="true">
+            </uc-txtbox>
+        </div> -->
+        <div class="form-row" *ngIf="util.arcsApp">        
+            <uc-dropdown #fpdropdown lab="Robot Type" [frmGrp]="frmGrp" frmCtrl="robotType" [disabled] = 'readonly'
+                         [options]="dropdownOptions.types" (change) = "frmGrp.controls['robotSubtype'].setValue(null); frmGrp.controls['robotCode'].setValue(null);">
+            </uc-dropdown>
+            <!-- <uc-dropdown #fpdropdown lab="Robot Sub Type" [frmGrp]="frmGrp" frmCtrl="robotSubtype"  [disabled] = 'readonly'
+                         [options]="dropdownOptions.subTypes" (change) = "frmGrp.controls['robotType'].setValue(null); frmGrp.controls['robotCode'].setValue(null);">
+            </uc-dropdown> -->
+            <uc-dropdown #fpdropdown *ngIf="util.arcsApp" lab="Robot" [frmGrp]="frmGrp" frmCtrl="robotCode"  [disabled] = 'readonly'
+                        [options]="dropdownOptions.robots" (change) = "frmGrp.controls['robotType'].setValue(null); frmGrp.controls['robotSubtype'].setValue(null);">
+            </uc-dropdown>
+        </div>
+        <!-- <div class="form-row" *ngIf="util.arcsApp && isTemplate && !isExecuteTemplate">
+            <uc-cron-editor class="col" [frmGrp] = "frmGrp" frmCtrl = "cronExpress"></uc-cron-editor>
+        </div> -->
+    </form>    
+</ng-template>
+
+<ng-template #table>
+    <div class="list-container">
+        <uc-listview #listview [columnDef]="jobListDef" [(data)]="jobListData" [(newRow)] = "actionNewRow" [customAddRow] = "true" [editable] = "!readonly"
+                     (dataChange)="cleanseAllRows()" 
+                     [rowDetailCfg] = "actionRowCfg"
+                     (buttonClick)="$event.id == actionRowCfg.parentRowKey ? showActionDetailDialog($event) : null;
+                                    $event.row == actionNewRow && $event.id == 'add' ? 
+                                        (actionNewRow.actionAlias == null ? listview.setNewRowError(uiSrv.translate('Please select an action')) : addRow()) :
+                                        null"
+                     (valueChange)="$event.id == 'pointCode'? cleanseAllRows() : cleanseRow($event.row);
+                                    $event.id == 'pointCode' &&  $event.newValue == null? $event.row['planCode'] = null : null;
+                                    $event.id ==  'actionAlias'? refreshActionParameter($event.row , $event.oldValue) : null"
+                     (focusChange)="cleanseAllRows() ;
+                                    $event.id == 'pointCode' && !util.standaloneApp? refreshGridLocationOptions_ARCS($event) : 
+                                    $event.id == 'navigationMode' ? refreshGridNavigationOption($event) :
+                                    null ">
+        </uc-listview>
+    </div>                     
+    <!-- (buttonClick)="" -->
+    
+    <!-- <div class="form-row">
+    
+        <uc-dropdown lab="Floor" [frmGrp]="frmGrp" frmCtrl="floorplanCode" [options] = "dropdownOptions['floorplans']"  (valueChange) = "refreshFormLocationOptions()"></uc-dropdown>
+        <uc-dropdown lab="Location" [frmGrp]="frmGrp" frmCtrl="location" [options] = "dropdownOptions['locations']" (valueChange) = "refreshFormNavigationOption()"></uc-dropdown>
+        <uc-dropdown lab="Navigation Mode" [frmGrp]="frmGrp" frmCtrl="navigationMode" [options] = "dropdownOptions['navigationMode']"></uc-dropdown>
+    </div>
+    <div class="form-row">
+        <uc-dropdown lab="Action" [frmGrp]="frmGrp" frmCtrl="actionId" [options] = "dropdownOptions['actions']"></uc-dropdown>
+
+        <button kendoButton [disabled] = "frmGrp.controls['actionId'].value == null || frmGrp.controls['actionId'].value == undefined "
+                 (click)="addRow()">
+            <span class="mdi mdi-plus"></span>
+        </button>
+    </div> -->
+</ng-template>
+
+<ng-template #map>
+    <div class="floorplan-select-container">
+        <kendo-stepper *ngIf="mapObj.steps.length > 1" [steps]="mapObj.steps" stepType="full" [(currentStep)]="mapObj.currentStep" 
+                        [linear]="false" [style.width.px]="100 * mapObj.steps.length" 
+                        (currentStepChange) = "mapObj.steps[$event]['planCode'] ? selectedFloorPlanCode = mapObj.steps[$event]['planCode'] : null;
+                                               mapObj.steps[$event]['planCode'] ? refreshMapView() : null"></kendo-stepper>
+        <uc-dropdown *ngIf="mapObj.steps.length < 2 || mapObj.currentStep ==  mapObj.steps.length - 1" lab="Floor Plan"  [(value)] = "selectedFloorPlanCode" 
+                      (change)="util.standaloneApp? onFloorplanChange_SA($event) : refreshMapView() " [options] = "dropdownOptions.floorplans" [allowClear] = "false"></uc-dropdown>
+    </div>
+
+    <div [class]="uiSrv.isTablet? 'viewport-container-tablet' : 'viewport-container'">
+        <uc-drawing-board #mapContainer [hideButton]="{all:true}" (pointClick)="onMapPointSelected($event)" [hideHeader] = "true" [readonly] = "true" >
+        </uc-drawing-board>
+    </div>
+</ng-template>
+
+
+<!-- * * *  ^ PC VERSION ^   * * * -->
+
+<!-- * * *  v TABLET VERSION v  * * * -->
+<!-- 
+<div *ngIf="uiSrv.isTablet" class="task-job tablet">
+    <form [formGroup]="frmGrp">
+        <div class="form-row">
+            <uc-txtbox *ngIf="!isTemplate" lab="Order No" [frmGrp]="frmGrp" frmCtrl="orderNo"></uc-txtbox>
+            <uc-txtbox *ngIf="isTemplate" lab="Template Code" [frmGrp]="frmGrp" frmCtrl="templateCode"></uc-txtbox>
+            <uc-txtbox lab="Task Name" [frmGrp]="frmGrp" frmCtrl="desc"></uc-txtbox>
+        </div>
+     
+    </form>
+    <div class="tablet-job-action-container">
+        <ng-container *ngTemplateOutlet="actions"></ng-container>
+    </div>
+</div> -->

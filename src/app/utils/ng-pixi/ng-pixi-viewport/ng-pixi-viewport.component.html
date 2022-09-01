@@ -1,0 +1,5 @@
+<div [class]="fullScreen? 'fullscreen wrapper' : 'wrapper'" #stageWrapper (contextmenu)="$event.preventDefault()" >
+  <div class="overlay" *ngIf="fullScreen"></div>
+  <ng-content></ng-content>
+  <div #stageDiv class="canvas-div"></div>
+</div>

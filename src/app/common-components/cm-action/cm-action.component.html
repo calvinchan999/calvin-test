@@ -1,0 +1,49 @@
+<div class="dialog-content control-action">
+    <kendo-dialog-titlebar (close)="onClose()">
+        <div>{{'Action' | label: uiSrv.langPack}}</div>
+    </kendo-dialog-titlebar>
+    <!-- <div>{{'Action' | label: uiSrv.langPack}}</div> -->
+    <div class="container">
+        <div class="form-container">
+            <form [formGroup]="frmGrp" class="content">
+                <div class="form-row">
+                    <uc-dropdown lab="Alias" [disabled]="frmGrp.controls['actionId'].value" [frmGrp]="frmGrp" frmCtrl="actionAlias"  [options]= "dropdownOptions.alias" (valueChange) = "refreshParam()"></uc-dropdown>
+                </div>
+
+                <div class="form-row">
+                    <uc-multiselect lab="Type" [options] = "dropdownOptions.types"  [frmGrp]="frmGrp" frmCtrl="typeIds"></uc-multiselect>
+                </div>
+
+                <div class="form-row">                    
+                    <uc-txtbox lab="Action Description" [frmGrp]="frmGrp" frmCtrl="actionName"></uc-txtbox>
+                </div>
+<!-- 
+                <div class="form-row">
+                    <uc-dropdown lab="Alias" [frmGrp]="frmGrp" frmCtrl="actionAlias" [options]= "dropdownOptions.alias" (valueChange) = "refreshParam()"></uc-dropdown>
+                </div> -->
+
+                <div class="form-row">
+                    <uc-txtbox lab="Clazz" [frmGrp]="frmGrp" frmCtrl="actionClass"></uc-txtbox>
+                </div>
+
+                <div class="params-container"  *ngIf="aliasParas[frmGrp.controls['actionAlias'].value]?.length > 0">
+                    <span class="container-label">{{'Define Parameters' | label: uiSrv.langPack}}</span>
+                    <div *ngFor="let param of aliasParas[frmGrp.controls['actionAlias'].value];" class="param-item">
+                        <div class="param-label">{{param.key}}</div>
+                        <div class="form-row param-input">
+                            <uc-txtbox lab="Label" [frmGrp]="param.form" frmCtrl="label" [disabled] = "readonly"></uc-txtbox>
+                            <!-- <uc-dropdown lab="Field Type" [frmGrp]="param.form" frmCtrl="datatype"></uc-dropdown> -->
+                        </div>
+                    </div>
+                </div>
+            </form>
+        </div>
+      
+    </div>
+    <div class="button-container">
+        <button kendoButton (click) = "onClose()" > {{'Cancel' | label : uiSrv.langPack}}</button>
+        <button kendoButton *ngIf="!readonly" (click) = "saveToDB()"> {{'Save' | label : uiSrv.langPack}}</button>
+    </div>
+</div>
+
+

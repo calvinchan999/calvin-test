@@ -1,0 +1,94 @@
+<div class="grid-container"> 
+    <!-- (window.resize)="initDone ? refreshTableWidth(): null" -->
+    <kendo-grid #kGrid [data]="{data : myData , total : total , first : 1 , last : 2}" kendoGridSelectBy="id" 
+                [pageable]="pageable" [groupable]="groupable"
+                [pageSize]="state.take" [skip]="state.skip" [sort]="state.sort" [selectable]="true"  [rowSelected]="isRowSelected"
+                [filter]="state.filter" [reorderable]="reorderable" [resizable]="resizable" (columnResize) = "refreshColDefsWidth($event)"
+                [columnMenu]="filterable ? {filter:true} : false" [sortable]="sortable" class="kendo-grid" [loading]="isLoading"
+                (dataStateChange)="state = $event ; serverSidePagination? retrieveData($event) : kendoDataProcessing()"
+                >
+                <!-- [data]="{data : myData , total : total , first : 1 , last : 2}"  -->
+               <!-- (dataStateChange)="state = $event ; retrieveData($event)" -->
+        <ng-template kendoGridToolbarTemplate *ngIf="showToolbar">
+            <button *ngIf="toolbarButtons.new && (!functionId || accessObj.add)" kendoButton icon="plus" (click)="createClick.emit()"
+                [disabled]="disabledButtons.new">{{'New' | label : uiSrv.langPack}}</button>
+            <kendo-splitbutton  *ngIf="toolbarButtons.action && actions.length > 0" [data]="actions" (itemClick)="actionClick.emit($event)"
+                [disabled]="disabledButtons.action">
+                {{'Action' | label : uiSrv.langPack}}
+            </kendo-splitbutton >
+        </ng-template>
+
+        <ng-template kendoPagerTemplate let-currentpage="currentPage" let-pagesize="pageSize" let-total="total">
+            <kendo-pager-prev-buttons></kendo-pager-prev-buttons>
+            <kendo-pager-numeric-buttons [buttonCount]="10"></kendo-pager-numeric-buttons>
+            <kendo-pager-next-buttons></kendo-pager-next-buttons>
+            <kendo-pager-info></kendo-pager-info>
+            <kendo-pager-page-sizes [pageSizes] = "pageSizes"></kendo-pager-page-sizes>
+        </ng-template>
+        
+        <!-- [columnMenu] = "!colDef.fixed && colDef.columnMenu!= true" -->
+        <!-- [sortable]="!colDef.fixed && colDef.sortable!=false"     -->
+        <kendo-grid-column *ngFor="let colDef of columnDefs" 
+            [includeInChooser] =  "!colDef.fixed"
+            [width]="colDef.fixed ? fixedColumnWidth + 'px': (colDef.width? colDef.width + 'px' : null )"
+            [sortable] = "!colDef.notSortable && !colDef.fixed"
+            [columnMenu] = "!colDef.noColumnMenu && !colDef.fixed"
+            [resizable] = "!colDef.fixed && colDef.resizable!= false"       
+            [reorderable]="!colDef.fixed  && colDef.reorderable != false" 
+            [field]="colDef.fixed != false && colDef.type!= 'checkbox'?  colDef.id : null"
+            [title]="(colDef.title  | label : uiSrv.langPack)"
+            [headerClass]="colDef.id + (colDef.type ?  (' ' + colDef.type) : '')"      
+            [class]="colDef.id + (colDef.type ?  (' ' + colDef.type) : '')" >
+            <ng-template kendoGridHeaderTemplate let-column let-columnIndex="columnIndex"  *ngIf="colDef.type == 'checkbox'">
+                <span class="checkbox">
+                    <input type="checkbox" kendoCheckBox (change)="toggleAllCheckbox(colDef.id  , $event)" />
+                </span>
+            </ng-template>
+
+            <ng-container *ngIf="colDef.dropdownOptions || colDef.type == 'date'">
+                <ng-template kendoGridFilterMenuTemplate let-column="colDef" let-filter="filter" let-filterService="filterService">
+                    <ng-container *ngIf="colDef.dropdownOptions">
+                        <multicheck-filter  [field]="colDef.id" [filterService]="filterService" [currentFilter]="filter" 
+                                            textField="text" valueField="value"  [data]="colDef.dropdownOptions">
+                        </multicheck-filter>
+                    </ng-container>
+                    <ng-container *ngIf=" colDef.type == 'date'">               
+                        <date-range-filter   [field]="colDef.id" [filter]="filter" [filterService]="filterService"> </date-range-filter>
+                    </ng-container>
+                </ng-template>
+            </ng-container>
+
+
+
+            <ng-template kendoGridCellTemplate let-dataItem let-rowIndex="rowIndex">
+                <ng-container *ngIf="colDef.ngIf === undefined || dataItem[colDef.id] == colDef.ngIf">
+                    <span *ngIf="!colDef.type">
+                        {{ colDef.dropdownOptions && (dataItem[colDef.id]  | dropdownDesc : colDef.dropdownOptions )? 
+                            ((dataItem[colDef.id]  | dropdownDesc : colDef.dropdownOptions ) | label : uiSrv.langPack) : 
+                            dataItem[colDef.id] 
+                        }}
+                    </span>
+                    <span *ngIf="colDef.type == 'date'">
+                        {{(dataItem[colDef.id] | dateString) ? ((dataItem[colDef.id] | dateString) | date : colDef.pipeParam ? colDef.pipeParam : 'dd/MM/yyyy hh:mm:ss aa') : '' }}
+                    </span>
+                    <input *ngIf="colDef.type == 'checkbox'" type="checkbox" [(ngModel)]="dataItem[colDef.id]" 
+                            (ngModelChange)="refreshSelectedData() ; cellClick.emit({row : dataItem , column : colDef.id , event : $event})"
+                            kendoCheckBox />
+                    <a *ngIf="colDef.type == 'button'" 
+                        (click)="cellClick.emit({row : dataItem , column : colDef.id , event : $event})">
+                        <span [class]="colDef.icon"></span>
+                    </a>
+                </ng-container>             
+            </ng-template>
+        </kendo-grid-column>
+
+        <kendo-grid-column width = "1px" [locked]="true" headerClass="hidden-column" class="hidden-column"  >
+        </kendo-grid-column>
+    </kendo-grid>
+</div>
+
+<!-- use container if many different types of cells -->
+<!-- <button kendoButton (click)="openTaskListCancelPopup(dataItem.taskId);"
+                    *ngIf="dataItem.state === 'WAITING'">
+                    {{ customMsgService.translate('cancel') }}
+                </button> -->

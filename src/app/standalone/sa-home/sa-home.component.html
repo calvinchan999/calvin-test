@@ -1,0 +1,97 @@
+<div class="home card-container" *ngIf="!uiSrv.isTablet">
+    <kendo-tilelayout [columns]="6" [resizable]="false" [reorderable]="false">
+    <kendo-tilelayout-item class = "map tile-5-3" [col]="1" [row]="1" [colSpan]="4" [rowSpan]="6">
+        <kendo-tilelayout-item-body>
+        <div id="tsmappatrol" class="viewport-container">
+            <!-- <ng-pixi-viewport></ng-pixi-viewport> -->
+            <ng-container *ngTemplateOutlet="pixi"></ng-container>
+        </div>
+        </kendo-tilelayout-item-body>
+    </kendo-tilelayout-item>
+
+       <ng-container *ngFor = "let row of dashboardLayout ; let ri = index">
+            <kendo-tilelayout-item *ngFor = "let cell of row ; let ci = index" [class]="(cell.id | cssClassName : 'ts-') + ' tile' + (cell.rowSpan ? cell.rowSpan : 1) + '-' + (cell.colSpan ? cell.colSpan : 1)" 
+                                   [col]="5 + ( cell['col'] ? cell['col'] : ci) " [row]="cell['row'] ? cell['row'] : (ri + 1)" 
+                                   [colSpan]="cell['colSpan']? cell['colSpan']: 1"  [rowSpan]="cell['rowSpan']? cell['rowSpan']: 1">
+                    <kendo-tilelayout-item-body>
+                        <ng-container *ngFor = "let item of (cell['cells'] ? cell['cells'] : [cell])" >
+                            <ng-container *ngTemplateOutlet = "item['cells']? dashboarodNestedItems : dashboarodItem; context : {item : item , items : item['cells']}" ></ng-container>
+                        </ng-container>   
+                    </kendo-tilelayout-item-body>      
+            </kendo-tilelayout-item>
+       </ng-container>
+       <kendo-tilelayout-item class="ts-2-2 ts-task" [col]="5" [row]="3" [colSpan] = "2" [rowSpan] = "2">
+        <app-sa-pages-task-overlay></app-sa-pages-task-overlay>
+      </kendo-tilelayout-item>
+      <kendo-tilelayout-item class="ts-2-2 ts-controls"  [col]="5" [row]="5" [colSpan] = "2" [rowSpan] = "2">
+        <app-sa-control-buttons [buttonIds]="['stop', 'pause' , 'followMe' , 'auto']" class="controls-container" ></app-sa-control-buttons>
+      </kendo-tilelayout-item>
+    </kendo-tilelayout>
+</div>
+
+<!-- * * *  ^ PC VERSION ^   * * * -->
+
+<!-- * * *  v TABLET VERSION v  * * * -->
+<!-- if(this.uiSrv.isTablet &&  !this.utils.withTabletBaseAccess()){
+    await this.askForTabletBaseAccess()
+  } -->
+
+<div class="home card-container tablet" *ngIf="uiSrv.isTablet && ( authSrv.isGuestMode || authSrv.username) && router.url=='/login'">
+    <kendo-tilelayout [columns]="4" [resizable]="false" [reorderable]="false" >
+        <ng-container *ngFor = "let row of  tabletHomeLayout ; let ri = index">
+            <kendo-tilelayout-item *ngFor = "let cell of row ; let ci = index"  [class]="(cell.id | cssClassName : 'ts-') + ' tile' + (cell.rowSpan ? cell.rowSpan : 1) + '-' + (cell.colSpan ? cell.colSpan : 1)" 
+                               [col]="( cell['col'] ? cell['col'] : ci) " [row]="cell['row'] ? cell['row'] : (ri + 1)" 
+                               [colSpan]="cell['colSpan']? cell['colSpan']: 1"  [rowSpan]="cell['rowSpan']? cell['rowSpan']: 1">
+                <kendo-tilelayout-item-body>
+                    <ng-container *ngFor = "let item of (cell['cells'] ? cell['cells'] : [cell])" >
+                        <ng-container *ngTemplateOutlet = "item['cells']? dashboarodNestedItems : dashboarodItem; context : {item : item , items : item['cells']}" ></ng-container>
+                    </ng-container>                          
+                </kendo-tilelayout-item-body>
+            </kendo-tilelayout-item>
+        </ng-container>
+
+        <kendo-tilelayout-item *ngIf = "router.url=='/login'" [col]="2" [row]="1" [colSpan]="3" [rowSpan]="5" class="map">
+            <kendo-tilelayout-item-body>
+                <div id="tsmappatrol" class="tablet-viewport-container">
+                <!-- <ng-pixi-viewport></ng-pixi-viewport> -->
+                    <ng-container *ngTemplateOutlet = "pixi"></ng-container>
+                </div>
+            </kendo-tilelayout-item-body>
+        </kendo-tilelayout-item>
+   </kendo-tilelayout>
+</div>
+
+<!-- ### v TEMPLATES v ### -->
+
+<ng-template #pixi> 
+    <uc-drawing-board #mapContainer [isDashboard] = "true" [hideButton]="{all:true}"  [readonly] = "true" [showRobot] = "true"  [showNavigationDropdown] = "true" [subscribeTask] = "true">
+    </uc-drawing-board>
+</ng-template>
+
+<ng-template #dashboarodNestedItems let-items="items">
+    <div class='bl-box'>
+        <ng-container *ngFor="let item of items">
+            <ng-container *ngTemplateOutlet="dashboarodItem; context : {item : item}"></ng-container>
+        </ng-container>
+    </div>
+</ng-template>
+
+
+<ng-template #dashboarodItem let-item ="item">
+    <div class='bl-item' [class]="(item['id'] | cssClassName) + (item['type'] == 'button' ? ' bl-button' : '')">
+        <ng-container >
+            <div class="bl-icon"><i class="k-icon mdi" [ngClass]="ds[item['id']] && ds[item['id']].icon? ds[item['id']].icon : (item.id | cssClassName : 'ts-')"></i></div>
+            <div class="bl-text">
+                <label class="bl-label">{{ds[item['id']]?.title | label : uiSrv.langPack}}</label>
+                <span class="bl-result">{{(ds[item['id']]?.content ? ds[item['id']].content :  
+                                           ( ds[item['id']]?.signalRfld!=null &&  ds[item['id']]?.signalRfld!=undefined && ds[item['id']].signalR?.value? 
+                                             ds[item['id']].signalR?.value[ds[item['id']].signalRfld] : 
+                                             ds[item['id']]?.signalR?.value ) 
+                                          ) | label : uiSrv.langPack }}</span>
+                <span class="bl-unit">{{ (ds[item['id']]?.suffixSignalR && ds[item['id']]?.suffixSignalR.value ?  ds[item['id']]?.suffixSignalR.value : ds[item['id']]?.suffix ) | label : uiSrv.langPack }}</span>
+            </div>   
+        </ng-container>
+    </div>
+</ng-template>
+
+<!-- ### ^ TEMPLATES ^ ### -->

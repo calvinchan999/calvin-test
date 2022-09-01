@@ -1,0 +1,31 @@
+<div class="map card-container">
+    <div class="card-header-wrapper">
+        <!-- title -->
+        <h3 class="card-title"></h3>
+        <!-- tab buttons -->
+        <div class="card-buttons">
+            <kendo-buttongroup selection="single">
+                <button *ngFor="let tab of tabs" kendoButton [toggleable]="true" [selected]="selectedTab == tab.id"
+                        (click)=" tab.id == selectedTab ? null : onTabChange(tab.id) ">
+                    {{ tab.label | label : uiSrv.langPack }}
+                </button>
+            </kendo-buttongroup>
+        </div>
+        <span></span>
+    </div>
+
+    <div class="table-container" *ngIf="!uiSrv.isTablet">
+        <uc-table #table [toolbarButtons]="{new : true , action: true}" [columnDefs]="gridSettings[selectedTab]['columns']" [(data)] = "data"  
+            [functionId] = "gridSettings[selectedTab]['functionId']"  [serverSidePagination] = "true"
+            [dataSourceApiEndpoint] = "gridSettings[selectedTab]['apiUrl']"
+            [disabledButtons]="tableDisabledButtons" [isLoading]="isTableLoading"
+            (selectedDataChange)="tableDisabledButtons = {new : false , action : $event.length == 0}"
+            (dataStateChange)="loadData($event)"
+            (actionClick)="$event.actionId == 'delete' ? delete(): null "
+            (cellClick)="$event?.column == 'edit' ? showDetail($event) : null" (createClick)="showDetail()"
+            [useColumnFilter]='true'>
+        </uc-table>
+    </div>
+    <!-- * * *  ^ PC VERSION ^   * * * -->
+
+</div>

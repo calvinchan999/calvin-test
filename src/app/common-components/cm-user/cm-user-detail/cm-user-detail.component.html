@@ -1,0 +1,16 @@
+<div class="dialog-content user">
+    <kendo-dialog-titlebar (close)="onClose()">
+        <div>{{'User Management' | label: uiSrv.langPack}}</div>
+    </kendo-dialog-titlebar>
+    <form [formGroup]="frmGrp" class="content">
+        <uc-txtbox lab="User Alias" [frmGrp]="frmGrp" frmCtrl="userCode" [upper]="true" [disabled]="!isCreate"></uc-txtbox>
+        <uc-txtbox lab="User Name" [frmGrp]="frmGrp" frmCtrl="name" ></uc-txtbox>
+        <uc-dropdown lab="User Group" [frmGrp]="frmGrp" frmCtrl="userGroupCode" [options] = "dropdownOptions.userGroup" ></uc-dropdown>
+        <uc-txtbox *ngIf="isCreate" lab="Password" [frmGrp]="frmGrp" frmCtrl="password" type = "password" ></uc-txtbox> 
+        <button *ngIf="!isCreate && canSetPw"  kendoButton (click)="showChangePasswordDialog()"> {{'Change Password' | label : uiSrv.langPack}}</button>
+    </form>
+    <div class="button-container">
+        <button kendoButton (click)="onClose()"> {{'Cancel' | label : uiSrv.langPack}}</button>
+        <button kendoButton *ngIf="!readonly" (click)="saveToDB()"> {{'Save' | label : uiSrv.langPack}}</button>
+    </div>
+</div>

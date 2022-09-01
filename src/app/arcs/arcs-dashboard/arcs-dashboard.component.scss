@@ -1,0 +1,31 @@
+.viewport-container{
+    width: 100%;
+    height: 100%
+}
+
+.tile{
+    padding: 5px;
+}
+
+.usability-container , .utilization-container , .powerbi-container{
+    width: 95vw;
+    height: calc(100vh - 155px);
+}
+
+.dashboard-container , .home-container{
+    height: calc(100vh - 105px);
+    overflow: auto;
+    scroll-behavior: smooth;
+}
+
+.dashboard-container .first-tile-layout{
+    height: calc(100vh - 190px);
+}
+
+.home-container .first-tile-layout{
+    height: calc(100vh - 150px);
+}
+
+::ng-deep .kendo-chart-time-series .k-mask{
+    opacity: 0.4!important;
+}

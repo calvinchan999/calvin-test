@@ -1,0 +1,21 @@
+<!-- <form  *ngIf = "frmGrp && frmCtrl" [formGroup]="frmGrp" class="form-group">
+    <label class="col-form-label">{{ lab | label : uiSrv.langPack}}</label>
+    <form *ngIf="frmGrp && frmCtrl" [formGroup]="frmGrp">
+        <kendo-datetimepicker [formControlName]="frmCtrl" format="dd/MM/yyyy HH:mm:ss"> </kendo-datetimepicker>
+    </form>
+    <label *ngIf = "frmGrp.controls[frmCtrl].errors?.required && frmGrp.controls[frmCtrl].touched"  class="error">
+            {{ (lab | label : uiSrv.langPack) + (' is required' | label : uiSrv.langPack)}}
+    </label>
+</form> -->
+
+<!-- <ng-container  *ngIf = "!frmGrp || !frmCtrl"> -->
+<!-- </ng-container> -->
+<label class="col-form-label">{{ lab | label : uiSrv.langPack}}</label>
+<kendo-datetimepicker #kendoDate [ngModel]="myValue" (valueChange)="valueChange.emit($event); frmGrp.controls[frmCtrl].setValue($event);" [disabled]="disabled || frmGrp.controls[frmCtrl].disabled" 
+                      format="dd/MM/yyyy HH:mm:ss" [popupSettings] = "popupSettings" [class]="kendoDateCssClass"></kendo-datetimepicker>
+<label *ngIf="frmGrp.controls[frmCtrl].errors?.required && frmGrp.controls[frmCtrl].touched" class="error">
+    {{ (lab | label : uiSrv.langPack) + (' is required' | label : uiSrv.langPack)}}
+</label>
+<label *ngIf = "frmGrp.controls[frmCtrl].errors?.message" class="error"> {{frmGrp.controls[frmCtrl].errors['message']}}</label>
+
+<!-- [format]="{ displayFormat: 'dd/MM/yyyy HH:mm:ss',  inputFormat: 'dd/MM/yyyy HH:mm:ss.fff'}" -->
