@@ -31,8 +31,7 @@ export class SignalRService {
   resetConnection(){
     this.connection?.stop()
     delete this.connection
-    this.connection =  new HubConnectionBuilder().withUrl(this.getUrl() , { accessTokenFactory: () => this.generalUtil.getUserAccessToken() }).build();
-
+    this.connection = new HubConnectionBuilder().withUrl(this.getUrl() , { accessTokenFactory: () => this.generalUtil.getUserAccessToken() }).build();
   }
 
   getUrl(){
@@ -47,17 +46,22 @@ export class SignalRService {
 
   async invoke(method , args = null, connection : HubConnection = this.connection){
     try{
-      if(connection.state != HubConnectionState.Connected){
-        await this.connect(connection).pipe(take(1)).toPromise()
+      if(this.connection){
+        if(connection.state != HubConnectionState.Connected){
+          await this.connect(connection).pipe(take(1)).toPromise()
+        }
+        return await connection.invoke.apply(connection, [method].concat(args? args:[]))
       }
-      return await connection.invoke.apply(connection, [method].concat(args? args:[]))
     }catch(err){
-      this.uiSrv.showNotificationBar(`Error on invoking signalR method [${method}]. ${err?.message}`,'error')
+        this.uiSrv.showNotificationBar(`Error on invoking signalR method [${method}]. ${err?.message}`,'error')
     }
-
   }
 
   connect( connection : HubConnection = this.connection , autoReconnect = true , reconnectDelayMs = 3000){
+    if(!this.connection){
+      this.resetConnection()
+      connection = this.connection
+    }
     connection.onclose(()=>{
       if(this.getUrl() != this.connection.baseUrl){
         this.resetConnection()
@@ -121,6 +125,8 @@ export class SignalRService {
   disconnect(){
     this.connection['aborted'] = true
     this.connection.stop()
+    this.topicSubjMap = {}
+    this.connection = null
   }
 
   async subscribeTopic(topic , invoke = false) : Promise<Subject<any>>{
@@ -146,7 +152,7 @@ export class SignalRService {
     this.getUnsubscribedSubject(topic)?.next()
     this.invoke("Unsubscribe", topic) //stop receiving messages from server side
     this.subscribedTopics = this.subscribedTopics.filter(t=>t!=topic)
-    // delete this.topicSubjMap[topic] 
+    //delete this.topicSubjMap[topic] 
   }
 
   getUnsubscribedSubject(topic) : Subject<any>{

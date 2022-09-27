@@ -10,6 +10,8 @@
 		{"key" : "mapCode" ,  "length" : 50},
 		{"key" : "code" , "table":"user_defined_point_type" ,  "length" : 50},
 		{"key" : "userCode" ,  "length" : 50},
-		{"key" : "userGroupCode" ,  "length" : 50}
+		{"key" : "userGroupCode" ,  "length" : 50},
+		{"key" : "siteCode" ,  "length" : 50},
+		{"key" : "email" ,  "length" : 200}
 	]
 }

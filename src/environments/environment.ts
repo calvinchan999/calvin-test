@@ -5,15 +5,16 @@
 export const environment = {
   production: false,
   app: 'standalone',
+  recaptchaSiteKey : '6LdzgfUhAAAAALqOYXkFO__F3Juldg7N500ld1CM',
   routes:
   [
-    { text: 'delivery', icon: 'mdi mdi-truck-fast', path: '/delivery', },
-    { text: 'floor scrub', icon: 'mdi mdi-broom', path: '/floor_scrub', },
-    { text: "mobility Chair", icon: "mdi mdi-wheelchair-accessibility", path: "/mobile_chair" },
-    { text: 'disinfection', icon: 'mdi mdi-spray', path: '/disinfection', },
-    { text: "patrol", icon: "mdi mdi-robot", path: "/patrol" },
-    { text: 'forklift', icon: 'mdi mdi-forklift', path: '/forklift', },
-    { text: 'stocktake', icon: 'mdi mdi-package-variant-closed', path: '/stocktaking', }, 
+    { text: 'Delivery', icon: 'mdi mdi-truck-fast', path: '/delivery', },
+    { text: 'Floor Scrub', icon: 'mdi mdi-broom', path: '/floor_scrub', },
+    { text: "Mobility Chair", icon: "mdi mdi-wheelchair-accessibility", path: "/mobile_chair" },
+    { text: 'Disinfection', icon: 'mdi mdi-spray', path: '/disinfection', },
+    { text: "Patrol", icon: "mdi mdi-robot", path: "/patrol" },
+    { text: 'Forklift', icon: 'mdi mdi-forklift', path: '/forklift', },
+    { text: 'Stocktake', icon: 'mdi mdi-package-variant-closed', path: '/stocktaking', }, 
     // { text: 'beverage', icon: 'mdi mdi-silverware-fork-knife', path: '/beverage', },
   ]
 };

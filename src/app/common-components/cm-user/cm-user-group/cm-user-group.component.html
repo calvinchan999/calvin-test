@@ -5,6 +5,10 @@
     <form [formGroup]="frmGrp" class="content">
         <uc-txtbox lab="User Group Code" [frmGrp]="frmGrp" frmCtrl="userGroupCode" [upper]="true" [disabled]="!isCreate"></uc-txtbox>
         <uc-txtbox lab="User Group Name" [frmGrp]="frmGrp" frmCtrl="name"  ></uc-txtbox>
+        <span class="2fa" *ngIf="util.arcsApp">
+            <input class="2fa-select"  type="checkbox" kendoCheckBox formControlName="require2FALogin" />
+            <span  class="2fa-text" >{{ 'Verify login with email' | label : uiSrv.langPack}}</span>
+        </span>
         <!-- <uc-txtbox lab="Current Password" [frmGrp]="frmGrp" frmCtrl="currentPassword" type = "password" ></uc-txtbox>
         <uc-txtbox lab="New Password" [frmGrp]="frmGrp" frmCtrl="newPassword" type = "password" ></uc-txtbox>
         <uc-txtbox lab="Confirm Password" [frmGrp]="frmGrp" frmCtrl="confirmPassword" type = "password" ></uc-txtbox> -->

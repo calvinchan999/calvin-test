@@ -1,13 +1,15 @@
-<kendo-tilelayout class="chart" [columns]="12"  [resizable]="false" [reorderable]="false">
+<ng-template #frDateTpl>{{dateRangeToolTip?.from?.content}}</ng-template>
+<ng-template #toDateTpl>{{dateRangeToolTip?.to?.content}}</ng-template>
+    <kendo-tilelayout *ngIf="_chartType == 'usability' && usability"  kendoTooltip #tooltipTo="kendoTooltip" filter=".k-right-handle" showOn="none"  class="chart" [columns]="12"  [resizable]="false" [reorderable]="false">
     <kendo-tilelayout-item class = "tile select-year" [col]="1" [row]="1"  [colSpan] = "3">
         <div class="form-row">
-            <uc-dropdown  lab = "Year" [(value)] = 'year' [options] = "dropdownOptions.years" [allowClear]="false"></uc-dropdown>
+            <uc-dropdown  lab = "Year" [(value)] = 'year' (valueChange)="refreshDateRange();refreshChart()" [options] = "dropdownOptions.years" [allowClear]="false"></uc-dropdown>
             <div class="date-range-label col form-group">
                 <div class="col-form-label">{{'Date Range' | label: uiSrv.langPack}}</div>
                 <div class="label">
-                    <span>{{usability.daily.min | date : 'dd/MM/yyyy'}}</span>
+                    <span>{{usability.daily.min | date : 'dd/MM'}}</span>
                     <span> - </span>
-                    <span>{{usability.daily.max | date : 'dd/MM/yyyy'}}</span>
+                    <span>{{usability.daily.max | date : 'dd/MM'}}</span>
                 </div>
             </div>
             <!-- <uc-dropdown  lab = "Location" [(value)] = 'location' [options] = "dropdownOptions.locations"></uc-dropdown> -->
@@ -41,7 +43,7 @@
         </kendo-tilelayout-item-body>
     </kendo-tilelayout-item>
     <!-- <kendo-tilelayout-item class = "tile" [col]="5" [row]="1" [rowSpan] = "6">
-        <kendo-chart [seriesColors]="style.seriesColors">
+        <kendo-chart [seriesColors]="Fyle.seriesColors">
             <kendo-chart-area background="transparent"></kendo-chart-area>
             <kendo-chart-title [color]="style.textColor" [align]="'left'" [text]="'Job Order By Location' | label: uiSrv.langPack"></kendo-chart-title>
             <kendo-chart-category-axis>
@@ -60,8 +62,9 @@
             </kendo-chart-series>
           </kendo-chart>
     </kendo-tilelayout-item> -->
-    <kendo-tilelayout-item class = "tile daily" [col]="1" [row]="2" [rowSpan] = "4" [colSpan] = "12" [title]="'Task Count per Day' | label: uiSrv.langPack"  >
-        <kendo-chart  (selectEnd)="onSelectEnd($event)"   [transitions]="usability.daily.transitions"  class="kendo-chart-time-series"
+    <kendo-tilelayout-item kendoTooltip #tooltipFr="kendoTooltip" filter=".k-left-handle" showOn="none" class = "tile daily" [col]="1" [row]="2" [rowSpan] = "4" [colSpan] = "12" [title]="'Task Count per Day' | label: uiSrv.langPack"  >
+        <kendo-chart  #navigatorChart (selectStart)="onSelectStart()" (select)="onSelect($event)" (selectEnd)="onSelectEnd($event);"   
+                                      [transitions]="usability.daily.transitions"  class="kendo-chart-time-series"
                       [seriesColors]="[style.seriesColors[0], style.seriesColors[0]]"
                       [categoryAxis]="[
                       {
@@ -155,3 +158,160 @@
                   </kendo-chart>
     </kendo-tilelayout-item>
 </kendo-tilelayout>
+
+
+<!-- ^ Usability ^ -->
+
+
+<!-- v Utilization v -->
+
+
+<kendo-tilelayout *ngIf="_chartType == 'utilization' && utilization" kendoTooltip #tooltipTo="kendoTooltip" filter=".k-right-handle" showOn="none" [columns]="5" [resizable]="false" [reorderable]="false">
+        <kendo-tilelayout-item class="tile select-year" [col]="1" [row]="1">
+            <div class="form-row">
+                <uc-dropdown  lab = "Year" [(value)] = 'year' (valueChange)="refreshDateRange();refreshChart()"  [options] = "dropdownOptions.years" [allowClear]="false"></uc-dropdown>
+                <div class="date-range-label col form-group">
+                    <div class="col-form-label">{{'Date Range' | label: uiSrv.langPack}}</div>
+                    <div class="label">
+                        <span>{{utilization.daily.min | date : 'dd/MM'}}</span>
+                        <span> - </span>
+                        <span>{{utilization.daily.max | date : 'dd/MM'}}</span>
+                    </div>
+                </div>
+            </div>
+        </kendo-tilelayout-item>
+        <kendo-tilelayout-item class = "tile total-util" [title]="'Total Utilization (hours. %)'| label: uiSrv.langPack" [col]="2" [row]="1" [colSpan] = "4 - (!utilization.total.type1.robotType ? 0 : (!utilization.total.type2.robotType ? 1 : (!utilization.total.type3.robotType ? 2 : 3 )))">
+            <kendo-tilelayout-item-body>
+                <div class="util">
+                    <label class="ts-value">{{utilization.totalExecutingHours}}</label>
+                    <!-- <label class="ts-total">/ {{usability.total}}</label> -->
+                </div>
+                <label class="ts-percent">{{utilization.totalExecutingHours * 100 / utilization.totalRobotHours | number: '1.0-2'}}%</label>
+            </kendo-tilelayout-item-body>
+        </kendo-tilelayout-item>
+        <kendo-tilelayout-item *ngIf = "utilization.total.type1.robotType" class = "tile type-1-util" [title] = "(utilization.total.type1.robotType | label: uiSrv.langPack) + ' ' + ('Utilization (hours. %)'| label: uiSrv.langPack)" [col]="!utilization.total.type2.robotType ? 5 : (!utilization.total.type3.robotType ? 4 : 3 )" [row]="1">
+            <kendo-tilelayout-item-body>
+                <div class="util">
+                    <label class="ts-value">{{utilization.total.type1.executing}}</label>
+                    <!-- <label class="ts-total">/ {{utilization.total.type1.total}}</label> -->
+                </div>
+                <label class="ts-percent">{{utilization.total.type1.executing * 100 / utilization.total.type1.total | number: '1.0-2'}}%</label>
+            </kendo-tilelayout-item-body>
+        </kendo-tilelayout-item>
+        <kendo-tilelayout-item *ngIf = "utilization.total.type2.robotType" class = "tile type-2-util" [title] = "(utilization.total.type2.robotType | label: uiSrv.langPack) + ' ' + ('Utilization (hours. %)'| label: uiSrv.langPack)"  [col]="!utilization.total.type3.robotType ? 5 : 4" [row]="1" >
+            <kendo-tilelayout-item-body>
+                <div class="util">
+                    <label class="ts-value">{{utilization.total.type2.executing}}</label>
+                    <!-- <label class="ts-total">/ {{utilization.total.type2.total}}</label> -->
+                </div>
+                <label class="ts-percent">{{utilization.total.type2.executing * 100 / utilization.total.type2.total | number: '1.0-2'}}%</label>
+            </kendo-tilelayout-item-body>
+        </kendo-tilelayout-item>
+        <kendo-tilelayout-item *ngIf = "utilization.total.type3.robotType" class = "tile type-3-util"  [title]="(utilization.total.type3.robotType | label: uiSrv.langPack) + ' ' + ('Utilization (hours. %)'| label: uiSrv.langPack)"  [col]="5" [row]="1">
+            <kendo-tilelayout-item-body>
+                <div class="util">
+                    <label class="ts-value">{{utilization.total.type3.executing}}</label>
+                    <!-- <label class="ts-total">/ {{utilization.total.type3.total}}</label> -->
+                </div>
+                <label class="ts-percent">{{utilization.total.type3.executing * 100 / utilization.total.type3.total | number: '1.0-2'}}%</label>
+            </kendo-tilelayout-item-body>
+        </kendo-tilelayout-item>
+        <kendo-tilelayout-item kendoTooltip #tooltipFr="kendoTooltip" filter=".k-left-handle" showOn="none" class = "tile daily" class="tile" [col]="1" [row]="2" [rowSpan]="3" [colSpan]="5" [title]="'Average Robot Utilization' | label: uiSrv.langPack">
+            <kendo-chart #navigatorChart (selectStart)="onSelectStart()" (select)="onSelect($event)"  (selectEnd)="onSelectEnd($event)"  [seriesColors]="style.seriesColors" [categoryAxis]="[
+                        {
+                          color : style.textColor,
+                          categories: utilization.daily.categories,
+                          min: utilization.daily.min,
+                          max: utilization.daily.max,
+                          labels: { format:'d/M'},
+                          baseUnitStep : 1,
+                          maxDivisions: 32
+                        },
+                        {
+                          categories: utilization.daily.categories,
+                          name: 'navigatorAxis',
+                          labels: { step: utilization.daily.navigatorStep , format:'MMM' , skip: 15 , color:style.textColor},
+                          majorGridLines: { visible: false},
+                          pane: 'navigator',
+                          select: { from: utilization.daily.min, to: utilization.daily.max }
+                        }]"
+                        [valueAxis]="[{color:style.textColor}, {name: 'valueNavigatorAxis', pane: 'navigator' , visible:false , majorGridLines :{visible:false } }]"
+                        [panes]="[{color:style.textColor }, { name: 'navigator', height: 70 }]">
+                <kendo-chart-area background="transparent"></kendo-chart-area>
+                <kendo-chart-legend position="bottom" orientation="horizontal" [markers]="{type:'circle'}" [labels] = "{color : '#FFFFFF'}">
+                </kendo-chart-legend>
+                <kendo-chart-tooltip>
+                    <ng-template kendoChartSeriesTooltipTemplate let-category="category" let-value="value" let-series="series" let-idx = "categoryIndex"> 
+                     <div> {{category | date : 'd MMM'}}  ({{ value }} {{'Hours' | label: uiSrv.langPack }}  {{series.name | label: uiSrv.langPack }}) </div>
+                     <!-- {{category | date : 'd/M'}} - {{ series.name }} : - {{ series.name | label: uiSrv.langPack }}  -->
+                    </ng-template>                    
+                </kendo-chart-tooltip>                  
+                <kendo-chart-series >
+                  <kendo-chart-series-item type="column" name = "Idle" [stack]="{ group: '' }" [data]="utilization.daily.data.idle" >
+                  </kendo-chart-series-item>
+                  <kendo-chart-series-item type="column" name = "Working"  [stack]="{ group: '' }" [data]="utilization.daily.data.executing">                    
+                  </kendo-chart-series-item>
+                  <kendo-chart-series-item type="column" name = "Charging"  [stack]="{ group: '' }" [data]="utilization.daily.data.charging">
+                  </kendo-chart-series-item>
+                  <kendo-chart-series-item type="column" name = "Reserved"  [stack]="{ group: '' }" [data]="utilization.daily.data.hold">
+                  </kendo-chart-series-item>
+                  <kendo-chart-series-item type="column" [data]="utilization.daily.data.idle"  axis="valueNavigatorAxis" categoryAxis="navigatorAxis"> </kendo-chart-series-item>
+                  <kendo-chart-series-item type="column" [data]="utilization.daily.data.executing"  axis="valueNavigatorAxis" categoryAxis="navigatorAxis"> </kendo-chart-series-item>
+                  <kendo-chart-series-item type="column" [data]="utilization.daily.data.charging"  axis="valueNavigatorAxis" categoryAxis="navigatorAxis"> </kendo-chart-series-item>
+                  <kendo-chart-series-item type="column" [data]="utilization.daily.data.hold"  axis="valueNavigatorAxis" categoryAxis="navigatorAxis"> </kendo-chart-series-item>
+                </kendo-chart-series>
+                <!-- <kendo-chart-category-axis>
+                    <kendo-chart-category-axis-item  [categories]="utilization.daily.categories" [labels] = "{ format:'d/M' }"
+                                                     [majorGridLines]="{ visible : false}" [color]="style.textColor">
+                    </kendo-chart-category-axis-item>         
+                    
+                </kendo-chart-category-axis>                   -->
+                <!-- <kendo-chart-value-axis>
+                    <kendo-chart-value-axis-item [color]="style.textColor">
+                    </kendo-chart-value-axis-item>
+                </kendo-chart-value-axis> -->
+            </kendo-chart>
+        </kendo-tilelayout-item>
+        <kendo-tilelayout-item class="tile" [col]="1" [row]="5" [rowSpan]="3" [colSpan]="3" [title]="'Average Robot Utilization by Robot Type' | label: uiSrv.langPack">
+            <kendo-chart [seriesColors]="style.seriesColors">     
+                <kendo-chart-area background="transparent"></kendo-chart-area>
+                <kendo-chart-legend position="bottom" orientation="horizontal" [markers]="{type:'circle'}" [labels] = "{color : '#FFFFFF'}">
+                </kendo-chart-legend>
+                <kendo-chart-title  [align]="'left'" [color]="style.textColor"></kendo-chart-title>                   
+                <kendo-chart-series>
+                  <kendo-chart-series-item type="bar" name = "Idle" [stack]="{ group: '' }" [data]="utilization.robotType.data.idle" 
+                                            [labels]="{visible:true , position:'center' , color:'#FFFFFF' , background:'transparent' , content:utilization.robotType.labelContent}">
+                  </kendo-chart-series-item>
+                  <kendo-chart-series-item type="bar" name = "Working" [stack]="{ group: '' }" [data]="utilization.robotType.data.executing" 
+                                            [labels]="{visible:true , position:'center' , color:'#FFFFFF' , background:'transparent' , content:utilization.robotType.labelContent}">
+                  </kendo-chart-series-item>
+                  <kendo-chart-series-item type="bar" name = "Charging"  [stack]="{ group: '' }" [data]="utilization.robotType.data.charging"
+                                            [labels]="{visible:true , position:'center' , color:'#FFFFFF' , background:'transparent' , content:utilization.robotType.labelContent}">
+                  </kendo-chart-series-item>
+                  <kendo-chart-series-item type="bar" name = "Reserved"  [stack]="{ group: '' }" [data]="utilization.robotType.data.hold"
+                                            [labels]="{visible:true , position:'center' , color:'#FFFFFF' , background:'transparent' , content:utilization.robotType.labelContent}">
+                  </kendo-chart-series-item>
+                </kendo-chart-series>
+                <kendo-chart-category-axis>
+                    <kendo-chart-category-axis-item  [categories]="utilization.robotType.categories" [color]="style.textColor"
+                                                     [majorGridLines]="{ visible : false}">
+                    </kendo-chart-category-axis-item>         
+                </kendo-chart-category-axis>           
+                <kendo-chart-value-axis>
+                    <kendo-chart-value-axis-item [labels]="{format:'{0}%'}"   [majorGridLines]="{ visible : false}" [min]="0" [max]="100" [color]="style.textColor">
+                    </kendo-chart-value-axis-item>         
+                </kendo-chart-value-axis>   
+            </kendo-chart>
+        </kendo-tilelayout-item>
+        <kendo-tilelayout-item class="tile" [col]="4" [row]="5" [rowSpan]="3" [colSpan]="2" [title]="'Robot Utilization Hours by Robot Code' | label: uiSrv.langPack">
+            <kendo-grid class="robot-hour" [data]="utilization.robot" >
+                <kendo-grid-column [headerStyle]="{'width': '20%'}" [style]="{'width': '20%'}" field="category" [title]="'Robot Code' | label: uiSrv.langPack"> </kendo-grid-column>
+                <kendo-grid-column field="executing" [title]="'Working' | label: uiSrv.langPack"> </kendo-grid-column>
+                <kendo-grid-column field="idle"  [title]="'Idle' | label: uiSrv.langPack"></kendo-grid-column>
+                <kendo-grid-column field="charging"  [title]="'Charging' | label: uiSrv.langPack"></kendo-grid-column>
+                <kendo-grid-column field="hold"  [title]="'Reserved' | label: uiSrv.langPack"></kendo-grid-column>
+                <kendo-grid-column field="utilPercent"  [title]="'Utilization' | label: uiSrv.langPack"></kendo-grid-column>
+            </kendo-grid>
+        </kendo-tilelayout-item>
+</kendo-tilelayout>
+

@@ -1,4 +1,4 @@
-import { ChangeDetectorRef, Component, NgZone, OnInit, ViewChild } from '@angular/core';
+import { ChangeDetectorRef, Component, NgZone, OnInit, ViewChild , HostBinding } from '@angular/core';
 import { FormControl, FormGroup, Validators } from '@angular/forms';
 import { DialogService } from '@progress/kendo-angular-dialog';
 import { filter, take } from 'rxjs/operators';
@@ -25,9 +25,11 @@ type SiteDataSet = {
 })
 export class ArcsSetupSiteComponent implements OnInit {
   @ViewChild('pixi') pixiElRef : DrawingBoardComponent
+  @HostBinding('class') customClass = 'setup-map'
+  
   constructor(public uiSrv : UiService , public dataSrv: DataService, public dialogSrv: DialogService, public ngZone : NgZone, public http : RvHttpService, public util : GeneralUtil) { }
   frmGrp = new FormGroup({
-    siteCode: new FormControl('' , Validators.required),
+    siteCode: new FormControl('', Validators.compose([Validators.required, Validators.pattern(this.dataSrv.codeRegex)])),
     name: new FormControl(''),
     fileName: new FormControl(null),
     modifiedDate: new FormControl(null)
@@ -82,14 +84,14 @@ export class ArcsSetupSiteComponent implements OnInit {
   
   async loadData(id){
     let ticket = this.uiSrv.loadAsyncBegin()   
-    let ds : SiteDataSet = (await this.http.get("api/locations/site/v1/" + id))
+    let ds : SiteDataSet = (await this.http.get("api/site/v1/" + id))
     await this.pixiElRef.loadToMainContainer(ds['base64Image'] )
     this.util.loadToFrmgrp(this.frmGrp, ds)
     this.uiSrv.loadAsyncDone(ticket)
     this.pixiElRef.defaultPos = {
-      x: ds.viewX , 
-      y:  ds.viewY, 
-      zoom : ds.viewZoom
+      x: ds.viewX,
+      y: ds.viewY,
+      zoom: ds.viewZoom
     }
     this.pixiElRef.setViewportCamera( this.pixiElRef.defaultPos.x ,  this.pixiElRef.defaultPos.y  , this.pixiElRef.defaultPos.zoom)
   }
@@ -121,8 +123,8 @@ export class ArcsSetupSiteComponent implements OnInit {
     let ret : SiteDataSet = {
         siteCode : null,
         viewZoom: vpPos.defaultZoom,
-        viewX:  vpPos.defaultX,
-        viewY:  vpPos.defaultY,
+        viewX:  this.util.trimNum(vpPos.defaultX , 0),
+        viewY:  this.util.trimNum(vpPos.defaultY , 0) ,
         base64Image : await this.pixiElRef?.getMainContainerImgBase64()
     }
     Object.keys(this.frmGrp.controls).forEach(k=> ret[k] = this.frmGrp.controls[k].value)
@@ -143,7 +145,7 @@ export class ArcsSetupSiteComponent implements OnInit {
       return
     }
 
-    if((await this.dataSrv.saveRecord("api/locations/site/v1"  , await this.getSubmitDataset(), this.frmGrp)).result){      
+    if((await this.dataSrv.saveRecord("api/site/v1"  , await this.getSubmitDataset(), this.frmGrp  , !this.parentRow)).result){      
       this.windowRef.close()
     }
   }

@@ -24,6 +24,7 @@ export class CmUserGroupComponent implements OnInit {
   frmGrp = new FormGroup({
     userGroupCode: new FormControl(null , Validators.compose([Validators.required, Validators.pattern(this.dataSrv.codeRegex)])),
     name: new FormControl(null),
+    require2FALogin: new FormControl(null),
     updatedDate: new FormControl(null),
     createdDate: new FormControl(null),
   })

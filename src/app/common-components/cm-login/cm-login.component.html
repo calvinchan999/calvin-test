@@ -8,18 +8,24 @@
             </div>
             <div class="login-logo"></div>
             <div class="login-brand h3">         
-                {{(util.standaloneApp ?  'RV Robotic System' : 'Agonistic Robotic Control System')| label : uiSrv.langPack}}
+                {{(util.standaloneApp ?  'RV Robotic System' : 'Agnostic Robotic Control System')| label : uiSrv.langPack}}
             </div>
+            <div *ngIf="auth2FASegment" class="sent-msg">{{'Please input the verification code sent to your email to proceed' | label : uiSrv.langPack}}</div>
             <form  [formGroup]="frmGrp" class="content" (keydown.enter)="login()">
-                <uc-txtbox lab = "Login ID" [frmGrp] = "frmGrp" frmCtrl = "username"></uc-txtbox>
-                <uc-txtbox lab = "Password" type = "password" [frmGrp] = "frmGrp" frmCtrl = "password"></uc-txtbox>
+                <uc-txtbox *ngIf="!auth2FASegment" lab = "Login ID" [frmGrp] = "frmGrp" frmCtrl = "username" [disabled]="auth2FASegment"></uc-txtbox>
+                <uc-txtbox *ngIf="!auth2FASegment" lab = "Password" type = "password" [frmGrp] = "frmGrp" frmCtrl = "password"></uc-txtbox>
+                <uc-txtbox *ngIf="auth2FASegment" lab = "Verification Code" [frmGrp] = "frmGrp" frmCtrl = "verificationCode"></uc-txtbox>
                 <span class="error">{{errMsg}}</span>
+                <a class="forgot-pw" *ngIf= "util.arcsApp && !auth2FASegment" (click)="showForgetPasswordDialog = true">{{'Forget Password?'| label : uiSrv.langPack}}</a>
                 <button class="login-button" kendoButton (click)="login()">{{'Login' | label : uiSrv.langPack}}</button>
             </form>         
         </div>
     </div>
 </div>
 
+<kendo-dialog *ngIf="showForgetPasswordDialog" [title]="('Forget Password' | label : uiSrv.langPack)" (close)="showForgetPasswordDialog = false" [minWidth]="250" [width]="450">
+    <app-forget-password [parent] = "me"></app-forget-password>
+</kendo-dialog>
 <!-- * * *  ^ PC VERSION ^   * * * -->
 
 <!-- * * *  v TABLET VERSION v  * * * -->

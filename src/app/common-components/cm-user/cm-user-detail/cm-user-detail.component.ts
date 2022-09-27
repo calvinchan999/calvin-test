@@ -26,6 +26,7 @@ export class CmUserDetailComponent implements OnInit {
     name: new FormControl(null, Validators.required),
     userGroupCode: new FormControl(null , Validators.required),
     password: new FormControl(null ),
+    email:new FormControl(null),
     updatedDate: new FormControl(null),
     createdDate: new FormControl(null),
   })
@@ -104,6 +105,11 @@ export class CmUserDetailComponent implements OnInit {
   }
 
   async validate() {
+    let email = this.frmGrp.controls['email'].value
+    var pattern = /\w+([-+.']\w+)*@\w+([-.]\w+)*\.\w+([-.]\w+)*/; 
+    if(email && email.length > 0 && !new RegExp(pattern).test(email)){
+      this.frmGrp.controls['email'].setErrors({ message : this.uiSrv.translate("Invalid email format")})
+    }
     return this.util.validateFrmGrp(this.frmGrp) &&  await this.remoteValidate()
   }
 

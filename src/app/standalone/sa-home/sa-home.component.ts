@@ -86,6 +86,7 @@ export class SaHomeComponent implements OnInit {
     this.dataSrv.subscribeSignalRs(<any>this.signalRSubscribedTopics)
     this.initDataSource()
     // this.dashboardLayout = this.dashboardLayout.concat(this.topModule[this.robotType]) 
+
     this.uiSrv.loadAsyncDone(this.loadingTicket)
 
   }

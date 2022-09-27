@@ -1,4 +1,4 @@
-import { ChangeDetectorRef, Component, HostListener, Input, NgZone, OnInit, ViewChild } from '@angular/core';
+import { ChangeDetectorRef, Component, HostListener, Input, NgZone, OnInit, ViewChild, HostBinding } from '@angular/core';
 import { FormControl, FormGroup, Validators } from '@angular/forms';
 import { DialogService } from '@progress/kendo-angular-dialog';
 import { SHAPES } from 'pixi.js';
@@ -22,6 +22,7 @@ import { CmMapDetailLocationComponent } from './cm-map-detail-location/cm-map-de
 })
 export class CmMapDetailComponent implements OnInit {
   readonly = false
+  @HostBinding('class') customClass = 'setup-map'
   @ViewChild('pixi') pixiElRef : DrawingBoardComponent
   constructor(public uiSrv : UiService , public dialogSrv: DialogService, public ngZone : NgZone, public httpSrv : RvHttpService,
               public signalRSrv : SignalRService , public util : GeneralUtil , public dataSrv : DataService , public authSrv : AuthService) { 

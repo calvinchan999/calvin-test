@@ -27,7 +27,7 @@
             </form>
         </div>
         <div class="viewport-container">
-            <uc-drawing-board #pixi [overlayMsg] = "frmGrp.controls['siteCode'].value!=null ? null : ('Please select a site first' | label : uiSrv.langPack) " 
+            <uc-drawing-board #pixi [overlayMsg] = "site ? null : ( uploadSiteMsg| label : uiSrv.langPack) " 
                               [canUploadMultiImg] = "false" [hideButton] = "{ line : true, brush: true, arrow : true, point: true, export: true, upload : true}" 
                               [disableButton] = "pixiElRef?.drawingsCreated.length == 0 && pixiElRef?.selectedGraphics?.type == 'polygon'? {} :
                                                  pixiElRef?.drawingsCreated.length == 0 && pixiElRef?.selectedGraphics?.type != 'polygon'? {delete : true } : 

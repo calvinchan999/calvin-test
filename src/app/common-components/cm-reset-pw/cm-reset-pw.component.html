@@ -1,0 +1,18 @@
+<div class="login login-bg"  *ngIf="!uiSrv.isTablet">
+    <div class="login-content">
+        <div class="login-box">
+            <div class="login-brand h3">         
+                {{ 'Agonistic Robotic Control System' | label : uiSrv.langPack}}
+            </div>
+            <div class="header">{{successMsg? successMsg : 'Reset Password' | label : uiSrv.langPack}}</div>
+            <form *ngIf="!successMsg" [formGroup]="frmGrp" class="content">
+                <uc-txtbox lab="New Password" [frmGrp]="frmGrp" frmCtrl="password" type = "password" ></uc-txtbox>
+                <uc-txtbox lab="Confirm Password" [frmGrp]="frmGrp" frmCtrl="confirmPassword" type = "password" ></uc-txtbox>
+            </form>
+            <div class="button-container">
+                <button *ngIf="!successMsg" kendoButton (click)="saveToDB()" class="reset"> {{'Reset' | label : uiSrv.langPack}}</button>
+                <button *ngIf="successMsg" kendoButton (click)="router.navigate(['/login'])" class="back"> {{'Go To Login Page' | label : uiSrv.langPack}}</button>
+            </div>            
+        </div>
+    </div>
+</div>

@@ -160,6 +160,7 @@ export class UiService {
     this.langPack = <any> (await this.http.get('assets/resources/labels/' + lang.toLowerCase() + '.json').toPromise());
     this.lang.next(lang)  
     localStorage.setItem("lang",lang)
+    this.refreshDrawerItems.next(true)
     // this.loadAsyncDone(ticket)
   }
 

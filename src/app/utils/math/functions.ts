@@ -213,7 +213,7 @@ export function inside(point, vertices) {
   return inside;
 };
 
-export function centerOfPolygon(vertices : {x : number , y : number}[])
+export function centroidOfPolygon(vertices : {x : number , y : number}[])
 {
     var minX, maxX, minY, maxY;
     for (var i = 0; i < vertices.length; i++)

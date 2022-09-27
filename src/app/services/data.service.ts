@@ -52,8 +52,8 @@ export class DataService {
     subTypes:{ url: 'robot/v1/robotSubTypeList', descFld: 'description', valFld: 'enumName', fromRV : true },
     types: { url: 'robot/v1/robotTypeList', descFld: 'description', valFld: 'enumName' , fromRV : true},
     floorplans: { url: 'api/map/plan/droplist/v1', descFld: 'name' , valFld:'floorPlanCode'  , fromRV : false },
-    buildings: { url: 'api/location/building/droplist/v1', valFld : 'buildingCode', descFld: 'name'  , fromRV : false },
-    sites: { url: 'api/locations/site/v1/droplist',valFld: 'siteId', descFld: 'siteName'  , fromRV : false },
+    buildings: { url: 'api/building/droplist/v1', valFld : 'buildingCode', descFld: 'name'  , fromRV : false },
+    sites: { url: 'api/site/v1/droplist',valFld: 'siteId', descFld: 'siteName'  , fromRV : false },
     maps: { url: 'api/map/droplist/v1' , valFld : 'mapCode', descFld: 'name'  , fromRV : false },
     actions: { url: this.util.arcsApp ? 'operation/v1' : 'action/v1',  descFld: 'name', valFld: 'alias' ,  fromRV : true },
     userGroups : { url: 'api/user/userGroup/dropList/v1',  descFld: 'name', valFld: 'userGroupCode' , fromRV : false },
@@ -130,6 +130,7 @@ export class DataService {
   }
 
   //api pending : tilt , pose , obstacle detection , arcsPoses
+  
   public signalRMaster = {
     trayRack : {topic : "rvautotech/fobo/trayRack" ,   mapping:{ trayRackAvail: (d)=> {return d['levelList'].map(lv=> lv['trayFull'] ? 'Occupied' : 'Available')}}},
     taskPopups:{ topic: "rvautotech/fobo/topModule/request", mapping: { taskPopupRequest: (d)=> d }},
@@ -370,7 +371,7 @@ export class DataService {
         })
       })
     }
-    console.log('SUBSCRIBE DONE')
+
     this.uiSrv.loadAsyncDone(ticket)
    }
 
@@ -381,7 +382,7 @@ export class DataService {
   }
 
   private setSubscribedCount(type , count , key = ''){
-    if(key == ''){
+    if(key == '' || this._USE_AZURE_PUBSUB){
       this.signalRMaster[type]['subscribedCount'] = count
     }else{
       this.signalRMaster[type]['subscribedCount'] =  this.signalRMaster[type]['subscribedCount'] ?  this.signalRMaster[type]['subscribedCount'] : {}
@@ -390,7 +391,7 @@ export class DataService {
   }
 
   private getSubscribedCount(type , key = ''){
-    let value = key == '' ? this.signalRMaster[type]['subscribedCount'] : this.signalRMaster[type]?.['subscribedCount']?.[key]
+    let value = (key == '' || this._USE_AZURE_PUBSUB) ? this.signalRMaster[type]['subscribedCount'] : this.signalRMaster[type]?.['subscribedCount']?.[key]
     return !value ? 0 : value
   }
 
@@ -415,9 +416,9 @@ export class DataService {
     if( this.getSubscribedCount(type , paramString) == 0 && !this.signalRGeneralConfig.backgroundSubscribeTypes.includes(type) ){
       let mapping = this.signalRMaster[type]['mapping']
       Object.keys(mapping).forEach(k => this.signalRSubj[k].next(null))
-      let topicSfx = paramString == '' ? '' : '/' + paramString 
+      let topicSfx =  paramString == '' ? '' : '/' + paramString 
       if(this._USE_AZURE_PUBSUB){
-        this.pubsubSrv.unsubscribeTopic(this.signalRMaster[type].topic + topicSfx)
+        this.pubsubSrv.unsubscribeTopic(this.signalRMaster[type].topic )
       }else{
         this.signalRSrv.unsubscribeTopic(this.signalRMaster[type].topic + topicSfx)
       }
@@ -437,22 +438,22 @@ export class DataService {
     let subscribedCount = this.getSubscribedCount(type, paramString) 
     let topicSfx = paramString == '' ? '' : '/' + paramString 
     let newSubscription =  !(this._USE_AZURE_PUBSUB ? this.pubsubSrv.getCreatedTopics() : this.signalRSrv.subscribedTopics).includes(this.signalRMaster[type].topic + topicSfx)
-    let ret = this._USE_AZURE_PUBSUB ?(await this.pubsubSrv.subscribeTopic(this.signalRMaster[type].topic + topicSfx)): (await this.signalRSrv.subscribeTopic(this.signalRMaster[type].topic + topicSfx , subscribedCount == 0)) 
-    let $unsubscribed = this.signalRSrv.getUnsubscribedSubject(this.signalRMaster[type].topic + paramString)
+    let ret = this._USE_AZURE_PUBSUB ?(await this.pubsubSrv.subscribeTopic(this.signalRMaster[type].topic )): (await this.signalRSrv.subscribeTopic(this.signalRMaster[type].topic + topicSfx , subscribedCount == 0)) 
+    let $unsubscribed = this.signalRSrv.getUnsubscribedSubject(this.signalRMaster[type].topic + topicSfx)
     if (subscribedCount == 0 || getLatestFromApi ) {           
       if (mapping != undefined && mapping != null) {
         if (this.util.standaloneApp && this.signalRMaster[type]['api']) {
           if(this.getSubscribedCount(type, paramString) == 0){    
               let resp = await this.httpSrv.rvRequest('GET' , this.signalRMaster[type]['api'])      
               if(resp && resp.status == 200){
-                this.updateSignalRBehaviorSubject(type, JSON.parse(resp.body))
+                this.updateSignalRBehaviorSubject(type, JSON.parse(resp.body) , paramString)
               }
           }
         } else if(this.util.arcsApp && ['ieq'].includes(type)){       
             if(this.getSubscribedCount(type, paramString) == 0){          
-              let resp = await this.httpSrv.rvRequest('GET' , this.signalRMaster[type]['api'] + paramString)
+              let resp = await this.httpSrv.rvRequest('GET' , this.signalRMaster[type]['api'] + '/' + paramString)
               if(resp && resp.status == 200){
-                this.updateSignalRBehaviorSubject(type, JSON.parse(resp.body))
+                this.updateSignalRBehaviorSubject(type, JSON.parse(resp.body), paramString)
               }
             }
         }
@@ -461,7 +462,7 @@ export class DataService {
       if (newSubscription) {
         //20220804 added take until
         ret.pipe(takeUntil($unsubscribed ? $unsubscribed  : new Subject<any>())).subscribe(
-          (data) => this.updateSignalRBehaviorSubject(type, JSON.parse(data))
+          (data) => this.updateSignalRBehaviorSubject(type, JSON.parse(data), paramString)
         )
       }
     }
@@ -469,12 +470,18 @@ export class DataService {
     return ret
   }
 
-  updateSignalRBehaviorSubject(type, data ) {
+  updateSignalRBehaviorSubject(type , data , param = '') {
     let mapping = this.signalRMaster[type]['mapping']
     if (this.util.config.DEBUG_SIGNALR && (!this.util.config.DEBUG_SIGNALR_TYPE || this.util.config.DEBUG_SIGNALR_TYPE?.length == 0 || type == this.util.config.DEBUG_SIGNALR_TYPE)) {
       console.log(`[${new Date().toDateString()}] SignalR Received [${type.toUpperCase()}] : ${JSON.stringify(data)}`)
     }
     // data = JSON.parse(data)
+    if (this.util.arcsApp && this._USE_AZURE_PUBSUB && param != '') {
+      if ((type == 'arcsPoses' && data['mapName'] != param) || (type != 'arcsPoses' && data['robotId'] != param)) {
+        return
+      }
+    }
+
     Object.keys(mapping).forEach(k => {
       if (mapping[k] == null) {
         this.signalRSubj[k].next(data)
@@ -533,8 +540,13 @@ export class DataService {
     let ret= {data: null ,options: null}
     let apiMap = this.dropListApiMap
     var resp = apiMap[type].fromRV? await this.httpSrv.rvRequest("GET", apiMap[type]['url'] , undefined, false) :  await this.httpSrv.get(apiMap[type]['url'])
+    if(this.util.arcsApp && type == 'floorplans'){
+      await this.getSite()
+    }
     if(this.util.arcsApp && type == 'floorplans' && !this.arcsDefaultSite && this.arcsDefaultBuilding){
       resp = resp.filter((fp : DropListFloorplan)=>fp.buildingCode == this.arcsDefaultBuilding)
+    }else if(this.util.arcsApp && type == 'floorplans' && this.arcsDefaultSite){
+      resp = resp.filter((fp : DropListFloorplan)=>fp.buildingCode != null)
     }
     ret = {
       data: resp.filter(itm => !apiMap[type]['filter'] || apiMap[type]['filter'](itm)),
@@ -559,6 +571,13 @@ export class DataService {
     }))
     return ret
     // return await this.httpSrv.get("api/map/plan/v1")
+  }
+
+  public async getSite(forceRefresh = false){
+    if(!this.arcsDefaultSite || forceRefresh){
+      this.arcsDefaultSite = await this.httpSrv.get('api/site/v1')
+    }
+    return this.arcsDefaultSite
   }
 
   public async getRobotList() : Promise<DropListRobot[]>{
@@ -923,6 +942,9 @@ export class DropListBuilding{
   buildingCode
   name
   defaultPerSite
+  polygonCoordinates
+  labelX
+  labelY
 }
 
 export class DropListSite{
@@ -1040,6 +1062,16 @@ export class JPoint {
   guiY: number
   guiAngle: number
   userDefinedPointType : string
+  groupMemberPointList? : JPoint []
+  groupPointCode? : string
+  groupProperties? : string
+}
+
+export class JChildPoint{
+  pointCode: string
+  guiX: number
+  guiY: number
+  guiAngle: number
 }
 
 export class JPath{
@@ -1071,6 +1103,29 @@ export class JMap {
   pointList : JPoint[]
   pathList : JPath[]
   base64Image: string
+}
+
+export class JBuilding {
+  buildingCode: string
+  name: string
+  labelX: number
+  labelY: number
+  siteCode: string
+  polygonCoordinates: {x : number , y : number}[]
+  defaultPerSite: boolean
+  floorPlanCodeList: string[]
+  defaultFloorPlanCode: string
+}
+
+export class JSite {
+  siteCode: string
+  name: string
+  fileName: string
+  base64Image: string
+  viewZoom: number
+  viewX: number
+  viewY: number
+  remark: string
 }
 
 export class RobotTaskInfoARCS{

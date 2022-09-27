@@ -84,7 +84,7 @@
 <ng-template #numeric_frmCtrl>
     <kendo-numerictextbox *ngIf="numeric"  #textbox [placeholder]="placeholder"  [formControlName]="frmCtrl" [autoCorrect] = 'true' [step] = "numStep" 
                            [decimals] = "numDecimals" [max] = "numMax" [min]="numMin" [selectOnFocus] = "!uiSrv.isTablet" [spinners] = "!uiSrv.isTablet"
-                           [disabled]="disabled || frmGrp.controls[frmCtrl].disabled" [format] = "numFormat"> 
+                           [disabled]="disabled || frmGrp.controls[frmCtrl].disabled" [format] = "numFormat" > 
     </kendo-numerictextbox>
 </ng-template>
 

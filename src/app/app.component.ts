@@ -22,7 +22,7 @@ export class AppComponent implements OnInit, OnDestroy {
     // public customMsgService: CustomMessagesService;
     public mode: DrawerMode = 'push';
     public mini = true;
-
+    public currentRoute = null
     constructor(public router: Router, 
                 private http: HttpClient , 
                 public util : GeneralUtil,
@@ -74,6 +74,7 @@ export class AppComponent implements OnInit, OnDestroy {
                     // }
                 });
             }
+            this.currentRoute = this.router.url.split('?')[0] 
         });
 
         this.setDrawerConfig();

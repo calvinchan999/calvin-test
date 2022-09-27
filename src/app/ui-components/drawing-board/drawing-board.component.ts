@@ -4,9 +4,9 @@ import { GeneralUtil } from 'src/app/utils/general/general.util';
 import * as PIXI from 'pixi.js';
 import * as PixiTextInput from 'pixi-text-input';
 // import { Pose2D } from 'src/app/models/floor-plan.model';
-import { BehaviorSubject, Observable, Subject, timer } from 'rxjs';
+import { BehaviorSubject, Observable, of, Subject, timer } from 'rxjs';
 import { debounce, debounceTime, filter, retry, share, skip, switchMap, take, takeUntil } from 'rxjs/operators';
-import { getAngle ,getBezierSectionPoints , getDijkstraGraph, getLength, getOrientation, getOrientationByAngle , inside, intersectionsOfCircles, trimAngle} from 'src/app/utils/math/functions';
+import { centroidOfPolygon, getAngle ,getBezierSectionPoints , getDijkstraGraph, getLength, getOrientation, getOrientationByAngle , inside, intersectionsOfCircles, trimAngle} from 'src/app/utils/math/functions';
 import { UiService} from 'src/app/services/ui.service';
 import { or } from '@progress/kendo-angular-grid/dist/es2015/utils';
 import { RvHttpService } from 'src/app/services/rv-http.service';
@@ -19,12 +19,13 @@ import {GlowFilter} from '@pixi/filter-glow';
 import {OutlineFilter} from '@pixi/filter-outline';
 import {ColorOverlayFilter} from '@pixi/filter-color-overlay';
 import {DropShadowFilter} from '@pixi/filter-drop-shadow';
-import { ShapeJData , MapJData, FloorPlanDataset, MapDataset, DataService, robotPose, DropListFloorplan, DropListLocation, DropListMap, DropListAction, DropListBuilding, JMap, JPoint, JPath, JFloorPlan, DropListRobot, DropListPointType, RobotStatusARCS } from 'src/app/services/data.service';
+import { ShapeJData , MapJData, FloorPlanDataset, MapDataset, DataService, robotPose, DropListFloorplan, DropListLocation, DropListMap, DropListAction, DropListBuilding, JMap, JPoint, JPath, JFloorPlan, DropListRobot, DropListPointType, RobotStatusARCS, JChildPoint } from 'src/app/services/data.service';
 import { AuthService } from 'src/app/services/auth.service';
 import * as roundSlider from "@maslick/radiaslider/src/slider-circular";
 import {GraphBuilder, DijkstraStrategy} from "js-shortest-path"
 import { TxtboxComponent } from '../txtbox/txtbox.component';
 import { PositionService } from '@progress/kendo-angular-popup';
+import { toJSON } from '@progress/kendo-angular-grid/dist/es2015/filtering/operators/filter-operator.base';
 
 // adapted from
 // http://jsfiddle.net/eZQdE/43/
@@ -33,6 +34,7 @@ export const radRatio =  57.2958
 const VIRTUAL_MAP_ROS_HEIGHT = 20
 const WebGLMaxMobleTextureSize = 4096
 const wayPointCodeMaxLength = 50
+const ROBOT_ACTUAL_LENGTH_METER = 1
 //pending : add curved arrow default curved (rescontrol point ) 
 @Component({
   selector: 'uc-drawing-board',
@@ -45,7 +47,12 @@ export class DrawingBoardComponent implements OnInit , AfterViewInit {
   @ViewChild('uploader') public uploader
   @ViewChild('angleSlider') public angleSlider : ElementRef
   @ViewChild('kendoAngleSlider') public kendoAngleSlider 
+  @Input() waypointEditable = false
   @Input()  uploadMustMatchOriginalSize = false
+  get withMapLayer(){
+    return Object.values(this.mapLayerStore).length > 0
+  }
+
   id = 0;
   get selectedGraphics(){
     return this._mySelectedGraphics
@@ -121,6 +128,7 @@ export class DrawingBoardComponent implements OnInit , AfterViewInit {
   @Output() scanClicked: EventEmitter<any> = new EventEmitter();
   @Output() pickMapClicked : EventEmitter<any> = new EventEmitter();
   @Output() standaloneRobotChangeMap : EventEmitter<any> = new EventEmitter(); 
+  @Output() onBuildingSelected: EventEmitter<any> = new EventEmitter(); 
   @Output() onSiteSelected: EventEmitter<any> = new EventEmitter(); 
   @Output() cancelSpawnPick : EventEmitter<any> = new EventEmitter(); 
   @Output() confirmSpawnPick : EventEmitter<any> = new EventEmitter(); 
@@ -128,12 +136,17 @@ export class DrawingBoardComponent implements OnInit , AfterViewInit {
   @Output() cancelFullScreen : EventEmitter<any> = new EventEmitter(); 
   @Output() terminateRemoteControl :  EventEmitter<any> = new EventEmitter(); 
   @Output() demoWaypointLoaded :  EventEmitter<any> = new EventEmitter(); 
-
+ 
   onViewportZoomed : BehaviorSubject<any> = new BehaviorSubject<any>(null)
   mapTransformedScale  =  null
   arcsPoseSubscription 
   _fullScreen = false
   disableKendoKeyboardNavigation = false
+  @Input() uitoggle = {
+    showRosMap : true,
+    showWaypoint : true
+  }
+
   @Input() set fullScreen(b) {
     this.ngZone.run(() => {
       this._fullScreen = b
@@ -177,6 +190,9 @@ export class DrawingBoardComponent implements OnInit , AfterViewInit {
   get allPixiPoints() : PixiLocPoint[]{
     return this.mainContainer.children.filter(c=> c instanceof PixiLocPoint).map(c=> <PixiLocPoint>c)
   };
+  get allPixiPolygon() : PixiPolygon[]{
+    return this.mainContainer.children.filter(c=> c instanceof PixiPolygon).map(c=> <PixiPolygon>c)
+  };
   brushPaintings = []; //to implement undo easily , not included in drawingsCreated
   linesCreated = []; //to implement undo easily , not included in drawingsCreated
   mainContainerId
@@ -213,8 +229,15 @@ export class DrawingBoardComponent implements OnInit , AfterViewInit {
 
 
   PIXI = PIXI
-  editObj 
-  drawObj //type : spawn , brush , line , point , polygon
+  editObj: {
+    type?: any,
+    graphics?: any,
+    startPoint?: any,
+    startPosition?: any,
+    originalWidth?: any,
+    originalHeight?: any
+  }
+  drawObj
   mouseUpListenerObj = {}
   highlightColor = new PixiCommon().highlightColor//0xFF6358 //0x30C5FF //0xff9800 // 0xFC33FF
   // mapPalette  = [ "#000000", "#ffffff", "#cdcdcd"];
@@ -283,7 +306,6 @@ export class DrawingBoardComponent implements OnInit , AfterViewInit {
   clickEvts = ['touchstart', 'mousedown']
   moveEvts = ['touchmove', 'mousemove']
   clickEndEvts = ['touchend' , 'mouseup']
-  showRosMap = false
   _cameraTraceEnabled = false
   set cameraTraceEnabled(v){
     this._cameraTraceEnabled = v
@@ -307,13 +329,38 @@ export class DrawingBoardComponent implements OnInit , AfterViewInit {
   }
   
   //storing objects for ARCS only , not used in standalone
-  arcsObjs = {
-    hierarchy : {
-      site :{id : null , name : null},
-      building :{id : null , name : null}
-      // floorplan : {id : null , name : null}
+  @Input() set site(v){
+    this.arcsLocationTree.site = v
+  }
+  
+  arcsLocationTree : {
+    site : {
+      code : string ,
+      name : string 
     },
-    selectedPlan : null
+    building :{
+      code : string ,
+      name : string 
+    },
+    currentLevel : 'floorplan' | 'site'
+    selected : {
+      building: string,
+      floorplan : string,
+    }
+  } = {
+    site : {
+      code : null,
+      name : null
+    },
+    building : {
+      code : null,
+      name : null
+    },
+    currentLevel : 'floorplan',
+    selected : {
+      building: null,
+      floorplan : null,
+    }
   }
 
 
@@ -323,7 +370,6 @@ export class DrawingBoardComponent implements OnInit , AfterViewInit {
   }
 
   taskShowing = null
-
   confirmPending = false
 
   textInputFocused(selectedGraphicOnly = true){
@@ -396,11 +442,20 @@ export class DrawingBoardComponent implements OnInit , AfterViewInit {
       // event.preventDefault()
       this.disableKendoKeyboardNavigation = true
       this.adjustSpawnMarkerPosition(xIncre , yIncre)
+      this.refreshLidarLayerPos();
     }else if(this.selectedGraphics && (!(this.selectedGraphics instanceof PixiArrow))){
-      this.selectedGraphics.position.x += xIncre
-      this.selectedGraphics.position.y -= yIncre
-      if(this.selectedGraphics instanceof PixiLocPoint){
-        (<PixiLocPoint>this.selectedGraphics).refreshRosPositionValue()
+      if(this.selectedGraphics instanceof PixiChildPoint){
+        let oldPosMainContainer = this._mainContainer.toLocal(this.selectedGraphics.parent.toGlobal(this.selectedGraphics.position))
+        let newPosMainContainer = new PIXI.Point(oldPosMainContainer.x + xIncre , oldPosMainContainer.y - yIncre ) //-yIncre reason to be found out
+        let newPos = this.selectedGraphics.parent.toLocal(this._mainContainer.toGlobal(newPosMainContainer))
+        this.selectedGraphics.position.set(newPos.x , newPos.y);
+        // (<PixiChildPoint>this.selectedGraphics).pointGroup.drawBackground();
+      }else{
+        this.selectedGraphics.position.x += xIncre
+        this.selectedGraphics.position.y -= yIncre
+      }
+      if (this.selectedGraphics instanceof PixiLocPoint) {
+        (<PixiLocPoint>this.selectedGraphics).onPositionChange()
       }
       this.refreshArrows(this.selectedGraphics)
     }
@@ -436,10 +491,10 @@ export class DrawingBoardComponent implements OnInit , AfterViewInit {
   }
 
   async ngAfterViewInit() {
-    await this.getFloorplanOptions()
+    await this.getDropList()
     this.init()
     if (this.showNavigationDropdown) {
-      this.getFloorplanOptions(this.pickSpawnPoint)
+      this.getDropList(this.pickSpawnPoint)
     }
   }
 
@@ -528,6 +583,7 @@ export class DrawingBoardComponent implements OnInit , AfterViewInit {
   async reset(){
     this.mainContainerId = null
     this._ngPixi.viewport.removeChildren()
+    this._ngPixi.viewport.parent?.children?.filter(c=>c instanceof PixiToolTip).forEach(c=> c.parent.removeChild(c))
     this._mainContainer = new PIXI.Container();
     this._ngPixi.viewport.addChild(this._mainContainer)
     this.mapContainerStore =  {};
@@ -549,7 +605,6 @@ export class DrawingBoardComponent implements OnInit , AfterViewInit {
     //     floorplan : {id : null , name : null}
     //   }
     // }
-    console.log('reset')
     if(this.showRobot && this.util.standaloneApp && this.robots.length == 0){
       this.overlayMsg = this.uiSrv.translate("Select Starting Postion")
       this.dataSrv.unsubscribeSignalR('pose')
@@ -610,9 +665,26 @@ export class DrawingBoardComponent implements OnInit , AfterViewInit {
     }
   }
 
-  setViewportCamera(x , y, zoom = this._ngPixi.viewport.scale.x , smooth = false) {
-    this._ngPixi.viewport.scale.set(zoom, zoom)
-    this._ngPixi.flyTo(x , y , smooth ? 500 : 0 )    
+  setViewportCamera(x , y, zoom = this._ngPixi.viewport.scale.x , smooth = false , smoothMs = 500) {
+    // this._ngPixi.viewport.scale.set(zoom, zoom)
+
+      // this._ngPixi.viewport.wheel({center : new PIXI.Point(x , y) , smooth : 10})
+    this._ngPixi.viewport.scale.set(zoom, zoom)   
+    this._ngPixi.flyTo(x, y, smooth ? smoothMs : 0)
+
+    // if(smooth){
+    //   // console.log(zoom)
+    //   // let orgScale =  this._ngPixi.viewport.scale.x
+    //   // let diff = zoom - orgScale
+    //   // let ticks =  smoothMs / 100
+    //   // for(let i = 0 ; i <= ticks ; i ++ ){
+    //   //   setTimeout(()=> this._ngPixi.viewport.scale.set(orgScale + i * diff / ticks, orgScale + i * diff / ticks), 100)
+    //   // }
+    //   // console.log(this._ngPixi.viewport.scale.x)
+    // }else{
+    //   this._ngPixi.viewport.scale.set(zoom, zoom)   
+    // }
+     
   }
 
   changeMode(mode : 'draw' | 'edit' , type = null  , gr : PIXI.Graphics = null, evt = null){
@@ -631,7 +703,6 @@ export class DrawingBoardComponent implements OnInit , AfterViewInit {
   }
 
   selectGraphics(gr:PIXI.Graphics , isRemove = false){
-
     if(this.uiSrv.isTablet && this.selectedGraphics instanceof PixiLocPoint && gr != this.selectedGraphics && !isRemove){
       this.pointUnselected.emit({ id: this.selectedGraphics.input.text, graphics: this.selectedGraphics, type: this.selectedGraphics.type })
     }
@@ -648,9 +719,24 @@ export class DrawingBoardComponent implements OnInit , AfterViewInit {
       // this.selectedGraphics['selected'] = false
       this.selectedGraphics.cursor = 'pointer'
       this.unhighlightGraphics(this.selectedGraphics)
+      if(this.selectedGraphics instanceof PixiPointGroup){
+        this.unhighlightGraphics((<PixiPointGroup>this.selectedGraphics).parentPoint)
+      }else if(this.selectedGraphics instanceof PixiChildPoint){
+        this.unhighlightGraphics((<PixiChildPoint>this.selectedGraphics).pixiPointGroup.parentPoint)
+      }
+    }
+
+    if(gr == null && (!this.drawObj?.type || !this.editObj?.type || this.drawObj?.type == 'point' || this.editObj?.type == 'point') ){
+      if (this.selectedGraphics instanceof PixiPointGroup) {
+        gr = (<PixiPointGroup>this.selectedGraphics).parentPoint
+      } else if (this.selectedGraphics instanceof PixiChildPoint) {
+        gr = (<PixiChildPoint>this.selectedGraphics).pixiPointGroup.parentPoint
+      }
     }
     this.selectedGraphics = gr
-    if(gr){
+
+
+    if (gr) {
       // this.selectedGraphics['selected'] = true
       gr.cursor = 'move'
       this.highlightGraphics(gr)
@@ -790,6 +876,9 @@ export class DrawingBoardComponent implements OnInit , AfterViewInit {
   }
 
   public refreshRobotColors(){
+    // this._arcsRobotColors = {
+    //   'RV-ROBOT-100' : 0xFF6358
+    // }
     Object.keys(this._arcsRobotColors).forEach(robotCode=>{
       if(this._arcsRobotColors[robotCode]){
         let pixiRobot : PixiCommon =  this.robots.filter(r=>r.id == robotCode)[0]?.pixiGraphics
@@ -800,6 +889,7 @@ export class DrawingBoardComponent implements OnInit , AfterViewInit {
         }
       }
     })
+    this.refreshRobotScale()
   }
 
   public getRobot(point = new PIXI.Point(0,0) , angle = 0, option = new GraphicOptions()) {
@@ -862,16 +952,16 @@ export class DrawingBoardComponent implements OnInit , AfterViewInit {
     option.lineColor = option.fillColor
     option.opacity = this.selectedStyle.marker.opacity
     let ret: PixiLocPoint = new PixiLocPoint(type, text, option, !this.readonly, this.uiSrv ,iconUrl , pointType )
-    if (!this.readonly) {
-      ret.angleIndicator.on("mousedown", (evt: PIXI.interaction.InteractionEvent) => {
-        evt.stopPropagation()
-        this.changeMode('edit', 'rotate', ret.angleIndicator, evt)
-      })
-      ret.angleIndicator.on("mouseover", (evt: PIXI.interaction.InteractionEvent) =>
-        ret.angleIndicator.showToolTip(new PixiCommon().getRotateInfoText(ret.angleIndicator), evt)
-      )
-      ret.angleIndicator.on("mouseout", () => ret.angleIndicator.hideToolTip())
-    }
+    // if (!this.readonly) {
+    //   ret.angleIndicator.on("mousedown", (evt: PIXI.interaction.InteractionEvent) => {
+    //     evt.stopPropagation()
+    //     this.changeMode('edit', 'rotate', ret.angleIndicator, evt)
+    //   })
+    //   ret.angleIndicator.on("mouseover", (evt: PIXI.interaction.InteractionEvent) =>
+    //     ret.angleIndicator.showToolTip(new PixiCommon().getRotateInfoText(ret.angleIndicator), evt)
+    //   )
+    //   ret.angleIndicator.on("mouseout", () => ret.angleIndicator.hideToolTip())
+    // }
 
     ret.onInputBlur.pipe(takeUntil(this.onDestroy || ret.onDelete)).subscribe(() => {
       let overlayActivated = this.uiSrv.overlayActivated(this.elRef.nativeElement)
@@ -1067,14 +1157,25 @@ export class DrawingBoardComponent implements OnInit , AfterViewInit {
     }, 100)
   }
 
-  public getPolygon(vertices, option = new GraphicOptions() , hollow = false): PixiPolygon {
-    if(!hollow){
-      option.fillColor = new PixiCommon().hexToNumColor(this.selectedStyle.polygon.color)// Number(this.selectedStyle.polygon.color.replace("#" , '0x'))
-      option.opacity = this.selectedStyle.polygon.opacity
-    }else{
-      option.opacity =  0.0001
+  public getBuildingPolygon(vertices : {x : number , y : number}[], tagPosistion : {x : number , y : number}, isDashboard = false){
+    let option = new  GraphicOptions() 
+    option.opacity = isDashboard ? 0.0001 : 0.8
+    option.fillColor = new PixiCommon().mouseOverColor
+    option.lineColor = option.fillColor
+    option.lineThickness = 0
+    let polygon = this.getPolygon(vertices , option , isDashboard )
+    this.addPixiRobotCountTagToPolygon(polygon , tagPosistion , 0 , isDashboard)
+    if(!isDashboard){
+      polygon.pixiRobotCountTag.option.opacity = 0.7
+      polygon.pixiRobotCountTag.option.fillColor = 0xffffff
+      polygon.pixiRobotCountTag.textColor = 0x333333
+      polygon.pixiRobotCountTag.draw()
     }
-    let polygon = new PixiPolygon( vertices.map(v => { return new PIXI.Point(v.x, v.y) }) , option , hollow);
+    return polygon
+  }
+
+  public getPolygon(vertices, option = new GraphicOptions() , isDashboardBuilding = false): PixiPolygon {
+    let polygon = new PixiPolygon( vertices.map(v => { return new PIXI.Point(v.x, v.y) }) , option , isDashboardBuilding);
     this._mainContainer.addChild(polygon);
     polygon.draw(false)
     if(!this.isDashboard){
@@ -1086,49 +1187,72 @@ export class DrawingBoardComponent implements OnInit , AfterViewInit {
 
 
   onMouseMove(evt , triggerType = null) { 
-    if(this.readonly){
+    if(this.readonly || !['edit' , 'draw'].includes(this.mode) || this.drawObj.type == 'spawn'){
       return
     }
-    let newPos = evt.data.getLocalPosition(this._mainContainer)
+    let mousePos = evt.data.getLocalPosition(this._mainContainer)
     let gr : PIXI.Graphics = this.editObj?.graphics
+    // console.log(gr)
     if (this.mode == 'edit' && gr) {
       if (this.editObj?.type == 'move' && gr['readonly']!=true) {
-        gr.position.x = (this.editObj.startPosition.x + newPos.x -  this.editObj.startPoint.x)
-        gr.position.y = (this.editObj.startPosition.y + newPos.y -  this.editObj.startPoint.y)
-        if(this.editObj.graphics instanceof PixiLocPoint){
-          this.refreshArrows(this.editObj.graphics);
-          this.ngZone.run(()=> (<PixiLocPoint>this.selectedGraphics).refreshRosPositionValue())
+        if(gr instanceof PixiChildPoint){
+          let mousePosGlobal = this._mainContainer.toGlobal(evt.data.getLocalPosition(this._mainContainer))
+          let oldPosGlobal = gr.toGlobal(this.editObj.startPosition)
+          let startPosGlobal = this._mainContainer.toGlobal(this.editObj.startPoint)
+          let newPos = gr.toLocal(new PIXI.Point(oldPosGlobal.x + mousePosGlobal.x - startPosGlobal.x , oldPosGlobal.y + mousePosGlobal.y - startPosGlobal.y))
+          gr.position.x = newPos.x
+          gr.position.y = newPos.y 
+        }else{
+          gr.position.x = this.editObj.startPosition.x + mousePos.x -  this.editObj.startPoint.x
+          gr.position.y = this.editObj.startPosition.y + mousePos.y -  this.editObj.startPoint.y
         }
+        if(this.editObj.graphics instanceof PixiLocPoint){
+          (<PixiLocPoint>this.editObj.graphics).onPositionChange()
+        }else if(this.editObj.graphics instanceof PixiPointGroup){
+          (<PixiPointGroup>this.editObj.graphics).refreshRelativePosition()
+        }
+        //  else if (gr instanceof PixiChildPoint) {
+        //   setTimeout(() => (<PixiChildPoint>gr).pointGroup.drawBackground(undefined , <any>gr))
+        // }
       }else if(this.editObj?.type == 'resize'){     
         let pixiMapLayer : PixiMapLayer =  (<PixiMapLayer>gr)
         let getLen = (p1 : PIXI.Point , p2: PIXI.Point)=> Math.hypot(p2.x - p1.x, p2.y - p1.y)
         let pivotPos = this._mainContainer.toLocal(gr.toGlobal(gr.pivot))   
-        let scale = Math.max(0.05,  (getLen(pivotPos ,newPos )/ getLen(pivotPos , this.editObj.startPoint)))
+        let scale = Math.max(0.05,  (getLen(pivotPos ,mousePos )/ getLen(pivotPos , this.editObj.startPoint)))
         pixiMapLayer.height = this.editObj.originalHeight * scale
         pixiMapLayer.width = this.editObj.originalWidth * scale ;
         pixiMapLayer.removeEditorFrame()
         pixiMapLayer.addEditorFrame()
         pixiMapLayer.showToolTip(gr.scale.x.toFixed(2) + ' x',evt)
       }else if(this.editObj?.type == 'rotate'){
-        let pivot =  this._mainContainer.toLocal(gr.toGlobal(new PIXI.Point(gr.pivot.x,gr.pivot.y)))
-        let angle = getAngle(new PIXI.Point(newPos.x , newPos.y),  new PIXI.Point(pivot.x , pivot.y), new PIXI.Point(pivot.x , 0) )
-        angle = newPos.x > pivot.x ? angle : 360 - angle
-        this.editObj.graphics.angle = !isNaN(angle % 360)? angle % 360 : this.editObj.graphics.angle
+        // let localPivot = gr instanceof PixiPointGroup ? gr.rotatePivot : gr.pivot
+        let pivot =  this._mainContainer.toLocal(gr.toGlobal(gr.pivot))
+        let angle = getAngle(new PIXI.Point(mousePos.x, mousePos.y), new PIXI.Point(pivot.x, pivot.y), new PIXI.Point(pivot.x, 0))
+        angle = mousePos.x > pivot.x ? angle : 360 - angle
+        this.ngZone.run(()=>  this.editObj.graphics.angle = !isNaN(angle % 360)? angle % 360 : this.editObj.graphics.angle)
         if( !isNaN(Number(gr.angle))){//gr['getTooltipGraphic'] && !isNaN(Number(gr.angle))
-           let toolTipPosition = gr instanceof PixiMapLayer ? gr.toGlobal(new PIXI.Point(gr.width / (2 * gr.scale.x) , 0)) :  gr.toGlobal((new PIXI.Point(gr.position.x - 10 , gr.position.y -65 )));   
-          (<PixiCommon>gr).showToolTip(new PixiCommon().getRotateInfoText(gr), evt , toolTipPosition)
+           let toolTipPosition =  gr.toGlobal((new PIXI.Point(gr.position.x - 10 , gr.position.y -65 )));   
+           if(gr instanceof PixiMapLayer) {
+            toolTipPosition =  gr.toGlobal(new PIXI.Point(gr.width / (2 * gr.scale.x) , 0));            
+            (<PixiMapLayer>gr).rotateHandle.hideToolTip();
+           }else if(gr instanceof PixiPointGroup){
+            toolTipPosition =  gr.toGlobal(new PIXI.Point((<PixiPointGroup>gr).rotateHandlePos.x , (<PixiPointGroup>gr).rotateHandlePos.y ));        
+            (<PixiPointGroup>gr).rotateHandle.hideToolTip();
+            (<PixiPointGroup>gr).pixiChildPoints.forEach(c=>c.textSprite.angle = gr.angle * -1)
+           }
+           (<PixiCommon>gr).showToolTip(new PixiCommon().getRotateInfoText(gr), evt , toolTipPosition)
         }
       }else if(gr instanceof PixiVertex){
         let polygon: PixiPolygon = (<any> gr.parent) //parent : polygon , gr : vertex
-        let newPixiVertexPosition = new PIXI.Point((this.editObj.startPosition.x + newPos.x -  this.editObj.startPoint.x) , (this.editObj.startPosition.y + newPos.y -  this.editObj.startPoint.y))
+        let newPixiVertexPosition = new PIXI.Point((this.editObj.startPosition.x + mousePos.x -  this.editObj.startPoint.x) , (this.editObj.startPosition.y + mousePos.y -  this.editObj.startPoint.y))
         polygon.refreshVertexPosition((<PixiVertex>gr).index , evt.data.getLocalPosition(polygon) , newPixiVertexPosition )
         // polygon.vertices[(<PixiVertex>gr).index] =  evt.data.getLocalPosition(polygon)
         // gr.position.x = (this.editObj.startPosition.x + newPos.x -  this.editObj.startPoint.x)
         // gr.position.y = (this.editObj.startPosition.y + newPos.y -  this.editObj.startPoint.y)
         // polygon.draw(true)
       }else if(this.editObj?.type == 'bezier'){
-        newPos = evt.data.getLocalPosition(gr.parent)
-        gr.position.set(newPos.x , newPos.y);
+        mousePos = evt.data.getLocalPosition(gr.parent)
+        gr.position.set(mousePos.x , mousePos.y);
         (<PixiArrow>gr.parent).draw(true)
       }
     }else if (this.mode == 'draw') {
@@ -1137,9 +1261,9 @@ export class DrawingBoardComponent implements OnInit , AfterViewInit {
       }
       if (this.drawObj.startVertex) {
         if ((triggerType == 'mousemove' && this.drawObj.type == 'polygon') || this.drawObj.type == 'line') {
-          this.drawObj.draftLine = this.drawLine(this.drawObj.startVertex, new PIXI.Point(newPos.x, newPos.y), new GraphicOptions(undefined, undefined, undefined, undefined, undefined, 0x00CED1, (this.drawObj.type == 'line' ? this.selectedStyle.line.width : undefined)))
+          this.drawObj.draftLine = this.drawLine(this.drawObj.startVertex, new PIXI.Point(mousePos.x, mousePos.y), new GraphicOptions(undefined, undefined, undefined, undefined, undefined, 0x00CED1, (this.drawObj.type == 'line' ? this.selectedStyle.line.width : undefined)))
         } else if (this.arrowTypes.includes(this.drawObj.type)) {
-          let arrow = this.getArrow([this.drawObj.startVertex, new PIXI.Point(newPos.x, newPos.y)], this.drawObj.type)// this.getArrow(this.drawObj.startVertex, new PIXI.Point(newPos.x, newPos.y), undefined ,this.drawObj.type)
+          let arrow = this.getArrow([this.drawObj.startVertex, new PIXI.Point(mousePos.x, mousePos.y)], this.drawObj.type)// this.getArrow(this.drawObj.startVertex, new PIXI.Point(newPos.x, newPos.y), undefined ,this.drawObj.type)
           this._mainContainer.addChild(arrow)
           this.drawObj.draftLine = arrow
         }
@@ -1154,9 +1278,9 @@ export class DrawingBoardComponent implements OnInit , AfterViewInit {
             opt.fillColor = new PixiCommon().hexToNumColor(this.selectedStyle.brush.color)// Number(this.selectedStyle.brush.color.replace("#",'0x'))
             opt.lineColor = opt.fillColor
             opt.lineThickness = this.selectedStyle.brush.size
-            this.drawLine( this.drawObj.startVertex, newPos , opt)
-            this.drawObj.graphics.drawCircle(newPos.x , newPos.y , this.selectedStyle.brush.size / 40 , opt)
-            this.drawObj.startVertex = newPos
+            this.drawLine( this.drawObj.startVertex, mousePos , opt)
+            this.drawObj.graphics.drawCircle(mousePos.x , mousePos.y , this.selectedStyle.brush.size / 40 , opt)
+            this.drawObj.startVertex = mousePos
           }
         }
       }
@@ -1174,7 +1298,7 @@ export class DrawingBoardComponent implements OnInit , AfterViewInit {
         let pos = event.data.getLocalPosition(mapContainer)
         this.refreshPickLoc(pos.x , pos.y)
       }   
-    }else if (this.drawObj.type == 'spawn') {
+    }else if (this.drawObj.type == 'spawn' ) {
       let spawnPos = event.data.getLocalPosition(this.mapContainerStore[this.spawnPointObj.selectedMap])
       this.initLocalizerGraphic();
       (<PIXI.Graphics>this.spawnPointObj.markerGraphic).position.set(spawnPos.x , spawnPos.y)
@@ -1291,7 +1415,7 @@ export class DrawingBoardComponent implements OnInit , AfterViewInit {
       }
       gr.zIndex = 100    
       gr.editable = true
-    }else if(gr instanceof PixiArrow || gr instanceof PixiLocPoint || gr instanceof PixiPolygon){
+    }else if(gr instanceof PixiArrow || gr instanceof PixiLocPoint || gr instanceof PixiPolygon || gr instanceof PixiPointGroup){
       gr.draw(true)
     }
   }
@@ -1301,7 +1425,7 @@ export class DrawingBoardComponent implements OnInit , AfterViewInit {
     if(gr instanceof PixiMapLayer){
       gr.zIndex = 2
       gr.editable = false
-    }else if(gr instanceof PixiArrow || gr instanceof PixiLocPoint || gr instanceof PixiPolygon){
+    }else if(gr instanceof PixiArrow || gr instanceof PixiLocPoint || gr instanceof PixiPolygon|| gr instanceof PixiPointGroup ||  gr instanceof PixiChildPoint){
       gr.draw(false)
     }
   }
@@ -1313,7 +1437,15 @@ export class DrawingBoardComponent implements OnInit , AfterViewInit {
       return
     }
     delete this.selectedGraphics['onInputBlur'] 
-    this.removeGraphics(this.selectedGraphics)
+    if(this.selectedGraphics instanceof PixiChildPoint){
+      this.selectedGraphics.pixiPointGroup.parentPoint.hasPointGroup = false
+      this.selectedGraphics.pixiPointGroup.parentPoint.draw()
+    }else if(this.selectedGraphics instanceof PixiPointGroup){
+      this.selectedGraphics.parentPoint.hasPointGroup = false
+      this.selectedGraphics.parentPoint.draw()
+    }else{
+      this.removeGraphics(this.selectedGraphics)
+    }
     this.selectedGraphics = null
     this.changeDetector.detectChanges()
   }
@@ -1631,6 +1763,20 @@ export class DrawingBoardComponent implements OnInit , AfterViewInit {
     Object.keys(this.mapLayerStore).forEach(k=>delete this.mapLayerStore[k])
   }
 
+  async loadArcsBuildings(){
+    let ticket = this.uiSrv.loadAsyncBegin()
+    let ddl = await this.dataSrv.getDropList('buildings')
+    this.dropdownData.buildings = ddl.data
+    let buildings: DropListBuilding[] = <any>ddl.data
+    buildings.filter(b=>b.polygonCoordinates && b.polygonCoordinates.length > 0).forEach(b => {
+      let polygon = this.getBuildingPolygon(b.polygonCoordinates , {x : b.labelX , y : b.labelY} , true)
+      polygon.arcsBuildingCode = `${b.buildingCode}`
+      polygon.arcsBuildingName = `${b.name}`
+    })
+    // this.dropdownOptions.
+    this.uiSrv.loadAsyncDone(ticket)
+  }
+
   async loadFloorPlanDatasetV2(dataset: JFloorPlan, readonly = false, locationOnly = null, showFloorPlanName = true, setCamera = true) {
     let ret = new Subject()
     let ticket
@@ -1639,6 +1785,14 @@ export class DrawingBoardComponent implements OnInit , AfterViewInit {
       this.reset()
       await this.loadToMainContainer(dataset.base64Image, undefined, undefined, showFloorPlanName ? dataset.name : null , dataset.floorPlanCode)
       this.dijkstra = getDijkstraGraph(dataset.pathList)
+      if (setCamera && dataset.viewX && dataset.viewY && dataset.viewZoom) {
+        this.defaultPos = {
+          x: dataset.viewX,
+          y: dataset.viewY,
+          zoom: dataset.viewZoom
+        }
+        this.setViewportCamera(this.defaultPos.x, this.defaultPos.y, this.defaultPos.zoom)
+      }
       if(this.isDashboard || this.pickSpawnPoint){
         for(let i = 0 ; i < dataset.mapList.length ; i++){
           var mapData  = dataset.mapList[i];
@@ -1656,14 +1810,6 @@ export class DrawingBoardComponent implements OnInit , AfterViewInit {
           container.robotBase = mapData.robotBase
         }
       }
-      if (setCamera && dataset.viewX && dataset.viewY && dataset.viewZoom) {
-        this.defaultPos = {
-          x: dataset.viewX,
-          y: dataset.viewY,
-          zoom: dataset.viewZoom
-        }
-        this.setViewportCamera(this.defaultPos.x, this.defaultPos.y, this.defaultPos.zoom)
-      }
       ret.next(this.loadShapesV2(dataset, readonly, locationOnly))
       if(readonly && locationOnly){
         this.mapTransformedScale = Math.max.apply(null , dataset.mapList.map(m=>m.transformedScale))
@@ -1671,6 +1817,7 @@ export class DrawingBoardComponent implements OnInit , AfterViewInit {
     })
     ret =  await <any>ret.pipe(filter(v => ![null, undefined].includes(v)), take(1)).toPromise()
     this.uiSrv.loadAsyncDone(ticket)
+    this.arcsLocationTree.currentLevel = 'floorplan'
     return ret
   }
 
@@ -1690,6 +1837,28 @@ export class DrawingBoardComponent implements OnInit , AfterViewInit {
       pixiPoint.position.set(data.guiX , data.guiY)
       pixiPoint.dataObj = data
       addPixiGraphic(pixiPoint)
+      if(data.groupProperties && data.groupProperties!= "" ){
+        pixiPoint.hasPointGroup = true
+        let group =  pixiPoint.pixiPointGroup
+        group.settings = JSON.parse(data.groupProperties)
+        let settings = group.settings
+        group.pixiChildPoints = []
+        group.pivot.set(settings.pivot.x, settings.pivot.y)
+        group.position.set(settings.position.x, settings.position.y)
+        group.angle = settings.angle
+        data.groupMemberPointList.forEach(c => {
+          let seq =  Number(c.pointCode.split("-")[c.pointCode.split("-").length - 1])
+          let child = new PixiChildPoint(group, group.settings.scale , seq)
+          let pos = group.toLocal(this.mainContainer.toGlobal(new PIXI.Point(c.guiX , c.guiY)))
+          child.position.set(pos.x , pos.y)
+          child.robotAngle = c.guiAngle - group.settings.angle
+          group.pixiChildPoints.push(child)
+          group.addChild(child)
+          // child.draw()
+        })
+        group.visible = false
+        //JSON.parse(data.pointGroupSettings)
+      }
     })
 
     dataset.pathList.filter(p=>!locationOnly).forEach((data: JPath) => {
@@ -1717,6 +1886,7 @@ export class DrawingBoardComponent implements OnInit , AfterViewInit {
         pixiArrow.setCurveControlPoints(getLocalPos(data.controlPointList[0])  , getLocalPos(data.controlPointList[1]));
       }      
     })
+    this.toggleWaypoint(this.uitoggle.showWaypoint)
     return ret
   }
 
@@ -1729,14 +1899,43 @@ export class DrawingBoardComponent implements OnInit , AfterViewInit {
       return ret
     }
 
+    let hasMap =  this.mainContainer.children.filter(c=> c instanceof PixiMapLayer).length > 0
     let points: JPoint[] = this.allPixiPoints.map((point: PixiLocPoint) => {
       let pt : JPoint = copyOriginalData(point , new JPoint())
       pt.floorPlanCode = floorPlanCode
       pt.guiAngle = point.orientationAngle
-      pt.guiX = this.util.trimNum(point.position.x , 0)
-      pt.guiY =  this.util.trimNum(point.position.y , 0)
+      pt.guiX = point.position.x 
+      pt.guiY = point.position.y 
       pt.pointCode = point.code
       pt.userDefinedPointType = point.pointType
+      pt.groupProperties = hasMap && point.hasPointGroup ? JSON.stringify(point.pixiPointGroup.settings) : ""
+      if(hasMap && point.hasPointGroup){
+        let group = point.pixiPointGroup
+        group.refreshGraphics()
+        group.refreshRelativePosition()
+        group.settings.position = {x : group.position.x , y: group.position.y}
+        group.settings.pivot = {x : group.pivot.x , y: group.pivot.y}
+        group.settings.angle = group.angle
+        group.settings.width = group.width
+        group.settings.height = group.height
+        pt.groupProperties = JSON.stringify(group.settings) 
+        pt.groupPointCode = pt.pointCode
+      }
+      pt.groupMemberPointList = hasMap && point.hasPointGroup ? point.pixiPointGroup.pixiChildPoints.map(c=> {
+        let ret = new JPoint()
+        let pos = c.toGlobal(c.icon.pivot)
+        let guiPos = this.mainContainer.toLocal(c.parent.toGlobal(c.position)) 
+        ret.floorPlanCode = floorPlanCode
+        ret.guiAngle = c.robotAngle + c.parent.angle
+        ret.guiX = guiPos.x
+        ret.guiY = guiPos.y
+        ret.pointCode = `${pt.pointCode}-${(c.seq).toString().padStart(2 , '0')}`
+        ret.userDefinedPointType = pt.userDefinedPointType
+        ret.groupPointCode = pt.groupPointCode
+        ret.positionX = pos.x
+        ret.positionY = pos.y
+        return ret
+      }) : []
       return pt
     })
 
@@ -1769,11 +1968,12 @@ export class DrawingBoardComponent implements OnInit , AfterViewInit {
       m.base64Image = map.base64Image
       m.transformedAngle = this.util.trimNum(map.angle)
       m.transformedScale = this.util.trimNum(map.scale.x)
-      m.transformedPositionX = this.util.trimNum(map.position.x - map.initialOffset?.x )
-      m.transformedPositionY = this.util.trimNum(map.position.y - map.initialOffset?.y )
-      m.imageHeight =this.util.trimNum(map.initialHeight , 0)
+      m.transformedPositionX = this.util.trimNum(map.position.x - map.initialOffset?.x)
+      m.transformedPositionY = this.util.trimNum(map.position.y - map.initialOffset?.y)
+      m.imageHeight = this.util.trimNum(map.initialHeight, 0)
       m.imageWidth =this.util.trimNum(map.initialWidth , 0)
-      m.pointList = points.map(pt=>{
+
+      m.pointList = points.map(pt=> {
         let p = new JPoint()
         let pos : PIXI.Point = map.toLocal(this.mainContainer.toGlobal(new PIXI.Point(pt.guiX, pt.guiY)))
         p.mapCode = m.mapCode
@@ -1781,13 +1981,28 @@ export class DrawingBoardComponent implements OnInit , AfterViewInit {
         p.floorPlanCode = floorPlanCode
         p.pointCode = pt.pointCode
         p.guiAngle = this.util.trimNum(trimAngle(pt.guiAngle - map.angle))
-        p.guiX = this.util.trimNum(pos.x , 0)
-        p.guiY = this.util.trimNum(pos.y , 0)
+        p.guiX = pos.x , 0
+        p.guiY = pos.y , 0
         p.positionX = this.calculateRosPosition(pos, map).x
         p.positionY = this.calculateRosPosition(pos, map).y
         p.angle = (90 - p.guiAngle) / radRatio
         return p
-      }).filter(p=> p.guiY > 0 && p.guiY  <= map.height / map.scale.y &&  p.guiX  > 0 && p.guiX <= map.width / map.scale.x)
+      }).filter(p=> p.guiY > 0 && p.guiY  <= map.height / map.scale.y &&  p.guiX  > 0 && p.guiX <= map.width / map.scale.x).concat(
+        Array.prototype.concat.apply([] , points.filter(pt=>pt.groupMemberPointList.length > 0).map(pt => pt.groupMemberPointList.map(c=> {
+          let mapChildPt = new JPoint()
+          let pos = this.calculateRosPosition(map.toLocal(new PIXI.Point(c.positionX , c.positionY)), map)
+          mapChildPt.mapCode = m.mapCode
+          mapChildPt.robotBase = m.robotBase
+          mapChildPt.floorPlanCode = floorPlanCode
+          mapChildPt.pointCode = c.pointCode 
+          mapChildPt.guiX = c.guiX
+          mapChildPt.guiY = c.guiY
+          mapChildPt.positionX = pos.x
+          mapChildPt.positionY = pos.y
+          mapChildPt.angle = (90 - c.guiAngle) / radRatio
+          return mapChildPt
+        })))
+      )
       m.pathList = JSON.parse(JSON.stringify(getPaths(map)))
       m.pathList.forEach(p=>{
         p.mapCode = m.mapCode
@@ -1870,7 +2085,7 @@ export class DrawingBoardComponent implements OnInit , AfterViewInit {
       this.spawnPointObj.rosY = 0
       this.spawnPointObj.rotation =  0
     } else {
-      await this.getFloorplanOptions()
+      await this.getDropList()
       let poseResp: { x: number, y: number, mapName: string, angle: number } = await this.httpSrv.rvRequest('GET', 'localization/v1/pose', undefined, false)
       this.spawnPointObj.rotation = trimAngle(poseResp.angle * radRatio)
       this.spawnPointObj.rosX = poseResp.x
@@ -1964,7 +2179,7 @@ export class DrawingBoardComponent implements OnInit , AfterViewInit {
   }
   // *** v dropdown select location v ***
   
-  async getFloorplanOptions(loadFp = false) {    
+  async getDropList(loadFp = false) {    
    // let tblList = ['floorplans','maps','locations'].concat(this.util.arcsApp? ['buildings']:[]).filter(k=>!this.dropdownData[k] || this.dropdownData[k].length == 0)
    let tblList = ['floorplans','maps'].filter(k=>!this.dropdownData[k] || this.dropdownData[k].length == 0) 
    let dropLists = await this.dataSrv.getDropLists(<any>tblList); //TBD filter floorplan => only with maps
@@ -1997,6 +2212,7 @@ export class DrawingBoardComponent implements OnInit , AfterViewInit {
         let count = robotInfo.filter(r=>r.floorPlanCode == o.value).length
         o.suffix =  count == 0 ? undefined : count.toString()
       })
+
       this.uiSrv.loadAsyncDone(ticket)
     }
   }
@@ -2041,7 +2257,8 @@ export class DrawingBoardComponent implements OnInit , AfterViewInit {
     this.adjustSpawnMarkerPosition( evt.x * scale * this.mapContainerStore[this.spawnPointObj.selectedMap].width  , 
                                     evt.y  * scale * this.mapContainerStore[this.spawnPointObj.selectedMap].height 
                                   )
-
+    this.refreshSpawnMarkerPosByRosValue(); 
+    this.refreshLidarLayerPos();
   }
 
   adjustSpawnMarkerPosition(dX , dY){
@@ -2069,10 +2286,10 @@ export class DrawingBoardComponent implements OnInit , AfterViewInit {
     this.refreshSpawnMarkerPos(false)
   }
 
-  refreshPixiLocColor(pointCode = null){
-    this.allPixiPoints.forEach((g: PixiLocPoint) => g.draw(this.selectedLocation && g.code == this.selectedLocation))
-    this.allPixiPoints.filter((g: PixiLocPoint) => g.code == pointCode || pointCode == null).forEach(g => {
-      g.draw(this.selectedLocation && g.code == this.selectedLocation, pointCode != null) //selected = false , mouseover = shapeID != null
+  refreshPixiLocColor(mouseOverPointCode = null){
+    // this.allPixiPoints.forEach((g: PixiLocPoint) => g.draw(this.selectedLocation && g.code == this.selectedLocation))
+    this.allPixiPoints.filter((g: PixiLocPoint) => g.code == mouseOverPointCode || g._lastDrawIsSelected || g._lastDrawIsMouseOver).forEach(g => {
+      g.draw(this.selectedLocation && g.code == this.selectedLocation, mouseOverPointCode == g.code) //selected = false , mouseover = shapeID != null
     })
   }
 
@@ -2083,16 +2300,21 @@ export class DrawingBoardComponent implements OnInit , AfterViewInit {
 
   //v 20220504 v 
   toggleRosMap(show , toggleFloorplan = false){
-    this.showRosMap = show;
+    this.uitoggle.showRosMap = show;
     [this.mapLayerStore, this.mapContainerStore].forEach(obj => {
       Object.keys(obj).filter(k => obj[k] && obj[k]['ROS']).forEach(k => {
-        (<PixiMap>obj[k]).ROS.alpha = this.showRosMap ?  0.5 : 0;
+        (<PixiMap>obj[k]).ROS.alpha = this.uitoggle.showRosMap ?  0.5 : 0;
         (<PixiCommon>obj[k]).visible = true
       })
     })    
     if(toggleFloorplan){
-      this.backgroundSprite.visible = !this.showRosMap 
+      this.backgroundSprite.visible = !this.uitoggle.showRosMap 
     }
+  }
+
+  toggleWaypoint(show){
+    this.uitoggle.showWaypoint = show;
+    this.allPixiPoints.forEach(p=>p.visible = show)
   }
 
   refreshPickLoc(x , y){
@@ -2570,9 +2792,15 @@ export class DrawingBoardComponent implements OnInit , AfterViewInit {
   }
 
   addPixiRobotCountTagToPolygon(polygon : PixiPolygon , position : {x : number , y : number} , robotCount = 0 ,  readonly = false){
-    return new PixiRobotCountTag(polygon , position , this , new GraphicOptions() , readonly)
+    let option = new GraphicOptions()
+    option.fillColor = new PixiCommon().mouseOverColor
+    return new PixiRobotCountTag(polygon , position , this , option , readonly)
   }
 
+  setBuildingRobotCount(buildingCode : string , robotCount : number){
+    let polygon = this.allPixiPolygon.filter((p : PixiPolygon)=> p.arcsBuildingCode == buildingCode)[0]
+    polygon.pixiRobotCountTag.robotCount = robotCount
+  }
 
   //^ * * * * * TASK WAYPOINT RENDERING * * * * * ^
 }
@@ -2802,6 +3030,10 @@ export class Robot {
       origins = [this.parent.getMapOriginMarker().position.x , this.parent.getMapOriginMarker().position.y ] 
     }else if(mapCode){
       let container : PixiMapContainer =  this.parent.getMapContainer(mapCode , robotBase)
+      if(!container){
+        console.log(`ERROR : Map not found : [${mapCode}] (ROBOT BASE [${robotBase}])`)
+        return 
+      }
       origins = this.parent.getGuiOrigin(container)
     }else{
       origins = this.parent.calculateMapOrigin(0,0, VIRTUAL_MAP_ROS_HEIGHT , this.parent.util.config.METER_TO_PIXEL_RATIO)
@@ -2884,6 +3116,7 @@ export class PixiTaskPath extends PixiLine{
 
 export class PixiCommon extends PIXI.Graphics{
   dataObj
+  imgEditHandleSize = 5
   floorplanShapeTypePrefix = 'fp_'
   autoScaleOnZoomed = true  //* * * TO BE CONFIGURED * * */
   locationPrefixDelimiter = '%'
@@ -3171,7 +3404,7 @@ export class PixiCommon extends PIXI.Graphics{
     return this.getViewport()?.['DrawingBoardComponent']
   }
 
-  public getViewport(g = this) {
+  public getViewport(g = this) : Viewport {
     return g instanceof Viewport? g : (g.parent ? this.getViewport(<any>g.parent) : null)
   }
 
@@ -3266,10 +3499,371 @@ export class PixiToolTip extends PIXI.Graphics{
   }
 }
 
+export class PixiAngleAdjustHandle extends PixiCommon{
+  parentGraphics : PixiCommon
+  constructor(_parentGraphics , points = null){
+    super()
+    this.parentGraphics = _parentGraphics
+    points = points ? points : [new PIXI.Point(-10 ,- 65), new PIXI.Point(10 , -65) , new PIXI.Point(0 , - 90)]
+    this.lineStyle(0).beginFill(this.highlightColor ,0.8).drawPolygon(points).endFill()
+    this.visible = false
+    this.interactive = true
+    this.cursor = 'crosshair'
+    this.zIndex = 10
+    this.parentGraphics.addChild(this)
+    this.on("mousedown", (evt: PIXI.interaction.InteractionEvent) => {
+      if(!this.parentGraphics.getMasterComponent()?.readonly){
+        evt.stopPropagation()
+        this.parentGraphics?.getMasterComponent().changeMode('edit', 'rotate', this, evt)
+      }
+    })
+    this.on("mouseover", (evt: PIXI.interaction.InteractionEvent) =>{
+      this.showToolTip(new PixiCommon().getRotateInfoText(this), evt)
+    })
+    this.on("mouseout", () => this.hideToolTip())
+  }  
+}
+
+export class PixiPointGroup extends PixiCommon{
+  readonly type = 'pointGroup'
+  parentPoint : PixiLocPoint
+  pixiChildPoints : PixiChildPoint[] 
+  settings : { 
+    custom : boolean,
+    space : number,
+    pivot : {x : number , y : number},
+    position  : {x : number , y : number},
+    relativePosition : {x : number , y : number},
+    angle : number,
+    bgWidth : number,
+    bgHeight : number,
+    width : number,
+    height : number,
+    scale: number,
+    robotCount: number,
+    row: number,
+    column : number,
+    neverCustomized : boolean,
+    // rowOptions : {value :  number , text : string }[]
+    // columnOptions : {value :  number , text : string }[]
+  } = {
+    custom : false,
+    space : 1,
+    pivot : null,
+    position : null,
+    relativePosition: null,
+    angle : 0,
+    width : 0,
+    height : 0,
+    bgWidth : 0,
+    bgHeight : 0,
+    scale: 1,
+    robotCount: 3,
+    row: 1,
+    column : 3,
+    neverCustomized : true
+    // rowOptions : [],
+    // columnOptions : []
+  }  
+  masterComponent : DrawingBoardComponent
+  rotateHandle : PixiRotateHandle
+  bgRectangle = new PixiCommon()
+  selected = false 
+  currentFormation = {
+    row: 0,
+    column : 0,
+    space : 0,
+    robotCount : 0
+  }
+  maxRow
+  maxCol
+  iconSprite: PIXI.Sprite
+  iconSpriteDimension
+  svgUrl = 'assets/icons/arrow-up.svg'
+  rotateHandlePos = new PIXI.Point(0,0)
+
+  constructor(_parentPoint){
+    super()
+    this.iconSprite = new PIXI.Sprite(PIXI.Texture.from(this.svgUrl))   
+    this.interactive = true
+    this.sortableChildren = true
+    this.masterComponent = _parentPoint.getMasterComponent()
+    this.parentPoint = _parentPoint
+    this.masterComponent.mainContainer.addChild(this)
+    // this.refreshColumnRowOptions()
+    if(this.parentPoint._lastDrawIsSelected){
+      this.refreshGraphics()
+    }
+    this.addChild(this.bgRectangle)
+    this.masterComponent.clickEvts.forEach(t => this.on(t,(evt:PIXI.interaction.InteractionEvent)=>{
+      if(!this.settings.custom){
+        this.masterComponent.changeMode('edit', 'move', this, evt)
+        evt.stopPropagation()
+        this.draw(true)
+      }
+    }))
+  }
+
+  // this.angleHandle = new PixiAngleAdjustHandle(this, [new PIXI.Point(0, 0), new PIXI.Point(this.settings.scale * ROBOT_ACTUAL_LENGTH_METER /2, 0) ,  new PIXI.Point(this.settings.scale * ROBOT_ACTUAL_LENGTH_METER / 4, this.settings.scale * ROBOT_ACTUAL_LENGTH_METER / 2 )])
+  // this.angleHandle.pivot.set(this.angleHandle.width / 2 , - (this.settings.scale * ROBOT_ACTUAL_LENGTH_METER + this.bgRectangle.height / 2))
+  async draw(selected = false) {
+    this.selected = selected
+    if(selected){
+      this.masterComponent.selectedGraphics = this
+    }
+    if(!this.settings.custom && this.masterComponent.editObj.graphics != this){
+      this.refreshRotateHandle()
+    }
+    let top = Math.min.apply(null , this.pixiChildPoints.map(p=>p.position.y))
+    let left = Math.min.apply(null , this.pixiChildPoints.map(p=>p.position.x))
+    let right = Math.max.apply(null ,this.pixiChildPoints.map(p=>p.position.x)) + this.settings.scale * ROBOT_ACTUAL_LENGTH_METER
+    let btm = Math.max.apply(null , this.pixiChildPoints.map(p=>p.position.y)) + this.settings.scale * ROBOT_ACTUAL_LENGTH_METER
+    this.drawBackground(new PIXI.Point(right, btm), new PIXI.Point(left, top))
+    this.pixiChildPoints?.forEach(c => {
+      c.robotIconScale = this.settings.scale
+      c.editable = this.settings.custom
+      c.draw()
+    })
+  }
+
+  refreshGraphics() { //TBD : enhance performance by getting single sprite for all PixiChildPoint instead of multiple
+    let rosMapScale = (<any>Object.values(this.masterComponent.mapLayerStore)[0])?.scale?.x
+    let scale = rosMapScale * this.masterComponent.util.config.METER_TO_PIXEL_RATIO
+    let scaleChanged =  this.settings.scale!= scale
+    this.settings.scale = scale
+    if ( (!this.settings.custom && (scaleChanged || !this.pixiChildPoints))) {
+      this.createNewUniformChildPoints()
+    } else if (scaleChanged || this.pixiChildPoints) {
+      this.loadChildWayPoints()
+    }
+    this.draw(this.selected)
+    this.refreshParentPointGraphic()    
+    // this.pixiChildPoints.forEach(c=>c.scale.set(1/this.parentPoint.scale.x , 1/this.parentPoint.scale.y))
+  }
+
+  loadChildWayPoints(){
+    if (!this.settings.relativePosition) {
+      this.refreshRelativePosition()
+    }
+    this.pixiChildPoints.forEach(c=>c.draw())
+  }
+
+  createNewUniformChildPoints(){
+    this.clear()
+    let scale = this.settings.scale
+    this.resetChildPoints()
+    this.pixiChildPoints = []
+    let spacePx = Math.round(scale * this.settings.space)
+    let lengthPx = Math.round(scale * ROBOT_ACTUAL_LENGTH_METER)
+    let k = 0
+    let columnCntOfRemainderRow = this.settings.robotCount % this.settings.column == 0 ? this.settings.column : (this.settings.robotCount % this.settings.column)
+    for (let i = 0; i < this.settings.row; i++) {
+      let lastRowPaddingX = i == this.settings.row - 1 ? ((this.settings.column - columnCntOfRemainderRow) * (lengthPx + spacePx))/2 : 0
+      let withOneRobotOnly = this.settings.robotCount - this.pixiChildPoints.length <= this.settings.row - i
+      for (let j = 0; j < (withOneRobotOnly ? 1 : (i == this.settings.row - 1 ? columnCntOfRemainderRow : this.settings.column)); j++) {
+        lastRowPaddingX = withOneRobotOnly ? (lengthPx + lengthPx) * (this.settings.column - 1) / 2 : lastRowPaddingX
+        k = k + 1
+        let childPoint = new PixiChildPoint(this, scale , k)
+        childPoint.position.set(lastRowPaddingX + j * (spacePx + lengthPx), i * (spacePx + lengthPx))
+        this.pixiChildPoints.push(childPoint)
+      }
+    }
+    this.settings.bgWidth = spacePx * Math.max(0, this.settings.column - 1) + (scale * ROBOT_ACTUAL_LENGTH_METER) * this.settings.column
+    this.settings.bgHeight = spacePx * Math.max(0, this.settings.row - 1) + (scale * ROBOT_ACTUAL_LENGTH_METER) * this.settings.row
+    this.pivot.set(this.settings.bgWidth / 2, this.settings.bgHeight / 2)
+    if(!this.settings.relativePosition){
+      this.settings.relativePosition = {x : 0 , y :  - (this.settings.bgHeight + (scale * ROBOT_ACTUAL_LENGTH_METER)) / 2}
+    }
+    this.position.set(this.parentPoint.x + this.settings.relativePosition.x, this.parentPoint.y +  this.settings.relativePosition.y)
+  }
+  
+  resetChildPoints(){
+    this.pixiChildPoints?.forEach(c => c.parent.removeChild(c))
+    this.pixiChildPoints = null
+  }
+
+  adjustRowCount(){
+    this.settings.column = this.settings.column > this.settings.robotCount ? this.settings.robotCount : this.settings.column 
+    this.masterComponent.ngZone.run(() => this.settings.row = Math.ceil(this.settings.robotCount / this.settings.column))
+    this.resetChildPoints()
+    this.refreshGraphics()    
+  }
+
+  adjustColumnCount() {
+    this.settings.row = this.settings.row > this.settings.robotCount ? this.settings.robotCount : this.settings.row 
+    this.masterComponent.ngZone.run(() => this.settings.column = Math.ceil(this.settings.robotCount / this.settings.row))
+    this.resetChildPoints()
+    this.refreshGraphics()
+  }
+
+  refreshPosition() {
+    this.position.set(this.parentPoint.position.x + this.settings.relativePosition.x, this.parentPoint.position.y + this.settings.relativePosition.y)
+  }
+
+  refreshRelativePosition() {
+    this.settings.relativePosition = new PIXI.Point(this.position.x - this.parentPoint.position.x, this.position.y - this.parentPoint.position.y)
+  }
+
+  refreshRotateHandle(position : PIXI.Point = this.rotateHandlePos){
+    this.rotateHandle?.parent?.removeChild(this.rotateHandle)
+    if(!this.settings.neverCustomized){
+      return
+    }   
+    let len = this.settings.scale * ROBOT_ACTUAL_LENGTH_METER
+    //TBR
+    this.rotateHandle = new PixiRotateHandle(this, this.settings.bgWidth , [new PIXI.Point(0 - len / 4, - len / 5), new PIXI.Point(0, - len / 1.5), new PIXI.Point(len / 4, - len / 5)] , position)       
+    this.addChild(this.rotateHandle);
+    this.rotateHandle.draw()
+    this.rotateHandle.visible = true
+  }
+
+  drawBackground(bottomRightCorner: PIXI.Point  = new PIXI.Point(0 , 0) , topLeftCorner : PIXI.Point  = new PIXI.Point(0 , 0)) {    
+    let selected = this.selected  && !this.settings.custom // this.masterComponent.editObj.graphics == this
+    this.bgRectangle.interactive = !this.settings.custom
+    this.bgRectangle.cursor = selected ? "move" : (!this.settings.custom ? 'pointer' : 'default')
+    this.bgRectangle.zIndex = -1
+    let color = selected? this.highlightColor : 0xdddddd
+    this.bgRectangle.clear()
+    if(!this.settings.custom){
+      this.rotateHandlePos.x = topLeftCorner.x + (bottomRightCorner.x  - topLeftCorner.x)/2
+      this.rotateHandlePos.y =  topLeftCorner.y
+      // let orgPivot = new PIXI.Point(this.pivot.x , this.pivot.y)       
+      // let refPos = this.toGlobal(new PIXI.Point(this.pixiChildPoints[0].position.x , this.pixiChildPoints[0].position.y))
+      this.settings.bgWidth = bottomRightCorner.x - topLeftCorner.x
+      this.settings.bgHeight = bottomRightCorner.y - topLeftCorner.y
+      // this.pivot.set(topLeftCorner.x + (bottomRightCorner.x - topLeftCorner.x) / 2, topLeftCorner.y + (bottomRightCorner.y - topLeftCorner.y) / 2)
+      // // let diff = new PIXI.Point(this.pixiChildPoints[0].position.x - this.toLocal(refPos).x, this.pixiChildPoints[0].position.y - this.toLocal(refPos).y)
+      // this.position.set(this.position.x -  +  (this.pivot.x - orgPivot.x) , this.position.y  +  (this.pivot.y - orgPivot.y))
+      this.refreshRelativePosition()
+      this.bgRectangle.lineStyle(0.1 * this.settings.scale , color , selected ? 0.4 : 0.7 , 1).moveTo(topLeftCorner.x, topLeftCorner.y).lineTo(bottomRightCorner.x,  topLeftCorner.y).lineTo(bottomRightCorner.x, bottomRightCorner.y).lineTo(topLeftCorner.x, bottomRightCorner.y).lineTo(topLeftCorner.x, topLeftCorner.y)
+      this.bgRectangle.beginFill(color, selected ? 0.2 : 0.7).drawRect(topLeftCorner.x , topLeftCorner.y,  this.settings.bgWidth ,  this.settings.bgHeight).endFill()
+
+    }
+    if(selected){
+      this.refreshRotateHandle()
+    }else{
+      this.rotateHandle?.parent?.removeChild(this.rotateHandle)
+    }
+  }
+
+  refreshParentPointGraphic(){
+    setTimeout(()=>{
+      let parentSelected  = this.masterComponent.selectedGraphics == this.parentPoint
+      this.parentPoint.input.disabled = !parentSelected
+      if(this.parentPoint.angleIndicator){
+        this.parentPoint.angleIndicator.visible = parentSelected
+      }
+      if(this.parentPoint.angleIndicatorCircleBg){
+        this.parentPoint.angleIndicatorCircleBg.visible = parentSelected
+      }
+    })
+  }
+}
+
+export class PixiChildPoint extends PixiCommon {
+  readonly type = 'childPoint'
+  pixiPointGroup : PixiPointGroup
+  robotIconScale
+  actualLengthPx
+  icon : PIXI.Graphics
+  _editable = false
+  selected = false
+  _angle = this.angle
+  seq = 0
+  textSprite : PIXI.Sprite
+  set robotAngle (v){
+    this._angle = v
+    this.icon.angle = v
+  }
+
+  get robotAngle(){
+    return this._angle
+  }
+
+  set editable(v){
+    this._editable = v
+    this.interactive = v
+    this.cursor = v ? 'pointer' : 'default'
+    this.zIndex = v ? 20 : 1
+  }
+  get editable(){
+    return this._editable
+  }
+  constructor( _pointGroup : PixiPointGroup , _robotIconScale : Number , seq : number){
+    super()
+    this.seq = seq
+    this.pixiPointGroup = _pointGroup
+    this.robotIconScale = _robotIconScale
+    this.zIndex = 10
+    this.draw()
+    this.pixiPointGroup.addChild(this)
+    this.pixiPointGroup.masterComponent.clickEvts.forEach(t => this.on(t,(evt:PIXI.interaction.InteractionEvent)=>{
+      setTimeout(()=>{
+        this.draw(true)
+        evt.stopPropagation()
+        this.cursor = 'move'
+        this.pixiPointGroup.masterComponent.selectedGraphics = this
+        this.pixiPointGroup.masterComponent.changeMode('edit', 'move', this, evt)
+        this.pixiPointGroup.children.filter(c=>c!=this && c instanceof PixiChildPoint).forEach(c=> {
+          (<PixiChildPoint>c).draw()
+        })
+      })
+    }))
+  }
+
+  async draw(selected = false){
+    if(!this.icon || (this.robotIconScale  * ROBOT_ACTUAL_LENGTH_METER != this.actualLengthPx || this.selected != selected)){
+      this.selected = selected
+      let color = selected ? this.highlightColor : this.mouseOverColor
+      this.actualLengthPx = this.robotIconScale * ROBOT_ACTUAL_LENGTH_METER
+      this.icon?.parent?.removeChild(this.icon)
+      this.icon = new PIXI.Graphics()
+      let iconSprite = new PIXI.Sprite(this.pixiPointGroup.iconSprite.texture)
+      if(!this.pixiPointGroup.iconSpriteDimension){
+        this.pixiPointGroup.iconSpriteDimension = await this.getImageDimensionFromUrl(this.pixiPointGroup.svgUrl) 
+      }
+      iconSprite.scale.set(this.actualLengthPx /  this.pixiPointGroup.iconSpriteDimension[0], this.actualLengthPx /  this.pixiPointGroup.iconSpriteDimension[1])
+      this.icon.addChild(iconSprite)
+      this.icon.filters = [<any> new ColorReplaceFilter(0x000000, color, 1)]
+      this.icon.pivot.set(this.actualLengthPx/ 2,this.actualLengthPx / 2)
+      this.icon.position.set(this.actualLengthPx / 2, this.actualLengthPx / 2)
+      this.icon.angle = this.robotAngle      
+      this.icon.beginFill(color , 0.2).lineStyle(0.1 * this.robotIconScale ,color, 1 , 0).drawRoundedRect(0 , 0 ,  this.actualLengthPx , this.actualLengthPx , 0.1 * this.robotIconScale ).endFill()
+      let text = new PIXI.Text(this.seq.toString() , { fontFamily: 'Arial', fontSize : 50 , fill : '#FFFFFF'})     
+      this.textSprite =  new PIXI.Sprite(text.texture)
+      this.textSprite.zIndex = 20
+      this.textSprite.pivot.set(text.width/2 , text.height/2) 
+      this.textSprite.position.set(this.icon.pivot.x , this.icon.pivot.y)
+      this.textSprite.scale.set( iconSprite.height/(3 * this.textSprite.height) , iconSprite.height/ (3 * this.textSprite.height))
+      this.textSprite.angle = this.pixiPointGroup.angle * - 1
+      this.sortableChildren = true
+      this.addChild(this.textSprite)
+      this.addChild(this.icon)
+    }
+    if(!selected){
+      this.cursor = this.editable ? 'pointer' : 'default'
+    }
+    this.pixiPointGroup.refreshParentPointGraphic()
+  }
+}
+
 export class PixiLocPoint extends PixiCommon {
   id
   uiSrv
   waypointName // full code
+  set hasPointGroup(v){
+    if(!this.pixiPointGroup && v){
+      this.pixiPointGroup = new PixiPointGroup(this)
+      this.centerAndZoom()
+    }else if (this.pixiPointGroup && !v){
+      this.pixiPointGroup.parent.removeChild(this.pixiPointGroup)
+      this.pixiPointGroup = null
+    }    
+  }
+  get hasPointGroup(){
+    return this.pixiPointGroup != null && this.pixiPointGroup !=undefined
+  }
+  pixiPointGroup? : PixiPointGroup
   onDelete = new Subject()
   get code(){
     return this.text
@@ -3304,6 +3898,7 @@ export class PixiLocPoint extends PixiCommon {
   badgeCnt = 0
   input : PixiTextInput
   _lastDrawIsSelected = false
+  _lastDrawIsMouseOver = false
   txtInputCfg = {
     input: { zIndex: "10001" , fontSize: '20pt', padding: '10px', width: '120px', color: '#000000', textAlign: 'center', fontWeight:'400' },
     box: {
@@ -3313,7 +3908,7 @@ export class PixiLocPoint extends PixiCommon {
     }
   }
 
-  angleIndicator : PixiCommon
+  angleIndicator : PixiAngleAdjustHandle
 
   taskItemSeqLabel :  PIXI.Graphics 
   taskSeq = ''
@@ -3328,6 +3923,7 @@ export class PixiLocPoint extends PixiCommon {
   iconContainer = new PIXI.Graphics();
   iconUrl 
   inputBg = new PIXI.Graphics()
+  readOnlyPixiText = new PIXI.Text("")
   rosX 
   rosY
 
@@ -3340,6 +3936,7 @@ export class PixiLocPoint extends PixiCommon {
   get isLocation(){
     return this.type == 'location' 
   }
+
 
   constructor(type , text = null , opt : GraphicOptions = new GraphicOptions , showAngleIndicator = false , uiSrv = null , iconUrl = null , pointType = null){
     super()    
@@ -3358,11 +3955,11 @@ export class PixiLocPoint extends PixiCommon {
     this.initAngleIndicator()
 
     // this.addTooltipObj(this.angleIndicator)    
-    let onViewportZoomed = new BehaviorSubject<any>(null)
     this.on('added', () => {
       setTimeout(() => this.onViewPortZoomed());
-      (<Viewport>this.getViewport())?.on('zoomed', () => onViewportZoomed.next(true))
-      onViewportZoomed.pipe(filter(v => v != null)).subscribe(() => this.onViewPortZoomed())
+      this.getMasterComponent().onViewportZoomed.pipe(filter(v => v != null)).subscribe(() => this.onViewPortZoomed())
+      // (<Viewport>this.getViewport())?.on('zoomed', () => onViewportZoomed.next(true))
+      // onViewportZoomed.pipe(filter(v => v != null)).subscribe(() => this.onViewPortZoomed())
     })
     this.addChild(this.getWayPointButton())
     this.on("mouseover" , (evt :  PIXI.interaction.InteractionEvent)=>{
@@ -3405,6 +4002,12 @@ export class PixiLocPoint extends PixiCommon {
     }
   }
 
+  onPositionChange(){
+    this.getMasterComponent()?.refreshArrows(this);
+    this.pixiPointGroup?.refreshPosition();
+    this.getMasterComponent()?.ngZone.run(()=> (<PixiLocPoint>this.getMasterComponent()?.selectedGraphics).refreshRosPositionValue())
+  }
+
   onViewPortZoomed = ()=>{
     let zoomThreshold = 0.5 
     let zeroThreshold = 0.025
@@ -3418,6 +4021,7 @@ export class PixiLocPoint extends PixiCommon {
     //   this.inputBg.visible = true
     // }
     this.setScale(this._lastDrawIsSelected || !exceedsThreshold ? 1 : Math.min(1 , Math.sqrt(scale)))
+    // this.pointGroup?.refreshUi()
   }
 
   setScale(weight = 1) {
@@ -3434,7 +4038,9 @@ export class PixiLocPoint extends PixiCommon {
 
   async draw(selected = false , isMouseOver = false) {    
     this._lastDrawIsSelected = selected
-    this.refreshTextInput(selected , isMouseOver)
+    this._lastDrawIsMouseOver = isMouseOver
+    let useInput = !this.readonly && this.getMasterComponent()?.waypointEditable && selected
+    this.refreshTextInput(selected , isMouseOver , useInput)
 
     let opt = this.option.clone()
     opt.lineColor = selected ? this.highlightColor : ( isMouseOver ? this.mouseOverColor : opt.lineColor)
@@ -3489,15 +4095,20 @@ export class PixiLocPoint extends PixiCommon {
     }
     this.zIndex = selected? 20 : 1
     if(!isMouseOver && !selected){
-      this.input.visible = true
-      this.inputBg.visible = true
+      // this.input.visible = selected && !this.readonly && this.getMasterComponent()?.waypointEditable
+      // this.inputBg.visible =  true
+      // this.readOnlyPixiText.visible = !this.input.visible
       this.onViewPortZoomed()
     }
     this.refreshRosPositionValue()
+    if(this.pixiPointGroup){
+      this.pixiPointGroup.refreshGraphics()
+      this.pixiPointGroup.visible = selected
+    }
     return this
   }
 
-  refreshTextInput(selected : boolean , isMouseOver : boolean){
+  refreshTextInput(selected : boolean , isMouseOver : boolean , useInput = false){
     let setTxtColor = (focused = false)=>{
       let color =  this.txtInputCfg.input.color   
       if(isMouseOver){
@@ -3507,7 +4118,11 @@ export class PixiLocPoint extends PixiCommon {
       }else if( selected && !focused){
         color = this.numToHexColor( this.highlightColor)
       }
-      this.input.setInputStyle( "color" , color)
+      if(!useInput){
+        this.readOnlyPixiText.style.fill = color
+      }else{
+        this.input.setInputStyle( "color" , color)
+      }
     }
     this.txtInputCfg.input.color = new PixiCommon().numToHexColor(this.option.fillColor)
     let cfg = JSON.parse(JSON.stringify(this.txtInputCfg))
@@ -3541,10 +4156,25 @@ export class PixiLocPoint extends PixiCommon {
     }
     this.inputBg.zIndex = -10
     this.inputBg.clear()
-    this.inputBg.lineStyle(0).beginFill(0xffffff, 0.7).drawRect(this.input.position.x, this.input.position.y, this.input.width, this.input.height).endFill()
     this.input.disabled = this.uiSrv?.isTablet || !selected || (this.isLocation && this.text?.length) || this.readonly
-    setTxtColor()  
     this.input.text = this.text
+    if(!useInput){
+      this.input.visible = false
+      this.readOnlyPixiText.visible = true
+      if(!this.children.includes(this.readOnlyPixiText)){
+        this.readOnlyPixiText.anchor.set(0.5)
+        //pivot.set(this.readOnlyPixiText.width/2 , this.readOnlyPixiText.height/2)
+        this.readOnlyPixiText.position.set(this.input.position.x + this.input.width/2 , this.input.position.y + this.input.height/2 )
+        this.addChild(this.readOnlyPixiText)
+      }
+      this.readOnlyPixiText.text = this.text.length > 15 ? this.text.substring(0 , 15) + '...' : this.text
+      this.inputBg.lineStyle(0).beginFill(0xffffff, 0.7).drawRect(-this.readOnlyPixiText.width / 2 - 10 , this.readOnlyPixiText.height - 7, this.readOnlyPixiText.width + 20, this.readOnlyPixiText.height + 10 ).endFill()
+    } else {
+      this.input.visible = true
+      this.readOnlyPixiText.visible = false
+      this.inputBg.lineStyle(0).beginFill(0xffffff, 0.7).drawRect(this.input.position.x, this.input.position.y, this.input.width, this.input.height).endFill()
+    }
+    setTxtColor()  
   }
 
 
@@ -3621,16 +4251,33 @@ export class PixiLocPoint extends PixiCommon {
 
 
   initAngleIndicator(){
-    if(!this.showAngleIndicator){
+    if(this.showAngleIndicator){
+      this.angleIndicator = new PixiAngleAdjustHandle(this)
       return
     }
-    this.angleIndicator = new PixiCommon()
-    this.angleIndicator.lineStyle(0).beginFill(this.highlightColor ,0.8).drawPolygon([new PIXI.Point(-10 ,- 65), new PIXI.Point(10 , -65) , new PIXI.Point(0 , - 90)]).endFill()
-    this.angleIndicator.visible = false
-    this.angleIndicator.interactive = true
-    this.angleIndicator.cursor = 'crosshair'
-    this.angleIndicator.zIndex = 10
-    this.addChild(this.angleIndicator)
+    // this.angleIndicator = new PixiCommon()
+    // this.angleIndicator.lineStyle(0).beginFill(this.highlightColor ,0.8).drawPolygon([new PIXI.Point(-10 ,- 65), new PIXI.Point(10 , -65) , new PIXI.Point(0 , - 90)]).endFill()
+    // this.angleIndicator.visible = false
+    // this.angleIndicator.interactive = true
+    // this.angleIndicator.cursor = 'crosshair'
+    // this.angleIndicator.zIndex = 10
+    // this.addChild(this.angleIndicator)
+  }
+
+  centerAndZoom(){
+    if(this.pixiPointGroup?.pixiChildPoints?.[0]){
+      let zoomWidth = (this.pixiPointGroup.pixiChildPoints?.[0]?.robotIconScale * ROBOT_ACTUAL_LENGTH_METER) / 0.05
+      let vp =  this.getViewport()
+      let idx = Math.floor(this.pixiPointGroup?.pixiChildPoints?.length / 2) 
+      let zoomPos = this.getMasterComponent()?.mainContainer.toLocal(this.pixiPointGroup?.toGlobal(new PIXI.Point(this.pixiPointGroup.pixiChildPoints?.[idx]?.x , this.pixiPointGroup.pixiChildPoints?.[idx]?.y)))
+      vp?.snapZoom({removeOnComplete: true, width: zoomWidth, interrupt: false, time: 1500 , center : zoomPos})
+      for(let i = 0 ; i < 60 ; i ++ ){
+        setTimeout(()=> {
+          this.getMasterComponent()?.onViewportZoomed.next(true) 
+          this.getMasterComponent()?.refreshArrows()      
+        }, i * 25)
+      }
+    }
   }
 }
 
@@ -3877,7 +4524,6 @@ export class PixiMapLayer extends PixiCommon implements PixiMap {
   initialOffset: PIXI.Point
   ROS: PIXI.Sprite
   _editable: boolean
-  imgEditHandleSize = 5
   base64Image : string
   
   set editable(v) {
@@ -4030,16 +4676,25 @@ export class PixiResizeHandle extends PixiCommon{
 
 export class PixiRotateHandle extends PixiCommon{
   readonly type = 'imgEditHandle'
-  parent : PixiMapLayer
+  parent : PixiCommon
   frameWidth : number 
-  constructor(_parent : PixiMapLayer , _frameWidth : number){
+  polygonVertices
+  pos
+  constructor(_parent : PixiCommon , _frameWidth : number , _polygonVertices : PIXI.Point[] = null , _position: PIXI.Point = new PIXI.Point(0,0)){
     super()
     this.parent = _parent
     this.frameWidth = _frameWidth
+    this.polygonVertices = _polygonVertices
+    this.pos = _position
   }
   draw(){
     this.clear()
-    this.beginFill(this.parent.highlightColor).drawCircle(this.frameWidth / 2, 0, this.parent.imgEditHandleSize * 1.3 / this.parent.getViewport().scale.x).endFill();
+    if(this.polygonVertices){
+      this.beginFill(this.highlightColor).drawPolygon(this.polygonVertices).endFill();
+      this.position.set( this.pos.x ,  this.pos.y)
+    }else{
+      this.beginFill(this.highlightColor).drawCircle(this.frameWidth / 2, 0, this.imgEditHandleSize * 1.3 / this.parent.getViewport().scale.x).endFill();
+    }
     this.width = this.parent.width
     this.height = this.parent.height
     this.zIndex = 2;
@@ -4102,15 +4757,50 @@ export class PixiPolygon extends PixiCommon{
   public pixiRobotCountTag : PixiRobotCountTag
   public vertices : PIXI.Point[] = []
   public pixiVertices : PixiVertex[] = []
+  public arcsBuildingName = null
+  public arcsBuildingCode = null
   readonly type = "polygon" 
-  constructor(_vertices: PIXI.Point[] , _graphicOption : GraphicOptions  , _hollow : boolean ){
+  constructor(_vertices: PIXI.Point[] , _graphicOption : GraphicOptions  , _isDashBoardBuilding : boolean ){
     super()
     this.vertices = _vertices
     this.graphicOption = _graphicOption 
-    this.hollow = _hollow
+    this.isDashboardBuilding = _isDashBoardBuilding
     this.interactive = true
+    if(this.isDashboardBuilding){
+      this.on('mouseover' , (evt: PIXI.interaction.InteractionEvent)=>{
+        if(this.arcsBuildingName){
+          this.hideToolTip()
+          this.showToolTip(this.arcsBuildingName, evt , this.toGlobal(new PIXI.Point(this.pixiRobotCountTag.position.x , this.pixiRobotCountTag.position.y )) , true )
+        }
+        this.graphicOption.opacity = 0.3
+        this.graphicOption.lineThickness = 3 /this.getMasterComponent()?._ngPixi.viewport.scale.x
+        this.draw()
+        this.pixiRobotCountTag.textColor = 0x333333
+        this.pixiRobotCountTag.option.fillColor = 0xffffff
+        this.pixiRobotCountTag.option.opacity = 0.7
+        this.pixiRobotCountTag.draw()
+      })
+      this.on('mouseout' , ()=>{
+        if(this.arcsBuildingName){
+          this.hideToolTip()
+        }
+        this.graphicOption.opacity = 0.0001
+        this.graphicOption.lineThickness = 0
+        this.draw()
+        this.pixiRobotCountTag.textColor = 0xffffff
+        this.pixiRobotCountTag.option.fillColor  = this.mouseOverColor
+        this.pixiRobotCountTag.option.opacity = 1
+        this.pixiRobotCountTag.draw()
+      });
+      ['touchstart', 'mousedown'].forEach(clickEvt => {
+        this.on(clickEvt , (evt: PIXI.interaction.InteractionEvent)=>{
+          this.getMasterComponent().arcsLocationTree.building = {code : this.arcsBuildingCode  , name : this.arcsBuildingName }
+          this.getMasterComponent().onBuildingSelected.emit(this.arcsBuildingCode)          
+        })
+      })
+    }
   }
-  hollow : boolean
+  isDashboardBuilding : boolean
   graphicOption : GraphicOptions
   draw(selected = false , fillColor = null) {
     let option = this.graphicOption
@@ -4134,7 +4824,7 @@ export class PixiPolygon extends PixiCommon{
     if(this.pixiRobotCountTag && ! this.children.includes(this.pixiRobotCountTag)){
       this.addChild(this.pixiRobotCountTag)
     }
-    this.lineStyle(this.hollow ? option.lineThickness : 0 , option.lineColor).beginFill(option.fillColor, selected ? 0.8: option.opacity).drawPolygon(this.vertices).endFill();
+    this.lineStyle(this.isDashboardBuilding ? option.lineThickness : 0 , option.lineColor).beginFill(option.fillColor, selected ? 0.8: option.opacity).drawPolygon(this.vertices).endFill();
     this.cursor = selected ? 'move' : 'pointer'
     this.zIndex = option.zIndex
   }
@@ -4143,6 +4833,13 @@ export class PixiPolygon extends PixiCommon{
     this.vertices[vertexIndex] = vertexPosition
     this.pixiVertices[vertexIndex].position.set(pixiVertexPosition.x , pixiVertexPosition.y)
     this.draw(true)
+    if (this.pixiRobotCountTag && !inside(this.pixiRobotCountTag.position, this.vertices)) {
+      let tagPos = centroidOfPolygon(this.vertices)
+      if (!inside(tagPos, this.vertices)) {
+        tagPos = { x: (this.vertices[0].x + this.vertices[1].x) / 2, y: (this.vertices[0].y + this.vertices[1].y) / 2 }
+      }
+      this.pixiRobotCountTag.position.set(tagPos.x , tagPos.y)
+    }
   }
 
 }
@@ -4152,27 +4849,34 @@ export class PixiRobotCountTag extends PixiCommon{
   option : GraphicOptions
   polygon : PixiPolygon
   masterComponent : DrawingBoardComponent
-  robotCount : number = 0
+  _robotCount : number = 0
+  set robotCount(v){
+    this._robotCount = v
+    this.draw()
+  }
+  get robotCount(){
+    return this.robotCount
+  }
   readonly = true
   radius = 15
   originalPosition
-  textColor 
+  textColor = 0xffffff
   pixiText : PIXI.Text 
   
   constructor(_parent: PixiPolygon, _point: {x:number , y : number}, _masterComponent: DrawingBoardComponent, _option: GraphicOptions, _readonly = true) {
     super()
-    this.zIndex = 2
     this.position = new PIXI.Point(_point.x , _point.y)
     this.polygon = _parent
     this.option = _option
     this.option.baseGraphics = this
     this.masterComponent = _masterComponent
-    this.textColor = this.readonly ? 0x000000 : 0xffffff
-    this.pixiText = new PIXI.Text(this.robotCount.toString(), { fontFamily: 'Arial', fill: this.textColor, fontSize : this.radius });
+    // this.textColor = this.readonly ? 0x000000 : 0xffffff
+    this.pixiText = new PIXI.Text(this._robotCount.toString(), { fontFamily: 'Arial', fill: this.textColor, fontSize : this.radius });
     this.pixiText.anchor.set(0.5)
     this.addChild(this.pixiText)
     this.polygon.pixiRobotCountTag = this
     this.readonly = _readonly
+    //this.readonly = true // testing
     _masterComponent.onViewportZoomed.subscribe(() => this.scale.set(1/ (this.masterComponent._ngPixi.viewport.scale.x)))
     this.polygon.addChild(this)
     this.draw()
@@ -4181,9 +4885,10 @@ export class PixiRobotCountTag extends PixiCommon{
 
   draw() {
     this.clear()
-    this.beginFill(0xffffff , 0.7).drawCircle(0, 0, this.radius).endFill() 
+    this.beginFill(this.option.fillColor , this.option.opacity).drawCircle(0, 0, this.radius).endFill() 
     this.originalPosition = { x: this.position.x, y: this.position.y }    
-    this.pixiText.text = this.robotCount?.toString()
+    this.pixiText.text = this._robotCount?.toString()
+    this.pixiText.style = { fontFamily: 'Arial', fill: this.textColor, fontSize : this.radius }
     // let circle = this.getCircle(this.point, this.masterComponent.handleRadius / (this.parent.scale.x * this.masterComponent._ngPixi.viewport.scale.x), this.option)
     if (!this.readonly) {
       this.interactive = true
@@ -4204,6 +4909,7 @@ export class PixiRobotCountTag extends PixiCommon{
         })
       })
     }
+    this.zIndex = 2
   }
 }
 

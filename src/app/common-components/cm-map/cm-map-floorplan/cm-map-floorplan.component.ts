@@ -1,4 +1,4 @@
-import { ChangeDetectorRef, Component, ElementRef, Input, NgZone, OnInit, ViewChild } from '@angular/core';
+import { ChangeDetectorRef, Component, ElementRef, Input, NgZone, OnInit, ViewChild , HostBinding } from '@angular/core';
 import { FormControl, FormGroup, Validators } from '@angular/forms';
 import { DialogService } from '@progress/kendo-angular-dialog';
 import { filter, retry, take } from 'rxjs/operators';
@@ -26,13 +26,13 @@ export class CmMapFloorplanComponent implements OnInit {
   @ViewChild('pixiContainer') pixiContainer : ElementRef
   @ViewChild('container') mainContainer : ElementRef
   @ViewChild('tabStrip') tabStripRef : TabStripComponent
-  
+  @HostBinding('class') customClass = 'setup-map'
+
   constructor(public util : GeneralUtil, public uiSrv : UiService , public windowSrv: DialogService, public ngZone : NgZone,
               public httpSrv : RvHttpService  , private dataSrv : DataService , public authSrv : AuthService) { 
     this.loadingTicket = this.uiSrv.loadAsyncBegin()
   }
   frmGrp = new FormGroup({
-    planId: new FormControl(null),
     floorPlanCode: new FormControl('' , Validators.compose([Validators.required, Validators.pattern(this.dataSrv.codeRegex)])),
     name: new FormControl(''),
     fileName: new FormControl(null),
@@ -137,6 +137,7 @@ export class CmMapFloorplanComponent implements OnInit {
   async loadData(id){
     let ticket = this.uiSrv.loadAsyncBegin()
     let data : JFloorPlan = await this.httpSrv.get("api/map/plan/v1/" + id.toString())
+    // data = JSON.parse(testDs4)
     this.mapCode = data.mapList[0]?.mapCode
     this.mapTree.refreshExpandedKeys()
     await this.pixiElRef.loadFloorPlanDatasetV2(data , undefined , undefined , false)
@@ -149,9 +150,9 @@ export class CmMapFloorplanComponent implements OnInit {
     } 
     this.util.loadToFrmgrp(this.frmGrp ,  data);
     (<any>this.pixiElRef.allPixiPoints).concat((<any>this.pixiElRef.allPixiArrows)).forEach(gr=>gr.visible = this.selectedTab == 'locations');
-    // (<any>this.pixiElRef.allPixiPoints).concat((<any>this.pixiElRef.allPixiArrows)).forEach(gr=>this.pixiElRef.removeGraphics(gr))
+    //(<any>this.pixiElRef.allPixiPoints).concat((<any>this.pixiElRef.allPixiArrows)).forEach(gr=>this.pixiElRef.removeGraphics(gr))
     this.uiSrv.loadAsyncDone(ticket);
-    // JSON.parse(HKAA_WAYPOINTS0815).forEach(w => {
+    // JSON.parse(DEMO_5W_0913).forEach(w => {
     //   this.add_UserTrainingWaypoint(w['name'], w['x'], w['y'], w['angle'])
     // })
   }
@@ -308,7 +309,14 @@ export class CmMapFloorplanComponent implements OnInit {
         //   this.pixiElRef.selectGraphics(map)
         // }
       }
-      setTimeout(()=>this.pixiElRef.selectGraphics(map))
+
+      setTimeout(()=>{
+        if(this.selectedTab == 'maps'){         
+          this.pixiElRef.selectGraphics(map)  
+        }else if(this.pixiElRef.selectedGraphics == map){
+          this.pixiElRef.selectGraphics(null)
+        }
+      })
     }   
     await this.changeTab(originalTab)
   }
@@ -361,9 +369,21 @@ export class CmMapFloorplanComponent implements OnInit {
       this.pixiMapBorders = []
       if(this.mapCode){
         this.pixiElRef.selectGraphics(this.pixiElRef.mapLayerStore[this.mapCode])
-      }
+      }      
+      Object.values(this.pixiElRef.mapLayerStore).forEach((m: PixiMapLayer) =>{
+        m.interactive = true
+        if(m.border){
+          m.border.visible = true
+        }
+      })
     }else if(this.selectedTab == 'locations'){
       this.renderMapBordersOnPixi()
+      Object.values(this.pixiElRef.mapLayerStore).forEach((m: PixiMapLayer) =>{
+        m.interactive = false
+        if(m.border){
+          m.border.visible = false
+        }
+      })
     }
   }
 
@@ -432,7 +452,6 @@ export class CmMapFloorplanComponent implements OnInit {
       this.pixiElRef.selectGraphics(gr)
     // this.pixiElRef.onWayPointMouseDown(gr)
   }
-
   // async getRvRequestBody_SA() {
   //   let ds = this.getSubmitDataset()
   //   let mapId = this.selectedMapIds[0]
@@ -487,6 +506,299 @@ export class CmMapFloorplanComponent implements OnInit {
   // }
 }
 
+const DEMO_5W_0915 = `
+[
+  {
+    "id": 55,
+    "name": "CHARGE",
+    "mapName": "5W_2022",
+    "x": 2.81752,
+    "y": 0.6439,
+    "angle": 2.9953526911763184
+  },
+  {
+    "id": 56,
+    "name": "WP-06",
+    "mapName": "5W_2022",
+    "x": 2.71187,
+    "y": -0.91716,
+    "angle": 2.9852995982794583
+  },
+  {
+    "id": 57,
+    "name": "WP-05",
+    "mapName": "5W_2022",
+    "x": 2.45829,
+    "y": -4.20544,
+    "angle": 2.9852995982794583
+  },
+  {
+    "id": 58,
+    "name": "WP-02",
+    "mapName": "5W_2022",
+    "x": 0.15933,
+    "y": -3.39817,
+    "angle": 2.9852995982794583
+  },
+  {
+    "id": 59,
+    "name": "WP-01",
+    "mapName": "5W_2022",
+    "x": 0.66337,
+    "y": -0.05947,
+    "angle": 2.9852995982794583
+  },
+  {
+    "id": 60,
+    "name": "WP-03",
+    "mapName": "5W_2022",
+    "x": -2.04111,
+    "y": 3.91715,
+    "angle": 2.9852995982794583
+  },
+  {
+    "id": 61,
+    "name": "WP-04",
+    "mapName": "5W_2022",
+    "x": -3.74078,
+    "y": -7.56897,
+    "angle": 2.9852995982794583
+  }
+]
+`
+
+const DEMO_5W_0913 = `
+[
+  {
+    "id": 84,
+    "name": "G24",
+    "mapName": "AA_L5_Transfer",
+    "x": 123.3553900973949,
+    "y": 40.04168728900149,
+    "angle": -1.1321428938182323
+  },
+  {
+    "id": 85,
+    "name": "G12",
+    "mapName": "AA_L5_Transfer",
+    "x": 62.41089864618905,
+    "y": 6.289999441776351,
+    "angle": -1.0738282299776354
+  },
+  {
+    "id": 86,
+    "name": "G10",
+    "mapName": "AA_L5_Transfer",
+    "x": 20.60239200783864,
+    "y": -15.12429315481907,
+    "angle": -1.1071493491921236
+  },
+  {
+    "id": 87,
+    "name": "G11",
+    "mapName": "AA_L5_Transfer",
+    "x": 15.09519306663323,
+    "y": 1.424053173191934,
+    "angle": 2.038928141633175
+  },
+  {
+    "id": 88,
+    "name": "G11_LOCAL",
+    "mapName": "AA_L5_Transfer",
+    "x": 5.013489378882292,
+    "y": -1.401203894472973,
+    "angle": -1.0803349301424028
+  },
+  {
+    "id": 89,
+    "name": "G11_CHARGE",
+    "mapName": "AA_L5_Transfer",
+    "x": -2.157927187320118,
+    "y": -1.680984820427425,
+    "angle": 2.0344439357957027
+  },
+  {
+    "id": 90,
+    "name": "EXIT",
+    "mapName": "AA_L5_Transfer",
+    "x": -66.89217021839022,
+    "y": -116.1822080262979,
+    "angle": 1.889133663885386
+  },
+  {
+    "id": 99,
+    "name": "E1",
+    "mapName": "AA_L5_Transfer",
+    "x": -42.84505625448343,
+    "y": -83.82502327025331,
+    "angle": -1.815774989921761
+  }
+]
+`
+const DEMO_5W_0908_2 = `
+[
+  {
+    "id": 322,
+    "name": "CHARGE",
+    "mapName": "5W_2022",
+    "x": -0.15194,
+    "y": 0.32969,
+    "angle": 0.0044156814286562
+  },
+  {
+    "id": 324,
+    "name": "WP-01",
+    "mapName": "5W_2022",
+    "x": 1.3685,
+    "y": 0.83415,
+    "angle": -1.4547139580911699
+  },
+  {
+    "id": 325,
+    "name": "WP-02",
+    "mapName": "5W_2022",
+    "x": 1.72359,
+    "y": -5.25063,
+    "angle": 0.0193731477699936
+  },
+  {
+    "id": 326,
+    "name": "WP-03",
+    "mapName": "5W_2022",
+    "x": -2.70512,
+    "y": 3.09052,
+    "angle": -1.49150548556788
+  },
+  {
+    "id": 327,
+    "name": "WP-04",
+    "mapName": "5W_2022",
+    "x": -1.82942,
+    "y": -13.75759,
+    "angle": 1.6194054140635168
+  },
+  {
+    "id": 328,
+    "name": "WP-05",
+    "mapName": "5W_2022",
+    "x": 3.2905,
+    "y": -5.21141,
+    "angle": 1.6377488179430268
+  },
+  {
+    "id": 329,
+    "name": "WP-06",
+    "mapName": "5W_2022",
+    "x": 3.03436,
+    "y": 0.8907,
+    "angle": 1.6754304630199768
+  }
+]
+`
+const DEMO_5W_0908 = `
+[{
+  "id": 322,
+  "name": "CHARGE",
+  "mapName": "5W_2022",
+  "x": -0.15194,
+  "y": 0.32969,
+  "angle": 0.004415681428656204
+},
+{
+  "id": 324,
+  "name": "WP-01",
+  "mapName": "5W_2022",
+  "x": 1.62586,
+  "y": -4.97491,
+  "angle": 1.6041686951417058
+},
+{
+  "id": 325,
+  "name": "WP-02",
+  "mapName": "5W_2022",
+  "x": 1.15635,
+  "y": -2.42862,
+  "angle": 0.019373147769993604
+},
+{
+  "id": 326,
+  "name": "WP-03",
+  "mapName": "5W_2022",
+  "x": -2.70512,
+  "y": 3.09052,
+  "angle": -1.4915054855678775
+},
+{
+  "id": 327,
+  "name": "WP-04",
+  "mapName": "5W_2022",
+  "x": -2.00484,
+  "y": -13.2635,
+  "angle": 1.5294838365115766
+}]
+`
+
+// const HKAA_WAYPOINTS0824 =`
+// [
+//   {
+//     "id": 84,
+//     "name": "G24",
+//     "mapName": "AA_L5_Transfer",
+//     "x": 123.3553900973949,
+//     "y": 40.04168728900149,
+//     "angle": -1.1321428938182323
+//   },
+//   {
+//     "id": 85,
+//     "name": "G12",
+//     "mapName": "AA_L5_Transfer",
+//     "x": 62.41089864618905,
+//     "y": 6.289999441776351,
+//     "angle": -1.0738282299776354
+//   },
+//   {
+//     "id": 86,
+//     "name": "G10",
+//     "mapName": "AA_L5_Transfer",
+//     "x": 20.60239200783864,
+//     "y": -15.12429315481907,
+//     "angle": -1.1071493491921236
+//   },
+//   {
+//     "id": 87,
+//     "name": "G11",
+//     "mapName": "AA_L5_Transfer",
+//     "x": 15.09519306663323,
+//     "y": 1.424053173191934,
+//     "angle": 2.038928141633175
+//   },
+//   {
+//     "id": 88,
+//     "name": "G11_LOCAL",
+//     "mapName": "AA_L5_Transfer",
+//     "x": 5.013489378882292,
+//     "y": -1.401203894472973,
+//     "angle": -1.0803349301424028
+//   },
+//   {
+//     "id": 89,
+//     "name": "G11_CHARGE",
+//     "mapName": "AA_L5_Transfer",
+//     "x": -2.157927187320118,
+//     "y": -1.680984820427425,
+//     "angle": 2.0344439357957027
+//   },
+//   {
+//     "id": 90,
+//     "name": "EXIT",
+//     "mapName": "AA_L5_Transfer",
+//     "x": -66.89217021839022,
+//     "y": -116.1822080262979,
+//     "angle": 1.889133663885386
+//   }
+// ]
+// `
+
 // const DEMO_0815_5W = `
 // [
 //   {
@@ -539,138 +851,138 @@ export class CmMapFloorplanComponent implements OnInit {
 //   }
 // ]`
 
-const HKAA_WAYPOINTS0815 = `
-[
-  {
-    "id": 29,
-    "name": "G11",
-    "mapName": "wheelchair_test",
-    "x": 2.277091715566764,
-    "y": 15.65223147428205,
-    "angle": -3.1191367868158886
-  },
-  {
-    "id": 30,
-    "name": "A_CHARGE_G11",
-    "mapName": "wheelchair_test",
-    "x": -1.428741305931726,
-    "y": -1.407506391759312,
-    "angle": 3.136669274182967
-  },
-  {
-    "id": 31,
-    "name": "G10",
-    "mapName": "wheelchair_test",
-    "x": 21.10226489448139,
-    "y": 12.69737443280037,
-    "angle": 0
-  },
-  {
-    "id": 39,
-    "name": "EXIT_G5-9",
-    "mapName": "wheelchair_test",
-    "x": 135.3471561085639,
-    "y": -134.3599013532761,
-    "angle": 1.5441250890796663
-  },
-  {
-    "id": 40,
-    "name": "G9",
-    "mapName": "wheelchair_test",
-    "x": 340.8364932998956,
-    "y": -159.6335726466058,
-    "angle": 1.6071640552433968
-  },
-  {
-    "id": 52,
-    "name": "EXIT_G1-4",
-    "mapName": "wheelchair_test",
-    "x": -115.2436837763202,
-    "y": -129.7258915381139,
-    "angle": 3.084541869926043
-  },
-  {
-    "id": 54,
-    "name": "G1",
-    "mapName": "wheelchair_test",
-    "x": -176.7275134930203,
-    "y": -121.2739184321057,
-    "angle": 0
-  },
-  {
-    "id": 55,
-    "name": "G2",
-    "mapName": "wheelchair_test",
-    "x": -247.3843866880411,
-    "y": -120.6764919162144,
-    "angle": 0.011759207948191297
-  },
-  {
-    "id": 56,
-    "name": "G3",
-    "mapName": "wheelchair_test",
-    "x": -321.2844591278919,
-    "y": -121.4431106782647,
-    "angle": 0.014278739132463912
-  },
-  {
-    "id": 63,
-    "name": "G5",
-    "mapName": "wheelchair_test",
-    "x": 169.784465946906,
-    "y": -127.7465675128748,
-    "angle": 3.1211981926288925
-  },
-  {
-    "id": 65,
-    "name": "G6",
-    "mapName": "wheelchair_test",
-    "x": 263.0616206293278,
-    "y": -130.1215055289816,
-    "angle": 3.1073776003801497
-  },
-  {
-    "id": 66,
-    "name": "G7",
-    "mapName": "wheelchair_test",
-    "x": 335.3665450514058,
-    "y": -134.6978207649355,
-    "angle": 3.1198684019592444
-  },
-  {
-    "id": 68,
-    "name": "EXIT_G5-9_CP",
-    "mapName": "wheelchair_test",
-    "x": 146.7444662139348,
-    "y": -134.2131332986044,
-    "angle": 3.130845632794527
-  },
-  {
-    "id": 71,
-    "name": "G8",
-    "mapName": "wheelchair_test",
-    "x": 345.145664366333,
-    "y": -148.5016041003712,
-    "angle": 1.5220260017624292
-  },
-  {
-    "id": 72,
-    "name": "A_LOCAL_G11",
-    "mapName": "wheelchair_test",
-    "x": 1.848835301847525,
-    "y": 5.034701210163385,
-    "angle": -0.03028102384545962
-  },
-  {
-    "id": 74,
-    "name": "G4",
-    "mapName": "wheelchair_test",
-    "x": -321.9313016922606,
-    "y": -150.4029724542821,
-    "angle": 1.5707963267948963
-  }
-]
-`
+// const HKAA_WAYPOINTS0815 = `
+// [
+//   {
+//     "id": 29,
+//     "name": "G11",
+//     "mapName": "wheelchair_test",
+//     "x": 2.277091715566764,
+//     "y": 15.65223147428205,
+//     "angle": -3.1191367868158886
+//   },
+//   {
+//     "id": 30,
+//     "name": "A_CHARGE_G11",
+//     "mapName": "wheelchair_test",
+//     "x": -1.428741305931726,
+//     "y": -1.407506391759312,
+//     "angle": 3.136669274182967
+//   },
+//   {
+//     "id": 31,
+//     "name": "G10",
+//     "mapName": "wheelchair_test",
+//     "x": 21.10226489448139,
+//     "y": 12.69737443280037,
+//     "angle": 0
+//   },
+//   {
+//     "id": 39,
+//     "name": "EXIT_G5-9",
+//     "mapName": "wheelchair_test",
+//     "x": 135.3471561085639,
+//     "y": -134.3599013532761,
+//     "angle": 1.5441250890796663
+//   },
+//   {
+//     "id": 40,
+//     "name": "G9",
+//     "mapName": "wheelchair_test",
+//     "x": 340.8364932998956,
+//     "y": -159.6335726466058,
+//     "angle": 1.6071640552433968
+//   },
+//   {
+//     "id": 52,
+//     "name": "EXIT_G1-4",
+//     "mapName": "wheelchair_test",
+//     "x": -115.2436837763202,
+//     "y": -129.7258915381139,
+//     "angle": 3.084541869926043
+//   },
+//   {
+//     "id": 54,
+//     "name": "G1",
+//     "mapName": "wheelchair_test",
+//     "x": -176.7275134930203,
+//     "y": -121.2739184321057,
+//     "angle": 0
+//   },
+//   {
+//     "id": 55,
+//     "name": "G2",
+//     "mapName": "wheelchair_test",
+//     "x": -247.3843866880411,
+//     "y": -120.6764919162144,
+//     "angle": 0.011759207948191297
+//   },
+//   {
+//     "id": 56,
+//     "name": "G3",
+//     "mapName": "wheelchair_test",
+//     "x": -321.2844591278919,
+//     "y": -121.4431106782647,
+//     "angle": 0.014278739132463912
+//   },
+//   {
+//     "id": 63,
+//     "name": "G5",
+//     "mapName": "wheelchair_test",
+//     "x": 169.784465946906,
+//     "y": -127.7465675128748,
+//     "angle": 3.1211981926288925
+//   },
+//   {
+//     "id": 65,
+//     "name": "G6",
+//     "mapName": "wheelchair_test",
+//     "x": 263.0616206293278,
+//     "y": -130.1215055289816,
+//     "angle": 3.1073776003801497
+//   },
+//   {
+//     "id": 66,
+//     "name": "G7",
+//     "mapName": "wheelchair_test",
+//     "x": 335.3665450514058,
+//     "y": -134.6978207649355,
+//     "angle": 3.1198684019592444
+//   },
+//   {
+//     "id": 68,
+//     "name": "EXIT_G5-9_CP",
+//     "mapName": "wheelchair_test",
+//     "x": 146.7444662139348,
+//     "y": -134.2131332986044,
+//     "angle": 3.130845632794527
+//   },
+//   {
+//     "id": 71,
+//     "name": "G8",
+//     "mapName": "wheelchair_test",
+//     "x": 345.145664366333,
+//     "y": -148.5016041003712,
+//     "angle": 1.5220260017624292
+//   },
+//   {
+//     "id": 72,
+//     "name": "A_LOCAL_G11",
+//     "mapName": "wheelchair_test",
+//     "x": 1.848835301847525,
+//     "y": 5.034701210163385,
+//     "angle": -0.03028102384545962
+//   },
+//   {
+//     "id": 74,
+//     "name": "G4",
+//     "mapName": "wheelchair_test",
+//     "x": -321.9313016922606,
+//     "y": -150.4029724542821,
+//     "angle": 1.5707963267948963
+//   }
+// ]
+// `
 
 // const HKAA_WAYPOINTS0805 = `
 // [
@@ -1374,3 +1686,4 @@ const HKAA_WAYPOINTS0815 = `
 //   }
 // ]
 // `
+

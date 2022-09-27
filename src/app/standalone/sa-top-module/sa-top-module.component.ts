@@ -139,9 +139,11 @@ export class SaTopModuleComponent implements OnInit {
     this.uiSrv.loadAsyncDone(this.loadingTicket)
   }
 
-  initAirQualitySubscription() {
+ async initAirQualitySubscription() {
     if (this.robotType == 'patrol') {
-      this.dataSrv.signalRSubj.ieq.pipe(skip(1),takeUntil(this.onDestroy),filter(ieq=>ieq!=null)).subscribe(ieq => {
+      let ieqReq = await this.dataSrv.httpSrv.rvRequest('GET', this.dataSrv.signalRMaster.ieq.api + '/' + this.arcsRobotCode , undefined , false)
+      let ieqData = this.dataSrv.signalRMaster.ieq.mapping.ieq(ieqReq)
+      let refreshIeq = (ieq)=>{
         let ret = null
         let levels = ['Inadequate', 'Poor', 'Fair', 'Good', 'Excellent']
         let range = {
@@ -164,7 +166,11 @@ export class SaTopModuleComponent implements OnInit {
           }
         }
         this.airQualitySubj.next(ret == null ? levels[levels.length - 1] : ret)
-      })
+
+      }
+      // refreshIeq(ieqData)
+      this.dataSrv.signalRSubj.ieq.pipe(skip(1),takeUntil(this.onDestroy),filter(ieq=>ieq!=null)).subscribe(ieq => refreshIeq(ieq))
+      this.dataSrv.signalRSubj.ieq.next(ieqData)
     }
   }
 
@@ -313,7 +319,7 @@ export class SaTopModuleComponent implements OnInit {
 
   ngOnDestroy(){
     this.onDestroy.next()
-    this.dataSrv.unsubscribeSignalRs( this.signalRSubscribedTopics , false , this.util.arcsApp ? `?robotCode=${this.arcsRobotCode}` : undefined)
+    this.dataSrv.unsubscribeSignalRs( this.signalRSubscribedTopics , false , this.util.arcsApp ? `/${this.arcsRobotCode}` : undefined)
   }
 
 }

@@ -1,16 +1,22 @@
-import { Component, Input, OnInit, ViewChild } from '@angular/core';
+import { Component, Input, OnInit, ViewChild , Injector } from '@angular/core';
 import { FormControl, FormGroup, Validators } from '@angular/forms';
 import { ActivatedRoute, Router } from '@angular/router';
+import { DialogRef } from '@progress/kendo-angular-dialog';
 import { AuthService } from 'src/app/services/auth.service';
 import { ConfigService } from 'src/app/services/config.service';
 import { DataService } from 'src/app/services/data.service';
 import { UiService } from 'src/app/services/ui.service';
 import { GeneralUtil } from 'src/app/utils/general/general.util';
+import { ForgetPasswordComponent } from './forget-password/forget-password.component';
+import { ReCaptchaV3Service } from 'ng-recaptcha';
+import { RECAPTCHA_V3_SITE_KEY, RecaptchaV3Module } from "ng-recaptcha";
+import { environment } from 'src/environments/environment';
 
 @Component({
   selector: 'app-cm-login',
   templateUrl: './cm-login.component.html',
-  styleUrls: ['./cm-login.component.scss']
+  styleUrls: ['./cm-login.component.scss'],
+  // providers: [{ provide: RECAPTCHA_V3_SITE_KEY, useValue: environment.recaptchaSiteKey }]
 })
 export class CmLoginComponent implements OnInit {
   @Input() showTabletLoginDialog = false
@@ -18,8 +24,13 @@ export class CmLoginComponent implements OnInit {
   guestMode = false
   toExitGuestMode = false
   clientId
-  constructor(public dataSrv : DataService ,public uiSrv: UiService , public authSrv : AuthService, public router : Router, public util : GeneralUtil ,  private route: ActivatedRoute) { 
+  showForgetPasswordDialog
+  me
+  auth2FASegment
+  recaptchaV3Service
+  constructor(private injector: Injector , public dataSrv : DataService ,public uiSrv: UiService , public authSrv : AuthService, public router : Router, public util : GeneralUtil ,  private route: ActivatedRoute) { 
     // this.authSrv.logout()
+    this.me = this
     this.authSrv.username = this.util.getCurrentUser()
     if(!this.uiSrv.isTablet && this.authSrv.username){
       this.router.navigate(['/home'])
@@ -29,10 +40,14 @@ export class CmLoginComponent implements OnInit {
     }else if(!this.authSrv.username && !this.util.arcsApp){
       this.router.navigate(['/login'])
     }
+    if(this.util.arcsApp){
+      this.recaptchaV3Service = <ReCaptchaV3Service>this.injector.get(ReCaptchaV3Service);
+    }
   }
   frmGrp = new FormGroup({
     username: new FormControl(''),
     password: new FormControl(''),
+    verificationCode :  new FormControl(''),
   })
   errMsg = null
   dialogRef
@@ -43,26 +58,59 @@ export class CmLoginComponent implements OnInit {
     })
   }
 
-  async login(){
-    let ticket = this.uiSrv.loadAsyncBegin(1000)
-
-    let resp = await (this.authSrv.login(this.frmGrp.controls['username'].value , this.frmGrp.controls['password'].value , this.uiSrv.lang.value , this.guestMode , this.clientId).toPromise());
-    this.uiSrv.loadAsyncDone(ticket,999999)
+  ngOnDestroy(){
     
-    if (resp?.['result'] == true) {
-      if (this.toExitGuestMode) {
-        this.dialogRef.close()        
-        this.uiSrv.refreshDrawerItems.next(true)
-      }else if (this.uiSrv.isTablet) {
-        this.showTabletLoginDialog = false
-        this.uiSrv.refreshDrawerItems.next(true)
-      } else {
-        this.router.navigate(['/home'])
-      }
-    } else {
-      this.errMsg = this.uiSrv.translate(resp?.['msg'] ? resp?.['msg'] : 'An Error Has Occurred')
-    }
   }
 
+  async login() {
+    let sendRequest = async (token) => {
+      let ticket = this.uiSrv.loadAsyncBegin(1000)
+      let resp = await (this.authSrv.login(this.frmGrp.controls['username'].value,
+        this.frmGrp.controls['password'].value,
+        this.uiSrv.lang.value,
+        this.guestMode,
+        this.clientId,
+        this.auth2FASegment ? (this.frmGrp.controls['verificationCode'].value + this.auth2FASegment) : null,
+        token
+      ).toPromise());
 
+      this.uiSrv.loadAsyncDone(ticket, 999999)
+
+      if (resp?.['result'] == true) {
+        if (this.util.arcsApp && resp?.auth2FASegment) {
+          this.auth2FASegment = resp?.auth2FASegment
+        } else if (this.toExitGuestMode) {
+          this.dialogRef.close()
+          this.uiSrv.refreshDrawerItems.next(true)
+        } else if (this.uiSrv.isTablet) {
+          this.showTabletLoginDialog = false
+          this.uiSrv.refreshDrawerItems.next(true)
+        } else {
+          let recaptchaTagEl =  document.getElementsByClassName("grecaptcha-badge")[0];
+          if(recaptchaTagEl){
+            (<HTMLElement> recaptchaTagEl).style.opacity = '0' ;
+          }
+          this.router.navigate(['/home'] )
+        }
+      } else {
+        this.errMsg = this.uiSrv.translate(resp?.['msg'] ? resp?.['msg'] : 'An Error Has Occurred')
+      }
+    }
+    if (this.util.standaloneApp) {
+      sendRequest(null)
+    } else {
+      this.recaptchaV3Service.execute('login').subscribe((token) => sendRequest(token))
+    }
+  }
 }
+    // async sendRecaptchaVerifyRequest(token : string){
+    // //   var data = {
+    // //     secret: 'reCAPTCHA 後台取得的「密鑰」',
+    // //     response: token, 
+    // //     remoteip: 
+    // //   }
+    // //   let req = this.dataSrv.httpSrv.post('recaptcha/api/siteverify' , {
+
+    // //   } , undefined , undefined , 'www.google.com')
+    // }
+

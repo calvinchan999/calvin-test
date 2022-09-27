@@ -1,4 +1,4 @@
-import { ChangeDetectorRef, Component, NgZone, OnInit, ViewChild } from '@angular/core';
+import { ChangeDetectorRef, Component, NgZone, OnInit, ViewChild, HostBinding } from '@angular/core';
 import { DialogRef, DialogService } from '@progress/kendo-angular-dialog';
 import { toODataString } from '@progress/kendo-data-query';
 import { filter, take } from 'rxjs/operators';
@@ -18,6 +18,8 @@ import { CmMapFloorplanComponent } from './cm-map-floorplan/cm-map-floorplan.com
 export class CmMapComponent implements OnInit {
 @ViewChild('table') ucTableRef : TableComponent
 @ViewChild('pixi') pixiElRef: DrawingBoardComponent
+@HostBinding('class') customClass = 'setup-map'
+
   constructor(public windowSrv: DialogService, public uiSrv : UiService , public http: RvHttpService , private changeDectector : ChangeDetectorRef,
               private dataSrv : DataService , private ngZone : NgZone) { }
 

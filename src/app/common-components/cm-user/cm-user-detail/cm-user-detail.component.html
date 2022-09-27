@@ -6,6 +6,7 @@
         <uc-txtbox lab="User Alias" [frmGrp]="frmGrp" frmCtrl="userCode" [upper]="true" [disabled]="!isCreate"></uc-txtbox>
         <uc-txtbox lab="User Name" [frmGrp]="frmGrp" frmCtrl="name" ></uc-txtbox>
         <uc-dropdown lab="User Group" [frmGrp]="frmGrp" frmCtrl="userGroupCode" [options] = "dropdownOptions.userGroup" ></uc-dropdown>
+        <uc-txtbox lab="Email Address" [frmGrp]="frmGrp" frmCtrl="email" ></uc-txtbox>
         <uc-txtbox *ngIf="isCreate" lab="Password" [frmGrp]="frmGrp" frmCtrl="password" type = "password" ></uc-txtbox> 
         <button *ngIf="!isCreate && canSetPw"  kendoButton (click)="showChangePasswordDialog()"> {{'Change Password' | label : uiSrv.langPack}}</button>
     </form>

@@ -6,7 +6,7 @@
     <div class="container">
         <div class="form-container">
             <form [formGroup]="frmGrp" class="content">
-                <uc-txtbox lab = "Code" [frmGrp] = "frmGrp" frmCtrl = "siteCode"></uc-txtbox>
+                <uc-txtbox lab = "Code" [frmGrp] = "frmGrp" frmCtrl = "siteCode" [upper]="true" [disabled]="parentRow"></uc-txtbox>
                 <uc-txtbox lab = "Site Name" [frmGrp] = "frmGrp" frmCtrl = "name"></uc-txtbox>
                 <uc-txtbox lab = "Site Image File Name" [frmGrp] = "frmGrp" frmCtrl = "fileName" 
                            [suffixButton] = "{icon : 'k-icon mdi mdi-upload'}" 

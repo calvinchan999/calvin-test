@@ -1,11 +1,12 @@
 {
 	"CLIENT_ID":"11B7ED76-B978-411B-8ECB-36B21220DE3E",
-	"USE_SIGNALR": true,
+	"USE_SIGNALR": false,
 	"DEBUG_SIGNALR":false,
 	"DEBUG_SIGNALR_TYPE": "",
 	"ROBOT_BASE":"WC",
-	"SIGNALR_URL":"https://localhost:5001/signalR",
-	"IP_CAMERA_URL" : "http://localhost:81/live?port=1935&app=live&stream=10240",
+	"SIGNALR_URL":"http://localhost:5001/signalR",
+	"IP_CAMERA_URL" : "http://localhost/live?port=1935&app=live&stream=stream",
+	"IP_CAMERA_URLx" : "http://localhost:81/live?port=1935&app=live&stream=10240",
 	"PROTOCOL"    : "https",
 	"SIGNALR_URLxx":"https://rv-dev.eastasia.cloudapp.azure.com:5001/signalR",
 	"SERVER_URLx"  : "rv-arcs-api.azurewebsites.net",
@@ -48,6 +49,11 @@
 		"BEVERAGE":{
 			"fillColor": "0xFFD700", 
 			"highlightColor": "0xFFD700"
+		},
+		"AA":{
+			"fillColor": "0xFF6358", 
+			"highlightColor": "0xFF6358"
 		}
     }
 }
+

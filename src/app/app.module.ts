@@ -4,7 +4,7 @@ import { NgModule, LOCALE_ID } from '@angular/core';
 import { BrowserAnimationsModule } from '@angular/platform-browser/animations';
 import { HttpClientModule, HTTP_INTERCEPTORS } from '@angular/common/http';
 import { FormsModule, ReactiveFormsModule } from '@angular/forms';
-import { CommonModule, LocationStrategy, HashLocationStrategy } from '@angular/common';
+import { CommonModule, LocationStrategy, HashLocationStrategy, DatePipe } from '@angular/common';
 
 import { AppComponent } from './app.component';
 import { ConfigModule, ConfigService } from './services/config.service';
@@ -38,6 +38,7 @@ import { IndicatorsModule } from '@progress/kendo-angular-indicators';
 import { NgPixiModule } from 'src/app/utils/ng-pixi/ng-pixi.module';
 import { MenusModule } from '@progress/kendo-angular-menu';
 import { TreeViewModule } from "@progress/kendo-angular-treeview";
+import { TooltipModule  } from "@progress/kendo-angular-tooltip";
 import {TextInput } from 'pixi-text-input'
 
 //import http interceptor
@@ -99,7 +100,7 @@ import {MatTreeModule} from '@angular/material/tree';
 import {OverlayModule} from '@angular/cdk/overlay';
 import {MsgDialogContent} from  './services/ui.service';
 import { PowerBIEmbedModule } from 'powerbi-client-angular';
-
+import { RECAPTCHA_V3_SITE_KEY, RecaptchaV3Module } from "ng-recaptcha";
 
 var routes = [];
 var standaloneApp = environment.app.toUpperCase() == 'STANDALONE'
@@ -126,7 +127,8 @@ if (standaloneApp) {
     routes = [
         { path: '', redirectTo: 'login', pathMatch: 'full' },
         { path: 'login', component : CmLoginComponent },
-        { path: 'login/:clientId', component : CmLoginComponent },
+        { path: 'resetPassword', component : CmResetPwComponent },
+        // { path: 'login/:clientId', component : CmLoginComponent },
         { path: 'home' , component: ArcsDashboardComponent,  canActivate: [AuthGuard]},
         { path: 'setup' , component: ArcsSetupComponent,  canActivate: [AuthGuard]},
         // { path: 'delivery',  component: ArcsDashboardComponent,  canActivate: [AuthGuard]},
@@ -207,6 +209,8 @@ import { CronEditorComponent } from './ui-components/cron-editor/cron-editor.com
 import { ArcsTaskScheduleComponent } from './arcs/arcs-dashboard/arcs-task-schedule/arcs-task-schedule.component';
 import { ArcsSetupPointTypeComponent } from './arcs/arcs-setup/arcs-setup-point-type/arcs-setup-point-type.component';
 import { ArcsChartsComponent } from './arcs/arcs-dashboard/arcs-charts/arcs-charts.component';
+import { ForgetPasswordComponent } from './common-components/cm-login/forget-password/forget-password.component';
+import { CmResetPwComponent } from './common-components/cm-reset-pw/cm-reset-pw.component';
 
 @NgModule({
     declarations: [
@@ -283,6 +287,8 @@ import { ArcsChartsComponent } from './arcs/arcs-dashboard/arcs-charts/arcs-char
         ArcsTaskScheduleComponent,
         ArcsSetupPointTypeComponent,
         ArcsChartsComponent,
+        ForgetPasswordComponent,
+        CmResetPwComponent,
         
     ],
     imports: [
@@ -364,6 +370,9 @@ import { ArcsChartsComponent } from './arcs/arcs-dashboard/arcs-charts/arcs-char
         ListViewModule,
         ScrollViewModule,
         TreeViewModule,
+        TooltipModule,
+
+        RecaptchaV3Module,
         ServiceWorkerModule.register('ngsw-worker.js', {
           enabled: environment.production,
           // Register the ServiceWorker as soon as the app is stable
@@ -373,11 +382,13 @@ import { ArcsChartsComponent } from './arcs/arcs-dashboard/arcs-charts/arcs-char
     ],
 
     providers: [
+        DatePipe,
         { provide: HTTP_INTERCEPTORS, useClass: CustomHttpInterceptor, multi: true },
         { provide: CDK_DRAG_CONFIG, useValue: { zIndex: 100000000 } },
         // { provide: MessageService, useClass: CustomMessagesService },
         { provide: NotificationService, useClass: NotificationService },
         { provide: LOCALE_ID, useValue: 'en-US' },
+        { provide: RECAPTCHA_V3_SITE_KEY, useValue: environment.recaptchaSiteKey },
         ConfigService,
         ConfigModule.init(),
         AuthGuard,

@@ -52,7 +52,7 @@ export class AuthService {
 	}
 	
 
-	public login(username, password , lang = 'EN' , guestMode = false , clientId = null) {
+	public login(username, password , lang = 'EN' , guestMode = false , clientId = null , authId = null , recaptchaToken =  null) {
 		// username = "Administrator"//testing
 		// this.configSrv.loadDbConfig(true)
 		this.tenantId = clientId ? clientId : this.generalUtil.config.CLIENT_ID
@@ -62,13 +62,15 @@ export class AuthService {
 				userId: username,
 				password: password,
 				clientId: clientId ? clientId : this.generalUtil.config.CLIENT_ID,
-				accountType: "W"
+				accountType: "W",
+				authId : authId,
+				recaptchaToken : recaptchaToken
 			}
 		}
 
 		return this.httpSrv.http.post<any>(this.generalUtil.getAPIUrl() + '/api/Auth/login', dataObj)
 			.pipe(map((response) => {
-				if(response?.['result'] == true){
+				if(response?.['result'] == true && response['validationResults']){
 					Object.keys(this.sessionStorageCredentialsMap).forEach(k => sessionStorage.setItem(k ,  response['validationResults'][this.sessionStorageCredentialsMap[k]]))
 					this.username = this.generalUtil.getCurrentUser()
 					this.userAccessList = response['validationResults']['accessFunctionList'].map(f=>f['functionCode'])
@@ -82,7 +84,7 @@ export class AuthService {
 			// response['data'][this.sessionStorageCredentialsMap[k]]
 	}
 
-	public logout(lang = 'EN') {
+	public async logout(lang = 'EN') {
 		let username = this.generalUtil.getCurrentUser()
 		Object.keys(this.sessionStorageCredentialsMap).forEach(k => sessionStorage.removeItem(k))
 		// sessionStorage.removeItem('userAccess')

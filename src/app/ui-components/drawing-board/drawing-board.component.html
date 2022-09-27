@@ -11,7 +11,7 @@
       <div class="overlay-button-container">
         <button kendoButton class="pick-map" *ngIf="!dataSrv.signalRSubj.isFollowMeWithoutMap.value && showRobot && !(robots[0] && robots[0]['mapCode']) && authSrv.username && !dataSrv.signalRSubj.isMappingMode.value" 
                 [disabled]="authSrv.isGuestMode"
-                (click)="pickMapClicked.emit() ; getFloorplanOptions(true) ; pickSpawnPoint = true ; fullScreen = true; overlayMsg =  null" >
+                (click)="pickMapClicked.emit() ; getDropList(true) ; pickSpawnPoint = true ; fullScreen = true; overlayMsg =  null" >
           <span class="mdi mdi-crosshairs"></span>
         </button>
         <button kendoButton class="scan"  *ngIf="!dataSrv.signalRSubj.isFollowMeWithoutMap.value && showScanButton" (click)="scanClicked.emit()">
@@ -30,15 +30,14 @@
     <div *ngIf = "!hideHeader && !dataSrv.arcsDefaultBuilding && (pickSpawnPoint || header) " class="title">
       {{pickSpawnPoint ? ( 'Localization' | label : uiSrv.langPack) : header}}
     </div>
-
-
+ 
     <div *ngIf = "dataSrv.arcsDefaultBuilding && isDashboard" class="title arcs">
-      <!-- <span>
-        <a class="site-tag" (click)="unsubscribePose_ARCS();onSiteSelected.emit()">{{arcsObjs.hierarchy.site.name}}</a> 
-        <span *ngIf="arcsObjs.hierarchy.building.id" class="site-building-delimiter mdi mdi-chevron-right"></span>
-        <span *ngIf="arcsObjs.hierarchy.building.id" class="building-tag">{{arcsObjs.hierarchy.building.name}}</span>
-      </span>   --> 
-      <span> 
+      <div class="location-tree">
+        <a class="site-name" *ngIf = "arcsLocationTree.site.code" (click)="onSiteSelected.emit()"> {{arcsLocationTree.site.name}} </a>
+        <span class="mdi mdi-chevron-right" *ngIf = "arcsLocationTree.site.code && arcsLocationTree.currentLevel == 'floorplan'"></span>
+        <span class="building-name" *ngIf = "arcsLocationTree.site.code && arcsLocationTree.currentLevel == 'floorplan'"> {{arcsLocationTree.building.name}}</span>
+      </div>
+      <span class="floorplan" *ngIf = "arcsLocationTree.currentLevel == 'floorplan'"> 
         <uc-dropdown   [options]="dropdownOptions?.floorplans"  class = "arcs-floorplan-picker"
                        [(value)] = "selectedFloorPlanCode" (valueChange)="selectedFloorPlanCodeChange.emit($event)" [allowClear] = "false"  [customDropItemTemplate] = "true"
                        (open)="setFloorplanRobotCount(); suspendViewportPlugin('wheel')" (close)="resumeViewportPlugin('wheel')">
@@ -146,15 +145,20 @@
       <button *ngIf="isDashboard && !util.arcsApp  &&  !hideButton['tools']" kendoButton class="engineer-mode"  [matTooltip]="'More Options'| label : uiSrv.langPack" (click)="engineerMode = !engineerMode" [ngClass]="{'btn-active': engineerMode}">
         <span class="mdi mdi-eye"></span>
       </button>
-      <ng-container  *ngIf="engineerMode || showRosToggle">
+      <ng-container  *ngIf="_fullScreen || engineerMode || showRosToggle">
         <button *ngIf="engineerMode && showRobot" kendoButton class="lidar" [matTooltip]="'Show Lidar Point Cloud'| label : uiSrv.langPack" [disabled]="disableButton['lidar']"   matTooltipPosition="right" 
                 [ngClass]="{'btn-active':liveLidarObj.show}" (click)=" liveLidarObj.show ? unsubscribeLiveLidar_SA() : subscribeLiveLidar_SA()">
                 <span class="mdi mdi-border-none"></span>
         </button>
 
         <button *ngIf="engineerMode || showRosToggle" kendoButton class="show-ros" [matTooltip]="'Show ROS Map'| label : uiSrv.langPack"  [disabled]="liveLidarObj.show || disableButton['lidar']" 
-                matTooltipPosition="right" (click)="toggleRosMap(!showRosMap)"  [ngClass]="{'btn-active': showRosMap || liveLidarObj.show }">
+                matTooltipPosition="right" (click)="toggleRosMap(!uitoggle.showRosMap)"  [ngClass]="{'btn-active': uitoggle.showRosMap || liveLidarObj.show }">
           <span class="mdi mdi-floor-plan"></span>
+        </button>
+
+        <button *ngIf="_fullScreen || (engineerMode && isDashboard)" kendoButton class="show-waypoint" [matTooltip]="'Show Waypoint'| label : uiSrv.langPack"  [disabled]="disableButton['showWaypoint']" 
+                matTooltipPosition="right" (click)="uitoggle.showWaypoint = !uitoggle.showWaypoint; toggleWaypoint(uitoggle.showWaypoint)"  [ngClass]="{'btn-active': uitoggle.showWaypoint , 'show-waypoint-fullscreen' : _fullScreen}">
+          <span class="mdi mdi-map-marker"></span>
         </button>
       </ng-container>
     </div>
@@ -324,6 +328,37 @@
         </kendo-switch>
       </div>
 
+      <div  class="bottom-sector edit-map-floorplan"  *ngIf="util.arcsApp && selectedGraphics?.type == 'pointGroup'">
+        <ng-container *ngIf="!selectedGraphics.settings.custom">
+          <!-- <uc-txtbox lab="Waypoint Name" [value] = "selectedGraphics.parentPoint.code" [disabled] = "true" > </uc-txtbox> -->
+          <uc-txtbox lab="Robot Count" numFormat="n0"  [(value)] = "selectedGraphics.settings.robotCount"  
+                    (valueChange)="selectedGraphics.resetChildPoints(); selectedGraphics.adjustColumnCount();selectedGraphics.adjustRowCount(); selectedGraphics.refreshGraphics()"  
+                    [numeric] = 'true' [numDecimals] = '0' [numMin]="1" [numMax]="99" [detectChangeByUserOnly] = "true" [disabled] = "!selectedGraphics.settings.neverCustomized">
+          </uc-txtbox>
+          <uc-txtbox *ngIf="selectedGraphics.settings.neverCustomized" lab = "Columns" numFormat="n0" [(value)] = "selectedGraphics.settings.column"  (valueChange)="selectedGraphics.adjustRowCount()" [numeric] = 'true' [numDecimals] = '0' [numMin]="1" [numMax]="selectedGraphics.settings.robotCount" [detectChangeByUserOnly] = "true"></uc-txtbox>
+          <uc-txtbox *ngIf="selectedGraphics.settings.neverCustomized" lab = "Rows" numFormat="n0"  [(value)] = "selectedGraphics.settings.row" (valueChange)="selectedGraphics.adjustColumnCount()" [numeric] = 'true' [numDecimals] = '0' [numMin]="1" [numMax]="selectedGraphics.settings.robotCount" [detectChangeByUserOnly] = "true"></uc-txtbox>
+          <uc-txtbox *ngIf="selectedGraphics.settings.neverCustomized" lab="Formation Spacing" [(value)] = "selectedGraphics.settings.space"  [detectChangeByUserOnly] = "true"
+                     (valueChange)="selectedGraphics.resetChildPoints(); selectedGraphics.refreshGraphics()"  [numeric] = 'true' [numMin] = '0' ></uc-txtbox>
+        </ng-container>
+        <div class='form-group'>
+          <label class="col-form-label">{{ 'Custom' | label : uiSrv.langPack}}</label>
+          <kendo-switch class="custom" [(ngModel)]="selectedGraphics.settings.custom" 
+                        (ngModelChange)="selectedGraphics.settings.neverCustomized = false ;selectGraphics(selectedGraphics.parentPoint)  " >
+          </kendo-switch>
+        </div>      
+      </div>
+
+      <div  class="bottom-sector edit-map-floorplan"  *ngIf="util.arcsApp && selectedGraphics?.type == 'childPoint'">
+        <uc-txtbox lab="Waypoint Name" [value] = "selectedGraphics.pixiPointGroup.parentPoint.code" [disabled] = "true" > </uc-txtbox>
+        <uc-txtbox lab="Sequence" [value] = "selectedGraphics.seq" [disabled] = "true" > </uc-txtbox>
+        <uc-txtbox lab="Angle" [(value)] = "selectedGraphics.robotAngle" [numDecimals]="5" [numeric] = 'true' [numMin] = '-180'  [numMax] = '360'></uc-txtbox>
+        <div class='form-group'>
+          <label class="col-form-label">{{ 'Custom' | label : uiSrv.langPack}}</label>
+          <kendo-switch class="custom" [(ngModel)]="selectedGraphics.pixiPointGroup.settings.custom"  (ngModelChange)="selectedGraphics.pixiPointGroup.refreshGraphics(true)">
+          </kendo-switch>
+        </div>      
+      </div>
+
       <div class="bottom-sector edit-map-floorplan" *ngIf=" (uiSrv.isTablet || selectedGraphics?.type == 'location' || selectedGraphics?.type == 'waypoint') && !readonly &&
                                                            ((( drawObj?.type == 'location' || drawObj?.type == 'waypoint' || !drawObj?.type ) &&  
                                                            (selectedGraphics?.type == 'location' || selectedGraphics?.type ==  'waypoint' ))|| selectedGraphics?.type == 'mapLayer' )" >
@@ -347,6 +382,13 @@
           <uc-txtbox *ngIf="util.standaloneApp && selectedGraphics.rosX !== undefined" lab="ROS Position X" [(value)] = "selectedGraphics.rosX" (valueChange)="selectedGraphics.refreshPositionByRosValue()"  [numeric] = 'true' [numDecimals] = '5' ></uc-txtbox>
           <uc-txtbox *ngIf="util.standaloneApp && selectedGraphics.rosY !== undefined"  lab="ROS Position Y" [(value)] = "selectedGraphics.rosY" (valueChange)="selectedGraphics.refreshPositionByRosValue()"   [numeric] = 'true' [numDecimals] = '5'></uc-txtbox>
           <uc-txtbox *ngIf="selectedGraphics.angleIndicator" lab="Angle" [(value)] = "selectedGraphics.angleIndicator.angle"  [numeric] = 'true'  [numDecimals] = '3'></uc-txtbox>
+          <div  *ngIf="util.arcsApp && withMapLayer" class="checkbox group">
+            <input class="checkbox"  type="checkbox" kendoCheckBox [disabled] = "readonly"  [(ngModel)]="selectedGraphics.hasPointGroup"/>
+            <div  class="label" >{{ 'Parking Spot' | label : uiSrv.langPack}}</div>
+          </div>
+          <button *ngIf="util.arcsApp && withMapLayer && selectedGraphics.hasPointGroup" kendoButton class="wp-zoom" [matTooltip]="'zoom and center'| label : uiSrv.langPack" matTooltipPosition="right" (click)="selectedGraphics.centerAndZoom()">
+            <span class="mdi mdi-crop-free"></span>
+          </button>
           <button  *ngIf="uiSrv.isTablet" kendoButton class='done-btn' (click)="pointRename.emit({ id: selectedGraphics.input.text, graphics: selectedGraphics, type: selectedGraphics.type })">
             {{ 'Done' | label : uiSrv.langPack}}
           </button>

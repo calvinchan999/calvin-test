@@ -45,6 +45,7 @@ export class TxtboxComponent implements OnInit {
   }
   @Input() disabled = false
   @Input() width 
+  @Input() detectChangeByUserOnly = true //added 20220902 to prevent programmatic valuechange emit 
   subscriptions = []
   maxlength = null
   errMsg = null
@@ -53,12 +54,13 @@ export class TxtboxComponent implements OnInit {
   myValue = null
   $onDestroy = new Subject()
   
+  
   @Input() public set value(v){
     v = v === undefined ? null : v
     this.myValue = v
     if(this.hasFrm){
       this.frmGrp.controls[this.frmCtrl].setValue(this.upper ? v?.toUpperCase() : v, { emitEvent: false })
-    }else{
+    }else if(!this.detectChangeByUserOnly){
       this.valueChange.emit(v)
     }
   }
@@ -139,5 +141,6 @@ export class TxtboxComponent implements OnInit {
     this.renderer.listen(document,'touchend', ()=>{
       clearInterval(interval)
     }) 
+    this.valueChange.emit(this.value)
   }
 }

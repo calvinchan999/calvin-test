@@ -32,6 +32,7 @@ export class ArcsSetupComponent implements OnInit {
   }
   tabs = [
     { id: 'robot', label: 'Robot' },
+    { id: 'site', label: 'Site' , authorized : false },
     { id: 'building', label: 'Building'},
     { id: 'floorplan', label: 'Floor Plan' },
     { id: 'map', label: 'Map' },
@@ -42,7 +43,7 @@ export class ArcsSetupComponent implements OnInit {
   gridSettings = { //consider to move them into a json file
     building : {
       functionId:"BUILDING",
-      apiUrl:"api/location/building/page/v1",
+      apiUrl:"api/building/page/v1",
       columns: [
         { title: "", type: "checkbox", id: "select", width: 15, fixed: true },
         { title: "#", type: "button", id: "edit", width: 15, icon: 'k-icon k-i-edit iconButton', fixed: true },
@@ -86,14 +87,12 @@ export class ArcsSetupComponent implements OnInit {
       ]
     },
     site: {
-      apiUrl:"api/locations/site/v1/page",
+      apiUrl:"api/site/page/v1",
       columns: [
         { title: "", type: "checkbox", id: "select", width: 15, fixed: true },
         { title: "#", type: "button", id: "edit", width: 15, icon: 'k-icon k-i-edit iconButton', fixed: true },
-        { title: "Code", id: "locationCode", width: 50 },
-        { title: "Site Name", id: "locationName", width: 200 },
-        { title: "Site File Name", id: "imgDisplayName", width: 200 },
-        { title: "Effective", id: "default", width: 50 }
+        { title: "Code", id: "siteCode", width: 50 },
+        { title: "Site Name", id: "name", width: 200 }
       ]
     },
     floorplan: {
@@ -173,7 +172,13 @@ export class ArcsSetupComponent implements OnInit {
   }
 
   async loadData(evt = null) {
-    this.tableElRef?.retrieveData()
+    await this.tableElRef?.retrieveData()
+    // if(this.selectedTab == 'site' && this.tableElRef?.data.length > 0){
+    //   let original = JSON.parse(JSON.stringify(this.tableDisabledButtons))
+    //   let tmp = JSON.parse(original)
+    //   tmp['new'] = true
+    //   this.tableDisabledButtons = tmp
+    // }
     // this.uiSrv.loadAsyncDone(ticket)
   }
 
@@ -208,8 +213,8 @@ export class ArcsSetupComponent implements OnInit {
       robot : 'api/robot/v1' ,
       action: 'api/robot/action/v1' ,
       type:'api/robot/type/v1' , 
-      site: 'api/locations/site/v1' , 
-      building: 'api/location/building/v1' , 
+      site: 'api/site/v1' , 
+      building: 'api/building/v1' , 
       floorplan: 'api/map/plan/v1' , 
       map:'api/map/v1' , 
       pointType : 'api/customization/pointType/v1'

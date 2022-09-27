@@ -1,4 +1,4 @@
-<div #mainContainer [class] = "robotTypeFilter==null ?  'card-container home' : ('card-container ' + robotTypeFilter)" >
+<div #mainContainer [class] = " 'card-container ' + (robotTypeFilter==null ?  '' :  robotTypeFilter) + ' ' + (selectedTab == 'dashboard' ? 'home' : selectedTab)" >
 
     <div class="card-header-wrapper" >
         <!-- title -->
@@ -126,14 +126,16 @@
         <div class = "viewport-container" (wheel)="$event.preventDefault()">
             <uc-drawing-board #pixi [isDashboard] = "true" [hideButton] = "{ all : true}" [readonly] = "true" (robotClicked)="showRobotDetailDialog($event?.id)" 
                                     [arcsRobotType] = "robotTypeFilter"  [(selectedFloorPlanCode)]="selectedFloorPlanCode" 
-                                    (selectedFloorPlanCodeChange)="loadFloorPlan(selectedFloorPlanCode)" [arcsRobotColors]="robotIconColorMap">
+                                    (selectedFloorPlanCodeChange)="loadFloorPlan(selectedFloorPlanCode)" [arcsRobotColors]="robotIconColorMap"
+                                    (onBuildingSelected) = "onPixiBuildingSelected($event)" (onSiteSelected) = "loadSite()">
             </uc-drawing-board> 
         </div>
     </kendo-tilelayout-item>
 </kendo-tilelayout>
 
 <div class="table-container"  *ngIf="selectedTab == 'schedule'  || selectedTab == 'task' || selectedTab == 'template'">
-    <uc-table #table  [toolbarButtons] ="tableButtons" [columnDefs] = "gridSettings[selectedTab]['columns']" [(data)]="data"    [functionId] = "gridSettings[selectedTab]['functionId']"
+    <uc-table #table  [toolbarButtons] ="tableButtons" [columnDefs] = "gridSettings[selectedTab]['columns']" [(data)]="data"    
+                      [functionId] = "gridSettings[selectedTab]['functionId']"
                       [dataSourceApiEndpoint] = "gridSettings[selectedTab]['apiUrl']"
                       [disabledButtons] = "tableDisabledButtons" 
                       (selectedDataChange) = "tableDisabledButtons = {new : false , action : $event.length == 0}"
@@ -144,8 +146,8 @@
     </uc-table>
 </div>
 
-<ng-container class="charts-container" *ngIf="selectedTab == 'usability'">
-    <app-arcs-charts ></app-arcs-charts>
+<ng-container class="charts-container" *ngIf="selectedTab == 'usability' || selectedTab == 'utilization' ">
+    <app-arcs-charts [chartType]="selectedTab" ></app-arcs-charts>
 </ng-container>
 
 <!-- <kendo-buttongroup *ngIf="selectedTab == 'dashboard'" class = "btn-grp-sub" selection="single">

@@ -2,13 +2,17 @@
     <div class="loader-container" [style.zIndex] = "uiSrv.loadingShadeZindex" *ngIf="uiSrv.loadingTickets.length > 0">
         <kendo-loader [type]="uiSrv.loaderStyle.type" [themeColor]="uiSrv.loaderStyle.themeColor" [size]="uiSrv.loaderStyle.size" class="block-ui-loader"></kendo-loader>
     </div>
-    <div *ngIf="authSrv.username" kendoDialogContainer (keydown.esc) = "$event.preventDefault()"></div>
+    <div *ngIf="authSrv.username || currentRoute == '/resetPassword'" kendoDialogContainer (keydown.esc) = "$event.preventDefault()"></div>
     <ng-container *ngIf="authSrv.username || uiSrv.isTablet">
         <app-header-component [selectedPage]="selected"></app-header-component>
         <kendo-drawer-container>
             <div class="sidebar">
                 <kendo-drawer #drawer [items]="items && authSrv.username && !authSrv.isGuestMode && router.url != '/taskProgress' ? items : []" [mode]="mode" [mini]="mini" [expanded]="false"
                               [animation]="false" (select)="onSelect($event)">
+                              <!-- <ng-template kendoDrawerItemTemplate let-item>
+                                <div class="robot-type" *ngIf="drawer.expanded">{{item.text | label: uiSrv.langPack}}</div>
+                                <div class="robot-type" *ngIf="drawer.expanded">{{item.text | label: uiSrv.langPack}}</div>
+                              </ng-template> -->
                 </kendo-drawer>
                 <div [class]="'aicon' + ' arr-' + (drawer.expanded? 'open' : 'close') ">
                     <span class="k-icon" (click)="toggleDrawer(drawer)"></span>
@@ -28,7 +32,8 @@
     <app-sa-pages-alert-overlay *ngIf="util.standaloneApp"></app-sa-pages-alert-overlay>
 
     <ng-container *ngIf="!authSrv.username && !uiSrv.isTablet">
-        <app-cm-login></app-cm-login>
+        <app-cm-login *ngIf="currentRoute != '/resetPassword'"></app-cm-login>
+        <app-cm-reset-pw *ngIf="currentRoute == '/resetPassword'"></app-cm-reset-pw>    
     </ng-container>
     <!-- <div *ngIf="!authSrv.username">
         <router-outlet></router-outlet>

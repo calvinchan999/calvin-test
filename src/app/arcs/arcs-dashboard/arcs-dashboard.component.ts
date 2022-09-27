@@ -3,7 +3,7 @@ import { RvHttpService } from 'src/app/services/rv-http.service';
 import { UiService } from 'src/app/services/ui.service';
 import { DrawingBoardComponent, PixiCommon } from 'src/app/ui-components/drawing-board/drawing-board.component';
 import { GeneralUtil } from 'src/app/utils/general/general.util';
-import { DataService, DropListBuilding, DropListFloorplan, DropListType, FloorPlanDataset, RobotStatusARCS as RobotStatus, RobotTaskInfoARCS, ShapeJData } from 'src/app/services/data.service';
+import { DataService, DropListBuilding, DropListFloorplan, DropListType, FloorPlanDataset, JSite, RobotStatusARCS as RobotStatus, RobotTaskInfoARCS, ShapeJData } from 'src/app/services/data.service';
 import { Router } from '@angular/router';
 import { DialogRef } from '@progress/kendo-angular-dialog';
 import { CmTaskJobComponent } from 'src/app/common-components/cm-task/cm-task-job/cm-task-job.component';
@@ -137,7 +137,8 @@ export class ArcsDashboardComponent implements OnInit {
     ].filter(t=> t.authorized === false || this.authSrv.userAccessList.includes(t.functionId.toUpperCase())) : 
     [
       { id: 'dashboard', label: 'Dashboard', authorized: false } , 
-      { id: 'usability', label: 'Usability', authorized: false }
+      { id: 'usability', label: 'Usability', authorized: false },
+      { id: 'utilization', label: 'Utilization', authorized: false }
     ]
 
   }
@@ -148,9 +149,9 @@ export class ArcsDashboardComponent implements OnInit {
   $onDestroy = new Subject()
   floorPlanFilter = null
   selectedFloorPlanCode
+  site : JSite
   
-  constructor(  private util :GeneralUtil , private authSrv : AuthService , private httpSrv : RvHttpService, public uiSrv : UiService , private dataSrv : DataService, private router : Router ) {
-  
+  constructor(  private util :GeneralUtil , private authSrv : AuthService , private httpSrv : RvHttpService, public uiSrv : UiService , private dataSrv : DataService, private router : Router , private ngZone : NgZone ) {
     // this.chartTesting()
     this.tabs = this.tabs.filter(t=> t.authorized === false || this.authSrv.userAccessList.includes(t.functionId))
     this.selectedTab = 'dashboard'
@@ -180,8 +181,6 @@ export class ArcsDashboardComponent implements OnInit {
   
   async ngOnInit(){
     // let robotList = <any>(await this.dataSrv.getDropList('robots')).data
-    let ddl = await this.dataSrv.getDropList('types')
-    this.dropdownData.types = ddl.data;
     this.robotTypeFilter = this.router.url == '/home' ? null : this.router.url.replace('/', '')
     this.tabs = this.getTabs()
     this.gridSettings = this.getGridSettings()
@@ -191,6 +190,9 @@ export class ArcsDashboardComponent implements OnInit {
   }
 
   async ngAfterViewInit() {
+    this.site = await this.dataSrv.getSite()
+    let ddl = await this.dataSrv.getDropList('types')
+    this.dropdownData.types = ddl.data;
     this.initPixi()
   }
 
@@ -198,9 +200,49 @@ export class ArcsDashboardComponent implements OnInit {
     let ticket = this.uiSrv.loadAsyncBegin()
     setTimeout(async () => {
       this.pixiElRef.initDone$.subscribe(async () => {
-        this.loadFloorPlan()
+        if(this.site){
+          this.loadSite()
+        }else{
+          this.loadFloorPlan()
+        }
         this.uiSrv.loadAsyncDone(ticket)
       })
+    })
+  }
+
+  async loadSite(){
+    this.selectedFloorPlanCode = null
+    if( this.pixiElRef){
+      this.pixiElRef.reset()
+      this.pixiElRef.arcsLocationTree.currentLevel = 'site'
+      this.pixiElRef.arcsLocationTree.site.code = this.site.siteCode
+      this.pixiElRef.arcsLocationTree.site.name = this.site.name
+      await this.pixiElRef.loadToMainContainer( this.site.base64Image )  
+      this.pixiElRef.loadArcsBuildings()
+      this.pixiElRef.setViewportCamera(this.site.viewX, this.site.viewY, this.site.viewZoom)
+    }
+    this.refreshTaskInfo()
+    this.refreshRobotStatus()
+  }
+
+  refreshBuildingRobotCountTag(robotList : {floorPlanCode : string}[]){
+    this.pixiElRef.dropdownData.floorplans.map((b:DropListBuilding)=> b.buildingCode).filter(b=>this.pixiElRef.allPixiPolygon.map(p=>p.arcsBuildingCode).includes(b)).forEach(buildingCode=>{
+      let floorPlanList = (<DropListFloorplan[]>this.pixiElRef.dropdownData.floorplans).filter((fp) => fp.buildingCode == buildingCode).map(fp=>fp.floorPlanCode)
+      this.pixiElRef.setBuildingRobotCount(buildingCode , robotList.filter(r=>floorPlanList.includes(r.floorPlanCode)).length)
+    })
+  }
+
+  async onPixiBuildingSelected(buildingCode : string){
+    this.ngZone.run(()=>{
+      let floorplans : DropListFloorplan[] = <any>this.pixiElRef.dropdownData.floorplans
+      let fpCode = floorplans.filter(fp=>fp.buildingCode == buildingCode && fp.defaultPerBuilding)[0]?.floorPlanCode
+      fpCode = fpCode ? fpCode : floorplans.filter(fp=>fp.buildingCode == buildingCode)[0]?.floorPlanCode
+      if(fpCode){
+        this.pixiElRef.dropdownOptions.floorplans = this.dataSrv.getDropListOptions('floorplans' , this.pixiElRef.dropdownData.floorplans , {buildingCode : buildingCode})
+        this.loadFloorPlan(fpCode) 
+      }else{
+        this.uiSrv.showNotificationBar(`No available floor plans found for the selected building [${buildingCode}]`)
+      }
     })
   }
 
@@ -214,21 +256,26 @@ export class ArcsDashboardComponent implements OnInit {
     floorPlanCode = floorPlanCode ? floorPlanCode : floorPlans.filter(f=> f.buildingCode == defaultBuilding || !defaultBuilding )[0]?.floorPlanCode
     return floorPlanCode
   }
+ 
 
   async loadFloorPlan(code = null) {
+    let ticket = this.uiSrv.loadAsyncBegin()
     code = code ? code :  await this.getDefaultFloorPlanCode()
     if(!code){
       this.pixiElRef.overlayMsg = this.uiSrv.translate("No floorplan records found.")
+      this.uiSrv.loadAsyncDone(ticket)
       return 
     }
     let floorplan = await this.dataSrv.getFloorPlanV2(code);
     sessionStorage.setItem('dashboardFloorPlanCode', floorplan.floorPlanCode);  
     await this.pixiElRef.loadFloorPlanDatasetV2(floorplan, true, true);
     this.selectedFloorPlanCode = floorplan.floorPlanCode
+    // console.log([... new Set(floorplan.mapList.map(m => m.mapCode))])
     this.pixiElRef.subscribeRobotsPose_ARCS([... new Set(floorplan.mapList.map(m => m.mapCode))])
     this.floorPlanFilter = floorplan.floorPlanCode
-    this.refreshTaskInfo()
-    this.refreshRobotStatus()
+    await this.refreshTaskInfo()
+    await this.refreshRobotStatus()
+    this.uiSrv.loadAsyncDone(ticket)
   }
 
   refreshRobotIconColorMap(){
@@ -258,7 +305,7 @@ export class ArcsDashboardComponent implements OnInit {
 
   getStatusListUrlParam(){
     let ret =  (this.robotTypeFilter ? [`robotType=${this.robotTypeFilter.toUpperCase()}`]: []).concat(this.selectedFloorPlanCode? [`floorPlanCode=${this.selectedFloorPlanCode}`] : []).join("&")
-    return ret = ''? '' : '?' + ret
+    return ret == ''? '' : '?' + ret
   }
 
   async refreshTaskInfo() {
@@ -266,7 +313,7 @@ export class ArcsDashboardComponent implements OnInit {
     //    data = [
     //   {
     //     robotType: "PATROL",
-    //     floorPlanCode: "HKAA-L5",
+    //     floorPlanCode: "TEST",
     //     executingTaskCount: 1,
     //     completedTaskCount: 5,
     //     waitingTaskCount: 1,
@@ -274,7 +321,7 @@ export class ArcsDashboardComponent implements OnInit {
     //   },
     //   {
     //     robotType: "PATROL",
-    //     floorPlanCode: "HKAA-L5",
+    //     floorPlanCode: "5W_0429",
     //     executingTaskCount: 1,
     //     completedTaskCount: 5,
     //     waitingTaskCount: 1,
@@ -282,7 +329,7 @@ export class ArcsDashboardComponent implements OnInit {
     //   },
     //   {
     //     robotType: "PATROL",
-    //     floorPlanCode: "HKAA-L5",
+    //     floorPlanCode: "5W_0429",
     //     executingTaskCount: 1,
     //     completedTaskCount: 5,
     //     waitingTaskCount: 1,
@@ -306,6 +353,9 @@ export class ArcsDashboardComponent implements OnInit {
     })    
     this.executingTaskCount = data.map(t=> t.executingTaskCount ).reduce((acc, i)=>  acc += i , 0)
     this.totalTaskCount =  data.map(t=> t.executingTaskCount + t.completedTaskCount).reduce((acc, i)=>  acc += i , 0)
+    if(this.pixiElRef && this.pixiElRef.arcsLocationTree.currentLevel == 'site'){
+      this.refreshBuildingRobotCountTag((<any>data))
+    }
   }
 
   async refreshRobotStatus(){
@@ -314,19 +364,19 @@ export class ArcsDashboardComponent implements OnInit {
     //   {
     //     robotType: "PATROL",
     //     robotCode: "DUMMY-1",
-    //     floorPlanCode: "HKAA-L5",
+    //     floorPlanCode: "TEST",
     //     robotStatus: "EXECUTING"
     //   },
     //   {
     //     robotType: "PATROL",
     //     robotCode: "DUMMY-2",
-    //     floorPlanCode: "HKAA-L5",
+    //     floorPlanCode: "5W_0429",
     //     robotStatus: "EXECUTING"
     //   },
     //   {
     //     robotType: "PATROL",
     //     robotCode: "DUMMY-3",
-    //     floorPlanCode: "HKAA-L5",
+    //     floorPlanCode: "5W_0429",
     //     robotStatus: "EXECUTING"
     //   }
     // ]
@@ -364,6 +414,9 @@ export class ArcsDashboardComponent implements OnInit {
 
     this.activeRobotCount = data.filter(s=>s.robotStatus != 'UNKNOWN').length
     this.totalRobotCount = data.length
+    if(this.pixiElRef &&  this.pixiElRef.arcsLocationTree.currentLevel == 'site'){
+      this.refreshBuildingRobotCountTag(<any>data)
+    }
   }
 
   showTaskDetail(evt = null){
