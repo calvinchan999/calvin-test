@@ -150,6 +150,7 @@ export class ArcsDashboardComponent implements OnInit {
   floorPlanFilter = null
   selectedFloorPlanCode
   site : JSite
+  loadingTicket
   
   constructor(  private util :GeneralUtil , private authSrv : AuthService , private httpSrv : RvHttpService, public uiSrv : UiService , private dataSrv : DataService, private router : Router , private ngZone : NgZone ) {
     // this.chartTesting()
@@ -172,6 +173,7 @@ export class ArcsDashboardComponent implements OnInit {
         this.tableRef.retrieveData();
       }
     })
+    this.loadingTicket = this.uiSrv.loadAsyncBegin()
   }
 
   ngOnDestroy(){
@@ -197,7 +199,7 @@ export class ArcsDashboardComponent implements OnInit {
   }
 
   async initPixi() {
-    let ticket = this.uiSrv.loadAsyncBegin()
+    // let ticket = this.uiSrv.loadAsyncBegin()
     setTimeout(async () => {
       this.pixiElRef.initDone$.subscribe(async () => {
         if(this.site){
@@ -205,7 +207,7 @@ export class ArcsDashboardComponent implements OnInit {
         }else{
           this.loadFloorPlan()
         }
-        this.uiSrv.loadAsyncDone(ticket)
+        this.uiSrv.loadAsyncDone(this.loadingTicket)
       })
     })
   }

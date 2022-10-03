@@ -558,6 +558,7 @@ app-sa-pages-alert-overlay .wrapper.expanded {
   top: calc(50vh - 106px);
   left: 15vw;
   background: black;
+  height: auto;
 }
 app-sa-pages-alert-overlay .wrapper.collasped {
   background: rgba(0, 0, 0, 0.7);
@@ -565,6 +566,7 @@ app-sa-pages-alert-overlay .wrapper.collasped {
   left: 15vw;
   position: fixed;
   top: 7%;
+  height: auto;
 }
 app-sa-pages-alert-overlay .k-expander-header {
   padding: 0;

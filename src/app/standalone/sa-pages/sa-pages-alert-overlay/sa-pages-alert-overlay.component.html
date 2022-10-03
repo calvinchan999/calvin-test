@@ -1,4 +1,4 @@
-<!-- <div *ngIf="uiSrv.isTablet && (dataSrv.signalRSubj.estop.value || dataSrv.signalRSubj.obstacleDetected.value || dataSrv.signalRSubj.tiltActive.value)" 
+<div *ngIf="uiSrv.isTablet && (dataSrv.signalRSubj.estop.value || dataSrv.signalRSubj.obstacleDetected.value || dataSrv.signalRSubj.tiltActive.value)" 
      [class]="'warning background ' +  (expanded ? 'expanded' : 'collasped')">
     <div [class]="'wrapper ' +  (expanded ? 'expanded' : 'collasped')">
         <kendo-expansionpanel [(expanded)] = "expanded">
@@ -21,7 +21,7 @@
             </ng-template>           
         </kendo-expansionpanel>
     </div>
-</div> -->
+</div>
 
 <!-- [title]="!expanded? (('Warning' | label: uiSrv.langPack) + 
                                         (((dataSrv.signalRSubj.estop.value?  (' : ' + 'Emergency Stop Switched On') : '')| label: uiSrv.langPack) +
