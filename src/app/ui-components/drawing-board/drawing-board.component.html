@@ -376,7 +376,13 @@
               </kendo-slider>            
             </div>
           </div>
-          <uc-dropdown lab="Waypoint Type" [options]="dropdownOptions.pointTypes" [allowClear]="false" [(value)]="selectedGraphics.pointType" (valueChange)="selectedGraphics.onPointTypeChange()" class="col-2"></uc-dropdown>
+          <uc-dropdown lab="Icon" [options]="dropdownOptions.iconTypes" [allowClear]="false" [(value)]="selectedGraphics.iconType" 
+                       (valueChange)="selectedGraphics.onIconTypeChange()" class="col-2" (open)="suspendViewportPlugin('wheel')" 
+                       (close)="resumeViewportPlugin('wheel')">
+          </uc-dropdown>
+          <uc-dropdown *ngIf="showWaypointType" lab="Waypoint Type" [options]="dropdownOptions.pointTypes" [allowClear]="false" [(value)]="selectedGraphics.pointType"
+                        class="col-2" (open)="suspendViewportPlugin('wheel')" (close)="resumeViewportPlugin('wheel')">
+          </uc-dropdown>
           <!-- <uc-txtbox  lab="Position X" [(value)] = "selectedGraphics.position.x" (valueChange) = "refreshArrows(selectedGraphics)"  [numeric] = 'true' [numDecimals] = '0' ></uc-txtbox>
           <uc-txtbox  lab="Position Y" [(value)] = "selectedGraphics.position.y" (valueChange) = "refreshArrows(selectedGraphics)"  [numeric] = 'true' [numDecimals] = '0'></uc-txtbox> -->
           <uc-txtbox *ngIf="util.standaloneApp && selectedGraphics.rosX !== undefined" lab="ROS Position X" [(value)] = "selectedGraphics.rosX" (valueChange)="selectedGraphics.refreshPositionByRosValue()"  [numeric] = 'true' [numDecimals] = '5' ></uc-txtbox>

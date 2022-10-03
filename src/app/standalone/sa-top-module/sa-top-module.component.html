@@ -1,4 +1,4 @@
-<kendo-scrollview *ngIf="!util.arcsApp  && (robotType == 'patrol' && !isTaskLayout)" [data]="[1 , 2]" [arrows]="!uiSrv.isTablet" [pageable]="true">
+<kendo-scrollview *ngIf="!util.arcsApp  && (robotType == 'patrol' && !isTaskLayout)" [data]="patrolFlvSrc ? [1 , 2] : [1]" [arrows]="!uiSrv.isTablet" [pageable]="true">
     <ng-template let-item="item">
         <ng-container *ngIf="item == 2">
             <app-video-player [width]="1700" [height]="700" [src]="patrolFlvSrc"></app-video-player>

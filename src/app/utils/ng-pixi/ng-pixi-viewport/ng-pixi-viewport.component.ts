@@ -77,7 +77,7 @@ export class NgPixiViewportComponent implements OnInit, AfterViewInit, OnDestroy
                 worldHeight: 400,
                 worldWidth: 400,
                 interaction: this.app.renderer.plugins.interaction,
-                passiveWheel: true
+                passiveWheel: true,
             });
         });
     }

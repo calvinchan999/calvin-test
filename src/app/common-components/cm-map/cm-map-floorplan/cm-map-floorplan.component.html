@@ -22,8 +22,8 @@
         <!-- [style.minWidth] = "selectedTab == 'locations'? '100%' : ''" -->
         <div class="viewport-container" #pixiContainer > 
             <uc-drawing-board #pixi [overlayMsg] = "frmGrp.controls['fileName'].value? null : ('Please upload the floor plan file first' | label : uiSrv.langPack) " 
-                              (pointRename) = "onPointUpsert($event)" [readonly] = "readonly" [waypointEditable] = "true"
-                              (pointUnselected) = "onPointUnselected($event)"
+                              (pointRename) = "onPointUpsert($event)" [readonly] = "readonly" [waypointEditable] = "true" [showWaypointType] = "showWaypointType"
+                              (pointUnselected) = "onPointUnselected($event)" 
                               [showRosToggle] = "util.standaloneApp" (addLocalWayPointClicked) = "getPoseAndAddWaypoint_SA()"
                               [canUploadMultiImg] = "false" [hideButton] = "{all:true}" [(selectedShape)] = "selectedPixiShape" [hideRelocationButton] = "true"
                               (fileLoad)=" frmGrp.controls['fileName'].setValue($event?.name)">

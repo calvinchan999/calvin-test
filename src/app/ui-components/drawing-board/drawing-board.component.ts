@@ -19,7 +19,7 @@ import {GlowFilter} from '@pixi/filter-glow';
 import {OutlineFilter} from '@pixi/filter-outline';
 import {ColorOverlayFilter} from '@pixi/filter-color-overlay';
 import {DropShadowFilter} from '@pixi/filter-drop-shadow';
-import { ShapeJData , MapJData, FloorPlanDataset, MapDataset, DataService, robotPose, DropListFloorplan, DropListLocation, DropListMap, DropListAction, DropListBuilding, JMap, JPoint, JPath, JFloorPlan, DropListRobot, DropListPointType, RobotStatusARCS, JChildPoint } from 'src/app/services/data.service';
+import { ShapeJData , MapJData, FloorPlanDataset, MapDataset, DataService, robotPose, DropListFloorplan, DropListLocation, DropListMap, DropListAction, DropListBuilding, JMap, JPoint, JPath, JFloorPlan, DropListRobot, DropListPointIcon, RobotStatusARCS, JChildPoint } from 'src/app/services/data.service';
 import { AuthService } from 'src/app/services/auth.service';
 import * as roundSlider from "@maslick/radiaslider/src/slider-circular";
 import {GraphBuilder, DijkstraStrategy} from "js-shortest-path"
@@ -48,7 +48,8 @@ export class DrawingBoardComponent implements OnInit , AfterViewInit {
   @ViewChild('angleSlider') public angleSlider : ElementRef
   @ViewChild('kendoAngleSlider') public kendoAngleSlider 
   @Input() waypointEditable = false
-  @Input()  uploadMustMatchOriginalSize = false
+  @Input() uploadMustMatchOriginalSize = false
+  @Input() showWaypointType = false
   get withMapLayer(){
     return Object.values(this.mapLayerStore).length > 0
   }
@@ -289,7 +290,8 @@ export class DrawingBoardComponent implements OnInit , AfterViewInit {
     floorplans : [],
     locations : [],
     maps: [],
-    pointTypes : []
+    iconTypes : [],
+    pointTypes : [],
   }
   dropdownData = {
     floorplans:[],
@@ -297,6 +299,7 @@ export class DrawingBoardComponent implements OnInit , AfterViewInit {
     maps : [],
     buildings : [],
     robots :[],
+    iconTypes : [],
     pointTypes : []
   } 
   selectedLocation : null
@@ -480,9 +483,13 @@ export class DrawingBoardComponent implements OnInit , AfterViewInit {
     if(this.util.arcsApp){
       this.dropdownData.robots = await this.dataSrv.getRobotList();
     }
-    this.dropdownData.pointTypes = await this.dataSrv.getPointTypeList()
-    this.dropdownOptions.pointTypes = this.dropdownData.pointTypes.map((t:DropListPointType)=> {return {value : t.code , text : t.name}});
-    this.defaultPointType = (<DropListPointType[]>this.dropdownData.pointTypes).filter(t=> !t.base64Image || t.base64Image.length == 0)[0].code//TBR
+    this.dropdownData.iconTypes = await this.dataSrv.getPointIconList()
+    this.dropdownOptions.iconTypes = this.dropdownData.iconTypes.map((t:DropListPointIcon)=> {return {value : t.code , text : t.name}});
+    console.log(this.showWaypointType)
+    if(this.showWaypointType){
+      this.dropdownOptions.pointTypes = await this.dataSrv.getPointTypeList()
+    }
+    this.defaultPointType = (<DropListPointIcon[]>this.dropdownData.iconTypes).filter(t=> !t.base64Image || t.base64Image.length == 0)[0].code//TBR
     // console.log(`window height : ${window.innerHeight} , window width : ${window.innerWidth}  `)
     if(!this.uiSrv.drawingBoardComponents.includes(this)){
       this.uiSrv.drawingBoardComponents.push(this)
@@ -945,7 +952,7 @@ export class DrawingBoardComponent implements OnInit , AfterViewInit {
 
   public getPixiLocPoint(option = new GraphicOptions(), text = null, type = this.point.type , iconUrl = null , pointType = this.defaultPointType): PixiLocPoint { //Some parts to be moved to PixiArrow
     if(pointType != null && !iconUrl){
-      let base64 = (<DropListPointType[]>this.dropdownData.pointTypes).filter(t=>t.code == pointType)[0]?.base64Image
+      let base64 = (<DropListPointIcon[]>this.dropdownData.iconTypes).filter(t=>t.code == pointType)[0]?.base64Image
       iconUrl = base64 && base64!="" ? base64 : null
     }
     option.fillColor = Number(this.selectedStyle.marker.color.replace("#", "0x"))
@@ -1836,6 +1843,7 @@ export class DrawingBoardComponent implements OnInit , AfterViewInit {
       pixiPoint.orientationAngle = data.guiAngle
       pixiPoint.position.set(data.guiX , data.guiY)
       pixiPoint.dataObj = data
+      pixiPoint.pointType = data.pointType
       addPixiGraphic(pixiPoint)
       if(data.groupProperties && data.groupProperties!= "" ){
         pixiPoint.hasPointGroup = true
@@ -1907,7 +1915,8 @@ export class DrawingBoardComponent implements OnInit , AfterViewInit {
       pt.guiX = point.position.x 
       pt.guiY = point.position.y 
       pt.pointCode = point.code
-      pt.userDefinedPointType = point.pointType
+      pt.userDefinedPointType = point.iconType
+      pt.pointType = point.pointType
       pt.groupProperties = hasMap && point.hasPointGroup ? JSON.stringify(point.pixiPointGroup.settings) : ""
       if(hasMap && point.hasPointGroup){
         let group = point.pixiPointGroup
@@ -3873,6 +3882,7 @@ export class PixiLocPoint extends PixiCommon {
   link : {arrow : PixiArrow , waypoint : PixiLocPoint}[] = []
   button : PIXI.Graphics
   readonly = false
+  iconType = null
   pointType = null
   onInputBlur : EventEmitter<any> = new EventEmitter()
   get orientationAngle(){
@@ -3938,10 +3948,10 @@ export class PixiLocPoint extends PixiCommon {
   }
 
 
-  constructor(type , text = null , opt : GraphicOptions = new GraphicOptions , showAngleIndicator = false , uiSrv = null , iconUrl = null , pointType = null){
+  constructor(type , text = null , opt : GraphicOptions = new GraphicOptions , showAngleIndicator = false , uiSrv = null , iconUrl = null , iconType = null){
     super()    
     this.addChild(this.inputBg)
-    this.pointType = pointType
+    this.iconType = iconType
     this.icon = iconUrl ? PIXI.Sprite.from(iconUrl) : null
     this.iconUrl = iconUrl
     this.uiSrv = uiSrv
@@ -4217,9 +4227,9 @@ export class PixiLocPoint extends PixiCommon {
     }
   }
 
-  onPointTypeChange() {
+  onIconTypeChange() {
     if (this.getMasterComponent()) {
-      let base64 = (<DropListPointType[]>this.getMasterComponent().dropdownData.pointTypes).filter(t => t.code == this.pointType)[0]?.base64Image
+      let base64 = (<DropListPointIcon[]>this.getMasterComponent().dropdownData.iconTypes).filter(t => t.code == this.iconType)[0]?.base64Image
       this.iconUrl = base64 && base64.length > 0 ? base64 : null
       this.icon = this.iconUrl ? PIXI.Sprite.from(this.iconUrl) : null
       this.draw(true)

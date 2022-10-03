@@ -587,11 +587,11 @@ export class DataService {
     return this.dataStore.arcsRobotList
   }
 
-  public async getPointTypeList() : Promise<DropListPointType[]>{
+  public async getPointIconList() : Promise<DropListPointIcon[]>{
     if(this.dataStore.pointTypeList?.length > 0){
-      let updatedList :DropListPointType[] = await this.httpSrv.get(`api/customization/pointType/droplist/v1?image=false`);
-      if(updatedList.some((newItm: DropListPointType ) => {
-        let match : DropListPointType = this.dataStore.pointTypeList.filter((old : DropListPointType)=> old.code == newItm.code)[0];
+      let updatedList :DropListPointIcon[] = await this.httpSrv.get(`api/customization/pointType/droplist/v1?image=false`);
+      if(updatedList.some((newItm: DropListPointIcon ) => {
+        let match : DropListPointIcon = this.dataStore.pointTypeList.filter((old : DropListPointIcon)=> old.code == newItm.code)[0];
         return !match || match.modifiedDateTime != newItm.modifiedDateTime
       })){
         this.dataStore.pointTypeList = await this.httpSrv.get(`api/customization/pointType/droplist/v1?image=true`)
@@ -600,6 +600,18 @@ export class DataService {
       this.dataStore.pointTypeList = await this.httpSrv.get(`api/customization/pointType/droplist/v1?image=true`)
     }
     return this.dataStore.pointTypeList
+  }
+
+  public async getPointTypeList(blockUI = true){
+    let ticket
+    if(blockUI){
+      ticket = this.uiSrv.loadAsyncBegin()
+    }
+    let data = await this.httpSrv.rvRequest('GET','floorPlan/v1/pointTypeList',undefined,false)
+    if(blockUI){
+      this.uiSrv.loadAsyncDone(ticket)
+    }
+    return data.map((d:{enumName:string , description : string}) => {return {text : d.description , value : d.enumName}})
   }
 
   
@@ -999,7 +1011,7 @@ export class DropListRobot{
   robotSubType : string
 }
 
-export class DropListPointType{
+export class DropListPointIcon{
   code : string
   name: string
   base64Image: string
@@ -1062,6 +1074,7 @@ export class JPoint {
   guiY: number
   guiAngle: number
   userDefinedPointType : string
+  pointType: string
   groupMemberPointList? : JPoint []
   groupPointCode? : string
   groupProperties? : string

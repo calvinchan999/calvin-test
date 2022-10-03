@@ -141,7 +141,7 @@ export class SaTopModuleComponent implements OnInit {
 
  async initAirQualitySubscription() {
     if (this.robotType == 'patrol') {
-      let ieqReq = await this.dataSrv.httpSrv.rvRequest('GET', this.dataSrv.signalRMaster.ieq.api + '/' + this.arcsRobotCode , undefined , false)
+      let ieqReq = await this.dataSrv.httpSrv.rvRequest('GET', this.dataSrv.signalRMaster.ieq.api + (this.util.arcsApp ?  ('/' + this.arcsRobotCode) : '') , undefined , false)
       let ieqData = this.dataSrv.signalRMaster.ieq.mapping.ieq(ieqReq)
       let refreshIeq = (ieq)=>{
         let ret = null

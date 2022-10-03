@@ -202,7 +202,7 @@ export class ArcsDashboardComponent implements OnInit {
     // let ticket = this.uiSrv.loadAsyncBegin()
     setTimeout(async () => {
       this.pixiElRef.initDone$.subscribe(async () => {
-        if(this.site){
+        if(this.site ){
           this.loadSite()
         }else{
           this.loadFloorPlan()

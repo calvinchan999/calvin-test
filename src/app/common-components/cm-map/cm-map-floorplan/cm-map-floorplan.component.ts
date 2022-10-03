@@ -31,6 +31,7 @@ export class CmMapFloorplanComponent implements OnInit {
   constructor(public util : GeneralUtil, public uiSrv : UiService , public windowSrv: DialogService, public ngZone : NgZone,
               public httpSrv : RvHttpService  , private dataSrv : DataService , public authSrv : AuthService) { 
     this.loadingTicket = this.uiSrv.loadAsyncBegin()
+    this.showWaypointType = this.authSrv.hasRight("FLOORPLAN_POINT_TYPE")
   }
   frmGrp = new FormGroup({
     floorPlanCode: new FormControl('' , Validators.compose([Validators.required, Validators.pattern(this.dataSrv.codeRegex)])),
@@ -79,6 +80,7 @@ export class CmMapFloorplanComponent implements OnInit {
   tabs = ['maps', 'locations']
   pixiMapBorders = []
   mapCode: string = null
+  showWaypointType = false
   mapTree: {
     data: { mapCode: string, name: string, robotBases: { robotBase: string, name: string }[] }[],
     isExpanded : any ,

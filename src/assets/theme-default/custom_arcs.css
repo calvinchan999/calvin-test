@@ -1,0 +1,575 @@
+@import url("wc to md icons.css");
+@import url("materialdesignicons.css");
+body, html {
+  font-family: Roboto, Microsoft JhengHei, STXihei, "Helvetica Neue", Arial, sans-serif;
+  color: white;
+}
+.body-main {
+  background: black url(./images/bg-black.png) no-repeat;
+  background-size: cover;
+  color: white;
+}
+a {
+  color: white;
+}
+a:hover {
+  color: Darkturquoise;
+  text-decoration: underline;
+}
+/* Header */
+.header {
+  background: none;
+}
+.header .nav-container {
+  color: white;
+}
+.header .hamburger-icon {
+  border: 12px solid Darkturquoise;
+  border-right: 12px solid rgba(0, 0, 0, 0);
+  border-top: 12px solid rgba(0, 0, 0, 0);
+  border-bottom: 12px solid rgba(0, 0, 0, 0);
+  margin-right: 0;
+}
+.header .hamburger-icon::after {
+  border-left: 8px solid black;
+}
+.header .nav-container .logo {
+  height: 40px;
+  width: 50px;
+  background: url(./images/logo.png) center center no-repeat;
+  background-size: 80%;
+}
+.header .topnav .k-icon, .header .topnav .k-menu span, .k-menu-popup .menu-lang .k-split-button .k-button span {
+  color: white;
+}
+.header .topnav:hover .k-icon, .header .topnav:hover .k-menu span, .k-menu-popup .menu-lang .k-split-button:hover .k-button span {
+  color: Darkturquoise;
+}
+.k-menu-popup, .k-popup.k-datetime-container, .k-calendar, .k-calendar-content {
+  background: rgba(0, 0, 0, 0.7);
+  color: white;
+}
+.k-popup.k-datetime-container .k-calendar {
+  color: white;
+}
+/* Menu */
+.k-drawer-container.k-drawer-push .k-drawer {
+  background: none;
+  color: #ccc;
+  border: none;
+}
+.k-drawer-item:hover, .k-drawer-item.k-state-hover, .k-drawer-item.k-state-selected:hover, .k-drawer-item.k-state-selected.k-state-hover, .k-drawer-item:focus, .k-drawer-item.k-state-focused {
+  color: Darkturquoise;
+  background: none;
+}
+.k-drawer-item.k-state-selected {
+  color: #FF9800;
+}
+/* Footer */
+.footer {
+  color: white;
+}
+/* Content Box */
+.k-drawer-container .k-drawer-content {
+  background: rgba(255, 255, 255, 0.3);
+  border-radius: 10px 0 0 10px;
+}
+/* Validation */
+.form-group .error, .dialog-content .error {
+  color: #ff6358;
+}
+/* Sub Menu */
+.card-header-wrapper .k-button-group {
+  border: 1px solid Darkturquoise;
+  border-radius: 3px;
+}
+.card-header-wrapper .card-buttons .k-button {
+  background: none;
+  color: #ccc;
+  border-radius: 3px;
+  border: none;
+}
+.card-header-wrapper .card-buttons .k-button.k-state-selected {
+  background: Darkturquoise;
+  color: white;
+  border: none;
+}
+.card-header-wrapper .k-button-group .k-button:hover, .card-header-wrapper .k-button-group .k-button.k-state-hover {
+  background: rgba(255, 152, 0, 0.8);
+  color: #fff;
+}
+/* Grid */
+.k-grid-header, .list-container .listview-footer-row .k-expander-header, .list-container .listview-header-row-container {
+  background: Darkturquoise;
+}
+.k-grid-header .k-header {
+  border: none;
+  background: none;
+  color: #fff;
+  border-right: 1px solid #fff;
+}
+.k-grid, .k-tabstrip > .k-content {
+  border: none;
+  color: white;
+}
+.k-grid .k-grid-aria-root {
+  border: 1px solid Darkturquoise;
+}
+.k-grid-content {
+  background: transparent;
+}
+.k-grid tr.k-alt {
+  background-color: rgba(255, 255, 255, 0.2);
+}
+.k-grid tbody tr:hover, .k-grid tbody tr.k-state-hover {
+  background-color: rgba(255, 152, 0, 0.5);
+}
+.k-grid td.k-state-selected, .k-grid tr.k-state-selected > td, .k-expander-header:hover, .k-expander-header.k-state-hover {
+  background-color: rgba(0, 206, 209, 0.25);
+}
+.k-grid-header .k-grid-filter:hover, .k-grid-header .k-header-column-menu:hover, .k-grid-header .k-hierarchy-cell .k-icon:hover {
+  color: #ff6358;
+  background: none;
+}
+.k-pager-wrap {
+  background: transparent;
+  color: #ccc;
+  border: none;
+}
+.k-pager-numbers .k-link {
+  color: #ccc;
+}
+.k-pager-numbers .k-link.k-state-selected {
+  color: Darkturquoise;
+  background: none;
+}
+.k-checkbox:checked, .k-checkbox.k-checked, .k-checkbox:checked:focus, .k-checkbox.k-checked.k-state-focus, .k-checkbox:focus, .k-checkbox.k-state-focus, .k-checkbox:indeterminate, .k-checkbox.k-state-indeterminate, .k-checkbox.k-indeterminate {
+  border-color: white;
+  color: Darkturquoise;
+  background-color: transparent;
+}
+.k-grid-header .k-header.checkbox .k-checkbox {
+  color: white;
+  border-color: white;
+}
+.list-container .listview-footer-row .k-expander-header .k-expander-title {
+  color: white;
+}
+.list-container .listview-header-row .resize-col-grip {
+  background: white;
+  border: none !important;
+  margin-right: 5px;
+}
+.list-container .listview-row {
+  border-color: #aaa;
+}
+/* Buttons */
+.k-button:disabled, .k-button.k-state-disabled {
+  filter: grayscale(0.65);
+}
+.k-button:focus, .k-button.k-state-focus, .k-button.k-state-focused, .k-button-secondary:focus, .k-button-secondary.k-state-focus, .k-button-secondary.k-state-focused, .k-button-primary:focus, .k-button.k-primary:focus, .k-button-primary.k-state-focus, .k-state-focus.k-button.k-primary, .k-button-primary.k-state-focused, .k-state-focused.k-button.k-primary, .k-button-outline:focus, .k-button.k-outline:focus, .k-button-outline.k-state-focus, .k-state-focus.k-button.k-outline, .k-button-outline.k-state-focused, .k-state-focused.k-button.k-outline {
+  box-shadow: none;
+}
+.k-button, .k-button-secondary, .k-split-button {
+  border-color: #fff;
+  color: #fff;
+  background: transparent;
+  border-radius: 5px;
+}
+.k-grid .k-button, .k-button-primary, .k-button.k-primary, .controls-container .button-container .k-button, .tablet .tablet-table .k-listview-item .k-button, app-sa-map-detail .overlay-button-container .k-button {
+  background: Darkturquoise;
+  color: white;
+  border-color: Darkturquoise;
+}
+.k-split-button {
+  border-color: Darkturquoise;
+}
+.k-split-button .k-button {
+  color: white;
+  background: none;
+}
+.k-split-button:hover .k-button {
+  color: #FF9800;
+}
+.controls-container .button-container .k-button.active {
+  background: #FF9800;
+  color: white;
+  border-color: #FF9800;
+}
+.k-button:hover, .k-button.k-state-hover, .k-button-secondary:hover, .k-button-secondary.k-state-hover, .k-button:active, .k-button.k-state-active, .k-button-secondary:active, .k-button-secondary.k-state-active, .tablet .tablet-table .k-listview-item .k-button:hover, app-sa-map-detail .overlay-button-container .k-button:hover, .k-button-primary:hover, .k-button.k-primary:hover, .k-button-primary.k-state-hover, .controls-container .button-container .k-button:hover, .tablet .controls-container .button-container .k-button.active:hover {
+  background-color: transparent;
+  border-color: Darkturquoise;
+  color: Darkturquoise;
+}
+.controls-container .button-container .k-button.active:hover {
+  background: transparent;
+  color: #FF9800;
+  border-color: #FF9800;
+}
+.k-button.k-state-selected, .k-button-secondary.k-state-selected, .tablet .card-content .map-list-item .k-button:hover, .tablet .card-content .map-list-item .k-button:active {
+  border-color: Darkturquoise;
+  color: white;
+  background-color: Darkturquoise;
+}
+.k-button-primary:active, .k-button.k-primary:active, .k-button-primary.k-state-active, .k-state-active.k-button.k-primary, .k-button-primary.k-state-selected {
+  border-color: Darkturquoise;
+  background-color: Darkturquoise;
+}
+.k-button-outline, .k-button.k-outline {
+  box-shadow: none;
+  border-color: currentColor;
+  color: #fff;
+  background: none;
+}
+.k-button-outline:hover, .k-button.k-outline:hover, .k-button-outline.k-state-hover, .k-state-hover.k-button.k-outline, .k-button-outline:active, .k-button.k-outline:active, .k-button-outline.k-state-active, .k-state-active.k-button.k-outline, .k-button-outline.k-state-selected, .k-state-selected.k-button.k-outline {
+  border-color: #fff;
+  color: white;
+  background-color: #fff;
+  background-image: none;
+}
+.k-button-outline.k-primary, .k-primary.k-button.k-outline {
+  border-color: currentColor;
+  color: #ff6358;
+  background: none;
+  box-shadow: none;
+}
+.k-button-outline.k-primary:hover, .k-primary.k-button.k-outline:hover, .k-button-outline.k-primary.k-state-hover, .k-primary.k-state-hover.k-button.k-outline, .k-button-outline.k-primary:active, .k-primary.k-button.k-outline:active, .k-button-outline.k-primary.k-state-active, .k-primary.k-state-active.k-button.k-outline, .k-button-outline.k-primary.k-state-selected, .k-primary.k-state-selected.k-button.k-outline {
+  border-color: #ff6358;
+  color: white;
+  background: #ff6358;
+}
+.k-button-outline.k-primary:focus, .k-primary.k-button.k-outline:focus, .k-button-outline.k-primary.k-state-focus, .k-primary.k-state-focus.k-button.k-outline, .k-button-outline.k-primary.k-state-focused, .k-primary.k-state-focused.k-button.k-outline {
+  box-shadow: 0 0 0 2px rgba(255, 99, 88, 0.3);
+}
+.drawing-board .buttons-container .k-button:hover, .drawing-board .buttons-container .k-button.btn-active, .tablet .drawing-board .buttons-container .k-button.btn-active:hover {
+  color: white;
+  background: Darkturquoise;
+}
+.tablet .drawing-board .buttons-container .k-button:hover {
+  background: #333;
+}
+.tablet .card-content .map-list-item {
+  border-bottom: 1px solid #aaa;
+}
+.tablet .card-content .map-list-item.selected {
+  background: Darkturquoise;
+  color: white;
+}
+.listview-footer-row-container .new-row .listview-row .listview-cell.add .plain {
+  color: #ff6358;
+}
+.drawing-board .overlay-button-container .k-button {
+  color: white;
+  background: Darkturquoise;
+}
+.drawing-board .overlay-button-container .k-button:hover {
+  color: Darkturquoise;
+  background: none;
+  border: 1px solid Darkturquoise;
+}
+.k-colorpalette .k-item:hover, .k-colorpalette .k-item.k-state-hover {
+  border: 1px solid #FF9800;
+}
+.k-colorpalette .k-item.k-state-selected, .k-colorpalette .k-item.k-state-selected:hover, .k-colorpalette .k-item.k-state-focused, .k-colorpalette .k-item:focus {
+  border: 1px solid Darkturquoise;
+}
+.k-radio:checked, .k-radio.k-checked {
+  border-color: #aaa;
+  color: Darkturquoise;
+}
+.k-radio:hover, .k-radio.k-state-hover {
+  border-color: Darkturquoise;
+}
+.k-treeview {
+  color: #aaa;
+}
+.k-treeview .k-in:hover, .k-treeview .k-in.k-state-hover {
+  background: transparent;
+  color: white;
+}
+.map-tree .k-treeview-item > .k-group .k-item .k-in .mdi-eye.visible {
+  color: Darkturquoise;
+}
+.map-tree .k-treeview-item > .k-group .k-item .k-in .mdi-eye.visible + a {
+  color: white;
+}
+.map-tree .k-treeview-item > .k-group .k-item .k-in .item.selected .mdi-eye.visible + a {
+  color: #FF9800;
+}
+/* Popup */
+.k-window {
+  color: white;
+  background: black;
+  box-shadow: 0px 0px 25px 1px #fff;
+}
+.k-dialog-titlebar {
+  background: transparent;
+  color: Darkturquoise;
+}
+.k-popup {
+  border-color: #aaa;
+  color: white;
+  background-color: black;
+}
+.k-tabstrip-items {
+  border-color: Darkturquoise;
+}
+.k-tabstrip-items .k-item {
+  color: white;
+}
+.k-tabstrip-items .k-item.k-state-active, .k-tabstrip-items .k-item.k-state-selected {
+  border-color: Darkturquoise;
+  color: white;
+  background-color: Darkturquoise;
+}
+.k-tabstrip-items .k-item:hover, .k-tabstrip-items .k-item.k-state-hover {
+  background-color: #FF9800;
+  border-color: #FF9800;
+}
+/* Fields */
+.col-form-label, .link-container .link-header span, .tablet .tablet-login-dialog .k-dialog .k-window-content .guest-mode-option .text {
+  color: #aaa;
+}
+.k-textbox, .k-dropdown .k-dropdown-wrap, .k-dropdowntree .k-dropdown-wrap, .k-datepicker .k-picker-wrap, .k-timepicker .k-picker-wrap, .k-datetimepicker .k-picker-wrap, .k-dateinput .k-dateinput-wrap, .k-textarea, .k-multiselect .k-multiselect-wrap, .k-dropdowntree .k-multiselect-wrap, .k-numerictextbox .k-numeric-wrap {
+  border-color: #aaa;
+  color: white;
+  background-color: transparent;
+}
+.k-textbox:focus-within, .k-textarea:focus-within {
+  border-color: #aaa;
+  box-shadow: none;
+}
+.k-datepicker .k-select, .k-timepicker .k-select, .k-datetimepicker .k-select, .k-dateinput .k-select, .k-dropdown .k-select, .k-numerictextbox .k-numeric-wrap .k-select {
+  border-color: #aaa;
+  color: #aaa;
+  background-color: transparent;
+}
+.k-numerictextbox .k-select .k-link:hover, .k-numerictextbox .k-select .k-link.k-state-hover {
+  background-color: transparent;
+  color: white;
+}
+.k-textbox:focus, .k-textbox.k-state-focus, .k-textbox.k-state-focused, .k-textbox:hover, .k-textbox.k-state-hover, .k-textbox.k-state-hover, .k-dropdown .k-dropdown-wrap:hover, .k-dropdowntree .k-dropdown-wrap:hover, .k-dropdown .k-dropdown-wrap.k-state-hover, .k-dropdowntree .k-dropdown-wrap.k-state-hover, .k-datepicker .k-picker-wrap.k-state-focused, .k-datepicker .k-picker-wrap.k-state-active, .k-timepicker .k-picker-wrap.k-state-focused, .k-timepicker .k-picker-wrap.k-state-active, .k-datetimepicker .k-picker-wrap.k-state-focused, .k-datetimepicker .k-picker-wrap.k-state-active, .k-dateinput .k-dateinput-wrap.k-state-focused, .k-dateinput .k-dateinput-wrap.k-state-active, .k-datepicker .k-picker-wrap:hover, .k-datepicker .k-picker-wrap.k-state-hover, .k-timepicker .k-picker-wrap:hover, .k-timepicker .k-picker-wrap.k-state-hover, .k-datetimepicker .k-picker-wrap:hover, .k-datetimepicker .k-picker-wrap.k-state-hover, .k-dateinput .k-dateinput-wrap:hover, .k-dateinput .k-dateinput-wrap.k-state-hover, .k-textarea:focus, .k-textarea.k-state-focus, .k-textarea.k-state-focused, .k-multiselect .k-multiselect-wrap:hover, .k-dropdowntree .k-multiselect-wrap:hover, .focused-cell .k-dropdown, .focused-cell .k-textbox, .k-textarea:hover, .k-textarea.k-state-hover, .k-numerictextbox .k-numeric-wrap:hover, .k-numerictextbox .k-numeric-wrap:focus, .k-numerictextbox .k-numeric-wrap.k-state-focus, .k-multiselect.k-state-focused > .k-multiselect-wrap, .k-state-focused.k-dropdowntree > .k-multiselect-wrap {
+  border-color: Darkturquoise;
+  color: white;
+}
+.params-container .container-label {
+  color: Darkturquoise;
+}
+/* Dropdown List */
+.k-list .k-item.k-state-selected, .k-list-optionlabel.k-state-selected {
+  color: #ffffff;
+  background-color: Darkturquoise;
+}
+.k-list .k-item:hover, .k-list .k-item.k-state-hover, .k-list-optionlabel:hover, .k-list-optionlabel.k-state-hover, .k-list .k-item:hover.k-state-selected, .k-list .k-item.k-state-hover.k-state-selected, .k-list-optionlabel:hover.k-state-selected, .k-list-optionlabel.k-state-hover.k-state-selected {
+  color: Darkturquoise;
+  background-color: transparent;
+}
+.k-dropdown .k-dropdown-wrap .k-input .dropdown-value .clear {
+  color: #ff6358;
+}
+.k-list-container .k-list .k-item .suffix {
+  background: Darkturquoise;
+}
+.k-list-container .k-list .k-item .suffix span {
+  color: white;
+}
+.k-list-container .k-list .k-item.k-state-selected .suffix, .k-list-container .k-list .k-item:hover .suffix {
+  background: white;
+}
+.k-list-container .k-list .k-item.k-state-selected .suffix span, .k-list-container .k-list .k-item:hover .suffix span {
+  color: Darkturquoise;
+}
+/* Login Page */
+app-cm-login .login-bg {
+  background: url("./images/login_bg.png");
+  background-position: center;
+  background-repeat: no-repeat;
+  background-size: cover;
+}
+/* Dashboard - RV Custom */
+.k-tilelayout .k-card {
+  background: none;
+  color: white;
+  border: 1px solid Darkturquoise;
+}
+.k-card-title {
+  color: #aaa;
+}
+.ts-robottotal .k-card-body .ts-header {
+  color: #aaa;
+}
+.k-progressbar {
+  color: white;
+}
+.k-stepper {
+  color: white;
+}
+.k-stepper .k-step-done .k-step-indicator, .k-progressbar .k-state-selected {
+  border-color: Darkturquoise;
+  color: white;
+  background-color: Darkturquoise;
+}
+.k-stepper .k-step-current:hover .k-step-indicator, .k-stepper .k-step-current.k-step-hover .k-step-indicator {
+  background-color: #ff6358;
+}
+/* Control Page */
+.controls-container .title .icon {
+  color: Darkturquoise;
+}
+/* Dashboard Category Icons */
+.card-container.home .ts-resultbox .ts-row .ts-robot-id:before {
+  content: "";
+  display: block;
+  font-family: "Material Design Icons";
+  font-weight: normal;
+  line-height: 1;
+  font-size: 1.7em;
+  vertical-align: middle;
+}
+.k-drawer-container.k-drawer-push .k-drawer .k-drawer-item.dashboard {
+  content: "\f0640";
+}
+.k-drawer-container.k-drawer-push .k-drawer .k-drawer-item.patrol, .card-container.home .ts-resultbox .ts-row.patrol .ts-robot-id:before {
+  content: "\f06a9";
+}
+.k-drawer-container.k-drawer-push .k-drawer .k-drawer-item.beverage, .card-container.home .ts-resultbox .ts-row.beverage .ts-robot-id:before {
+  content: "\f0a70";
+}
+.k-drawer-container.k-drawer-push .k-drawer .k-drawer-item.delivery, .card-container.home .ts-resultbox .ts-row.delivery .ts-robot-id:before {
+  content: "\f0788";
+}
+.k-drawer-container.k-drawer-push .k-drawer .k-drawer-item.disinfection, .card-container.home .ts-resultbox .ts-row.disinfection .ts-robot-id:before {
+  content: "\f0665";
+}
+.k-drawer-container.k-drawer-push .k-drawer .k-drawer-item.mobile-chair, .card-container.home .ts-resultbox .ts-row.mobile-chair .ts-robot-id:before {
+  content: "\f05a4";
+}
+.k-drawer-container.k-drawer-push .k-drawer .k-drawer-item.forklift, .card-container.home .ts-resultbox .ts-row.forklift .ts-robot-id:before {
+  content: "\f07c9";
+}
+.k-drawer-container.k-drawer-push .k-drawer .k-drawer-item.floor-scrub, .card-container.home .ts-resultbox .ts-row.floor-scrub .ts-robot-id:before {
+  content: "\f00e2";
+}
+.k-drawer-container.k-drawer-push .k-drawer .k-drawer-item.stocktaking, .card-container.home .ts-resultbox .ts-row.stocktaking .ts-robot-id:before {
+  content: "\f03d7";
+}
+.info.dashboard .istatus.working .k-icon:before, .ts-robotlist .ts-status.working .mdi:before, .robot-detail .ts-status .working .mdi:before {
+  content: "\f16a3";
+}
+.info.dashboard .istatus.charging .k-icon:before, .ts-robotlist .ts-status.charging .mdi:before, .robot-detail .ts-status .charging .mdi:before {
+  content: "\f169d";
+}
+.info.dashboard .istatus.charging .k-icon:after, .ts-robotlist .ts-status.charging .mdi:after, .robot-detail .ts-status .charging .mdi:after {
+  display: block;
+  position: absolute;
+  width: 30px;
+  height: 30px;
+  top: 2px;
+  right: 0;
+  font: normal normal normal 24px/1 "Material Design Icons";
+  font-size: 0.5em;
+  content: "\f140b";
+}
+.info.dashboard .istatus.idle .k-icon:before, .ts-robotlist .ts-status.idle .mdi:before, .robot-detail .ts-status .idle .mdi:before {
+  content: "\f16a1";
+}
+.info.dashboard .istatus.offline .k-icon:before, .ts-robotlist .ts-status.offline .mdi:before, .robot-detail .ts-status .offline .mdi:before {
+  content: "\f16a7";
+}
+.info.dashboard .istatus.reserved .k-icon:before, .ts-robotlist .ts-status.reserved .mdi:before, .robot-detail .ts-status .reserved .mdi:before {
+  content: "\f1719";
+}
+.info.dashboard .istatus.working .k-icon, .ts-robotlist .ts-status.working .mdi, .robot-detail .ts-status .working .mdi, .bl-item.status.working .bl-result {
+  color: greenyellow;
+}
+.info.dashboard .istatus.charging .k-icon, .ts-robotlist .ts-status.charging .mdi, .robot-detail .ts-status .charging .mdi, .bl-item.status.charging .bl-result {
+  color: orange;
+}
+.info.dashboard .istatus.idle .k-icon, .ts-robotlist .ts-status.idle .mdi, .robot-detail .ts-status .idle .mdi, .bl-item.status.idle .bl-result {
+  color: Darkturquoise;
+}
+.info.dashboard .istatus.offline .k-icon, .ts-robotlist .ts-status.offline .mdi, .robot-detail .ts-status .offline .mdi, .bl-item.status.offine .bl-result {
+  color: #aaa;
+}
+.info.dashboard .istatus.reserved .k-icon, .ts-robotlist .ts-status.reserved .mdi, .robot-detail .ts-status .reserved .mdi, .bl-item.status.reserved .bl-result {
+  color: orangered;
+}
+.k-window .dialog-content.robot-detail .k-tilelayout .k-card-body .k-button.reserve {
+  border-color: orangered;
+  color: orangered;
+}
+.k-window .dialog-content.robot-detail .k-tilelayout .k-card-body .k-button.release {
+  border-color: Darkturquoise;
+  color: Darkturquoise;
+}
+.k-window .dialog-content.robot-detail .k-tilelayout .k-card-body .k-button.release:hover, .k-window .dialog-content.robot-detail .k-tilelayout .k-card-body .k-button.reserve:hover {
+  border-color: white;
+  color: white;
+}
+/* Dashboard Air Status Colours */
+.air-quality.excellent .bl-result, .air-quality.excellent .bl-icon i {
+  color: greenyellow;
+}
+.air-quality.good .bl-result, .air-quality.good .bl-icon i {
+  color: Darkturquoise;
+}
+.air-quality.fair .bl-result, .air-quality.fair .bl-icon i {
+  color: yellow;
+}
+.air-quality.poor .bl-result, .air-quality.poor .bl-icon i {
+  color: orange;
+}
+.air-quality.inadequate .bl-result, .air-quality.inadequate .bl-icon i {
+  color: orangered;
+}
+/* Dashboard Row Colours */
+.bar-1 {
+  color: DarkTurquoise;
+}
+.bar-1 .k-progressbar .k-state-selected {
+  background: DarkTurquoise;
+}
+.bar-2 {
+  color: #ff66b9;
+}
+.bar-2 .k-progressbar .k-state-selected {
+  background: #ff66b9;
+}
+.bar-3 {
+  color: #FFD700;
+}
+.bar-3 .k-progressbar .k-state-selected {
+  background: #FFD700;
+}
+.bar-4 {
+  color: #87CEFA;
+}
+.bar-4 .k-progressbar .k-state-selected {
+  background: #87CEFA;
+}
+.bar-5 {
+  color: #9ACD32;
+}
+.bar-5 .k-progressbar .k-state-selected {
+  background: #9ACD32;
+}
+.bar-6 {
+  color: #FF8C00;
+}
+.bar-6 .k-progressbar .k-state-selected {
+  background: #FF8C00;
+}
+/* Map Custom */
+app-sa-map-floorplan .selected-map-id {
+  color: Darkturquoise;
+}
+/* Popup - User/User Group Management */
+.k-dialog-content .user-group .k-expander-header, .k-dialog-content .user-group .k-expander-header:hover, .k-dialog-content .user-group .k-expander-header.k-state-hover {
+  background: Darkturquoise;
+}
+.k-expander, .k-expander-title {
+  color: white;
+}
+.k-dialog-content .user-group .k-expander-header:hover, .k-dialog-content .user-group .k-expander-header.k-state-hover {
+  background: #FF9800;
+}
