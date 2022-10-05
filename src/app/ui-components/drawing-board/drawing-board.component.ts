@@ -145,7 +145,8 @@ export class DrawingBoardComponent implements OnInit , AfterViewInit {
   disableKendoKeyboardNavigation = false
   @Input() uitoggle = {
     showRosMap : true,
-    showWaypoint : true
+    showWaypoint : true,
+    showWaypointName : true,
   }
 
   @Input() set fullScreen(b) {
@@ -485,7 +486,6 @@ export class DrawingBoardComponent implements OnInit , AfterViewInit {
     }
     this.dropdownData.iconTypes = await this.dataSrv.getPointIconList()
     this.dropdownOptions.iconTypes = this.dropdownData.iconTypes.map((t:DropListPointIcon)=> {return {value : t.code , text : t.name}});
-    console.log(this.showWaypointType)
     if(this.showWaypointType){
       this.dropdownOptions.pointTypes = await this.dataSrv.getPointTypeList()
     }
@@ -2321,9 +2321,13 @@ export class DrawingBoardComponent implements OnInit , AfterViewInit {
     }
   }
 
-  toggleWaypoint(show){
+  toggleWaypoint(show = this.uitoggle.showWaypoint){
     this.uitoggle.showWaypoint = show;
-    this.allPixiPoints.forEach(p=>p.visible = show)
+    this.allPixiPoints.forEach(p=>{
+      p.visible = show
+      p.readOnlyPixiText.visible = this.uitoggle.showWaypointName
+      p.inputBg.visible = this.uitoggle.showWaypointName
+    })
   }
 
   refreshPickLoc(x , y){
@@ -3974,7 +3978,7 @@ export class PixiLocPoint extends PixiCommon {
     this.addChild(this.getWayPointButton())
     this.on("mouseover" , (evt :  PIXI.interaction.InteractionEvent)=>{
       if(!this._lastDrawIsSelected){
-        this.showToolTip(this.toolTipContent ? this.toolTipContent : this.text , evt, undefined, true)
+        this.showToolTip(this.toolTipContent ? this.toolTipContent : this.text , evt, undefined , this.readOnlyPixiText.visible)
         this.draw(false, true)
       }
     })
@@ -4114,6 +4118,10 @@ export class PixiLocPoint extends PixiCommon {
     if(this.pixiPointGroup){
       this.pixiPointGroup.refreshGraphics()
       this.pixiPointGroup.visible = selected
+    }
+    if(this.getMasterComponent()?.isDashboard){
+      this.readOnlyPixiText.visible = selected || this.getMasterComponent()?.uitoggle.showWaypointName
+      this.inputBg.visible = selected || this.getMasterComponent()?.uitoggle.showWaypointName
     }
     return this
   }

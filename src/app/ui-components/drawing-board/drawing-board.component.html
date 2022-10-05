@@ -145,7 +145,7 @@
       <button *ngIf="isDashboard && !util.arcsApp  &&  !hideButton['tools']" kendoButton class="engineer-mode"  [matTooltip]="'More Options'| label : uiSrv.langPack" (click)="engineerMode = !engineerMode" [ngClass]="{'btn-active': engineerMode}">
         <span class="mdi mdi-eye"></span>
       </button>
-      <ng-container  *ngIf="_fullScreen || engineerMode || showRosToggle">
+      <ng-container  *ngIf="_fullScreen || engineerMode || showRosToggle || (util.arcsApp && isDashboard)">
         <button *ngIf="engineerMode && showRobot" kendoButton class="lidar" [matTooltip]="'Show Lidar Point Cloud'| label : uiSrv.langPack" [disabled]="disableButton['lidar']"   matTooltipPosition="right" 
                 [ngClass]="{'btn-active':liveLidarObj.show}" (click)=" liveLidarObj.show ? unsubscribeLiveLidar_SA() : subscribeLiveLidar_SA()">
                 <span class="mdi mdi-border-none"></span>
@@ -156,8 +156,10 @@
           <span class="mdi mdi-floor-plan"></span>
         </button>
 
-        <button *ngIf="_fullScreen || (engineerMode && isDashboard)" kendoButton class="show-waypoint" [matTooltip]="'Show Waypoint'| label : uiSrv.langPack"  [disabled]="disableButton['showWaypoint']" 
-                matTooltipPosition="right" (click)="uitoggle.showWaypoint = !uitoggle.showWaypoint; toggleWaypoint(uitoggle.showWaypoint)"  [ngClass]="{'btn-active': uitoggle.showWaypoint , 'show-waypoint-fullscreen' : _fullScreen}">
+        <button *ngIf="_fullScreen || (engineerMode && isDashboard) || (util.arcsApp && isDashboard)" kendoButton class="show-waypoint" [matTooltip]="(uitoggle.showWaypoint && uitoggle.showWaypointName) ? 'Hide Waypoint Name' : ((uitoggle.showWaypoint && !uitoggle.showWaypointName) ? 'Hide Waypoint' : 'Show Waypoint')| label : uiSrv.langPack"  
+                [disabled]="disableButton['showWaypoint']" matTooltipPosition="right" 
+                (click)=" uitoggle.showWaypointName = !(uitoggle.showWaypoint && uitoggle.showWaypointName); uitoggle.showWaypoint = !(uitoggle.showWaypoint && uitoggle.showWaypointName) ; toggleWaypoint()"  
+                [ngClass]="{'btn-intermediate': uitoggle.showWaypoint && !uitoggle.showWaypointName , 'btn-active': uitoggle.showWaypoint && uitoggle.showWaypointName , 'show-waypoint-fullscreen' : _fullScreen}">
           <span class="mdi mdi-map-marker"></span>
         </button>
       </ng-container>

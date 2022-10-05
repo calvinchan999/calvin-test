@@ -202,7 +202,10 @@ export class ArcsDashboardComponent implements OnInit {
     // let ticket = this.uiSrv.loadAsyncBegin()
     setTimeout(async () => {
       this.pixiElRef.initDone$.subscribe(async () => {
-        if(this.site ){
+        if(sessionStorage.getItem('arcsLocationTree')){
+          this.pixiElRef.arcsLocationTree = JSON.parse(sessionStorage.getItem('arcsLocationTree'))
+        }
+        if(this.site && ! sessionStorage.getItem('dashboardFloorPlanCode')){
           this.loadSite()
         }else{
           this.loadFloorPlan()
@@ -239,7 +242,11 @@ export class ArcsDashboardComponent implements OnInit {
       let floorplans : DropListFloorplan[] = <any>this.pixiElRef.dropdownData.floorplans
       let fpCode = floorplans.filter(fp=>fp.buildingCode == buildingCode && fp.defaultPerBuilding)[0]?.floorPlanCode
       fpCode = fpCode ? fpCode : floorplans.filter(fp=>fp.buildingCode == buildingCode)[0]?.floorPlanCode
+      if(this.pixiElRef.arcsLocationTree){
+        sessionStorage.setItem('arcsLocationTree' , JSON.stringify(this.pixiElRef.arcsLocationTree))
+      }
       if(fpCode){
+        // console.log(this.pixiElRef.arcsLocationTree)
         this.pixiElRef.dropdownOptions.floorplans = this.dataSrv.getDropListOptions('floorplans' , this.pixiElRef.dropdownData.floorplans , {buildingCode : buildingCode})
         this.loadFloorPlan(fpCode) 
       }else{

@@ -32,7 +32,9 @@ export class ArcsDashboardRobotDetailComponent implements OnInit {
   }
 
   async ngOnInit() {
+    let ticket = this.uiSrv.loadAsyncBegin()
     let robotList : DropListRobot[] = <any>(await this.dataSrv.getDropList('robots')).data
+    this.uiSrv.loadAsyncDone(ticket)
     let robot = robotList.filter(r=>r.robotCode == this.robotId)[0]
     this.robotType = robot?.robotType
     this.robotSubType = robot?.robotSubType
