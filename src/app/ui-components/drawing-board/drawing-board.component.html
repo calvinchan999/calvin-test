@@ -33,7 +33,7 @@
  
     <div *ngIf = "dataSrv.arcsDefaultBuilding && isDashboard" class="title arcs">
       <div class="location-tree">
-        <a class="site-name" *ngIf = "arcsLocationTree.site.code" (click)="onSiteSelected.emit()"> {{arcsLocationTree.site.name}} </a>
+        <a class="site-name" *ngIf = "arcsLocationTree.site.code" (click)="unsubscribePose_ARCS();onSiteSelected.emit()"> {{arcsLocationTree.site.name}} </a>
         <span class="mdi mdi-chevron-right" *ngIf = "arcsLocationTree.site.code && arcsLocationTree.currentLevel == 'floorplan'"></span>
         <span class="building-name" *ngIf = "arcsLocationTree.site.code && arcsLocationTree.currentLevel == 'floorplan'"> {{arcsLocationTree.building.name}}</span>
       </div>
@@ -47,7 +47,15 @@
     
 
     <div class="buttons-container t1" [ngClass]="{'tablet': uiSrv.isTablet}">
-      <ng-container *ngIf="!hideButton.all">
+      
+       <button *ngIf="util.arcsApp && isDashboard && arcsLocationTree.currentLevel == 'floorplan'" kendoButton class="show-waypoint" [matTooltip]="((uitoggle.showWaypoint && uitoggle.showWaypointName) ? 'Hide Waypoint Name' : ((uitoggle.showWaypoint && !uitoggle.showWaypointName) ? 'Hide Waypoint' : 'Show Waypoint'))| label : uiSrv.langPack"  
+                [disabled]="disableButton['showWaypoint']" matTooltipPosition="right" 
+                (click)=" uitoggle.showWaypointName = !(uitoggle.showWaypoint && uitoggle.showWaypointName); uitoggle.showWaypoint = !(uitoggle.showWaypoint && uitoggle.showWaypointName) ; toggleWaypoint()"  
+                [ngClass]="{'btn-intermediate': uitoggle.showWaypoint && !uitoggle.showWaypointName , 'btn-active': uitoggle.showWaypoint && uitoggle.showWaypointName , 'show-waypoint-fullscreen' : _fullScreen}">
+          <span class="mdi mdi-map-marker"></span>
+      </button>
+
+      <ng-container *ngIf="!hideButton.all">       
         <button kendoButton class="polygon" [matTooltip]="'Draw Polygon'| label : uiSrv.langPack" matTooltipPosition="right" [disabled] = "disableButton['polygon']"
           *ngIf="!hideButton['polygon']" [ngClass]="{'btn-active': drawObj?.type == 'polygon'}"
           (click)="drawObj?.type == 'polygon' ? endDraw() : changeMode('draw' , 'polygon')">
@@ -145,7 +153,7 @@
       <button *ngIf="isDashboard && !util.arcsApp  &&  !hideButton['tools']" kendoButton class="engineer-mode"  [matTooltip]="'More Options'| label : uiSrv.langPack" (click)="engineerMode = !engineerMode" [ngClass]="{'btn-active': engineerMode}">
         <span class="mdi mdi-eye"></span>
       </button>
-      <ng-container  *ngIf="_fullScreen || engineerMode || showRosToggle || (util.arcsApp && isDashboard)">
+      <ng-container  *ngIf="_fullScreen || engineerMode || showRosToggle">
         <button *ngIf="engineerMode && showRobot" kendoButton class="lidar" [matTooltip]="'Show Lidar Point Cloud'| label : uiSrv.langPack" [disabled]="disableButton['lidar']"   matTooltipPosition="right" 
                 [ngClass]="{'btn-active':liveLidarObj.show}" (click)=" liveLidarObj.show ? unsubscribeLiveLidar_SA() : subscribeLiveLidar_SA()">
                 <span class="mdi mdi-border-none"></span>
@@ -156,7 +164,7 @@
           <span class="mdi mdi-floor-plan"></span>
         </button>
 
-        <button *ngIf="_fullScreen || (engineerMode && isDashboard) || (util.arcsApp && isDashboard)" kendoButton class="show-waypoint" [matTooltip]="(uitoggle.showWaypoint && uitoggle.showWaypointName) ? 'Hide Waypoint Name' : ((uitoggle.showWaypoint && !uitoggle.showWaypointName) ? 'Hide Waypoint' : 'Show Waypoint')| label : uiSrv.langPack"  
+        <button *ngIf="_fullScreen || (engineerMode && isDashboard) " kendoButton class="show-waypoint" [matTooltip]="((uitoggle.showWaypoint && uitoggle.showWaypointName) ? 'Hide Waypoint Name' : ((uitoggle.showWaypoint && !uitoggle.showWaypointName) ? 'Hide Waypoint' : 'Show Waypoint'))| label : uiSrv.langPack"  
                 [disabled]="disableButton['showWaypoint']" matTooltipPosition="right" 
                 (click)=" uitoggle.showWaypointName = !(uitoggle.showWaypoint && uitoggle.showWaypointName); uitoggle.showWaypoint = !(uitoggle.showWaypoint && uitoggle.showWaypointName) ; toggleWaypoint()"  
                 [ngClass]="{'btn-intermediate': uitoggle.showWaypoint && !uitoggle.showWaypointName , 'btn-active': uitoggle.showWaypoint && uitoggle.showWaypointName , 'show-waypoint-fullscreen' : _fullScreen}">

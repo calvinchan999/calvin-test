@@ -1156,7 +1156,7 @@ export class DrawingBoardComponent implements OnInit , AfterViewInit {
     setTimeout(() => {
       let vertices = this.drawObj.segments.filter(s => s instanceof PixiVertex).map((s : PixiVertex ) => s.point)
       this.endDraw()   
-      let polygon = this.getPolygon(vertices , new GraphicOptions(new PixiCommon(), undefined,0x00CED1, -1))
+      let polygon = this.getPolygon(vertices , new GraphicOptions(new PixiCommon(), undefined, this.palette.map.length > 0 ? new PixiCommon().hexToNumColor( this.palette.map[0]) : new PixiCommon().mouseOverColor, -1))
       this.drawingsCreated.push(polygon)
       this.onDrawingsCreated.emit(polygon)
       // this.selectGraphics(this.drawingsCreated[this.drawingsCreated.length - 1])

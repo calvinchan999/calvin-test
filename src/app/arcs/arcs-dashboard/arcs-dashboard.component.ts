@@ -216,6 +216,8 @@ export class ArcsDashboardComponent implements OnInit {
   }
 
   async loadSite(){
+    sessionStorage.removeItem('arcsLocationTree')
+    sessionStorage.removeItem('dashboardFloorPlanCode')
     this.selectedFloorPlanCode = null
     if( this.pixiElRef){
       this.pixiElRef.reset()

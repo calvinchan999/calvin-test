@@ -1,5 +1,12 @@
 {
-    "Forget Password":"忘記密碼?",
+    "Hide Waypoint Name":"隱藏航點名稱",
+    "Hide Waypoint":"隱藏航點",
+    "Show Waypoint":"顯示航點",
+    "Icon":"圖標",
+    "Angle":"角度",
+    "Agnostic Robotic Control System (ARCS)":"多元機械人控制系統 (ARCS)",
+    "Agnostic Robotic Control System":"多元機械人控制系統",
+    "Forget Password?":"忘記密碼?",
     "Username":"用戶名稱",
     "Email":"電郵",
     "Email Address":"電郵地址",
