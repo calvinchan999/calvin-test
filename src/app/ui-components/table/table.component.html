@@ -14,11 +14,17 @@
                <!-- (dataStateChange)="state = $event ; retrieveData($event)" -->
         <ng-template kendoGridToolbarTemplate *ngIf="showToolbar">
             <button *ngIf="toolbarButtons.new && (!functionId || accessObj.add)" kendoButton icon="plus" (click)="createClick.emit()"
-                [disabled]="disabledButtons.new">{{'New' | label : uiSrv.langPack}}</button>
+                [disabled]="disabledButtons.new">{{'New' | label : uiSrv.langPack}}
+            </button>
             <kendo-splitbutton  *ngIf="toolbarButtons.action && actions.length > 0" [data]="actions" (itemClick)="actionClick.emit($event)"
                 [disabled]="disabledButtons.action">
                 {{'Action' | label : uiSrv.langPack}}
             </kendo-splitbutton >
+            <ng-container *ngFor = "let customButton of customButtons">
+                <button kendoButton [icon]="customButton.icon" (click)="customButtonClick.emit(customButton.id)"
+                        [disabled]="customButton.disabled">{{ customButton.label | label : uiSrv.langPack}}
+                </button>
+            </ng-container>
         </ng-template>
 
         <ng-template kendoPagerTemplate let-currentpage="currentPage" let-pagesize="pageSize" let-total="total">
@@ -87,6 +93,25 @@
 
         <kendo-grid-column width = "1px" [locked]="true" headerClass="hidden-column" class="hidden-column"  >
         </kendo-grid-column>
+        <kendo-grid-messages [columns]="'Columns' | label : uiSrv.langPack" 
+                             [sortAscending] = "'Sort Ascending'|label : uiSrv.langPack"
+                             [sortDescending] = "'Sort Descending'|label : uiSrv.langPack"
+                             [filter] = "'Filter'|label : uiSrv.langPack"
+                             [filterStartsWithOperator]= "'Starts With'|label : uiSrv.langPack"
+                             [filterEndsWithOperator]= "'Ends With'|label : uiSrv.langPack"
+                             [filterIsEmptyOperator] = "'Is Empty'|label : uiSrv.langPack"
+                             [filterNotContainsOperator] =  "'Does Not Contain'|label : uiSrv.langPack"
+                             [filterIsNotEmptyOperator] = "'Is Not Empty'|label : uiSrv.langPack"
+                             [filterIsNotNullOperator] = "'Is Not Null'|label : uiSrv.langPack"
+                             [filterIsNullOperator] = "'Is Null'|label : uiSrv.langPack"
+                             [filterNotEqOperator] = "'Is Not Equal'|label : uiSrv.langPack"
+                             [filterContainsOperator] = "'Contains'|label : uiSrv.langPack"
+                             [filterClearButton]= "'Clear'|label : uiSrv.langPack"
+                             [filterFilterButton] = "'Filter'|label : uiSrv.langPack"
+                             [filterEqOperator] = "'Is Equal To'|label : uiSrv.langPack"
+                             [filterAndLogic] = "'And'|label : uiSrv.langPack"
+                             [filterOrLogic] = "'Or'|label : uiSrv.langPack">
+        </kendo-grid-messages>
     </kendo-grid>
 </div>
 

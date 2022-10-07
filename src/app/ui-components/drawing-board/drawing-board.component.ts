@@ -1894,6 +1894,9 @@ export class DrawingBoardComponent implements OnInit , AfterViewInit {
         pixiArrow.setCurveControlPoints(getLocalPos(data.controlPointList[0])  , getLocalPos(data.controlPointList[1]));
       }      
     })
+    if(this.isDashboard && localStorage.getItem('uitoggle')){
+      this.uitoggle = JSON.parse(localStorage.getItem('uitoggle'))
+    }
     this.toggleWaypoint(this.uitoggle.showWaypoint)
     return ret
   }
@@ -2322,6 +2325,9 @@ export class DrawingBoardComponent implements OnInit , AfterViewInit {
   }
 
   toggleWaypoint(show = this.uitoggle.showWaypoint){
+    if(this.isDashboard){
+      localStorage.setItem('uitoggle' , JSON.stringify(this.uitoggle))
+    }
     this.uitoggle.showWaypoint = show;
     this.allPixiPoints.forEach(p=>{
       p.visible = show
@@ -3887,7 +3893,7 @@ export class PixiLocPoint extends PixiCommon {
   button : PIXI.Graphics
   readonly = false
   iconType = null
-  pointType = null
+  pointType = "NORMAL"
   onInputBlur : EventEmitter<any> = new EventEmitter()
   get orientationAngle(){
     return this.angleIndicator?.angle

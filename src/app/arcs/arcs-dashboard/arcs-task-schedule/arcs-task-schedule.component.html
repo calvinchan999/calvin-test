@@ -6,7 +6,7 @@
         <div class="form-container">
             <form [formGroup]="frmGrp" class="content">
                 <div class="form-row">
-                    <uc-dropdown lab = "Template" [frmGrp] = "frmGrp" frmCtrl = "missionId"  [options] = "dropdownOptions.missions" [allowClear]="false"></uc-dropdown>
+                    <uc-dropdown lab = "Template" [frmGrp] = "frmGrp" frmCtrl = "missionId"  [options] = "dropdownOptions.missions" [allowClear]="false" [showValue]="true"></uc-dropdown>
                     <uc-date-input lab = "Start Date" [frmGrp] = "frmGrp" frmCtrl = "startDateTime"></uc-date-input>
                     <uc-date-input lab = "End Date"  [frmGrp] = "frmGrp" frmCtrl = "endDateTime"></uc-date-input>
                 </div>

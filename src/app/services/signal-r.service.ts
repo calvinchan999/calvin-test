@@ -141,8 +141,7 @@ export class SignalRService {
     if(invoke){
       this.invoke("Subscribe", topic)
     }
-    this.subscribedTopics = this.subscribedTopics.concat(this.subscribedTopics.includes(topic) ? [topic] : [])
-
+    this.subscribedTopics = this.subscribedTopics.concat(this.subscribedTopics.includes(topic) ? [] : [topic])
     return this.topicSubjMap[topic]
   }
 

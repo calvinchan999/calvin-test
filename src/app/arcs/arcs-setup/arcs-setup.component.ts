@@ -12,6 +12,8 @@ import { DrawingBoardComponent } from 'src/app/ui-components/drawing-board/drawi
 import { TableComponent } from 'src/app/ui-components/table/table.component';
 import { GeneralUtil } from 'src/app/utils/general/general.util';
 import { ArcsSetupBuildingComponent } from './arcs-setup-building/arcs-setup-building.component';
+import { ArcsSetupExportMapComponent } from './arcs-setup-export/arcs-setup-export-map/arcs-setup-export-map.component';
+import { ArcsSetupImportMapComponent } from './arcs-setup-import/arcs-setup-import-map/arcs-setup-import-map.component';
 import { ArcsSetupPointTypeComponent } from './arcs-setup-point-type/arcs-setup-point-type.component';
 import { ArcsSetupRobotComponent } from './arcs-setup-robot/arcs-setup-robot.component';
 import { ArcsSetupSiteComponent } from './arcs-setup-site/arcs-setup-site.component';
@@ -39,6 +41,9 @@ export class ArcsSetupComponent implements OnInit {
     { id: 'pointType', label: 'Waypoint Type' , authorized : true},
   ]
   selectedTab = 'floorplan' 
+  tableCustomButtons = {
+    map:[{id : 'importMap' , label : 'Import' , icon : 'import' , disabled : false  },{id : 'exportMap' , label : 'Export' , icon : 'export' , disabled : false  }]
+  }
 
   gridSettings = { //consider to move them into a json file
     building : {
@@ -165,7 +170,7 @@ export class ArcsSetupComponent implements OnInit {
 
   onTabChange(id) {
     this.selectedTab = id
-    // this.columnDef = this.gridSettings[id].columns
+    // this.columnDef = this.gridSettings[id].columns`
     this.data = []
     this.changeDectector.detectChanges()
     // this.loadData()
@@ -173,6 +178,10 @@ export class ArcsSetupComponent implements OnInit {
 
   async loadData(evt = null) {
     await this.tableElRef?.retrieveData()
+
+    //PENDING : filter tableCustomButtons by user acess
+
+
     // if(this.selectedTab == 'site' && this.tableElRef?.data.length > 0){
     //   let original = JSON.parse(JSON.stringify(this.tableDisabledButtons))
     //   let tmp = JSON.parse(original)
@@ -182,8 +191,10 @@ export class ArcsSetupComponent implements OnInit {
     // this.uiSrv.loadAsyncDone(ticket)
   }
 
-  showDetail(evt = null) {
+  showDetail(evt = null , id = null) {
     const idCompMap = {
+      importMap : ArcsSetupImportMapComponent,
+      exportMap : ArcsSetupExportMapComponent,      
       robot:ArcsSetupRobotComponent,
       type:ArcsSetupTypeComponent,
       site: ArcsSetupSiteComponent,
@@ -194,7 +205,7 @@ export class ArcsSetupComponent implements OnInit {
       pointType : ArcsSetupPointTypeComponent
     }
     const dialog: DialogRef = this.uiSrv.openKendoDialog({
-      content: idCompMap[this.selectedTab],
+      content: idCompMap[id ? id : this.selectedTab],
       preventAction: () => true
     });
     const content = dialog.content.instance;

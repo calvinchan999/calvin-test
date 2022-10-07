@@ -293,9 +293,9 @@ export class ArcsDashboardComponent implements OnInit {
     for(let i = 0 ; i <this.robotInfos.length ; i++){
       let idx = 0
       if(this.robotTypeFilter){
-        idx = this.robotTypeInfos.indexOf(this.robotTypeInfos.filter(t => t.robotType == this.robotInfos[i].robotType)[0])
+        idx = i
       }else{
-        idx = i 
+        idx = this.robotTypeInfos.indexOf(this.robotTypeInfos.filter(t => t.robotType == this.robotInfos[i].robotType)[0])
       }
       this.robotIconColorMap[this.robotInfos[i].robotCode]  = this.util.config.robot?.visuals[idx]?.fillColor
     }  

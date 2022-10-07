@@ -13,6 +13,7 @@ import { dataNotFoundMessage  , UiService } from 'src/app/services/ui.service';
 export class DropdownComponent implements OnInit {
   //*** For value change subscription , please use the event emitter of this UC for instead of form control --- formControl valueChange is suppressed ***/
   constructor(public uiSrv : UiService) { }
+  @Input() showValue = false
   @Input() translateOption = false
   @Input() lab
   @Input() frmGrp : FormGroup

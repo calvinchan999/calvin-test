@@ -128,6 +128,7 @@ export class CmUserGroupComponent implements OnInit {
   refreshExpanionPanelHeaderCheckbox(functionRow){
     functionRow.checked = functionRow.functions.every(f2=>f2.checked) 
     functionRow.indeterminate = !functionRow.checked && functionRow.functions.some(f2=>f2.checked)
+    functionRow = JSON.parse(JSON.stringify(functionRow)) //to force update ui
   }
 
   changeAllSubFunction(evt , functionRow){

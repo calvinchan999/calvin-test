@@ -47,12 +47,12 @@
     
 
     <div class="buttons-container t1" [ngClass]="{'tablet': uiSrv.isTablet}">
-      
+
        <button *ngIf="util.arcsApp && isDashboard && arcsLocationTree.currentLevel == 'floorplan'" kendoButton class="show-waypoint" [matTooltip]="((uitoggle.showWaypoint && uitoggle.showWaypointName) ? 'Hide Waypoint Name' : ((uitoggle.showWaypoint && !uitoggle.showWaypointName) ? 'Hide Waypoint' : 'Show Waypoint'))| label : uiSrv.langPack"  
                 [disabled]="disableButton['showWaypoint']" matTooltipPosition="right" 
                 (click)=" uitoggle.showWaypointName = !(uitoggle.showWaypoint && uitoggle.showWaypointName); uitoggle.showWaypoint = !(uitoggle.showWaypoint && uitoggle.showWaypointName) ; toggleWaypoint()"  
-                [ngClass]="{'btn-intermediate': uitoggle.showWaypoint && !uitoggle.showWaypointName , 'btn-active': uitoggle.showWaypoint && uitoggle.showWaypointName , 'show-waypoint-fullscreen' : _fullScreen}">
-          <span class="mdi mdi-map-marker"></span>
+                [ngClass]="{'status-1': uitoggle.showWaypoint && !uitoggle.showWaypointName , 'btn-active': uitoggle.showWaypoint && uitoggle.showWaypointName , 'show-waypoint-fullscreen' : _fullScreen}">
+          <span [class]="'mdi mdi-map-marker'"></span>
       </button>
 
       <ng-container *ngIf="!hideButton.all">       

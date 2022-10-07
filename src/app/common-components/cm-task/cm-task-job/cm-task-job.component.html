@@ -52,13 +52,13 @@
             </uc-txtbox>
         </div> -->
         <div class="form-row" *ngIf="util.arcsApp">        
-            <uc-dropdown #fpdropdown lab="Robot Type" [frmGrp]="frmGrp" frmCtrl="robotType" [disabled] = 'readonly'
+            <uc-dropdown #fpdropdown lab="Robot Type" [frmGrp]="frmGrp" frmCtrl="robotType" [disabled] = 'readonly' [translateOption]="true"
                          [options]="dropdownOptions.types" (change) = "frmGrp.controls['robotSubtype'].setValue(null); frmGrp.controls['robotCode'].setValue(null);">
             </uc-dropdown>
             <!-- <uc-dropdown #fpdropdown lab="Robot Sub Type" [frmGrp]="frmGrp" frmCtrl="robotSubtype"  [disabled] = 'readonly'
                          [options]="dropdownOptions.subTypes" (change) = "frmGrp.controls['robotType'].setValue(null); frmGrp.controls['robotCode'].setValue(null);">
             </uc-dropdown> -->
-            <uc-dropdown #fpdropdown *ngIf="util.arcsApp" lab="Robot" [frmGrp]="frmGrp" frmCtrl="robotCode"  [disabled] = 'readonly'
+            <uc-dropdown #fpdropdown *ngIf="util.arcsApp" lab="Robot" [frmGrp]="frmGrp" frmCtrl="robotCode"  [disabled] = 'readonly' [showValue]="true"
                         [options]="dropdownOptions.robots" (change) = "frmGrp.controls['robotType'].setValue(null); frmGrp.controls['robotSubtype'].setValue(null);">
             </uc-dropdown>
         </div>

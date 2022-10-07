@@ -8,11 +8,12 @@
         <ng-template kendoDropDownListNoDataTemplate *ngIf = "noDataMsg">
             {{noDataMsg}}
         </ng-template>
-        <ng-template kendoDropDownListValueTemplate let-dataItem *ngIf="translateOption || prefixIconClass || allowClear">
+        <ng-template kendoDropDownListValueTemplate let-dataItem *ngIf="showValue || translateOption || prefixIconClass || allowClear">
             <div class="dropdown-value">
                 <span class="item">
                     <span *ngIf = "prefixIconClass" [class]="prefixIconClass"></span>
-                    <span *ngIf= "dataItem">  {{ translateOption ? (dataItem[textFld] | label : uiSrv.langPack) : dataItem[textFld] }}</span>
+                    <span *ngIf= "showValue && dataItem && dataItem[valueFld]" class="text code"> [{{dataItem[valueFld]}}] </span>
+                    <span *ngIf= "dataItem"  class="text desc">  {{ translateOption ? (dataItem[textFld] | label : uiSrv.langPack) : dataItem[textFld] }}</span>
                 </span>
                 <span *ngIf="dataNotFound" class="error">
                     {{ dataNotFoundMsg | label : uiSrv.langPack}}
@@ -21,15 +22,16 @@
                     (click) = "$event.stopPropagation(); oldValue = value; value = null; valueChange.emit(value); change.emit({currentValue : null , previousValue: oldValue})"></a>
             </div>       
         </ng-template>
-        <ng-template kendoDropDownListItemTemplate  let-dataItem *ngIf="trackMouseoverOption || translateOption || customDropItemTemplate">
+        <ng-template kendoDropDownListItemTemplate  let-dataItem *ngIf="showValue || trackMouseoverOption || translateOption || customDropItemTemplate">
             <span *ngIf= "dataItem"
                   (mouseover) = "trackMouseoverOption ? mouseoverOptionChange.emit(dataItem) : null" 
                   (mouseleave) = "trackMouseoverOption ? onMouseLeaveOption(dataItem , $event) : null"
                   style="width: 100%;height: 100%;">
-                  {{ translateOption ? (dataItem[textFld] | label : uiSrv.langPack) : dataItem[textFld] }}
+                  <span *ngIf= "showValue && dataItem && dataItem[valueFld]" class="value"> [{{dataItem[valueFld]}}] </span>
+                  <span> {{ translateOption ? (dataItem[textFld] | label : uiSrv.langPack) : dataItem[textFld] }} </span>
             </span>
             <div  *ngIf= "dataItem && dataItem.suffix!=null"  class="suffix">
-                <span class="text">  {{ translateOption ? (dataItem['suffix'] | label : uiSrv.langPack) : dataItem['suffix'] }}</span>
+                <span  class="text desc">  {{ translateOption ? (dataItem['suffix'] | label : uiSrv.langPack) : dataItem['suffix'] }}</span>
             </div>
           
         </ng-template>

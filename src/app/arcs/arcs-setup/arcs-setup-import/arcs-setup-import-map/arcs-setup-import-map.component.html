@@ -1,0 +1,24 @@
+<div class="dialog-content import-map">
+    <kendo-dialog-titlebar (close)="onClose()">
+        <div>{{'Import map from robot' | label: uiSrv.langPack}}</div>
+    </kendo-dialog-titlebar>
+
+    <div class="form-container">
+        <form [formGroup]="frmGrp" class="content">
+            <div class="form-row">
+                <uc-dropdown lab="Robot Base" [frmGrp]="frmGrp" frmCtrl="robotBase"  [options]="dropdown.options.bases" (valueChange)="onBaseSelected()"></uc-dropdown>
+            </div>
+            <div class="form-row">
+                <uc-dropdown lab="Robot" [frmGrp]="frmGrp" frmCtrl="robotCode" [options]="dropdown.options.robots" (valueChange)="onRobotSelected()"  [showValue] = "true"></uc-dropdown>
+            </div>
+            <div class="form-row" *ngIf="frmGrp.controls['robotCode'].value">
+                <uc-dropdown lab="Map" [frmGrp]="frmGrp" frmCtrl="mapCode"></uc-dropdown>
+            </div>
+        </form>
+    </div>
+
+    <div class="button-container">
+        <button kendoButton (click)="onClose()"> {{'Cancel' | label : uiSrv.langPack}}</button>
+        <button kendoButton (click)="saveToDB()" [disabled] = "!frmGrp.controls['robotCode'].value || !frmGrp.controls['mapCode'].value" >{{'Save' | label : uiSrv.langPack}}</button>
+    </div>
+</div>

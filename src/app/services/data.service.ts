@@ -57,8 +57,8 @@ export class DataService {
     maps: { url: 'api/map/droplist/v1' , valFld : 'mapCode', descFld: 'name'  , fromRV : false },
     actions: { url: this.util.arcsApp ? 'operation/v1' : 'action/v1',  descFld: 'name', valFld: 'alias' ,  fromRV : true },
     userGroups : { url: 'api/user/userGroup/dropList/v1',  descFld: 'name', valFld: 'userGroupCode' , fromRV : false },
-    robots : { url: 'robot/v1',  descFld: 'name', valFld: 'robotCode' , fromRV : true , descShowCode : true },
-    missions : {url : 'api/task/mission/droplist/v1' , descFld : 'name' , valFld: 'missionId' , fromRV : false , descShowCode : true },
+    robots : { url: 'robot/v1',  descFld: 'name', valFld: 'robotCode' , fromRV : true },
+    missions : {url : 'api/task/mission/droplist/v1' , descFld : 'name' , valFld: 'missionId' , fromRV : false },
   }
 
   public dataStore = {//persist until dataService is destroyed
@@ -523,7 +523,7 @@ export class DataService {
       let value =  d[apiMap[type]['valFld'] ? apiMap[type]['valFld'] : 'id']
       return {
         value: value,
-        text:  (apiMap[type]['descShowCode'] ? `[${value}] ` : '') +  (d[apiMap[type]['descFld']? apiMap[type]['descFld'] : 'displayName'] )
+        text:  (d[apiMap[type]['descFld']? apiMap[type]['descFld'] : 'displayName'] )
       }
     })
   }

@@ -211,6 +211,8 @@ import { ArcsSetupPointTypeComponent } from './arcs/arcs-setup/arcs-setup-point-
 import { ArcsChartsComponent } from './arcs/arcs-dashboard/arcs-charts/arcs-charts.component';
 import { ForgetPasswordComponent } from './common-components/cm-login/forget-password/forget-password.component';
 import { CmResetPwComponent } from './common-components/cm-reset-pw/cm-reset-pw.component';
+import { ArcsSetupImportMapComponent } from './arcs/arcs-setup/arcs-setup-import/arcs-setup-import-map/arcs-setup-import-map.component';
+import { ArcsSetupExportMapComponent } from './arcs/arcs-setup/arcs-setup-export/arcs-setup-export-map/arcs-setup-export-map.component';
 
 @NgModule({
     declarations: [
@@ -289,6 +291,8 @@ import { CmResetPwComponent } from './common-components/cm-reset-pw/cm-reset-pw.
         ArcsChartsComponent,
         ForgetPasswordComponent,
         CmResetPwComponent,
+        ArcsSetupImportMapComponent,
+        ArcsSetupExportMapComponent,
         
     ],
     imports: [

@@ -22,6 +22,7 @@ export class TableComponent implements OnInit {
   @ViewChild('kGrid') kGrid : GridComponent
    myData = []
   @Input() serverSidePagination = false
+  @Input() customButtons  : {id :  string , label : string , disabled : boolean , icon : string }[]= []
   @Input() set data(v){
     this.myData = v
     this.dataChange.emit(this.data)
@@ -36,6 +37,7 @@ export class TableComponent implements OnInit {
   @Output() cellClick : EventEmitter<any> = new EventEmitter()
   @Output() createClick :  EventEmitter<any> = new EventEmitter()
   @Output() actionClick :  EventEmitter<any> = new EventEmitter()
+  @Output() customButtonClick :  EventEmitter<any> = new EventEmitter()
   @Input() toolbarButtons = {
     new : false,
     action : false
