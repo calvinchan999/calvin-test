@@ -1,4 +1,4 @@
-import { Component, EventEmitter, Inject, Input, LOCALE_ID, NgZone, Output, ViewChild } from '@angular/core';
+import { ChangeDetectorRef, Component, EventEmitter, Inject, Input, LOCALE_ID, NgZone, Output, ViewChild } from '@angular/core';
 import { CldrIntlService, IntlService } from '@progress/kendo-angular-intl';
 // import { CustomMessagesService } from '../services/custom-messages.service';
 // import { locales } from 'src/app/resources/locales';
@@ -69,8 +69,9 @@ export class HeaderComponent {
     }
 
     constructor(public intlService: IntlService , public uiSrv : UiService , public dialogSrv: DialogService, public dataSrv: DataService,
-                public authSrv : AuthService , public router : Router, public util : GeneralUtil , public ngZone : NgZone) {
+                public authSrv : AuthService , public router : Router, public util : GeneralUtil , public ngZone : NgZone  ) {
         this.hasUserManagementRight = this.authSrv.hasAccessToPath('user');
+        // this.uiSrv.lang.subscribe(()=>this.changeDectector.detectChanges())
         // this.localeId = this.selectedLanguage.localeId;
         // this.setLocale(this.localeId);
 

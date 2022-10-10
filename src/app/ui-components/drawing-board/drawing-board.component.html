@@ -55,6 +55,12 @@
           <span [class]="'mdi mdi-map-marker'"></span>
       </button>
 
+      <button *ngIf="isDashboard && util.arcsApp && arcsLocationTree.currentLevel == 'floorplan'" kendoButton class="show-path" [matTooltip]="'Show Path' | label : uiSrv.langPack"  
+                [disabled]="disableButton['showPath']" matTooltipPosition="right" (click)="uitoggle.showPath = !uitoggle.showPath ; togglePath()"
+                [ngClass]="{'btn-active': uitoggle.showPath}">
+          <span [class]="'mdi mdi-arrow-top-right-bottom-left'"></span>
+      </button>
+
       <ng-container *ngIf="!hideButton.all">       
         <button kendoButton class="polygon" [matTooltip]="'Draw Polygon'| label : uiSrv.langPack" matTooltipPosition="right" [disabled] = "disableButton['polygon']"
           *ngIf="!hideButton['polygon']" [ngClass]="{'btn-active': drawObj?.type == 'polygon'}"
@@ -158,6 +164,12 @@
                 [ngClass]="{'btn-active':liveLidarObj.show}" (click)=" liveLidarObj.show ? unsubscribeLiveLidar_SA() : subscribeLiveLidar_SA()">
                 <span class="mdi mdi-border-none"></span>
         </button>
+      
+      <button *ngIf="isDashboard" kendoButton class="show-path" [matTooltip]="'Show Path' | label : uiSrv.langPack"  
+                [disabled]="disableButton['showPath']" matTooltipPosition="right" (click)="uitoggle.showPath = !uitoggle.showPath ; togglePath()"
+                [ngClass]="{'btn-active': uitoggle.showPath}">
+          <span [class]="'mdi mdi-arrow-top-right-bottom-left'"></span>
+      </button>
 
         <button *ngIf="engineerMode || showRosToggle" kendoButton class="show-ros" [matTooltip]="'Show ROS Map'| label : uiSrv.langPack"  [disabled]="liveLidarObj.show || disableButton['lidar']" 
                 matTooltipPosition="right" (click)="toggleRosMap(!uitoggle.showRosMap)"  [ngClass]="{'btn-active': uitoggle.showRosMap || liveLidarObj.show }">
@@ -320,6 +332,13 @@
 
       <div  *ngIf="selectedGraphics?.type == 'arrow' || selectedGraphics?.type == 'arrow_bi' || selectedGraphics?.type == 'arrow_bi_curved' || selectedGraphics?.type == 'arrow_curved'"
                class="arrow-sector bottom-sector">
+
+        <div *ngIf="selectedGraphics?.type == 'arrow_bi_curved' || selectedGraphics?.type == 'arrow_curved'" class='form-group'>
+          <label class="col-form-label">{{ 'Quadratic Curve' | label : uiSrv.langPack}}</label>
+          <kendo-switch *ngIf="selectedGraphics?.type == 'arrow_bi_curved' || selectedGraphics?.type == 'arrow_curved'" class="path-direction" [checked]="selectedGraphics.quadraticCurve" (valueChange) = "selectedGraphics.quadraticCurve = $event ">
+          </kendo-switch>
+        </div>      
+        
         <span *ngIf = "!(selectedGraphics?.type == 'arrow_bi' || selectedGraphics?.type == 'arrow_bi_curved') && selectedGraphics?.fromShape?.text && selectedGraphics?.toShape?.text" class="path-from-to-desc">
           {{('Path' | label: uiSrv.langPack) + ' ' + ('from' | label: uiSrv.langPack ) + ' ' +  
             selectedGraphics.fromShape.text + ' ' +  ('to' | label: uiSrv.langPack ) + ' ' + selectedGraphics.toShape.text

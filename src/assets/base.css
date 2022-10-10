@@ -28408,7 +28408,7 @@ uc-drawing-board .buttons-container.t2 {
   left: auto;
 }
 uc-drawing-board .title + .buttons-container.t1, uc-drawing-board .title + .buttons-container.t2 {
-  top: 50px;
+  top: 40px;
 }
 
 .container uc-drawing-board .buttons-container.t2 {

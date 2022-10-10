@@ -147,6 +147,7 @@ export class DrawingBoardComponent implements OnInit , AfterViewInit {
     showRosMap : true,
     showWaypoint : true,
     showWaypointName : true,
+    showPath : false
   }
 
   @Input() set fullScreen(b) {
@@ -1072,7 +1073,9 @@ export class DrawingBoardComponent implements OnInit , AfterViewInit {
     }
     opt.zIndex = 10
     let ret = new PixiArrow(verts, type, opt)
-    this.clickEvts.forEach(t => ret.on(t, () => this.selectGraphics(ret)))
+    if(!this.isDashboard){
+      this.clickEvts.forEach(t => ret.on(t, () => this.selectGraphics(ret)))
+    } 
     return ret
   }
 
@@ -1260,7 +1263,12 @@ export class DrawingBoardComponent implements OnInit , AfterViewInit {
       }else if(this.editObj?.type == 'bezier'){
         mousePos = evt.data.getLocalPosition(gr.parent)
         gr.position.set(mousePos.x , mousePos.y);
-        (<PixiArrow>gr.parent).draw(true)
+        let arrow : PixiArrow = (<PixiArrow>(gr.parent))
+        if(arrow.quadraticCurve){
+          let anotherControlPt = gr == arrow.pixiControlPoint1 ? arrow.pixiControlPoint2 : arrow.pixiControlPoint1
+          anotherControlPt.position.set(mousePos.x , mousePos.y)
+        }
+        arrow.draw(true)
       }
     }else if (this.mode == 'draw') {
       if (this.drawObj.draftLine) {
@@ -1869,7 +1877,7 @@ export class DrawingBoardComponent implements OnInit , AfterViewInit {
       }
     })
 
-    dataset.pathList.filter(p=>!locationOnly).forEach((data: JPath) => {
+    dataset.pathList.forEach((data: JPath) => {
       let isBidirectional = dataset.pathList.filter((d2 : JPath) =>  data.destinationPointCode == d2.sourcePointCode &&  d2.destinationPointCode == data.sourcePointCode).length > 0
       if(ret.filter(gr=>gr instanceof PixiArrow && (<PixiArrow>gr).bidirectional && (<PixiArrow>gr).fromShape.code == data.destinationPointCode && (<PixiArrow>gr).toShape.code == data.sourcePointCode).length > 0){ // check 2 way second
         return
@@ -1892,12 +1900,17 @@ export class DrawingBoardComponent implements OnInit , AfterViewInit {
       if(isCurved){
         let getLocalPos = (v)=>pixiArrow.toLocal(this.mainContainer.toGlobal(new PIXI.Point( v.x , v.y)))
         pixiArrow.setCurveControlPoints(getLocalPos(data.controlPointList[0])  , getLocalPos(data.controlPointList[1]));
+        pixiArrow.quadraticCurve = data.controlPointList[0].x == data.controlPointList[1].x &&  data.controlPointList[0].y == data.controlPointList[1].y
       }      
+      if(locationOnly){
+        pixiArrow.visible = false
+      }
     })
     if(this.isDashboard && localStorage.getItem('uitoggle')){
       this.uitoggle = JSON.parse(localStorage.getItem('uitoggle'))
     }
     this.toggleWaypoint(this.uitoggle.showWaypoint)
+    this.togglePath()
     return ret
   }
 
@@ -2333,6 +2346,19 @@ export class DrawingBoardComponent implements OnInit , AfterViewInit {
       p.visible = show
       p.readOnlyPixiText.visible = this.uitoggle.showWaypointName
       p.inputBg.visible = this.uitoggle.showWaypointName
+    })
+  }
+
+  togglePath(show = this.uitoggle.showPath){
+    if(this.isDashboard){
+      localStorage.setItem('uitoggle' , JSON.stringify(this.uitoggle))
+    }
+    this.uitoggle.showPath = show;
+    console.log(this.allPixiArrows)
+    this.allPixiArrows.forEach(p=>{
+      p.visible = show
+      if(this.isDashboard){
+      }
     })
   }
 
@@ -4325,6 +4351,7 @@ export class PixiArrow extends PixiCommon {
   pixiControlPoint1 : PIXI.Graphics
   pixiControlPoint2 : PIXI.Graphics
   dataObj : JPath
+  quadraticCurve = false
   
   get isCurved (){
     return this.type == 'arrow_curved' || this.type == 'arrow_bi_curved'
@@ -4378,7 +4405,10 @@ export class PixiArrow extends PixiCommon {
     }
     this.position.set(this.vertices[0].x, this.vertices[0].y)
     this.zIndex = selected ? opt.zIndex + 10 : - 1
-    this.setClickEventArea()
+    this.setClickEventArea()  
+    if(this.getMasterComponent()?.isDashboard){
+      this.hitArea = null
+    }
     return this
   }
 
