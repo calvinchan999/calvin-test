@@ -12,6 +12,7 @@ import { TableComponent } from 'src/app/ui-components/table/table.component';
 import { CmUserGroupComponent } from './cm-user-group/cm-user-group.component';
 import { CmUserDetailComponent } from './cm-user-detail/cm-user-detail.component';
 import { AuthService } from 'src/app/services/auth.service';
+import { GeneralUtil } from 'src/app/utils/general/general.util';
 
 
 @Component({
@@ -23,16 +24,10 @@ export class CmUserComponent implements OnInit {
 @ViewChild('table') ucTableRef : TableComponent
 @ViewChild('pixi') pixiElRef: DrawingBoardComponent
   constructor(public windowSrv: DialogService, public uiSrv : UiService , public http: RvHttpService , private changeDectector : ChangeDetectorRef,
-              private dataSrv : DataService , private ngZone : NgZone, public authSrv : AuthService) { 
-              this.tabs = this.tabs.filter(t=>this.authSrv.hasRight(t.id.toUpperCase()))
+              private dataSrv : DataService , private ngZone : NgZone, public authSrv : AuthService , public util : GeneralUtil) { 
+              this.tabs = this.tabs.filter(t=>this.authSrv.hasRight(t.functionId.toUpperCase()) && (t.id!='passwordPolicy' || this.util.arcsApp))
               this.selectedTab = this.tabs[0].id
   }
-  tabs = [
-    // {id: 'site' , label : 'Site'}, //testing ARCS
-    // {id: 'building' , label : 'Building'}, //testing ARCS
-    {id: 'user' , label : 'User'},
-    {id: 'usergroup' , label : 'User Group'},
-  ]
   selectedTab = 'user'
   gridSettings = { //consider to move them into a json file
     user : {
@@ -57,6 +52,14 @@ export class CmUserComponent implements OnInit {
       ],
     }
   }
+                
+  tabs = [
+    // {id: 'site' , label : 'Site'}, //testing ARCS
+    // {id: 'building' , label : 'Building'}, //testing ARCS
+    {id: 'user' , label : 'User' , functionId : this.gridSettings.user.functionId},
+    {id: 'usergroup' , label : 'User Group' , functionId : this.gridSettings.usergroup.functionId},
+    {id: 'passwordPolicy' , label : 'Password Policy' , functionId : 'PASSWORD_POLICY'}
+  ]
 
   columnDef = this.gridSettings.user.columns
   data = [ ]
@@ -93,7 +96,9 @@ export class CmUserComponent implements OnInit {
     //PENDING : bug fix - shapes missing when change from floorplan view to map view and back to floorplan view again 
         this.selectedTab = id
         this.data = []
-        this.columnDef = this.gridSettings[id]['columns']
+        if(this.selectedTab != 'passwordPolicy'){
+          this.columnDef = this.gridSettings[id]['columns']
+        }
         this.changeDectector.detectChanges()
       // this.loadData()
   }

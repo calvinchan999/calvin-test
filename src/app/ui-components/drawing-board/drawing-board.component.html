@@ -55,7 +55,7 @@
           <span [class]="'mdi mdi-map-marker'"></span>
       </button>
 
-      <button *ngIf="isDashboard && util.arcsApp && arcsLocationTree.currentLevel == 'floorplan'" kendoButton class="show-path" [matTooltip]="'Show Path' | label : uiSrv.langPack"  
+      <button *ngIf="isDashboard && util.arcsApp && arcsLocationTree.currentLevel == 'floorplan'" kendoButton class="show-path" [matTooltip]="(uitoggle.showPath? 'Hide Path' : 'Show Path') | label : uiSrv.langPack"  
                 [disabled]="disableButton['showPath']" matTooltipPosition="right" (click)="uitoggle.showPath = !uitoggle.showPath ; togglePath()"
                 [ngClass]="{'btn-active': uitoggle.showPath}">
           <span [class]="'mdi mdi-arrow-top-right-bottom-left'"></span>
@@ -338,7 +338,7 @@
           <kendo-switch *ngIf="selectedGraphics?.type == 'arrow_bi_curved' || selectedGraphics?.type == 'arrow_curved'" class="path-direction" [checked]="selectedGraphics.quadraticCurve" (valueChange) = "selectedGraphics.quadraticCurve = $event ">
           </kendo-switch>
         </div>      
-        
+
         <span *ngIf = "!(selectedGraphics?.type == 'arrow_bi' || selectedGraphics?.type == 'arrow_bi_curved') && selectedGraphics?.fromShape?.text && selectedGraphics?.toShape?.text" class="path-from-to-desc">
           {{('Path' | label: uiSrv.langPack) + ' ' + ('from' | label: uiSrv.langPack ) + ' ' +  
             selectedGraphics.fromShape.text + ' ' +  ('to' | label: uiSrv.langPack ) + ' ' + selectedGraphics.toShape.text
@@ -392,7 +392,7 @@
                                                            ((( drawObj?.type == 'location' || drawObj?.type == 'waypoint' || !drawObj?.type ) &&  
                                                            (selectedGraphics?.type == 'location' || selectedGraphics?.type ==  'waypoint' ))|| selectedGraphics?.type == 'mapLayer' )" >
         <ng-container *ngIf=" selectedGraphics?.type == 'location' || selectedGraphics?.type == 'waypoint' ">
-            <uc-txtbox #ucPointTextBox [focusOnInit]="selectedGraphics.text == null || selectedGraphics.text == ''"
+            <uc-txtbox #ucPointTextBox [focusOnInit]="selectedGraphics.text == null || selectedGraphics.text == ''" customClass="txtbox-container numeric"
                        lab="Waypoint Name" [(value)] = "selectedGraphics.text" [upper] = "true" > 
             </uc-txtbox>
           <div  *ngIf="uiSrv.isTablet" class="form-group">            

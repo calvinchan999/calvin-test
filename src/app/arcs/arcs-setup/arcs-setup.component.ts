@@ -41,9 +41,10 @@ export class ArcsSetupComponent implements OnInit {
     { id: 'pointType', label: 'Waypoint Type' , authorized : true},
   ]
   selectedTab = 'floorplan' 
-  tableCustomButtons = {
-    map:[{id : 'importMap' , label : 'Import' , icon : 'import' , disabled : false  },{id : 'exportMap' , label : 'Export' , icon : 'export' , disabled : false  }]
-  }
+  tableCustomButtons = {}
+  // tableCustomButtons = {
+  //   map:[{id : 'importMap' , label : 'Import' , icon : 'import' , disabled : false  },{id : 'exportMap' , label : 'Export' , icon : 'export' , disabled : false  }]
+  // }
 
   gridSettings = { //consider to move them into a json file
     building : {

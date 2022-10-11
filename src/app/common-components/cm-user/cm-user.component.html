@@ -14,7 +14,7 @@
         <span></span>
     </div>
 
-    <div class="table-container" *ngIf="!uiSrv.isTablet">
+    <div class="table-container" *ngIf="!uiSrv.isTablet && selectedTab != 'passwordPolicy'">
         <uc-table #table [toolbarButtons]="{new : true , action: true}" [columnDefs]="gridSettings[selectedTab]['columns']" [(data)] = "data"  
             [functionId] = "gridSettings[selectedTab]['functionId']"  [serverSidePagination] = "true"
             [dataSourceApiEndpoint] = "gridSettings[selectedTab]['apiUrl']"
@@ -25,6 +25,10 @@
             (cellClick)="$event?.column == 'edit' ? showDetail($event) : null" (createClick)="showDetail()"
             [useColumnFilter]='true'>
         </uc-table>
+    </div>
+
+    <div *ngIf="!uiSrv.isTablet && selectedTab == 'passwordPolicy'">
+       <app-arcs-password-policy></app-arcs-password-policy>
     </div>
     <!-- * * *  ^ PC VERSION ^   * * * -->
 

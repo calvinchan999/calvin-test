@@ -38,7 +38,7 @@ export class AuthService {
 		}else if(path == 'map'){
 			return ['MAP' , 'FLOORPLAN' ].some(p=>this.userAccessList?.includes(p))
 		}else if(path == 'user'){
-			return ['USER' , 'USERGROUP' ].some(p=>this.userAccessList?.includes(p))
+			return ['USER' , 'USERGROUP' , 'PASSWORD_POLICY'].some(p=>this.userAccessList?.includes(p))
 		}else if(path == 'task'){
 			return ['TASK' , 'TASK_TEMPLATE' ].some(p=>this.userAccessList?.includes(p))
 		}else{			

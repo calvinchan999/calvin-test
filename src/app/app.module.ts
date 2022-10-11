@@ -213,6 +213,7 @@ import { ForgetPasswordComponent } from './common-components/cm-login/forget-pas
 import { CmResetPwComponent } from './common-components/cm-reset-pw/cm-reset-pw.component';
 import { ArcsSetupImportMapComponent } from './arcs/arcs-setup/arcs-setup-import/arcs-setup-import-map/arcs-setup-import-map.component';
 import { ArcsSetupExportMapComponent } from './arcs/arcs-setup/arcs-setup-export/arcs-setup-export-map/arcs-setup-export-map.component';
+import { ArcsPasswordPolicyComponent } from './common-components/cm-user/arcs-password-policy/arcs-password-policy.component';
 
 @NgModule({
     declarations: [
@@ -293,6 +294,7 @@ import { ArcsSetupExportMapComponent } from './arcs/arcs-setup/arcs-setup-export
         CmResetPwComponent,
         ArcsSetupImportMapComponent,
         ArcsSetupExportMapComponent,
+        ArcsPasswordPolicyComponent,
         
     ],
     imports: [
