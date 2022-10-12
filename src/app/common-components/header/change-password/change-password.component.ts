@@ -1,9 +1,10 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, Input, OnInit } from '@angular/core';
 import { FormControl, FormGroup } from '@angular/forms';
 import { DialogRef } from '@progress/kendo-angular-dialog';
 import { DataService } from 'src/app/services/data.service';
 import { UiService } from 'src/app/services/ui.service';
 import { GeneralUtil } from 'src/app/utils/general/general.util';
+import { CmLoginComponent } from '../../cm-login/cm-login.component';
 
 @Component({
   selector: 'app-change-password',
@@ -18,41 +19,54 @@ export class ChangePasswordComponent implements OnInit {
   })
   constructor(public uiSrv : UiService, public dataSrv : DataService , public util : GeneralUtil) { }
 
-  initialDataset
   dialogRef : DialogRef
-  uid
-  requireOldPw = true
+  @Input() parent : CmLoginComponent
+  @Input() uid
+  @Input() requireOldPw = true
+  @Input() oldPw
+  @Input() msg : string
+  @Input() bearerToken
 
-  ngOnInit(): void {
-    this.initialDataset = this.getSubmitDataset()
-    this.requireOldPw = this.requireOldPw || this.uid == this.util.getUserId()
+  get parentIsLoginComponent(){
+    return this.parent && this.parent instanceof CmLoginComponent
   }
 
-  async checkNoChanges() {
-    let initDs = JSON.parse(JSON.stringify(this.initialDataset))
-    let ds = await this.getSubmitDataset();
-    return JSON.stringify(initDs) == JSON.stringify(ds)
+  ngOnInit(): void {
+    this.requireOldPw = this.requireOldPw || this.uid == this.util.getUserId()
   }
 
   getSubmitDataset(){
     let ret = {
       userCode : this.uid ? this.uid : this.util.getUserId(),
-      oldPassword: this.frmGrp.controls['oldPassword'].value,
+      oldPassword: this.oldPw ? this.oldPw : this.frmGrp.controls['oldPassword'].value,
       password :  this.frmGrp.controls['password'].value
     }
     return ret
   }
 
-
   async onClose(){
-    if(await this.checkNoChanges()|| await this.uiSrv.showConfirmDialog('Do you want to quit without saving ?')){
+    this.bearerToken = null
+    if(this.parentIsLoginComponent){
+      this.parent.showChangePasswordDialog = false
+    }else if(await this.uiSrv.showConfirmDialog('Do you want to quit without saving ?')){
       this.dialogRef.close()
     }
   }
 
   async saveToDB(){
-    if(this.validate() && (await this.dataSrv.saveRecord("api/user/changePassword/v1" , this.getSubmitDataset() , this.frmGrp)).result == true) {
-      this.dialogRef.close()
+    let header = this.bearerToken ? {
+        'Accept': 'application/json',
+        'Content-Type': 'application/json',
+        'localeId' : this.uiSrv.selectedLangOption?.['value'],
+        'Authorization': 'Bearer ' + this.bearerToken
+    } : undefined
+    console.log(header)
+    if(this.validate() && (await this.dataSrv.saveRecord("api/user/changePassword/v1" , this.getSubmitDataset() , this.frmGrp , undefined, header)).result == true) {
+      if(this.parentIsLoginComponent){
+        this.parent.showChangePasswordDialog = false
+      }else{
+        this.dialogRef.close()
+      }
     }
   }
 

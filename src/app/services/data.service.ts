@@ -333,6 +333,11 @@ export class DataService {
   }
 
   async init(){
+    if(this.util.config.LANGUAGES){
+      let options = []
+      Object.keys(this.util.config.LANGUAGES).forEach(k=> options.push({value : k , text : this.util.config.LANGUAGES[k]}))
+      this.uiSrv.langOptions = options
+    }
     if(localStorage.getItem("lang")){
       this.uiSrv.changeLang(localStorage.getItem("lang"))
     }
@@ -371,7 +376,6 @@ export class DataService {
         })
       })
     }
-
     this.uiSrv.loadAsyncDone(ticket)
    }
 
@@ -615,14 +619,14 @@ export class DataService {
   }
 
   
-  public async saveRecord(endpoint : string, payload , errorMap = null , isCreate = true) : Promise<SaveRecordResp>{
+  public async saveRecord(endpoint : string, payload , errorMap = null , isCreate = true, header = undefined) : Promise<SaveRecordResp>{
     let ticket = this.uiSrv.loadAsyncBegin()
     let resp
     try{
       if(isCreate){
-        resp = await this.httpSrv.post(endpoint, payload,undefined,undefined,undefined,true)
+        resp = await this.httpSrv.post(endpoint, payload,undefined,header,undefined,true)
       }else{
-        resp = await this.httpSrv.put(endpoint, payload,undefined,undefined,undefined,true)
+        resp = await this.httpSrv.put(endpoint, payload,undefined,header,undefined,true)
       }
     }catch(err){
       this.uiSrv.showWarningDialog(this.uiSrv.translate("Save Failed") + (err?.error?.message ? ' : ' + err?.error?.message : (this.uiSrv.translate(' (Activate debug console for further details)'))))
@@ -1173,6 +1177,21 @@ export const ARCS_STATUS_MAP = {
   UNKNOWN : "Offline",
   HOLD : "Reserved"
 } 
+
+export class loginResponse{
+  result?: boolean
+  msgCode?: string
+  msg?: string
+  auth2FASegment ? :string
+  validationResults? :{
+    accessFunctionList? : {functionCode : string}[]
+    access_token? : string
+    refresh_token? : string
+    // tenant_id ? : string
+    user_id ? : string
+    user_name ? : string
+  }
+}
 
 
 

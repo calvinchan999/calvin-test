@@ -10,7 +10,7 @@ import { CldrIntlService, IntlService } from '@progress/kendo-angular-intl';
 import { RvHttpService } from './rv-http.service';
 import { Router } from '@angular/router';
 import { ConfigService } from './config.service';
-import { DataService } from './data.service';
+import { DataService, loginResponse } from './data.service';
 
 @Injectable()
 export class AuthService {
@@ -68,12 +68,13 @@ export class AuthService {
 			}
 		}
 
+
 		return this.httpSrv.http.post<any>(this.generalUtil.getAPIUrl() + '/api/Auth/login', dataObj)
-			.pipe(map((response) => {
-				if(response?.['result'] == true && response['validationResults']){
-					Object.keys(this.sessionStorageCredentialsMap).forEach(k => sessionStorage.setItem(k ,  response['validationResults'][this.sessionStorageCredentialsMap[k]]))
+			.pipe(map((response : loginResponse) => {
+				if(response?.result == true && response.validationResults){
+					Object.keys(this.sessionStorageCredentialsMap).forEach(k => sessionStorage.setItem(k ,  response.validationResults[this.sessionStorageCredentialsMap[k]]))
 					this.username = this.generalUtil.getCurrentUser()
-					this.userAccessList = response['validationResults']['accessFunctionList'].map(f=>f['functionCode'])
+					this.userAccessList = response.validationResults?.accessFunctionList.map(f=>f.functionCode)
 					sessionStorage.setItem('userAccess',JSON.stringify(this.userAccessList))
 					sessionStorage.setItem('isGuestMode',JSON.stringify(guestMode))
 					this.isGuestMode = guestMode

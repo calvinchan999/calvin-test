@@ -21,6 +21,11 @@
 	"MOVE_USING_TRANSITION" : true,
 	"METER_TO_PIXEL_RATIO": 20,
 	"UPLOAD_IMAGE_MAX_SIZE_KB" : 5120,
+	"LANGUAGES":{
+		"EN" : "English",
+		"ZH" : "繁體中文",
+		"KR" : "한국인"
+	},
 	"ROBOT_TYPE":["MOBILE_CHAIR" , "DISINFECTION" , "FLOOR_SCRUB" , "DELIVERY" , "PATROL" , "BEVERAGE" ,  "FORKLIFT" , "STOCKTAKING"],
 	"robot": {
         "radius": 0.4, 

@@ -47,18 +47,10 @@ export class HeaderComponent {
         }
     ];
 
-    langMap = {
-        en: 'English',
-        zh: '繁體中文'
-    }
-
     showSettings = false
     hasUserManagementRight = false
 
     public selectedTheme = this.themes[0];
-    public settings = [
-        { text: this.authSrv.username, items: [ { text: 'Language', items: [{ text: 'English', value: 'EN' }, { text: '繁體中文', value: 'ZH' }] }] }
-    ]
     langMenuOpened = false
 
     public closeMenu(){

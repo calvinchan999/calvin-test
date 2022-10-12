@@ -4,7 +4,7 @@ import { ActivatedRoute, Router } from '@angular/router';
 import { DialogRef } from '@progress/kendo-angular-dialog';
 import { AuthService } from 'src/app/services/auth.service';
 import { ConfigService } from 'src/app/services/config.service';
-import { DataService } from 'src/app/services/data.service';
+import { DataService, loginResponse } from 'src/app/services/data.service';
 import { UiService } from 'src/app/services/ui.service';
 import { GeneralUtil } from 'src/app/utils/general/general.util';
 import { ForgetPasswordComponent } from './forget-password/forget-password.component';
@@ -28,6 +28,19 @@ export class CmLoginComponent implements OnInit {
   me
   auth2FASegment
   recaptchaV3Service
+  temporaryBearerToken
+  set showChangePasswordDialog(v){
+    if(!v){
+      this.temporaryBearerToken = null
+      this.errMsg = null
+      this.frmGrp.controls['password'].setValue(null)
+    }
+    this._showChangePasswordDialog  = v
+  }
+  get showChangePasswordDialog(){
+    return this._showChangePasswordDialog 
+  }
+  _showChangePasswordDialog = false
   constructor(private injector: Injector , public dataSrv : DataService ,public uiSrv: UiService , public authSrv : AuthService, public router : Router, public util : GeneralUtil ,  private route: ActivatedRoute) { 
     // this.authSrv.logout()
     this.me = this
@@ -65,7 +78,7 @@ export class CmLoginComponent implements OnInit {
   async login() {
     let sendRequest = async (token) => {
       let ticket = this.uiSrv.loadAsyncBegin(1000)
-      let resp = await (this.authSrv.login(this.frmGrp.controls['username'].value,
+      let resp : loginResponse = await (this.authSrv.login(this.frmGrp.controls['username'].value,
         this.frmGrp.controls['password'].value,
         this.uiSrv.lang.value,
         this.guestMode,
@@ -75,8 +88,12 @@ export class CmLoginComponent implements OnInit {
       ).toPromise());
 
       this.uiSrv.loadAsyncDone(ticket, 999999)
-
-      if (resp?.['result'] == true) {
+      if(resp?.msgCode == "PASSWORD_EXPIRED"){
+        // this.clientId = resp?.validationResults?.tenant_id
+        this.temporaryBearerToken = resp?.validationResults?.access_token
+        this.showChangePasswordDialog = true
+      }
+      if (resp?.result == true) {
         if (this.util.arcsApp && resp?.auth2FASegment) {
           this.auth2FASegment = resp?.auth2FASegment
         } else if (this.toExitGuestMode) {
@@ -86,14 +103,14 @@ export class CmLoginComponent implements OnInit {
           this.showTabletLoginDialog = false
           this.uiSrv.refreshDrawerItems.next(true)
         } else {
-          let recaptchaTagEl =  document.getElementsByClassName("grecaptcha-badge")[0];
+          let recaptchaTagEl = document.getElementsByClassName("grecaptcha-badge")[0];
           if(recaptchaTagEl){
             (<HTMLElement> recaptchaTagEl).style.opacity = '0' ;
           }
           this.router.navigate(['/home'] )
         }
       } else {
-        this.errMsg = this.uiSrv.translate(resp?.['msg'] ? resp?.['msg'] : 'An Error Has Occurred')
+        this.errMsg = this.uiSrv.translate(resp?.msg ? resp?.msg : 'An Error Has Occurred')
       }
     }
     if (this.util.standaloneApp) {
@@ -103,6 +120,8 @@ export class CmLoginComponent implements OnInit {
     }
   }
 }
+
+
     // async sendRecaptchaVerifyRequest(token : string){
     // //   var data = {
     // //     secret: 'reCAPTCHA 後台取得的「密鑰」',

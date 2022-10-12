@@ -56,3 +56,9 @@
     <button class="login-button" kendoButton (click)="login()">{{'Login' | label : uiSrv.langPack}}</button>
 </kendo-dialog>
 
+<kendo-dialog class="password-reset-dialog" *ngIf="showChangePasswordDialog" (close) = "showChangePasswordDialog = false">
+    <app-change-password [parent]="me" [requireOldPw] = "false" [uid]="frmGrp.controls['username'].value" [oldPw] ="frmGrp.controls['password'].value" 
+                         [bearerToken]="temporaryBearerToken" msg="Password has been expired. Please set a new one.">
+    </app-change-password>
+</kendo-dialog>
+
