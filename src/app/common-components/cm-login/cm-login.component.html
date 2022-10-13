@@ -58,7 +58,7 @@
 
 <kendo-dialog class="password-reset-dialog" *ngIf="showChangePasswordDialog" (close) = "showChangePasswordDialog = false">
     <app-change-password [parent]="me" [requireOldPw] = "false" [uid]="frmGrp.controls['username'].value" [oldPw] ="frmGrp.controls['password'].value" 
-                         [bearerToken]="temporaryBearerToken" msg="Password has been expired. Please set a new one.">
+                         [bearerToken]="temporaryBearerToken" [msg]="changePwMsg">
     </app-change-password>
 </kendo-dialog>
 

@@ -25,6 +25,7 @@ export class CmLoginComponent implements OnInit {
   toExitGuestMode = false
   clientId
   showForgetPasswordDialog
+  changePwMsg
   me
   auth2FASegment
   recaptchaV3Service
@@ -33,6 +34,7 @@ export class CmLoginComponent implements OnInit {
     if(!v){
       this.temporaryBearerToken = null
       this.errMsg = null
+      this.auth2FASegment  = null
       this.frmGrp.controls['password'].setValue(null)
     }
     this._showChangePasswordDialog  = v
@@ -88,12 +90,20 @@ export class CmLoginComponent implements OnInit {
       ).toPromise());
 
       this.uiSrv.loadAsyncDone(ticket, 999999)
-      if(resp?.msgCode == "PASSWORD_EXPIRED"){
+      if(resp?.msgCode == "PASSWORD_EXPIRED" || resp?.msgCode == "PASSWORD_POLICY_CHANGED"){
         // this.clientId = resp?.validationResults?.tenant_id
+        this.changePwMsg = resp?.msgCode == "PASSWORD_EXPIRED" ? "Password has been expired. Please set the new one." : "Password policy has been updated. Please set the new password."
         this.temporaryBearerToken = resp?.validationResults?.access_token
         this.showChangePasswordDialog = true
+        this.authSrv.tenantId = resp?.validationResults?.tenant_id ? resp?.validationResults?.tenant_id : this.authSrv.tenantId
+        this.clientId = this.authSrv.tenantId 
+        this.frmGrp.controls['username'].setValue(resp?.validationResults.user_id)
       }
       if (resp?.result == true) {
+        this.authSrv.tenantId = resp?.validationResults?.tenant_id ? resp?.validationResults?.tenant_id : this.authSrv.tenantId
+        this.clientId = this.authSrv.tenantId 
+        this.errMsg = null
+        this.frmGrp.controls['verificationCode'].setValue(null)
         if (this.util.arcsApp && resp?.auth2FASegment) {
           this.auth2FASegment = resp?.auth2FASegment
         } else if (this.toExitGuestMode) {
@@ -108,6 +118,12 @@ export class CmLoginComponent implements OnInit {
             (<HTMLElement> recaptchaTagEl).style.opacity = '0' ;
           }
           this.router.navigate(['/home'] )
+          let pwExpire = resp?.validationResults?.password_expires_in
+          if(pwExpire != null){
+            setTimeout(()=>{
+              this.uiSrv.showMsgDialog(this.uiSrv.translate("Please note that current password is expiring in {0} day" + (pwExpire > 1 ? "s" : "")).replace("{0}" , pwExpire))
+            }) 
+          }
         }
       } else {
         this.errMsg = this.uiSrv.translate(resp?.msg ? resp?.msg : 'An Error Has Occurred')

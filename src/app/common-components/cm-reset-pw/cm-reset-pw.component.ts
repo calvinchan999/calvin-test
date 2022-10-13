@@ -53,7 +53,9 @@ export class CmResetPwComponent implements OnInit {
 
   async saveToDB(){
     if(this.validate()) {
+      let ticket = this.uiSrv.loadAsyncBegin()
       let req = await this.dataSrv.httpSrv.post("api/user/resetPassword/v1" , this.getSubmitDataset())
+      this.uiSrv.loadAsyncDone(ticket)
       if(req.result !== true){
         this.uiSrv.showMsgDialog(this.uiSrv.translate("Reset Password Failed") + " : " + this.uiSrv.translate(req.msg) )
       }else{

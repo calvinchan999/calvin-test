@@ -1,5 +1,6 @@
 import { Component, OnInit , Input} from '@angular/core';
 import { FormControl, FormGroup, Validators } from '@angular/forms';
+import { Subject } from 'rxjs';
 import { AuthService } from 'src/app/services/auth.service';
 import { DataService } from 'src/app/services/data.service';
 import { RvHttpService } from 'src/app/services/rv-http.service';
@@ -21,11 +22,21 @@ export class ArcsPasswordPolicyComponent implements OnInit {
     minDigit: new FormControl(null),
     minSymbol: new FormControl(null),
     reusableAfter: new FormControl(null),
-    expireAfterDays: new FormControl(null),
-    modifiedDateTime:new FormControl(null)
+    expireAfterDays: new FormControl(null),    
+    notifyExpiryBeforeDays:new FormControl(null),
+    modifiedDateTime:new FormControl(null),
   })
   readonly
+  $onDestroy = new Subject()
+  ngOnDestroy(){
+    this.$onDestroy.next()
+  }
   async ngOnInit(){
+    this.frmGrp.controls['expireAfterDays'].valueChanges.subscribe(v=> {
+      if(this.frmGrp.controls['notifyExpiryBeforeDays'].value > v){
+        this.frmGrp.controls['notifyExpiryBeforeDays'].setValue(null)
+      }
+    })
     this.readonly = !this.authSrv.hasRight('PASSWORD_POLICY_EDIT')
     if(this.readonly){
       Object.keys(this.frmGrp.controls).forEach(k=> this.frmGrp.controls[k].disable())

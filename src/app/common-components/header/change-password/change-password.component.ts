@@ -60,7 +60,6 @@ export class ChangePasswordComponent implements OnInit {
         'localeId' : this.uiSrv.selectedLangOption?.['value'],
         'Authorization': 'Bearer ' + this.bearerToken
     } : undefined
-    console.log(header)
     if(this.validate() && (await this.dataSrv.saveRecord("api/user/changePassword/v1" , this.getSubmitDataset() , this.frmGrp , undefined, header)).result == true) {
       if(this.parentIsLoginComponent){
         this.parent.showChangePasswordDialog = false

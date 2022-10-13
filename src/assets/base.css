@@ -28125,7 +28125,7 @@ uc-table .grid-container {
 uc-table .kendo-grid {
   height: 100%;
 }
-.card-container.control .robot-container .form-container {
+.card-container .robot-container .form-container {
   width: 50%
 }
 /* Dashboard - popup */
@@ -29668,6 +29668,9 @@ uc-drawing-board .slider-wrapper .k-slider-buttons .k-button {
   .card-container.home .ts-task .no-task {
     margin-top: 18%;
   }
+  .card-container app-arcs-charts .k-tilelayout {
+	zoom: 0.85;
+  }
 }
 @media screen and (max-height: 680px) {
   .card-container.home .ts-controls .controls-container {
@@ -29675,5 +29678,8 @@ uc-drawing-board .slider-wrapper .k-slider-buttons .k-button {
   }
   .card-container.home .ts-task .no-task {
     margin-top: 15%;
+  }
+  .card-container app-arcs-charts .k-tilelayout {
+	zoom: 0.75;
   }
 }

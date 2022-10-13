@@ -1187,7 +1187,8 @@ export class loginResponse{
     accessFunctionList? : {functionCode : string}[]
     access_token? : string
     refresh_token? : string
-    // tenant_id ? : string
+    password_expires_in ? : number
+    tenant_id ? : string
     user_id ? : string
     user_name ? : string
   }

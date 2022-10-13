@@ -1,4 +1,4 @@
-<div class="map card-container">
+<div class="user card-container">
     <div class="card-header-wrapper">
         <!-- title -->
         <h3 class="card-title"></h3>
@@ -27,7 +27,7 @@
         </uc-table>
     </div>
 
-    <div *ngIf="!uiSrv.isTablet && selectedTab == 'passwordPolicy'">
+    <div *ngIf="!uiSrv.isTablet && selectedTab == 'passwordPolicy'" class="robot-container">
        <app-arcs-password-policy></app-arcs-password-policy>
     </div>
     <!-- * * *  ^ PC VERSION ^   * * * -->
