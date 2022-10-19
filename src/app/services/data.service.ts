@@ -621,7 +621,7 @@ export class DataService {
   
   public async saveRecord(endpoint : string, payload , errorMap = null , isCreate = true, header = undefined) : Promise<SaveRecordResp>{
     let ticket = this.uiSrv.loadAsyncBegin()
-    let resp
+    let resp : SaveRecordResp
     try{
       if(isCreate){
         resp = await this.httpSrv.post(endpoint, payload,undefined,header,undefined,true)
@@ -901,7 +901,8 @@ export class DataStorage {
 
 export class SaveRecordResp {
     result
-    validationResults:[]
+    msg ?
+    validationResults?:[]
 }
 
 export class RobotMaster{

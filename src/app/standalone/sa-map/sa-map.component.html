@@ -16,7 +16,9 @@
 
     <div class="table-container" *ngIf="!uiSrv.isTablet">
         <uc-table #table [toolbarButtons]="{new : true , action: true}" [columnDefs]="columnDef" [(data)] = "data"  [serverSidePagination] = "true"
-            [functionId] = "selectedTab == 'floorplan' ? 'FLOORPLAN' : 'MAP'"
+            [customButtons] = "tableCustomButtons[selectedTab] ? tableCustomButtons[selectedTab] : [] "
+            (customButtonClick) = "showDetail(null , $event)"
+            [functionId] = "selectedTab == 'floorplan' ? 'FLOORPLAN' : 'MAP'" 
             [dataSourceApiEndpoint] = "selectedTab == 'map' ? 'api/map/page/v1' : (selectedTab == 'floorplan' ? 'api/map/plan/page/v1' : null)"
             [disabledButtons]="tableDisabledButtons" [isLoading]="isTableLoading"
             (selectedDataChange)="tableDisabledButtons = {new : false , action : $event.length == 0}"

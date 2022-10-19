@@ -117,7 +117,7 @@ export class CmTaskJobActionComponent implements OnInit {
     let tempData = this.otherLocationData.concat(JSON.parse(JSON.stringify(this.actionListData)))
     tempData.sort((a, b) => a.seq - b.seq)
     tempData.forEach(r => r['seq'] = tempData.indexOf(r) + 1)
-    this.actionListData = tempData.filter(r => r['pointCode'] == this.currLoc)
+    this.actionListData = tempData.filter(r => r['pointCode'] == this.currLoc || (r['pointCode'] == null && this.getPrevLocRow(r)?.['pointCode'] == this.currLoc))
     this.otherLocationData = tempData.filter(r=>!this.actionListData.map(a=>a['seq']).includes(r['seq']))
     // this.actionListData.forEach(r => {
     //   let prevRow = this.actionListData.filter(r2 => r2['seq'] + 1 == r['seq'])[0]

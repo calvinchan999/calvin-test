@@ -12,6 +12,7 @@ import { UiService } from 'src/app/services/ui.service';
 import { DrawingBoardComponent } from 'src/app/ui-components/drawing-board/drawing-board.component';
 import { TableComponent } from 'src/app/ui-components/table/table.component';
 import { GeneralUtil } from 'src/app/utils/general/general.util';
+import { SaMapImportComponent } from './sa-map-import/sa-map-import.component';
 
 
 @Component({
@@ -30,6 +31,13 @@ export class SaMapComponent implements OnInit {
 
                 this.tabs = this.tabs.filter(t=>this.authSrv.userAccessList.includes(t.id.toUpperCase()))
                 this.selectedTab = this.tabs[0].id
+                Object.keys(this.tableCustomButtons).forEach(k=> {
+                  this.tableCustomButtons[k].forEach(btn=>{
+                    if(!this.authSrv.hasRight(btn?.functionId)){
+                      delete this.tableCustomButtons[k]
+                    }
+                  })
+                })
  }
   tabs = [
     // {id: 'site' , label : 'Site'}, //testing ARCS
@@ -77,6 +85,10 @@ export class SaMapComponent implements OnInit {
   editingMapKeySet = null
   noMap = false
   noFloorplan = false
+
+  tableCustomButtons = {
+    map:[{id : 'importMap' , label : 'Import' , icon : 'import' , disabled : false , functionId : 'MAP_IMPORT' }]
+  }
 
   get initialShapes() {
     return this.initialDataset?.shapes
@@ -173,13 +185,14 @@ export class SaMapComponent implements OnInit {
     }
   }
 
-  showDetail(evt = null){
+  showDetail(evt = null , id = null){
     const idCompMap = {
       map : CmMapDetailComponent,
-      floorplan : CmMapFloorplanComponent
+      floorplan : CmMapFloorplanComponent,
+      importMap : SaMapImportComponent
     }
     const window : DialogRef = this.uiSrv.openKendoDialog({
-      content: idCompMap[this.selectedTab] ,   
+      content: idCompMap[id ? id : this.selectedTab] ,   
       preventAction: () => true
     });
     const content = window.content.instance;

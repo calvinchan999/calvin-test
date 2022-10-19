@@ -41,7 +41,7 @@ export class CustomHttpInterceptor implements HttpInterceptor {
     intercept(req: HttpRequest<any>, next: HttpHandler): Observable<HttpEvent<Object>> {
         let authReq = req;
         const token = this.generalUtil.getUserAccessToken();
-        if (token != null) {
+        if (token != null ) {
           authReq = this.addTokenHeader(req, token);
         }
         return next.handle(authReq).pipe(catchError(error => {
@@ -171,20 +171,29 @@ export class CustomHttpInterceptor implements HttpInterceptor {
     }
 
     private addTokenHeader(request: HttpRequest<any>, token: string = this.generalUtil.getUserAccessToken()) {
-        const headers = {
-            'Accept': 'application/json',
-            'Content-Type': 'application/json',
-            'localeId' : this.uiSrv.selectedLangOption?.['value'],
-            'userId': this.generalUtil.getUserId() 
-            // 'Accept'        : '*',
-            // 'Content-Type'  : 'application/x-www-form-urlencoded',
+        var req = request.clone({headers: request.headers.set( 'localeId' ,  this.uiSrv.selectedLangOption?.['value'])})
+        if(token && token != ''){
+          req = req.clone({headers: req.headers.set( 'Authorization' ,  ('Bearer ' + token))})
         }
+        return req;
+        // return request.clone({
+        //   headers: request.headers.set( 'Authorization' , 'Bearer ' + token)
+        // })
 
-        if (token && token != '') {
-            headers['Authorization'] = 'Bearer ' + token
-        }
+        // const headers = {
+        //     'Accept': request.headers.get("Accept") ? request.headers.get("Accept")  : 'application/json',
+        //     'Content-Type': request.headers.get("Content-Type") ? request.headers.get("Content-Type")  :  'application/json',
+        //     'localeId' : this.uiSrv.selectedLangOption?.['value'],
+        //     'userId': this.generalUtil.getUserId() 
+        //     // 'Accept'        : '*',
+        //     // 'Content-Type'  : 'application/x-www-form-urlencoded',
+        // }
 
-        return request.clone({setHeaders:headers})
+        // if (token && token != '') {
+        //     headers['Authorization'] = 'Bearer ' + token
+        // }
+
+        // return request.clone({setHeaders:headers})
       }
 
 

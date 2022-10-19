@@ -1,0 +1,24 @@
+<div class="dialog-content import-map">
+    <kendo-dialog-titlebar  (close)="onClose()">
+        <div>{{'Import map from zip file' | label: uiSrv.langPack}}</div>
+    </kendo-dialog-titlebar>
+
+    <div class="form-container">
+        <form [formGroup]="frmGrp" class="content">
+            <uc-txtbox  lab = "Map Code" [frmGrp] = "frmGrp" frmCtrl = "mapCode"  [disabled] = "true"></uc-txtbox>
+            <!-- <uc-txtbox  lab = "Zip File Name" [frmGrp] = "frmGrp" frmCtrl = "fileName"   [suffixButton] = "{icon : 'k-icon mdi mdi-upload'}" 
+                        (suffixButtonClick) = "uploader.click(); loadingTicket = uiSrv.loadAsyncBegin()" [disabled]="true">
+            </uc-txtbox> -->
+            <button kendoButton (click)="uploader.click()" >{{'Upload Zip File' | label : uiSrv.langPack}}</button>
+            <input hidden type="file" #uploader [disabled]="isUploading" (change)="onfileLoad($event)"/>
+        </form>
+    </div>
+    <div class="progress-bar-wrapper" [style.visibility] = "isUploading && !isUploadedAndProcessing ? null : 'hidden'">
+        <kendo-progressbar class="import-progress" [value] = "uploadedPercent" [indeterminate]="isUploadedAndProcessing"></kendo-progressbar>
+        <div *ngIf = "isUploadedAndProcessing" class="processing-msg">{{ 'Processing Data ... ' | label : uiSrv.langPack}}</div>
+    </div>
+    <div class="button-container">
+        <button kendoButton (click)="onClose()" [disabled] = "isUploading">  {{'Cancel' | label : uiSrv.langPack}}</button>
+        <button kendoButton (click)="saveToDB()" [disabled] = "!frmGrp.controls['mapCode'].value || isUploading" >{{'Save' | label : uiSrv.langPack}}</button>
+    </div>
+</div>
