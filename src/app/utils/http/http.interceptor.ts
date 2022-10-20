@@ -45,6 +45,7 @@ export class CustomHttpInterceptor implements HttpInterceptor {
           authReq = this.addTokenHeader(req, token);
         }
         return next.handle(authReq).pipe(catchError(error => {
+          console.log(error)
           if (error instanceof HttpErrorResponse && error.status == 401 && !authReq.url.endsWith('/api/Auth/refreshtoken') && !authReq.url.startsWith('assets/')) {
             return this.handle401Error(authReq, next);
           }          
@@ -165,6 +166,7 @@ export class CustomHttpInterceptor implements HttpInterceptor {
     }
 
     async forceLogout(){
+      this.uiSrv.loadingTickets = []
       await this.uiSrv.showMsgDialog(this.uiSrv.translate('Session Timeout , Please Login Again'))
       this.authService.logout()
       location.reload()

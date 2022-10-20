@@ -1,4 +1,8 @@
 {
+    "Import":"導入",
+    "Import map from zip file" : "由ZIP檔案導入地圖",
+    "Upload Zip File" : "上載zip檔案",
+    "Map Code" : "地圖編號",
     "Reset Password":"重置密碼",
     "Reset":"重置",
     "Hide Path":"隱藏路徑",

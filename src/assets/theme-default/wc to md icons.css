@@ -2805,10 +2805,10 @@
   content: "\e6a6";
 }
 .k-i-import::before {
-  content: "\e6a7";
+  content: "\F0220";
 }
 .k-i-export::before {
-  content: "\e6a8";
+  content: "\F021D";
 }
 .k-i-match-full-word::before {
   content: "\e6a9";

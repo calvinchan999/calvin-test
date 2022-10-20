@@ -89,6 +89,7 @@ export class SaMapComponent implements OnInit {
   tableCustomButtons = {
     map:[{id : 'importMap' , label : 'Import' , icon : 'import' , disabled : false , functionId : 'MAP_IMPORT' }]
   }
+  //  {id : 'exportMap' , label : 'Export' , icon : 'export' , disabled : false , functionId : 'MAP_EXPORT' }
 
   get initialShapes() {
     return this.initialDataset?.shapes

@@ -31,7 +31,9 @@ export class UiService {
     this.titleSrv.setTitle(this.translate(environment.app.toUpperCase() == 'STANDALONE' ? "RV Robotic System" : "ARCS"))
     // if(this.isTablet){
     //   this.fullScreen()
-    // }
+    // } 
+     this.initNotification()
+     setTimeout(()=>this.showBrowserPopupNotification("Hello World~") , 3000)
   }
   public isTablet = false
   public langPack = { }
@@ -42,6 +44,22 @@ export class UiService {
   public lang = new BehaviorSubject<string>('EN')
   public loadingShadeZindex = 999999
   public drawingBoardComponents : DrawingBoardComponent[]  = []
+
+
+  initNotification(){
+    Notification.requestPermission((status) =>{})      
+  }
+
+  showBrowserPopupNotification(msg : string , onlyIfAppIsNonActiveTab = true){
+    if(onlyIfAppIsNonActiveTab && ! document.hidden){
+      return
+    }
+    if(Notification.permission === "granted"){
+     new Notification(msg , { icon: './assets/rvicon.png' , requireInteraction: true });
+    }else{
+     this.initNotification()
+    }
+  }
 
   detectMob() {
     const toMatch = [
