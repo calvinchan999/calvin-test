@@ -33,7 +33,6 @@ export class UiService {
     //   this.fullScreen()
     // } 
      this.initNotification()
-     setTimeout(()=>this.showBrowserPopupNotification("Hello World~") , 3000)
   }
   public isTablet = false
   public langPack = { }

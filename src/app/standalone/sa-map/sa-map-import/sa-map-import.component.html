@@ -1,6 +1,6 @@
 <div class="dialog-content import-map">
     <kendo-dialog-titlebar  (close)="onClose()">
-        <div>{{'Import map from zip file' | label: uiSrv.langPack}}</div>
+        <div>{{'Import map from ZIP file' | label: uiSrv.langPack}}</div>
     </kendo-dialog-titlebar>
 
     <div class="form-container">
@@ -14,7 +14,7 @@
         </form>
     </div>
     <div class="progress-bar-wrapper" [style.visibility] = "isUploading && !isUploadedAndProcessing ? null : 'hidden'">
-        <kendo-progressbar class="import-progress" [value] = "uploadedPercent" [indeterminate]="isUploadedAndProcessing"></kendo-progressbar>
+        <kendo-progressbar class="import-progress"  [label]="label" [value] = "uploadedPercent" [indeterminate]="isUploadedAndProcessing"></kendo-progressbar>
         <div *ngIf = "isUploadedAndProcessing" class="processing-msg">{{ 'Processing Data ... ' | label : uiSrv.langPack}}</div>
     </div>
     <div class="button-container">

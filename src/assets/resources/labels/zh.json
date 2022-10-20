@@ -1,6 +1,9 @@
 {
+    "Download":"下載",
+    "Export":"導出",
+    "Export map as ZIP file": "導出地圖為ZIP檔案",
     "Import":"導入",
-    "Import map from zip file" : "由ZIP檔案導入地圖",
+    "Import map from ZIP file" : "由ZIP檔案導入地圖",
     "Upload Zip File" : "上載zip檔案",
     "Map Code" : "地圖編號",
     "Reset Password":"重置密碼",

@@ -215,6 +215,7 @@ import { ArcsSetupImportMapComponent } from './arcs/arcs-setup/arcs-setup-import
 import { ArcsSetupExportMapComponent } from './arcs/arcs-setup/arcs-setup-export/arcs-setup-export-map/arcs-setup-export-map.component';
 import { ArcsPasswordPolicyComponent } from './common-components/cm-user/arcs-password-policy/arcs-password-policy.component';
 import { SaMapImportComponent } from './standalone/sa-map/sa-map-import/sa-map-import.component';
+import { SaMapExportComponent } from './standalone/sa-map/sa-map-export/sa-map-export.component';
 
 @NgModule({
     declarations: [
@@ -297,6 +298,7 @@ import { SaMapImportComponent } from './standalone/sa-map/sa-map-import/sa-map-i
         ArcsSetupExportMapComponent,
         ArcsPasswordPolicyComponent,
         SaMapImportComponent,
+        SaMapExportComponent,
         
     ],
     imports: [

@@ -1,0 +1,16 @@
+<div class="dialog-content export-map">
+    <kendo-dialog-titlebar  (close)="onClose()">
+        <div>{{'Export map as ZIP file' | label: uiSrv.langPack}}</div>
+    </kendo-dialog-titlebar>
+
+    <div class="container">
+        <uc-dropdown label = "Map" [showValue]="true" [options] = "mapDropdownOptions" [(value)]='mapCode' [disabled] = "isDownloading" [allowClear]="false"></uc-dropdown>
+    </div>
+    <div class="progress-bar-wrapper" [style.visibility] = "isDownloading ? null : 'hidden'">
+        <kendo-progressbar class="import-progress"  [label]="label" [value] = "downloadedPercent"></kendo-progressbar>
+    </div>
+    <div class="button-container">
+        <button kendoButton (click)="onClose()"  [disabled] = "isDownloading">  {{'Cancel' | label : uiSrv.langPack}}</button>
+        <button kendoButton (click)="downloadFromServer()" [disabled] = "!mapCode || isDownloading"> {{'Download' | label : uiSrv.langPack}}</button>
+    </div>
+</div>

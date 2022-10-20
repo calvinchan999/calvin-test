@@ -2,6 +2,7 @@ import { HttpEventType, HttpHeaders } from '@angular/common/http';
 import { Component, OnInit , ViewChild } from '@angular/core';
 import { FormControl, FormGroup, Validators } from '@angular/forms';
 import { WindowRef } from '@progress/kendo-angular-dialog';
+import { LabelSettings } from '@progress/kendo-angular-progressbar';
 import { Subject } from 'rxjs';
 import { filter, take } from 'rxjs/operators';
 import { DataService, DropListMap, DropListRobot, SaveRecordResp } from 'src/app/services/data.service';
@@ -28,6 +29,11 @@ export class SaMapImportComponent implements OnInit {
   isUploading = false
   isUploadedAndProcessing = false
   uploadedPercent
+  label: LabelSettings = {
+    visible: true,
+    format: "percent",
+    position: "center",
+  };
 
   constructor(public uiSrv : UiService , private dataSrv : DataService, public httpSrv : RvHttpService, public util : GeneralUtil){ }
 

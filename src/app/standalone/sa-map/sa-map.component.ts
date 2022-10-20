@@ -12,6 +12,7 @@ import { UiService } from 'src/app/services/ui.service';
 import { DrawingBoardComponent } from 'src/app/ui-components/drawing-board/drawing-board.component';
 import { TableComponent } from 'src/app/ui-components/table/table.component';
 import { GeneralUtil } from 'src/app/utils/general/general.util';
+import { SaMapExportComponent } from './sa-map-export/sa-map-export.component';
 import { SaMapImportComponent } from './sa-map-import/sa-map-import.component';
 
 
@@ -87,7 +88,8 @@ export class SaMapComponent implements OnInit {
   noFloorplan = false
 
   tableCustomButtons = {
-    map:[{id : 'importMap' , label : 'Import' , icon : 'import' , disabled : false , functionId : 'MAP_IMPORT' }]
+    map:[{id : 'importMap' , label : 'Import' , icon : 'import' , disabled : false , functionId : 'MAP_IMPORT' },
+         {id : 'exportMap' , label : 'Export' , icon : 'export' , disabled : false , functionId : 'MAP_IMPORT' }]
   }
   //  {id : 'exportMap' , label : 'Export' , icon : 'export' , disabled : false , functionId : 'MAP_EXPORT' }
 
@@ -190,7 +192,8 @@ export class SaMapComponent implements OnInit {
     const idCompMap = {
       map : CmMapDetailComponent,
       floorplan : CmMapFloorplanComponent,
-      importMap : SaMapImportComponent
+      importMap : SaMapImportComponent,
+      exportMap : SaMapExportComponent
     }
     const window : DialogRef = this.uiSrv.openKendoDialog({
       content: idCompMap[id ? id : this.selectedTab] ,   
