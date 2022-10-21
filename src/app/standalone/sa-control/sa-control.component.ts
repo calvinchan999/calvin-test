@@ -1,5 +1,6 @@
 import { Component, OnInit, ViewChild } from '@angular/core';
 import { FormControl, FormGroup, Validators } from '@angular/forms';
+import { ActivatedRoute } from '@angular/router';
 import { DialogRef, DialogService, WindowRef } from '@progress/kendo-angular-dialog';
 import { filter } from 'rxjs/operators';
 import { CmActionComponent } from 'src/app/common-components/cm-action/cm-action.component';
@@ -43,24 +44,24 @@ export class SaControlComponent implements OnInit {
   ]
 
   constructor(public authSrv : AuthService, public uiSrv : UiService, public windowSrv: DialogService, private util : GeneralUtil ,
-              private httpSrv : RvHttpService, public dataSrv:DataService) { 
+              private httpSrv : RvHttpService, public dataSrv:DataService , private route : ActivatedRoute) { 
     if(this.uiSrv.isTablet){
       this.tabs = [
-        {id: 'controls' , label : 'Controls'},
-        {id: 'robot' , label : 'Robot'},
+        {id: 'controls' , label : 'Controls', functionId : 'CONTROLS'},
+        {id: 'robot' , label : 'Robot' , functionId : 'ROBOT'},
+        {id: 'log' , label : 'Event Log', functionId : 'ROBOT'}
       ]
     }
     this.readonly.controls = !this.authSrv.hasRight("CONTROLS_EDIT")
     this.readonly.robot = !this.authSrv.hasRight("ROBOT_EDIT")
-    this.tabs = this.tabs.filter(t=>this.authSrv.hasRight(t.id.toUpperCase()))
-    this.selectedTab = this.tabs[0].id
+    this.tabs = this.tabs.filter(t=>this.authSrv.hasRight(t.functionId.toUpperCase()))
+    this.selectedTab = this.route.snapshot.paramMap.get('selectedTab') ? this.route.snapshot.paramMap.get('selectedTab') : this.tabs[0].id
   }
   selectedTab = ''
   tabs = [
-    {id: 'controls' , label : 'Controls'},
-    {id: 'robot' , label : 'Robot'},
-    // {id: 'type' , label : 'Type'},
-    {id: 'action' , label : 'Action'},
+    {id: 'controls' , label : 'Controls', functionId : 'CONTROLS'},
+    {id: 'robot' , label : 'Robot', functionId : 'ROBOT'},
+    {id: 'log' , label : 'Event Log', functionId : 'ROBOT'}
   ]
   showMap = false
   data = []

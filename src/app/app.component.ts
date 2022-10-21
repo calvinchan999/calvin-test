@@ -74,13 +74,13 @@ export class AppComponent implements OnInit, OnDestroy {
                     // }
                 });
             }
-            this.currentRoute = this.router.url.split('?')[0] 
+            this.currentRoute = this.router.url.split('?')[0]         
         });
 
         this.setDrawerConfig();
         this.items = this.drawerItems();
         this.uiSrv.refreshDrawerItems.pipe(skip(1)).subscribe(()=>{
-            this.items = this.drawerItems();
+            this.items = this.drawerItems();            
         })
         // this.customMsgService.localeChange.subscribe(() => {
         //     this.items = this.drawerItems();
@@ -106,29 +106,34 @@ export class AppComponent implements OnInit, OnDestroy {
         }
     }
 
+    private isDrawerItemSelected( path : string){
+        return this.router.url.split('?')[0] ==`${path.toLowerCase()}`
+    }
+
     private getRobotTypePaths() {
         let ret = []
         environment.routes.filter(r=>this.util.config.ROBOT_TYPE?.map(t=> ( '/' + t.toLowerCase()))?.includes(r.path)).forEach((r) => {
-            ret.push({ text: this.uiSrv.translate(r.text), icon: r.icon, path: r.path, selected: false })
+            ret.push({ text: this.uiSrv.translate(r.text), icon: r.icon, path: r.path, selected: this.isDrawerItemSelected(r.path) })
         })
         return ret
     }
 
     public drawerItems() {
+        let selected = (path : string)=> this.isDrawerItemSelected(path)
         if(environment.app.toUpperCase() == 'STANDALONE'){
             return [
-                { text: this.uiSrv.translate('Dashboard'),       icon: 'mdi mdi-collage',                    path: '/dashboard',     selected: false },
-                { text: this.uiSrv.translate('Task'),            icon: 'mdi mdi-clipboard',                  path: '/task',          selected: false },
-                { text: this.uiSrv.translate('Map'),             icon: 'mdi mdi-map',                        path: '/map',           selected: false },
-                { text: this.uiSrv.translate('Control'),         icon: 'mdi mdi-cogs',                       path: '/control',       selected: false },
+                { text: this.uiSrv.translate('Dashboard'),       icon: 'mdi mdi-collage',                    path: '/dashboard',     selected: selected('/dashboard') },
+                { text: this.uiSrv.translate('Task'),            icon: 'mdi mdi-clipboard',                  path: '/task',          selected: selected('/task')  },
+                { text: this.uiSrv.translate('Map'),             icon: 'mdi mdi-map',                        path: '/map',           selected: selected('/map')  },
+                { text: this.uiSrv.translate('Control'),         icon: 'mdi mdi-cogs',                       path: '/control',       selected: selected('/control')  },
                 // { text: this.uiSrv.translate('Test Delivery'),   icon: 'mdi mdi-test-tube',                   path: '/testDelivery',   selected: false },
                 // { text: this.uiSrv.translate('Test ARCS Functions'),     icon: 'mdi mdi-test-tube',                  path: '/testARCS',      selected: true  },
             ].filter(itm=>this.authSrv.hasAccessToPath(itm.path.replace('/','')) && (itm.path != '/dashboard' || this.uiSrv.withDashboard));
         }else if(environment.app.toUpperCase() == 'ARCS'){
             return [
-                { text: this.uiSrv.translate('Dashboard'),       icon: 'mdi mdi-collage',                    path: '/home',          selected: true }
+                { text: this.uiSrv.translate('Dashboard'),       icon: 'mdi mdi-collage',                    path: '/home',          selected: selected('/home')  }
             ].concat(this.getRobotTypePaths()).concat([
-                { text: this.uiSrv.translate('Setup'),           icon: 'mdi mdi-cogs',                       path: '/setup',         selected: false },
+                { text: this.uiSrv.translate('Setup'),           icon: 'mdi mdi-cogs',                       path: '/setup',         selected: selected('/setup')  },
             ].filter(itm=>{
                 //let allowedRobotType = !this.util.config.ROBOT_TYPE || this.util.config.ROBOT_TYPE.map(t=>"/" + t.toUpperCase()).includes(itm.path.toUpperCase())
                 if(itm.path == '/setup'){
@@ -138,7 +143,6 @@ export class AppComponent implements OnInit, OnDestroy {
                 }
             }));
         }
-
     }
 
     public toggleDrawer(drawer: DrawerComponent): void {

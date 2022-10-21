@@ -1,4 +1,5 @@
 import { ChangeDetectorRef, Component, NgZone, OnInit, ViewChild } from '@angular/core';
+import { ActivatedRoute, Route } from '@angular/router';
 import { DialogRef, DialogService } from '@progress/kendo-angular-dialog';
 import { filter, take } from 'rxjs/operators';
 import { CmActionComponent } from 'src/app/common-components/cm-action/cm-action.component';
@@ -27,18 +28,19 @@ import { ArcsSetupTypeComponent } from './arcs-setup-type/arcs-setup-type.compon
 export class ArcsSetupComponent implements OnInit {
   @ViewChild('table') tableElRef: TableComponent
   @ViewChild('pixi') pixiElRef: DrawingBoardComponent
-  constructor(public windowSrv: DialogService, public dataSrv : DataService, public uiSrv: UiService, public http: RvHttpService, private changeDectector: ChangeDetectorRef,
-    private util: GeneralUtil, private ngZone: NgZone , private authSrv : AuthService) { 
+  constructor(public windowSrv: DialogService, public dataSrv : DataService, public uiSrv: UiService, public http: RvHttpService, 
+              private changeDectector: ChangeDetectorRef, private route : ActivatedRoute, private util: GeneralUtil, private ngZone: NgZone , private authSrv : AuthService) { 
       this.tabs = this.tabs.filter(t=> t.authorized === false || this.authSrv.userAccessList.includes(this.gridSettings[t.id].functionId?.toUpperCase()))
-      this.selectedTab = this.tabs[0].id
+      this.selectedTab = this.route.snapshot.paramMap.get('selectedTab') ? this.route.snapshot.paramMap.get('selectedTab') : this.tabs[0].id
   }
   tabs = [
     { id: 'robot', label: 'Robot' },
-    { id: 'site', label: 'Site' , authorized : false },
+    { id: 'site', label: 'Site'},
     { id: 'building', label: 'Building'},
     { id: 'floorplan', label: 'Floor Plan' },
     { id: 'map', label: 'Map' },
-    { id: 'pointType', label: 'Waypoint Type' , authorized : true},
+    { id: 'pointType', label: 'Waypoint Type'},
+    { id: 'log', label: 'Event Log' , authorized : false},
   ]
   selectedTab = 'floorplan' 
   tableCustomButtons = {}

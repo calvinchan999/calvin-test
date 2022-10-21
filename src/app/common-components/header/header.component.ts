@@ -122,7 +122,7 @@ export class HeaderComponent {
     public logout(){
         if(this.uiSrv.isTablet){
             this.authSrv.isGuestMode = true
-            sessionStorage.setItem('isGuestMode', JSON.stringify(true))
+            this.dataSrv.setSessionStorage('isGuestMode', JSON.stringify(true))
             this.router.navigate(['/login'])
         }else{            
             this.authSrv.logout()

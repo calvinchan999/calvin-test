@@ -809,7 +809,7 @@ export class DrawingBoardComponent implements OnInit , AfterViewInit {
 
   async loadToMainContainer(url, width = null, height = null , floorPlanName = null, containerId = null , setCamera = false ) {
     url = url.startsWith('data:image') ? url : ('data:image/png;base64,' + url)
-    localStorage.setItem('lastLoadedFloorplanCode' , containerId)
+    this.dataSrv.setlocalStorage('lastLoadedFloorplanCode' , containerId)
     this.mainContainerId = containerId
     this.header = floorPlanName
     let sprite = await this.getSpriteFromUrl(url)
@@ -1906,8 +1906,8 @@ export class DrawingBoardComponent implements OnInit , AfterViewInit {
         pixiArrow.visible = false
       }
     })
-    if(this.isDashboard && localStorage.getItem('uitoggle')){
-      this.uitoggle = JSON.parse(localStorage.getItem('uitoggle'))
+    if(this.isDashboard && this.dataSrv.getlocalStorage('uitoggle')){
+      this.uitoggle = JSON.parse(this.dataSrv.getlocalStorage('uitoggle'))
     }
     this.toggleWaypoint(this.uitoggle.showWaypoint)
     this.togglePath()
@@ -2219,8 +2219,8 @@ export class DrawingBoardComponent implements OnInit , AfterViewInit {
     // this.spawnPickObj.dropdownOptions.floorplans = dropLists.option['floorplans']
     // this.spawnPickObj.dropdownData.maps = dropLists.data['maps']
     if (loadFp && this.dropdownOptions.floorplans.length > 0) {
-      this.spawnPointObj.selectedPlan = this.dropdownOptions.floorplans.map(p=>p.value.toString()).includes(localStorage.getItem('lastLoadedFloorplanCode')) ?
-                           localStorage.getItem('lastLoadedFloorplanCode') : 
+      this.spawnPointObj.selectedPlan = this.dropdownOptions.floorplans.map(p=>p.value.toString()).includes(this.dataSrv.getlocalStorage('lastLoadedFloorplanCode')) ?
+                           this.dataSrv.getlocalStorage('lastLoadedFloorplanCode') : 
                            this.dropdownOptions.floorplans[0].value
       this.spawnPointObj.selectedMap = this.dropdownData.maps.filter((m:DropListMap)=>m.floorPlanCode ==  (<DropListFloorplan>this.spawnPointObj.selectedPlan[0]?.floorPlanCode))
       this.onFloorplanSelected_SA()
@@ -2339,7 +2339,7 @@ export class DrawingBoardComponent implements OnInit , AfterViewInit {
 
   toggleWaypoint(show = this.uitoggle.showWaypoint){
     if(this.isDashboard){
-      localStorage.setItem('uitoggle' , JSON.stringify(this.uitoggle))
+      this.dataSrv.setlocalStorage('uitoggle' , JSON.stringify(this.uitoggle))
     }
     this.uitoggle.showWaypoint = show;
     this.allPixiPoints.forEach(p=>{
@@ -2351,10 +2351,9 @@ export class DrawingBoardComponent implements OnInit , AfterViewInit {
 
   togglePath(show = this.uitoggle.showPath){
     if(this.isDashboard){
-      localStorage.setItem('uitoggle' , JSON.stringify(this.uitoggle))
+      this.dataSrv.setlocalStorage('uitoggle' , JSON.stringify(this.uitoggle))
     }
     this.uitoggle.showPath = show;
-    console.log(this.allPixiArrows)
     this.allPixiArrows.forEach(p=>{
       p.visible = show
       if(this.isDashboard){

@@ -202,10 +202,10 @@ export class ArcsDashboardComponent implements OnInit {
     // let ticket = this.uiSrv.loadAsyncBegin()
     setTimeout(async () => {
       this.pixiElRef.initDone$.subscribe(async () => {
-        if(sessionStorage.getItem('arcsLocationTree')){
-          this.pixiElRef.arcsLocationTree = JSON.parse(sessionStorage.getItem('arcsLocationTree'))
+        if(this.dataSrv.getSessionStorage('arcsLocationTree')){
+          this.pixiElRef.arcsLocationTree = JSON.parse(this.dataSrv.getSessionStorage('arcsLocationTree'))
         }
-        if(this.site && ! sessionStorage.getItem('dashboardFloorPlanCode')){
+        if(this.site && ! this.dataSrv.getSessionStorage('dashboardFloorPlanCode')){
           this.loadSite()
         }else{
           this.loadFloorPlan()
@@ -245,7 +245,7 @@ export class ArcsDashboardComponent implements OnInit {
       let fpCode = floorplans.filter(fp=>fp.buildingCode == buildingCode && fp.defaultPerBuilding)[0]?.floorPlanCode
       fpCode = fpCode ? fpCode : floorplans.filter(fp=>fp.buildingCode == buildingCode)[0]?.floorPlanCode
       if(this.pixiElRef.arcsLocationTree){
-        sessionStorage.setItem('arcsLocationTree' , JSON.stringify(this.pixiElRef.arcsLocationTree))
+        this.dataSrv.setSessionStorage('arcsLocationTree' , JSON.stringify(this.pixiElRef.arcsLocationTree))
       }
       if(fpCode){
         // console.log(this.pixiElRef.arcsLocationTree)
@@ -258,8 +258,8 @@ export class ArcsDashboardComponent implements OnInit {
   }
 
   async getDefaultFloorPlanCode(){
-    if(sessionStorage.getItem('dashboardFloorPlanCode')){
-      return sessionStorage.getItem('dashboardFloorPlanCode')
+    if(this.dataSrv.getSessionStorage('dashboardFloorPlanCode')){
+      return this.dataSrv.getSessionStorage('dashboardFloorPlanCode')
     }
     let defaultBuilding = this.dataSrv.arcsDefaultBuilding
     let floorPlans : DropListFloorplan[] = <any>((await this.dataSrv.getDropList('floorplans')).data)
@@ -278,7 +278,9 @@ export class ArcsDashboardComponent implements OnInit {
       return 
     }
     let floorplan = await this.dataSrv.getFloorPlanV2(code);
-    sessionStorage.setItem('dashboardFloorPlanCode', floorplan.floorPlanCode);  
+    if(floorplan?.floorPlanCode){
+      this.dataSrv.setSessionStorage('dashboardFloorPlanCode', floorplan.floorPlanCode);  
+    }
     await this.pixiElRef.loadFloorPlanDatasetV2(floorplan, true, true);
     this.selectedFloorPlanCode = floorplan.floorPlanCode
     // console.log([... new Set(floorplan.mapList.map(m => m.mapCode))])

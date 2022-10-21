@@ -1,4 +1,4 @@
-<div class="map card-container" *ngIf="!uiSrv.isTablet">
+<div class="setup card-container" *ngIf="!uiSrv.isTablet">
     <div class="card-header-wrapper">
         <!-- title -->
         <h3 class="card-title"></h3>
@@ -12,7 +12,7 @@
         </div>
         <span></span>
     </div>
-    <div class="table-container">
+    <div class="table-container" *ngIf="selectedTab != 'log'" >
         <uc-table #table  [customButtons] = "tableCustomButtons[selectedTab] ? tableCustomButtons[selectedTab] : [] "
                           (customButtonClick) = "showDetail(null , $event)"
                           [toolbarButtons] ="{new : (selectedTab != 'map') && !(selectedTab == 'site' && tableElRef.data.length > 0), action: true}" 
@@ -24,8 +24,11 @@
                           (cellClick) = "$event?.column == 'edit' ? showDetail($event) : null" (createClick) = "showDetail()" [useColumnFilter]='true'>
         </uc-table>
     </div>
-    <div class="viewport-container" [style.display]  = "selectedTab == 'dashboard'">
+    <!-- <div class="viewport-container"  *ngIf = "selectedTab == 'dashboard'">
         <uc-drawing-board #pixi [hideButton] = "{ all : true}"></uc-drawing-board>
+    </div> -->
+    <div *ngIf="selectedTab == 'log'" class="table-container">
+        <cm-event-log></cm-event-log>
     </div>
 </div>
 

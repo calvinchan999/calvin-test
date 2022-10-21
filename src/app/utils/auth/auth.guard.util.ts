@@ -20,8 +20,8 @@ export class AuthGuard implements CanActivate {
 			} else if (this.authSrv.hasAccessToPath(route.routeConfig.path)) {
 				return true;
 			}
-		}
-		this.router.navigate(['login'], { queryParams: { returnUrl: state.url }, skipLocationChange: true });
+		} 
+		// this.router.navigate(['login'], { queryParams: { returnUrl: state.url }, skipLocationChange: true });
 		
         return false;
 	}

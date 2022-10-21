@@ -9,7 +9,7 @@
             <!-- <uc-txtbox  lab = "Zip File Name" [frmGrp] = "frmGrp" frmCtrl = "fileName"   [suffixButton] = "{icon : 'k-icon mdi mdi-upload'}" 
                         (suffixButtonClick) = "uploader.click(); loadingTicket = uiSrv.loadAsyncBegin()" [disabled]="true">
             </uc-txtbox> -->
-            <button kendoButton (click)="uploader.click()" >{{'Upload Zip File' | label : uiSrv.langPack}}</button>
+            <button kendoButton (click)="uploader.click()" [disabled]="isUploading">{{'Upload Zip File' | label : uiSrv.langPack}}</button>
             <input hidden type="file" #uploader [disabled]="isUploading" (change)="onfileLoad($event)"/>
         </form>
     </div>

@@ -11,9 +11,11 @@ import { ticker } from 'pixi.js';
 import { PixiCommon } from '../ui-components/drawing-board/drawing-board.component';
 import { Router } from '@angular/router';
 import { AzurePubsubService } from './azure-pubsub.service';
-
-type dropListType =  'floorplans' | 'buildings' | 'sites' | 'maps' | 'actions' | 'types' | 'locations' | 'userGroups' | 'subTypes' | 'robots' | 'missions'
-
+import { DatePipe } from '@angular/common'
+export type dropListType =  'floorplans' | 'buildings' | 'sites' | 'maps' | 'actions' | 'types' | 'locations' | 'userGroups' | 'subTypes' | 'robots' | 'missions'
+export type localStorageKey = 'lang' | 'uitoggle' | 'lastLoadedFloorplanCode' | 'eventLog' | 'unreadNotificationCount'
+export type sessionStorageKey = 'arcsLocationTree' | 'dashboardFloorPlanCode'| 'isGuestMode' | 'userAccess' | 'arcsDefaultBuilding' | 'userId' | 'currentUser'
+export type eventLog = {datetime? : string , type? : string , message : string  , robotCode?: string }
 export type signalRType = 'activeMap' | 'occupancyGridMap' | 'navigationMove' | 'chargingResult' | 'chargingFeedback' | 'state' | 'battery' | 'pose' | 'speed'|
                     'obstacleDetection' | 'estop' | 'brake' | 'tilt' | 'departure' | 'arrival' | 'completion' | 'timeout' | 'exception' | 'followMePair' |
                     'followMeAoa' | 'digitalOutput' | 'wifi' | 'cellular' | 'ieq' | 'rfid' | 'cabinet' | 'rotaryHead' | 'nirCamera' | 'nirCameraDetection' |
@@ -25,6 +27,7 @@ export type signalRType = 'activeMap' | 'occupancyGridMap' | 'navigationMove' | 
   providedIn: 'root'
 })
 export class DataService {
+  public unreadNotificationCount = new BehaviorSubject<number>(0)
   public arcsDefaultSite = null
   public arcsDefaultBuilding = null
   public codeRegex
@@ -73,7 +76,7 @@ export class DataService {
   //DONE : ticket system (~uiSrv.loadAsyncBegin() & loadAsyncDone()) to subscribe / unbscribe as singleton
   //DONE : concat robotCode / mapCode to the topic for ARCS
   public signalRGeneralConfig = {
-    backgroundSubscribeTypes : this.util.arcsApp? ['exception']: ['estop' , 'tilt' , 'obstacleDetection' , 'exception', 'taskActive' , 'taskComplete' , 'destinationReached', 'moving']
+    backgroundSubscribeTypes : this.util.arcsApp? ['exception' , 'estop' , 'tilt' , 'obstacleDetection' ]: ['estop' , 'tilt' , 'obstacleDetection' , 'exception', 'taskActive' , 'taskComplete' , 'destinationReached', 'moving']
   }
 
 
@@ -139,15 +142,10 @@ export class DataService {
     navigationMove: { topic: "rvautotech/fobo/navigation/move/result" },
     chargingResult: { topic: "rvautotech/fobo/docking/charging/result" }, 
     chargingFeedback: { topic: "rvautotech/fobo/docking/charging/feedback"},
-    obstacleDetection: { topic: "rvautotech/fobo/obstacle/detection", mapping: { obstacleDetected: 'detected' } },
-    estop: { topic: "rvautotech/fobo/estop", mapping: { estop: 'stopped' } , api:'baseControl/v1/estop' },
-    brake: { topic: "rvautotech/fobo/brake", mapping: { brakeActive: (d) => d['switchedOn'] } , api:'baseControl/v1/brake' },
-    tilt: { topic: "rvautotech/fobo/tilt", mapping: { tiltActive: 'detected' } },
     led:{topic: "rvautotech/fobo/led" , mapping :{led: (d)=> d['lightOn']} , api:'led/v1'},
     arrival: { topic: "rvautotech/fobo/arrival" },
     completion: { topic: "rvautotech/fobo/completion" },
     timeout: { topic: "rvautotech/fobo/timeout" },
-    exception: { topic: "rvautotech/fobo/exception", mapping: { exception: (d)=>{ this.uiSrv.showNotificationBar(`FOBO Error : ${d['message']} \n (Activate debug console for details)}` ,'error') ; console.log(d) ; return d} }  },
     followMePair: { topic: "rvautotech/fobo/followme/pairing", mapping: { followMePaired: (d)=> d['pairingState'] == 'PAIRED' } , api: 'followMe/v1/pairing'},//pending: confirm with RV what would pairingState return , except 'unpaired'
     followMeAoa: { topic: "rvautotech/fobo/followme/aoa", mapping: { followMeAoaState: 'aoaState' } , api: 'followMe/v1/pairing/aoa' },
     digitalOutput: { topic: "rvautotech/fobo/digital/output" },
@@ -165,6 +163,34 @@ export class DataService {
     lidarStatus: { topic: "rvautotech/fobo/lidar/status", mapping: { lidarSwitchedOn: (d) => d['SwitchOn']}, api: 'lidar/v1/status' },
     lidar:{topic : 'rvautotech/fobo/lidar' , mapping :{lidar:(d)=> <any>(d)}},
     speed: { topic: 'rvautotech/fobo/speed', mapping: { speed: (d) => !isNaN(Number(d['speed']))? (Number(d['speed']).toFixed(2) == '-0.00' ? '0.00' : Number(d['speed']).toFixed(2)) : ' - ' } , api:'baseControl/v1/speed' },
+    brake: { topic: "rvautotech/fobo/brake", mapping: { brakeActive: (d) => d['switchedOn'] } , api:'baseControl/v1/brake' },
+    estop: { topic: "rvautotech/fobo/estop", mapping: { estop: (d)=>{ if(d['detected'] ){
+                                                                        this.onLoggedNotificationReceived('Emergency Stop Switched On', d['robotId'] , 'warning' , true)
+                                                                      }; 
+                                                                      return d['detected']
+                                                                    }
+                                                      } , api:'baseControl/v1/estop' 
+           },
+    tilt: { topic: "rvautotech/fobo/tilt", mapping: { tiltActive: (d)=> {  if(d['detected'] ){
+                                                                             this.onLoggedNotificationReceived('Excess tilt detected', d['robotId'] , 'warning' , true)                                                                             
+                                                                            }; 
+                                                                           return d['detected'];
+                                                                        }
+                                                    } , api:'baseControl/v1/obstacle/detection' 
+           },
+    obstacleDetection: { topic: "rvautotech/fobo/obstacle/detection", 
+                         mapping: { obstacleDetected: (d)=> { if(d['detected'] ){
+                                                                this.onLoggedNotificationReceived( 'Obstacle detected' , d['robotId'] , 'warning' , true)
+                                                              } 
+                                                              return d['detected'];
+                                                            }
+                                  }
+                        },
+    exception: { topic: "rvautotech/fobo/exception", mapping: { exception: (d)=>{let msg = `FOBO Error : ${d['message']} \n (Activate debug console for details)}`;
+                                                                                 this.uiSrv.showNotificationBar(msg ,'error') ; 
+                                                                                 this.addEventLogToLocalStorage(msg , d['robotId'] , 'error'); 
+                                                                                 console.log(d) ;
+                                                                                 return d} }  },
     moving:{topic:'rvautotech/fobo/baseController/move' , mapping:{navigationDisabled : (d)=>d['moving'] , 
                                                                    status:(d)=> {
                                                                      if(['Idle', 'Moving'].includes(this.signalRSubj.status.value)){
@@ -206,11 +232,12 @@ export class DataService {
                              taskActive : (d)=>{         
                                                this.signalRSubj.taskProgress.next(0)
                                                this.signalRSubj.taskItemIndex.next(0)    
-                                               this.signalRSubj.taskActionIndex.next(0)                                     
+                                               this.signalRSubj.taskActionIndex.next(0)     
+                                               let msgType = d['exception']?.['message']? 'error': (d['completed']? 'success' : undefined);                                
                                                let msg = d['exception']?.['message']? 
                                                             this.uiSrv.translate('Task terminated with error : ') +  `${d['exception']['message']}` :  
                                                            (d['cancelled']? 'Task Cancelled' : (d['completed']? 'Task Completed' : 'Task ended with unknown status'))
-                                               this.uiSrv.showNotificationBar(msg , d['exception']?.['message']? 'error': (d['completed']? 'success' : undefined)); 
+                                               this.onLoggedNotificationReceived(msg , d['robotId']  , <any>msgType);
                                                if (this.uiSrv.isTablet) {                                        
                                                  this.router.navigate(['login'])
                                                }
@@ -220,8 +247,9 @@ export class DataService {
                   },
     pauseResume:{topic:'rvautotech/fobo/baseController/pauseResume' , mapping:{isPaused:(d)=>d['pauseResumeState'] == 'PAUSE'} , api:'baseControl/v1/pauseResume'},
     destinationReached:{topic:'rvautotech/fobo/navigation/move/result',
-                        mapping: { destinationReached:(d)=>{ let ok = d['goalStatus']?.['status'] == 'SUCCEEDED'
-                                                             this.uiSrv.showNotificationBar(ok? 'Destination Reached' : 'Navigation Failed' , ok? 'success': 'error');
+                        mapping: { destinationReached:(d)=>{ let ok = d['goalStatus']?.['status'] == 'SUCCEEDED';
+                                                             let msg = ok? 'Destination Reached' : 'Navigation Failed'
+                                                             this.onLoggedNotificationReceived(msg , d['robotId']  , 'error');
                                                              return d['goalStatus']?.['status'] 
                                                            }
                                  }
@@ -315,12 +343,18 @@ export class DataService {
     arcsTaskInfoChange :{ topic : 'rvautotech/fobo/ARCS/task/info' ,mapping: { arcsTaskInfoChange : null}},
   }
 
+  eventLog = new BehaviorSubject<eventLog[]>([])
+
   get _USE_AZURE_PUBSUB(){
     return this.util.arcsApp && !this.util.config.USE_SIGNALR
   }
 
-
-  constructor(public httpSrv : RvHttpService , private uiSrv : UiService, private util: GeneralUtil , public signalRSrv : SignalRService, private router : Router , public pubsubSrv : AzurePubsubService) {     
+  constructor(public httpSrv : RvHttpService , private uiSrv : UiService, private util: GeneralUtil , public signalRSrv : SignalRService, private router : Router , public pubsubSrv : AzurePubsubService , private datePipe : DatePipe) {     
+    this.uiSrv.dataSrv = this
+    this.unreadNotificationCount.pipe(skip(1)).subscribe(v=>{
+      this.setlocalStorage('unreadNotificationCount' , v.toString())
+    })
+    this.loadDataFromLocalStorage()
     if(this.util.$initDone.value == true){
       this.init()
     }else {
@@ -332,14 +366,72 @@ export class DataService {
     })
   }
 
+  loadDataFromLocalStorage(){
+    let notiCount = this.getlocalStorage('unreadNotificationCount')
+    if(notiCount != null){
+      this.unreadNotificationCount.next(Number(notiCount))
+    }
+    let log = this.getlocalStorage('eventLog')
+    if(log!=null){
+      this.eventLog.next(JSON.parse(log))
+    }
+  }
+
+  loghouseKeep(data : [] , maxSizeMb = 3){
+    console.log(new Blob([JSON.stringify(data)]).size )
+    if( new Blob([JSON.stringify(data)]).size > maxSizeMb * 1000){  // 1000000
+      data = data.pop();
+    }
+    if( new Blob([JSON.stringify(data)]).size > maxSizeMb * 1000){ // pop recursively until size < threshold
+      this.loghouseKeep(data)
+    }
+  }
+
+
+  onLoggedNotificationReceived(msg : string , robotCode : string = undefined , msgType : 'success' | 'none' | 'warning' | 'info' | 'error' = 'info' , onlyShowNotiBarForArcs = false){
+    this.unreadNotificationCount.next( this.unreadNotificationCount.value + 1)
+    if(!onlyShowNotiBarForArcs || this.util.arcsApp){
+      this.uiSrv.showNotificationBar( robotCode? `[${robotCode}] ${msg}` : msg  , msgType)
+    }
+    this.addEventLogToLocalStorage( msg , robotCode , msgType) //TBR
+    this.uiSrv.showBrowserPopupNotification( robotCode? `[${robotCode}] ${msg}` : msg )
+  }
+
+  addEventLogToLocalStorage(message : string , robotCode : string  = undefined , type : 'success' | 'none' | 'warning' | 'info' | 'error' = 'info' ){
+    //TBR : EVENT LOG TO BE RETRIEVED FROM DB INSTEAD OF LOCALSTORAGE
+    let data =  this.getlocalStorage('eventLog') ? JSON.parse(this.getlocalStorage('eventLog')) : []
+    let evtlog : eventLog = {message : message  , robotCode: robotCode, type : `${type.toUpperCase()} MESSAGE` , datetime : this.datePipe.transform(new Date() , 'dd/MM/yyyy hh:mm:ss aa')}
+    data = [evtlog].concat(data)
+    this.loghouseKeep(data)
+    this.eventLog.next(data)
+    this.setlocalStorage('eventLog', JSON.stringify(data))
+  }
+
+  setlocalStorage(key : localStorageKey , value : string){ //Manage All LocalStorage Keys here!!!
+    localStorage.setItem(key, value)
+  }
+
+  getlocalStorage(key : localStorageKey ){ 
+    return localStorage.getItem(key)
+  }
+
+  setSessionStorage(key : sessionStorageKey , value : string){ //Manage All SessionStorage Keys here!!!
+    sessionStorage.setItem(key, value)
+  }
+
+  getSessionStorage(key : sessionStorageKey ){
+    return sessionStorage.getItem(key)
+  }
+
+
   async init(){
     if(this.util.config.LANGUAGES){
       let options = []
       Object.keys(this.util.config.LANGUAGES).forEach(k=> options.push({value : k , text : this.util.config.LANGUAGES[k]}))
       this.uiSrv.langOptions = options
     }
-    if(localStorage.getItem("lang")){
-      this.uiSrv.changeLang(localStorage.getItem("lang"))
+    if(this.getlocalStorage("lang")){
+      this.uiSrv.changeLang(this.getlocalStorage("lang"))
     }
     // this.codeRegex = this.util.config.
     if(!this.util.getCurrentUser()){
@@ -354,10 +446,10 @@ export class DataService {
         this.uiSrv.showWarningDialog('Lidar Sensor Turned On.')
       }
     } else {
-      if (!sessionStorage.getItem("arcsDefaultBuilding")) {
+      if (!this.getSessionStorage("arcsDefaultBuilding")) {
         await this.getArcsDefaultBuilding()
       }
-      this.arcsDefaultBuilding = JSON.parse(sessionStorage.getItem("arcsDefaultBuilding"))
+      this.arcsDefaultBuilding = JSON.parse(this.getSessionStorage("arcsDefaultBuilding"))
     }
 
     if(this._USE_AZURE_PUBSUB){
@@ -739,7 +831,7 @@ export class DataService {
     if(builidngDDL.length > 0){
       var code = builidngDDL.filter(b=>b.defaultPerSite)[0]?.buildingCode
       code = code ? code : builidngDDL[0].buildingCode
-      sessionStorage.setItem('arcsDefaultBuilding',JSON.stringify(code))
+      this.setSessionStorage('arcsDefaultBuilding',JSON.stringify(code))
     }
   }
 

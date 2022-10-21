@@ -96,6 +96,10 @@
                           (createClick) = "showActionDetail()" [useColumnFilter]='true'>
             </uc-table>
     </div>
+
+    <div *ngIf="selectedTab == 'log'" class="event-log-container">
+        <cm-event-log></cm-event-log>
+    </div>
 </div>
 
 <ng-template #buttons>

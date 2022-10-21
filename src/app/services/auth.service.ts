@@ -26,7 +26,7 @@ export class AuthService {
 	}
 	constructor(private httpSrv: RvHttpService, private dataSrv : DataService, private generalUtil : GeneralUtil, public intlService: IntlService, private router : Router, public configSrv : ConfigService) { 
 		this.username = this.generalUtil.getCurrentUser()
-		this.isGuestMode = JSON.parse(sessionStorage.getItem('isGuestMode'))
+		this.isGuestMode = JSON.parse(this.dataSrv.getSessionStorage('isGuestMode'))
 		this.userAccessList = JSON.parse(this.generalUtil.getUserAccess())
 	}
 
@@ -75,8 +75,8 @@ export class AuthService {
 					Object.keys(this.sessionStorageCredentialsMap).forEach(k => sessionStorage.setItem(k ,  response.validationResults[this.sessionStorageCredentialsMap[k]]))
 					this.username = this.generalUtil.getCurrentUser()
 					this.userAccessList = response.validationResults?.accessFunctionList.map(f=>f.functionCode)
-					sessionStorage.setItem('userAccess',JSON.stringify(this.userAccessList))
-					sessionStorage.setItem('isGuestMode',JSON.stringify(guestMode))
+					this.dataSrv.setSessionStorage('userAccess',JSON.stringify(this.userAccessList))
+					this.dataSrv.setSessionStorage('isGuestMode',JSON.stringify(guestMode))
 					this.isGuestMode = guestMode
 					this.dataSrv.init()
 				}

@@ -31,7 +31,6 @@ export class SaPagesAlertOverlayComponent implements OnInit {
               content: MsgDialogContent,
               actions: [{ text: 'OK', index: 0} ]
             })
-            this.uiSrv.showBrowserPopupNotification(`[${this.dataSrv.robotId}] ${this.uiSrv.translate(this.alertMap[k].message)}`)
             this.dataSrv.signalRSubj[k].dialogRef.content.instance.customClass = 'warning'
             this.dataSrv.signalRSubj[k].dialogRef.content.instance.msg =  this.uiSrv.translate(this.alertMap[k].message)
           }else if(!b && this.dataSrv.signalRSubj[k].dialogRef){

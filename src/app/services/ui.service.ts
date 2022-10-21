@@ -43,6 +43,7 @@ export class UiService {
   public lang = new BehaviorSubject<string>('EN')
   public loadingShadeZindex = 999999
   public drawingBoardComponents : DrawingBoardComponent[]  = []
+  public dataSrv = null
 
 
   initNotification(){
@@ -184,8 +185,12 @@ export class UiService {
   translate(value){
     return value && this.langPack[value] ? this.langPack[value] : value;
   }
+  
 
-  public showNotificationBar(msg, type: 'success' | 'none' | 'warning' | 'info' | 'error' = 'info' , closable = false , translate = false): void {
+  public showNotificationBar(msg, type: 'success' | 'none' | 'warning' | 'info' | 'error' = 'info' , closable = false , translate = false , popWhenResumeFromHidden = false): void {
+    if( document.hidden && !popWhenResumeFromHidden){
+      return
+    }
     this.notificationService.show({
       cssClass: "notification" + (type == 'none' ? '' : (' ' + type)),
       content: translate? this.translate(msg) : msg,

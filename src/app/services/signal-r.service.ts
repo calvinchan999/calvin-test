@@ -101,18 +101,21 @@ export class SignalRService {
             console.log('Refresh token failed')
           }
         }
-        console.log('error while establishing Signalr connection: ' + err)
         // if(!this.reconnectLoadingTicket){
         //   this.reconnectLoadingTicket = this.uiSrv.loadAsyncBegin()
         // }
         this.uiSrv.showNotificationBar('Error : Disconnected from robot messaging system.','error')
         if(autoReconnect && this.generalUtil.getUserAccessToken()){
-          console.log('SignalR will retry to connect in ' + reconnectDelayMs + ' ms ...')
+          if(!document.hidden){
+            console.log('SignalR will retry to connect in ' + reconnectDelayMs + ' ms ...')
+          }
           setTimeout(() =>{
             if(connection.state != HubConnectionState.Connected){
               this.connect(connection)
               this.uiSrv.showNotificationBar('Retrying to connect with server ...', 'info')
-              console.log('SignalR retrying to connect ... ')
+              if(!document.hidden){
+                console.log('SignalR retrying to connect ... ')
+              }
             }          
           }, reconnectDelayMs)
         }     
