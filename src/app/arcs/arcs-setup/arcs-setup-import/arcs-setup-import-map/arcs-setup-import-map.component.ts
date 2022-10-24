@@ -1,5 +1,6 @@
 import { Component, OnInit } from '@angular/core';
 import { FormControl, FormGroup, Validators } from '@angular/forms';
+import { HttpResponse } from '@microsoft/signalr';
 import { DataService, DropListRobot } from 'src/app/services/data.service';
 import { RvHttpService } from 'src/app/services/rv-http.service';
 import { UiService } from 'src/app/services/ui.service';
@@ -42,6 +43,18 @@ export class ArcsSetupImportMapComponent implements OnInit {
 
   onRobotSelected(){
     this.frmGrp.controls['robotBase'].setValue(this.dropdown.data.robots.filter((r : DropListRobot)=> r.robotCode == this.frmGrp.controls['robotCode'].value)[0]?.robotBase)
+    this.getStandaloneMapList(this.frmGrp.controls['robotCode'].value)
+  }
+
+  async getStandaloneMapList(robotCode){
+    if(!robotCode){
+      return
+    }
+    this.dropdown.options.maps = []
+    let ticket = this.uiSrv.loadAsyncBegin()
+    let maps = await this.httpSrv.rvRequest("GET",`dataSync/v1/mapList/${robotCode}` , undefined, false)
+    this.dropdown.options.maps = this.dataSrv.getDropListOptions('maps' , maps)
+    this.uiSrv.loadAsyncDone(ticket)
   }
 
   onBaseSelected(){
@@ -78,6 +91,13 @@ export class ArcsSetupImportMapComponent implements OnInit {
     if(!await this.validate()){
       return
     }
+    let ticket = this.uiSrv.loadAsyncBegin()
+    let result  = await this.httpSrv.rvRequest("PUT",`dataSync/v1/map/import/${this.frmGrp.controls['robotCode'].value}/${this.frmGrp.controls['mapCode'].value}` ,undefined , true , "Start Map Import")
+    if(result?.['status'] == 200){
+      this.dialogRef.close()
+    }
+    this.uiSrv.loadAsyncDone(ticket)
+    
 
     // if((await this.dataSrv.saveRecord("api/robot/v1"  , await this.getSubmitDataset(), this.frmGrp , false)).result){      
     //   this.dialogRef.close()

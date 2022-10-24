@@ -32,7 +32,8 @@ import { toJSON } from '@progress/kendo-angular-grid/dist/es2015/filtering/opera
 
 export const radRatio =  57.2958
 const VIRTUAL_MAP_ROS_HEIGHT = 20
-const WebGLMaxMobleTextureSize = 4096
+const WebGLMaxMobileTextureSize = 4096
+const WebGLMaxPcTextureSize = 16384
 const wayPointCodeMaxLength = 50
 const ROBOT_ACTUAL_LENGTH_METER = 1
 //pending : add curved arrow default curved (rescontrol point ) 
@@ -554,29 +555,49 @@ export class DrawingBoardComponent implements OnInit , AfterViewInit {
   }
 
   private async getSpriteFromUrl(url){
-    let image : any = await this.getImage(url)
-    if(this.uiSrv.isTablet){
-      let dimiension = [image.width , image.height]
-      if((dimiension[0] >= WebGLMaxMobleTextureSize || dimiension[1] > WebGLMaxMobleTextureSize)){
-        console.log('too big for mobile')
-        let newRatio = WebGLMaxMobleTextureSize / Math.max(dimiension[0], dimiension[1])
-        let canvas = document.createElement('canvas')
-        canvas.width = dimiension[0] * newRatio
-        canvas.height = dimiension[1] * newRatio
-        let ctx = canvas.getContext('2d');
-        ctx.drawImage(image, 0, 0, dimiension[0]* newRatio, dimiension[1]*newRatio);
-        var texture = PIXI.Texture.from(canvas.toDataURL("image/png"))
-        var ret = PIXI.Sprite.from(texture) 
-        // ret.width =  dimiension[0]    
-        // ret.height =  dimiension[1]    
-        ret.scale.set(1/newRatio)
-        return ret
-      }else{
-        return PIXI.Sprite.from( new PIXI.Texture(new PIXI.BaseTexture(image)))
-      }
-    }else{
-      return PIXI.Sprite.from( new PIXI.Texture(new PIXI.BaseTexture(image)))
+    let image: any = await this.getImage(url)
+    // if(this.uiSrv.isTablet){
+    let maxPx = this.uiSrv.isTablet ? WebGLMaxMobileTextureSize : WebGLMaxPcTextureSize
+    let dimiension = [image.width, image.height]
+    if ((dimiension[0] >= maxPx || dimiension[1] > maxPx)) {
+      console.log('Image Resized to adapt to WEBGL standard')
+      let newRatio = maxPx / Math.max(dimiension[0], dimiension[1])
+      let canvas = await this.getResizedCanvas(image, dimiension[0] * newRatio, dimiension[1] * newRatio)
+      let texture = PIXI.Texture.from(canvas.toDataURL("image/png"))
+      // let canvas = document.createElement('canvas')
+      // canvas.width = dimiension[0] * newRatio
+      // canvas.height = dimiension[1] * newRatio
+      // let ctx = canvas.getContext('2d');
+      // ctx.drawImage(image, 0, 0, dimiension[0]* newRatio, dimiension[1]*newRatio);
+      // var texture = PIXI.Texture.from(canvas.toDataURL("image/png"))
+
+      var ret = PIXI.Sprite.from(texture)
+      // ret.width =  dimiension[0]    
+      // ret.height =  dimiension[1]    
+      ret.scale.set(1 / newRatio)
+      return ret
+    } else {
+      return PIXI.Sprite.from(new PIXI.Texture(new PIXI.BaseTexture(image)))
     }
+    // }else{
+    //   return PIXI.Sprite.from( new PIXI.Texture(new PIXI.BaseTexture(image)))
+    // }
+  }
+
+  private async getResizedCanvas(image : any , newWidth : number , newHeight : number ){
+    let canvas = document.createElement('canvas')
+    canvas.width = newWidth
+    canvas.height = newHeight
+    let ctx = canvas.getContext('2d');
+    ctx.drawImage(image, 0, 0, newWidth , newHeight);
+    return canvas
+  }
+
+  public async getResizedBase64(url : string , newWidth : number , newHeight : number ){
+    url = url.startsWith('data:image') ? url : ('data:image/png;base64,' + url)
+    let image : any = await this.getImage(url)
+    let canvas = await this.getResizedCanvas(image , newWidth , newHeight)
+    return canvas.toDataURL().replace('data:image/png;base64,' , '')
   }
 
   
@@ -1751,8 +1772,19 @@ export class DrawingBoardComponent implements OnInit , AfterViewInit {
     return ret
   }
 
+  async convertJMapToUniversalResolution(mapData: JMap) {
+    let stdRatio = 1 / this.util.config.METER_TO_PIXEL_RATIO
+    if (mapData.resolution && mapData.resolution != stdRatio) {
+      mapData.imageWidth = Math.ceil(mapData.imageWidth * (mapData.resolution / stdRatio))
+      mapData.imageHeight = Math.ceil(mapData.imageHeight * (mapData.resolution / stdRatio))
+      mapData.base64Image = await this.getResizedBase64(mapData.base64Image, mapData.imageWidth, mapData.imageHeight)
+      mapData.resolution = stdRatio
+    }
+  }
+
 
   async loadMapV2(mapData : JMap) : Promise<PixiMapLayer>{
+    await this.convertJMapToUniversalResolution(mapData); //20221024
     let ticket = this.uiSrv.loadAsyncBegin()
     let ret : PixiMapLayer = (<PixiMapLayer>(await this.getPixiMap(false , mapData.base64Image, mapData.imageWidth, mapData.imageHeight, mapData.transformedPositionX, mapData.transformedPositionY, mapData.transformedScale, mapData.transformedAngle)))
     ret.robotBase = mapData.robotBase
@@ -1811,6 +1843,7 @@ export class DrawingBoardComponent implements OnInit , AfterViewInit {
       if(this.isDashboard || this.pickSpawnPoint){
         for(let i = 0 ; i < dataset.mapList.length ; i++){
           var mapData  = dataset.mapList[i];
+          await this.convertJMapToUniversalResolution(mapData); //20221024
           let container : PixiMapContainer = await this.addContainer(`${mapData.mapCode}${this.util.arcsApp ? ('@' + mapData.robotBase) : ''}`,  
                                                                        mapData.base64Image,
                                                                        mapData.imageWidth, 
@@ -2126,6 +2159,7 @@ export class DrawingBoardComponent implements OnInit , AfterViewInit {
         await this.onFloorplanSelected_SA()
       }
     }  
+    // this.pickSpawnPoint = false
     this.initLocalizerGraphic()
     this.spawnPointObj.markerGraphic.parent.visible = true
     this.spawnPointObj.alignLidar = true
@@ -2901,7 +2935,7 @@ export class Robot {
   pose$ : Observable<any>
   private _observed = false
   public get observed(){
-    return this.observed
+    return this._observed
   }
   public set observed(v){
     this._observed = v  
@@ -4315,7 +4349,7 @@ export class PixiLocPoint extends PixiCommon {
 
   centerAndZoom(){
     if(this.pixiPointGroup?.pixiChildPoints?.[0]){
-      let zoomWidth = (this.pixiPointGroup.pixiChildPoints?.[0]?.robotIconScale * ROBOT_ACTUAL_LENGTH_METER) / 0.05
+      let zoomWidth = (this.pixiPointGroup.pixiChildPoints?.[0]?.robotIconScale * ROBOT_ACTUAL_LENGTH_METER) / this.getMasterComponent().util.config.METER_TO_PIXEL_RATIO
       let vp =  this.getViewport()
       let idx = Math.floor(this.pixiPointGroup?.pixiChildPoints?.length / 2) 
       let zoomPos = this.getMasterComponent()?.mainContainer.toLocal(this.pixiPointGroup?.toGlobal(new PIXI.Point(this.pixiPointGroup.pixiChildPoints?.[idx]?.x , this.pixiPointGroup.pixiChildPoints?.[idx]?.y)))

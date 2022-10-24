@@ -115,11 +115,13 @@ export class CmMapDetailComponent implements OnInit {
   
   async loadData(codes : string[]){
     let ticket = this.uiSrv.loadAsyncBegin()
-    let data : JMap = await this.httpSrv.get('api/map/v1/' + codes[0] + '/' + codes[1] )
+    let data : JMap = await this.httpSrv.get('api/map/v1/' + codes[0] + '/' + codes[1] )    
+    // await this.pixiElRef.convertJMapToUniversalResolution(data)
     this.orginalWidth = data.imageWidth
     this.orginalHeight = data.imageHeight
-    await this.pixiElRef.loadToMainContainer(data.base64Image , undefined , undefined , undefined, undefined, true)
-    let origin = this.pixiElRef.calculateMapOrigin(data.originX , data.originY , data.imageHeight / this.util.config.METER_TO_PIXEL_RATIO, this.util.config.METER_TO_PIXEL_RATIO)
+    await this.pixiElRef.loadToMainContainer( data.base64Image , undefined , undefined , undefined, undefined, true)
+    let resolution = data.resolution ?  data.resolution : 1 /  this.util.config.METER_TO_PIXEL_RATIO
+    let origin = this.pixiElRef.calculateMapOrigin(data.originX , data.originY , data.imageHeight *  resolution ,  1 / resolution)
     this.pixiElRef.setMapOrigin(origin[0] , origin[1])
     this.util.loadToFrmgrp(this.frmGrp , data)
     this.uiSrv.loadAsyncDone(ticket)

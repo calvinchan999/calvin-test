@@ -32,6 +32,13 @@ export class ArcsSetupComponent implements OnInit {
               private changeDectector: ChangeDetectorRef, private route : ActivatedRoute, private util: GeneralUtil, private ngZone: NgZone , private authSrv : AuthService) { 
       this.tabs = this.tabs.filter(t=> t.authorized === false || this.authSrv.userAccessList.includes(this.gridSettings[t.id].functionId?.toUpperCase()))
       this.selectedTab = this.route.snapshot.paramMap.get('selectedTab') ? this.route.snapshot.paramMap.get('selectedTab') : this.tabs[0].id
+      Object.keys(this.tableCustomButtons).forEach(k=> {
+        this.tableCustomButtons[k].forEach(btn=>{
+          if(!this.authSrv.hasRight(btn?.functionId)){
+            delete this.tableCustomButtons[k]
+          }
+        })
+      })
   }
   tabs = [
     { id: 'robot', label: 'Robot' },
@@ -43,10 +50,10 @@ export class ArcsSetupComponent implements OnInit {
     { id: 'log', label: 'Event Log' , authorized : false},
   ]
   selectedTab = 'floorplan' 
-  tableCustomButtons = {}
-  // tableCustomButtons = {
-  //   map:[{id : 'importMap' , label : 'Import' , icon : 'import' , disabled : false  },{id : 'exportMap' , label : 'Export' , icon : 'export' , disabled : false  }]
-  // }
+  tableCustomButtons = {
+    map:[{id : 'importMap' , label : 'Import' , icon : 'import' , disabled : false  ,  functionId : 'MAP_IMPORT' }]
+  }
+  // ,{id : 'exportMap' , label : 'Export' , icon : 'export' , disabled : false  }
 
   gridSettings = { //consider to move them into a json file
     building : {

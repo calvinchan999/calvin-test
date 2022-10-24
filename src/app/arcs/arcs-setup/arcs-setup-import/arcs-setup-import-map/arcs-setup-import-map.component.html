@@ -12,7 +12,7 @@
                 <uc-dropdown lab="Robot" [frmGrp]="frmGrp" frmCtrl="robotCode" [options]="dropdown.options.robots" (valueChange)="onRobotSelected()"  [showValue] = "true"></uc-dropdown>
             </div>
             <div class="form-row" *ngIf="frmGrp.controls['robotCode'].value">
-                <uc-dropdown lab="Map" [frmGrp]="frmGrp" frmCtrl="mapCode"></uc-dropdown>
+                <uc-dropdown lab="Map" [frmGrp]="frmGrp" frmCtrl="mapCode"  [options]="dropdown.options.maps"  [showValue] = "true" ></uc-dropdown>
             </div>
         </form>
     </div>
