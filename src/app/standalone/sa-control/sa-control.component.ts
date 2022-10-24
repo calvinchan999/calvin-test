@@ -1,8 +1,9 @@
 import { Component, OnInit, ViewChild } from '@angular/core';
 import { FormControl, FormGroup, Validators } from '@angular/forms';
-import { ActivatedRoute } from '@angular/router';
+import { ActivatedRoute, Router } from '@angular/router';
 import { DialogRef, DialogService, WindowRef } from '@progress/kendo-angular-dialog';
-import { filter } from 'rxjs/operators';
+import { takeUntil } from 'rxjs/operators';
+import { Subject } from 'rxjs';
 import { CmActionComponent } from 'src/app/common-components/cm-action/cm-action.component';
 import { AuthService } from 'src/app/services/auth.service';
 import { ActionParameter, DataService, DropListAction, DropListMap, signalRType } from 'src/app/services/data.service';
@@ -43,7 +44,7 @@ export class SaControlComponent implements OnInit {
     { value: 'CUSTOM_2', text: 'Custom 2' }
   ]
 
-  constructor(public authSrv : AuthService, public uiSrv : UiService, public windowSrv: DialogService, private util : GeneralUtil ,
+  constructor(public authSrv : AuthService, public uiSrv : UiService, public windowSrv: DialogService, private util : GeneralUtil , private router : Router,
               private httpSrv : RvHttpService, public dataSrv:DataService , private route : ActivatedRoute) { 
     if(this.uiSrv.isTablet){
       this.tabs = [
@@ -57,6 +58,9 @@ export class SaControlComponent implements OnInit {
     this.tabs = this.tabs.filter(t=>this.authSrv.hasRight(t.functionId.toUpperCase()))
     this.selectedTab = this.route.snapshot.paramMap.get('selectedTab') ? this.route.snapshot.paramMap.get('selectedTab') : this.tabs[0].id
   }
+
+  $onDestroy = new Subject()
+  
   selectedTab = ''
   tabs = [
     {id: 'controls' , label : 'Controls', functionId : 'CONTROLS'},
@@ -115,9 +119,14 @@ export class SaControlComponent implements OnInit {
 
   // ^ * * * table * * * ^
 
-  ngOnInit() { 
-      this.initDropdown()
-      this.onTabChange(this.selectedTab)
+  ngOnInit() {
+    this.route.params.pipe(takeUntil(this.$onDestroy)).subscribe(params => {
+      if (params?.selectedTab) {
+        this.onTabChange(params?.selectedTab)
+      }
+    });
+    this.initDropdown()
+    this.onTabChange(this.selectedTab)
   }
 
   onButtonClicked(id){
@@ -129,11 +138,12 @@ export class SaControlComponent implements OnInit {
     this.selectedTab = id
     this.data = []
     this.loadData()
+    this.router.navigate([this.router.url.split(";")[0]])
     // this.columnDef = this.columnsDefsMap[id]
   }
 
   ngOnDestroy(){
-
+    this.$onDestroy.next()
   }
 
   async initDropdown(){

@@ -10,6 +10,7 @@ import { filter, skip, take, takeUntil } from 'rxjs/operators';
 import { DatePipe } from '@angular/common'
 import { environment } from 'src/environments/environment';
 import { Title } from '@angular/platform-browser';
+import { DataService } from '@progress/kendo-angular-dropdowns';
 
 export const  dataNotFoundMessage = `[DATA NOT FOUND]`
 
@@ -26,7 +27,7 @@ export class UiService {
     themeColor: "secondary",
     size: "large",
   }
-  constructor(public dialogSrv: DialogService, public windowSrv : WindowService, private http: HttpClient ,public ngZone: NgZone,private notificationService: NotificationService , private titleSrv: Title ) { 
+  constructor(public dialogSrv: DialogService, public windowSrv : WindowService, private http: HttpClient ,public ngZone: NgZone,private notificationService: NotificationService , private titleSrv: Title , public datePipe : DatePipe) { 
     this.isTablet = this.detectMob() && environment.app.toUpperCase() == 'STANDALONE'
     this.titleSrv.setTitle(this.translate(environment.app.toUpperCase() == 'STANDALONE' ? "RV Robotic System" : "ARCS"))
     // if(this.isTablet){
@@ -43,7 +44,7 @@ export class UiService {
   public lang = new BehaviorSubject<string>('EN')
   public loadingShadeZindex = 999999
   public drawingBoardComponents : DrawingBoardComponent[]  = []
-  public dataSrv = null
+  public dataSrv 
 
 
   initNotification(){
@@ -55,7 +56,7 @@ export class UiService {
       return
     }
     if(Notification.permission === "granted"){
-     new Notification(msg , { icon: './assets/rvicon.png' , requireInteraction: true });
+     new Notification(msg , { icon: './assets/rvicon.png' , requireInteraction: true , body : this.datePipe.transform(new Date(),'hh:mm:ss aa') });
     }else{
      this.initNotification()
     }

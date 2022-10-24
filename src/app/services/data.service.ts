@@ -249,7 +249,7 @@ export class DataService {
     destinationReached:{topic:'rvautotech/fobo/navigation/move/result',
                         mapping: { destinationReached:(d)=>{ let ok = d['goalStatus']?.['status'] == 'SUCCEEDED';
                                                              let msg = ok? 'Destination Reached' : 'Navigation Failed'
-                                                             this.onLoggedNotificationReceived(msg , d['robotId']  , 'error');
+                                                             this.onLoggedNotificationReceived(msg , d['robotId']  , (ok ? 'success' : 'error'));
                                                              return d['goalStatus']?.['status'] 
                                                            }
                                  }
@@ -378,7 +378,6 @@ export class DataService {
   }
 
   loghouseKeep(data : [] , maxSizeMb = 3){
-    console.log(new Blob([JSON.stringify(data)]).size )
     if( new Blob([JSON.stringify(data)]).size > maxSizeMb * 1000){  // 1000000
       data = data.pop();
     }
@@ -388,13 +387,13 @@ export class DataService {
   }
 
 
-  onLoggedNotificationReceived(msg : string , robotCode : string = undefined , msgType : 'success' | 'none' | 'warning' | 'info' | 'error' = 'info' , onlyShowNotiBarForArcs = false){
+  onLoggedNotificationReceived(msg : string , robotCode : string = undefined , msgType : 'success' | 'none' | 'warning' | 'info' | 'error' = 'info' , onlyShowNotiBarForArcs = false ){
     this.unreadNotificationCount.next( this.unreadNotificationCount.value + 1)
     if(!onlyShowNotiBarForArcs || this.util.arcsApp){
       this.uiSrv.showNotificationBar( robotCode? `[${robotCode}] ${msg}` : msg  , msgType)
     }
-    this.addEventLogToLocalStorage( msg , robotCode , msgType) //TBR
-    this.uiSrv.showBrowserPopupNotification( robotCode? `[${robotCode}] ${msg}` : msg )
+    this.addEventLogToLocalStorage(msg, robotCode, msgType) //TBR
+    this.uiSrv.showBrowserPopupNotification(robotCode ? `[${robotCode}] ${msg}` : msg)
   }
 
   addEventLogToLocalStorage(message : string , robotCode : string  = undefined , type : 'success' | 'none' | 'warning' | 'info' | 'error' = 'info' ){

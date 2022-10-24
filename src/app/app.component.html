@@ -4,7 +4,7 @@
     </div>
     <div *ngIf="authSrv.username || currentRoute == '/resetPassword'" kendoDialogContainer (keydown.esc) = "$event.preventDefault()"></div>
     <ng-container *ngIf="authSrv.username || uiSrv.isTablet">
-        <app-header-component [selectedPage]="selected"></app-header-component>
+        <app-header-component [selectedPage]="selected" ></app-header-component>
         <kendo-drawer-container>
             <div class="sidebar">
                 <kendo-drawer #drawer [items]="items && authSrv.username && !authSrv.isGuestMode && router.url != '/taskProgress' ? items : []" [mode]="mode" [mini]="mini" [expanded]="false"

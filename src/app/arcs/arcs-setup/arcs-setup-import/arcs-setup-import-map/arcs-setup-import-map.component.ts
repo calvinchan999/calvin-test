@@ -96,8 +96,7 @@ export class ArcsSetupImportMapComponent implements OnInit {
     if(result?.['status'] == 200){
       this.dialogRef.close()
     }
-    this.uiSrv.loadAsyncDone(ticket)
-    
+    this.uiSrv.loadAsyncDone(ticket)   
 
     // if((await this.dataSrv.saveRecord("api/robot/v1"  , await this.getSubmitDataset(), this.frmGrp , false)).result){      
     //   this.dialogRef.close()

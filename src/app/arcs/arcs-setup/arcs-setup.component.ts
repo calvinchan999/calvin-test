@@ -1,7 +1,8 @@
+import { Location } from '@angular/common';
 import { ChangeDetectorRef, Component, NgZone, OnInit, ViewChild } from '@angular/core';
-import { ActivatedRoute, Route } from '@angular/router';
+import { ActivatedRoute, Route, Router } from '@angular/router';
 import { DialogRef, DialogService } from '@progress/kendo-angular-dialog';
-import { filter, take } from 'rxjs/operators';
+import { filter, take , takeUntil} from 'rxjs/operators';
 import { CmActionComponent } from 'src/app/common-components/cm-action/cm-action.component';
 import { CmMapDetailComponent } from 'src/app/common-components/cm-map/cm-map-detail/cm-map-detail.component';
 import { CmMapFloorplanComponent } from 'src/app/common-components/cm-map/cm-map-floorplan/cm-map-floorplan.component';
@@ -28,7 +29,7 @@ import { ArcsSetupTypeComponent } from './arcs-setup-type/arcs-setup-type.compon
 export class ArcsSetupComponent implements OnInit {
   @ViewChild('table') tableElRef: TableComponent
   @ViewChild('pixi') pixiElRef: DrawingBoardComponent
-  constructor(public windowSrv: DialogService, public dataSrv : DataService, public uiSrv: UiService, public http: RvHttpService, 
+  constructor(public windowSrv: DialogService, public dataSrv : DataService, public uiSrv: UiService, public http: RvHttpService, private location : Location, private router : Router,
               private changeDectector: ChangeDetectorRef, private route : ActivatedRoute, private util: GeneralUtil, private ngZone: NgZone , private authSrv : AuthService) { 
       this.tabs = this.tabs.filter(t=> t.authorized === false || this.authSrv.userAccessList.includes(this.gridSettings[t.id].functionId?.toUpperCase()))
       this.selectedTab = this.route.snapshot.paramMap.get('selectedTab') ? this.route.snapshot.paramMap.get('selectedTab') : this.tabs[0].id
@@ -40,6 +41,7 @@ export class ArcsSetupComponent implements OnInit {
         })
       })
   }
+  
   tabs = [
     { id: 'robot', label: 'Robot' },
     { id: 'site', label: 'Site'},
@@ -161,11 +163,17 @@ export class ArcsSetupComponent implements OnInit {
 
   selectedMapId = null
   initialDataset = null
+  $onDestroy
   get initialShapes() {
     return this.initialDataset?.shapes
   }
   
   async ngOnInit() {
+    this.route.params.pipe(takeUntil(this.$onDestroy)).subscribe((params)=>{
+      if(params?.selectedTab){
+        this.onTabChange(params?.selectedTab)
+      }
+    })
     let ddl = await this.dataSrv.getDropList('types')
     this.dropdownData.types = ddl.data;
     let newGridSettings = JSON.parse(JSON.stringify(this.gridSettings))
@@ -183,6 +191,8 @@ export class ArcsSetupComponent implements OnInit {
     // this.columnDef = this.gridSettings[id].columns`
     this.data = []
     this.changeDectector.detectChanges()
+    this.router.navigate([this.router.url.split(";")[0]])
+    // window.location.href = this.router.url.split(";")[0]
     // this.loadData()
   }
 

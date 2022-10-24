@@ -8,7 +8,7 @@
         </div>
 
         <div class="alert topnav" *ngIf="dataSrv.unreadNotificationCount.value > 0" [matTooltip]="('You have' | label : uiSrv.langPack  ) + ' ' + dataSrv.unreadNotificationCount.value + ' ' + ('unread notification' | label : uiSrv.langPack )">
-            <a class="k-icon mdi mdi-alert"  (click)="router.navigate([ util.standaloneApp ? '/control' : '/setup', {selectedTab : 'log'}])">
+            <a class="k-icon mdi mdi-alert"  (click)="router.navigate([ util.standaloneApp ? '/control' : '/setup', {selectedTab : 'log'}] , {skipLocationChange: false})">
                 <kendo-badge rounded="medium" themeColor="warning" position="edge" [align] = "{ vertical: 'bottom', horizontal: 'end' }">{{dataSrv.unreadNotificationCount.value}}</kendo-badge>
             </a>
         </div>
