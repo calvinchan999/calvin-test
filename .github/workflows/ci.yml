@@ -28,6 +28,7 @@ jobs:
         uses: Azure/static-web-apps-deploy@v1
         with:
           action: "upload"
-          app_location: "/dist"
+          app_location: "/"
           azure_static_web_apps_api_token: "02d72a6d2a5ad00b3bb62d20be654d278c263f4ca21706c2680db98b0316f2ba2-e831927c-ea67-439a-881b-80776cf050b400040468"
           skip_app_build: true
+          app_artifact_location: "dist"
