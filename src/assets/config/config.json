@@ -10,7 +10,7 @@
 	"PROTOCOL"    : "https",
 	"SIGNALR_URLxx":"https://rv-dev.eastasia.cloudapp.azure.com:5001/signalR",
 	"SERVER_URL"  : "rv-arcs-api.azurewebsites.net",
-	"PORT_NO"     : "44329",
+	"PORT_NO"     : "",
 	"APPLICATION" : "",
 	"JOYSTICK_REMOTE":{
 		"MAX_LINEAR" :0.2,
