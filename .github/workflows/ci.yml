@@ -23,7 +23,13 @@ jobs:
           node-version: ${{ matrix.node-version }}
           cache: "npm"
       - run: npm ci
-      - run: npm run ng build -- --prod --aot
+      - run: npm install -g @angular/cli
+      - name: Activate Kendo UI License
+        run: npx kendo-ui-license activate
+        env:
+          KENDO_UI_LICENSE: ${{ secrets.KENDO_UI_LICENSE }}
+      - name: Build Application
+        run: npm run ng build -- --prod --aot
       - name: Current location
         run: ls
       - name: Azure Static Web Apps Deploy
