@@ -45,7 +45,11 @@ export class UiService {
   public loadingShadeZindex = 999999
   public drawingBoardComponents : DrawingBoardComponent[]  = []
   public dataSrv 
-
+  public commonAlertMessages = {
+    eStopped : "Emergency Stop Switched On",
+    obstacleDetected : "Obstacle Detected",
+    tiltDetected : "Excess Tilt Detected"
+  }
 
   initNotification(){
     Notification.requestPermission((status) =>{})      

@@ -2,6 +2,7 @@ import { Location } from '@angular/common';
 import { ChangeDetectorRef, Component, NgZone, OnInit, ViewChild } from '@angular/core';
 import { ActivatedRoute, Route, Router } from '@angular/router';
 import { DialogRef, DialogService } from '@progress/kendo-angular-dialog';
+import { Subject} from 'rxjs';
 import { filter, take , takeUntil} from 'rxjs/operators';
 import { CmActionComponent } from 'src/app/common-components/cm-action/cm-action.component';
 import { CmMapDetailComponent } from 'src/app/common-components/cm-map/cm-map-detail/cm-map-detail.component';
@@ -92,18 +93,20 @@ export class ArcsSetupComponent implements OnInit {
       ],
     },
 
-    type: {
-      apiUrl:"api/robot/type/v1/page",
-      columns: [
-        { title: "", type: "checkbox", id: "select", width: 15, fixed: true },
-        { title: "#", type: "button", id: "edit", width: 15, icon: 'k-icon k-i-edit iconButton', fixed: true },
-        { title: "Code", id: "typeCode", width: 50 },
-        { title: "Type", id: "typeName", width: 80 },
-        { title: "Sub Type", id: "subTypeName", width: 80 },
-        { title: "Actions Count", id: "typeActionsCount", width: 50 },
-      ]
-    },
+    // type: {
+    //   apiUrl:"api/robot/type/v1/page",
+    //   columns: [
+    //     { title: "", type: "checkbox", id: "select", width: 15, fixed: true },
+    //     { title: "#", type: "button", id: "edit", width: 15, icon: 'k-icon k-i-edit iconButton', fixed: true },
+    //     { title: "Code", id: "typeCode", width: 50 },
+    //     { title: "Type", id: "typeName", width: 80 },
+    //     { title: "Sub Type", id: "subTypeName", width: 80 },
+    //     { title: "Actions Count", id: "typeActionsCount", width: 50 },
+    //   ]
+    // },
+
     site: {
+      functionId:"SITE",
       apiUrl:"api/site/page/v1",
       columns: [
         { title: "", type: "checkbox", id: "select", width: 15, fixed: true },
@@ -136,18 +139,18 @@ export class ArcsSetupComponent implements OnInit {
         { title: "Floor Plan", id: "floorPlanName", width: 150 },
       ]
     },
-    action: {
-      apiUrl:"api/robot/action/v1/page",
-      columns: [
-        { title: "", type: "checkbox", id: "select", fixed: true },
-        { title: "#", type: "button", id: "edit", width: 20, icon: 'k-icon k-i-edit iconButton', fixed: true },
-        { title: "Code", id: "actionCode", width: 50 },
-        { title: "Action Description", id: "actionName", width: 150 },
-        { title: "Type", id: "typeNames", width: 50 },
-        { title: "Alias", id: "actionAlias", width: 150 },
-        { title: "Clazz", id: "actionClass", width: 150 },
-      ]
-    }
+    // action: {
+    //   apiUrl:"api/robot/action/v1/page",
+    //   columns: [
+    //     { title: "", type: "checkbox", id: "select", fixed: true },
+    //     { title: "#", type: "button", id: "edit", width: 20, icon: 'k-icon k-i-edit iconButton', fixed: true },
+    //     { title: "Code", id: "actionCode", width: 50 },
+    //     { title: "Action Description", id: "actionName", width: 150 },
+    //     { title: "Type", id: "typeNames", width: 50 },
+    //     { title: "Alias", id: "actionAlias", width: 150 },
+    //     { title: "Clazz", id: "actionClass", width: 150 },
+    //   ]
+    // }
   }
 
   // columnDef = this.gridSettings.building.columns
@@ -163,9 +166,13 @@ export class ArcsSetupComponent implements OnInit {
 
   selectedMapId = null
   initialDataset = null
-  $onDestroy
+  $onDestroy = new Subject()
   get initialShapes() {
     return this.initialDataset?.shapes
+  }
+
+  ngOnDestroy(){
+    this.$onDestroy.next()
   }
   
   async ngOnInit() {

@@ -81,6 +81,7 @@
                 <label class="ts-idle">{{'Idle' | label: uiSrv.langPack}}</label>
                 <label class="ts-offline">{{'Offline' | label: uiSrv.langPack}}</label>
                 <label class="ts-reserved">{{'Reserved' | label: uiSrv.langPack}}</label>
+                <label class="ts-alert">{{'Alert' | label: uiSrv.langPack}}</label>
             </div>
             <div class="ts-resultbox"> 
                 <div  *ngFor="let r of  robotTypeInfos; index as i" class="ts-row bar-{{i+1}} {{ r.robotType | cssClassName }}">
@@ -92,6 +93,7 @@
                     <label class="ts-idle">{{r.idleCount}}</label>
                     <label class="ts-offline">{{r.offlineCount}}</label>
                     <label class="ts-reserved">{{r.reservedCount}}</label>
+                    <label class="ts-alert">{{r.alertCount}}</label>
                 </div>
             </div>
         </kendo-tilelayout-item-body>
@@ -102,9 +104,10 @@
             <div class="ts-header">
                 <label class="ts-robot-id"></label>
                 <label class="ts-status">{{'Status' | label: uiSrv.langPack}}</label>
-                <label class="ts-location">{{'Location' | label: uiSrv.langPack}}</label>
+                <!-- <label class="ts-location">{{'Location' | label: uiSrv.langPack}}</label> -->
                 <label class="ts-pending">{{'Pending' | label: uiSrv.langPack}}</label>
                 <label class="ts-completed">{{'Completed' | label: uiSrv.langPack}}</label>
+                <label class="ts-alert"></label>
             </div>
             <div class="ts-resultbox"> 
                 <div  *ngFor="let r of robotInfos; index as i" class="ts-row bar-{{i+1}} {{ r.code | cssClassName }}">
@@ -114,9 +117,13 @@
                     <label [class]="'ts-status ' + r.robotStatusCssClass" [matTooltip]="r.robotStatusCssClass | label : uiSrv.langPack" matTooltipPosition = "right">
                         <span class="mdi"></span>
                     </label>
-                    <label class="ts-location">{{r.floorPlanCode}}</label>
+                    <!-- <label class="ts-location">{{r.floorPlanCode}}</label> -->
                     <label class="ts-pending">{{r.waitingTaskCount}}</label>
                     <label class="ts-completed">{{r.completedTaskCount}}</label>
+                    <label class="ts-alert">
+                        <span *ngIf="r.alert && r.alert.length > 0" class="mdi mdi-alert"  [matTooltip] = "r.alert | label : uiSrv.langPack " matTooltipClass="alert">
+                        </span>
+                    </label>
                 </div>
             </div>
         </kendo-tilelayout-item-body>

@@ -113,7 +113,7 @@ export class DataService {
     isMappingMode:new BehaviorSubject<any>(false),
     isManualMode:new BehaviorSubject<any>(false),
     taskActive:new BehaviorSubject<any>(null),
-    taskActionIndex:new BehaviorSubject<any>(0),
+    // taskActionIndex:new BehaviorSubject<any>(0),
     taskItemIndex:new BehaviorSubject<any>(0),
     taskDepart:new BehaviorSubject<any>(0),
     isPaused:new BehaviorSubject<any>(false),
@@ -129,6 +129,8 @@ export class DataService {
     taskPopupRequest: new BehaviorSubject<{guiId : string , invisible : boolean}>(null),
     arcsRobotStatusChange : new BehaviorSubject<{robotType : string , floorPlanCode : string}>(null),
     arcsTaskInfoChange : new BehaviorSubject<{robotType : string , floorPlanCode : string}>(null),
+    arcsWarningChangedRobotCode : new BehaviorSubject<string>(null),
+    nextTaskAction : new BehaviorSubject<string>(null)
     // taskActionActiveAlias : new BehaviorSubject<any>(null)
   }
 
@@ -161,21 +163,27 @@ export class DataService {
     heartbeatServer: { topic: "rvautotech/fobo/heartbeat/server" },
     heartbeatClient: { topic: "rvautotech/fobo/heartbeat/client" },
     lidarStatus: { topic: "rvautotech/fobo/lidar/status", mapping: { lidarSwitchedOn: (d) => d['SwitchOn']}, api: 'lidar/v1/status' },
-    lidar:{topic : 'rvautotech/fobo/lidar' , mapping :{lidar:(d)=> <any>(d)}},
+    lidar:{topic : 'rvautotech/fobo/lidar' , mapping: { lidar:(d)=> <any>(d)}},
     speed: { topic: 'rvautotech/fobo/speed', mapping: { speed: (d) => !isNaN(Number(d['speed']))? (Number(d['speed']).toFixed(2) == '-0.00' ? '0.00' : Number(d['speed']).toFixed(2)) : ' - ' } , api:'baseControl/v1/speed' },
     brake: { topic: "rvautotech/fobo/brake", mapping: { brakeActive: (d) => d['switchedOn'] } , api:'baseControl/v1/brake' },
     estop: { topic: "rvautotech/fobo/estop", mapping: { estop: (d)=>{ if(d['detected'] ){
                                                                         this.onLoggedNotificationReceived('Emergency Stop Switched On', d['robotId'] , 'warning' , true)
                                                                       }; 
                                                                       return d['detected']
-                                                                    }
+                                                                    },
+                                                        arcsWarningChangedRobotCode:(d)=>{
+                                                          return d['robotId']
+                                                        }
                                                       } , api:'baseControl/v1/estop' 
            },
     tilt: { topic: "rvautotech/fobo/tilt", mapping: { tiltActive: (d)=> {  if(d['detected'] ){
                                                                              this.onLoggedNotificationReceived('Excess tilt detected', d['robotId'] , 'warning' , true)                                                                             
                                                                             }; 
                                                                            return d['detected'];
-                                                                        }
+                                                                        },
+                                                      arcsWarningChangedRobotCode:(d)=>{
+                                                       return d['robotId']
+                                                      }
                                                     } , api:'baseControl/v1/obstacle/detection' 
            },
     obstacleDetection: { topic: "rvautotech/fobo/obstacle/detection", 
@@ -183,7 +191,10 @@ export class DataService {
                                                                 this.onLoggedNotificationReceived( 'Obstacle detected' , d['robotId'] , 'warning' , true)
                                                               } 
                                                               return d['detected'];
-                                                            }
+                                                            },
+                                     arcsWarningChangedRobotCode:(d)=>{
+                                      return d['robotId']
+                                    }
                                   }
                         },
     exception: { topic: "rvautotech/fobo/exception", mapping: { exception: (d)=>{let msg = `FOBO Error : ${d['message']} \n (Activate debug console for details)}`;
@@ -203,9 +214,11 @@ export class DataService {
                                                           api:"baseControl/v1/move",
             },
     taskActive:{topic:'rvautotech/fobo/execution',   mapping:{
-      currentTaskId :  (d) => d['taskId'],
-        taskActive: (d) => {
-          let ret =  d['taskId']!= null ? d : d['moveTask'] 
+      taskItemIndex: ()=> 0 , 
+      nextTaskAction : (d : JTask)=> d.taskItemList?.[0]?.actionList?.[0]?.alias ,     
+      currentTaskId :  (d : JTask)=> d.taskId,
+        taskActive: (d : JTask) => {
+          let ret =  d.taskId!= null ? d : d['moveTask'] 
           this.signalRSubj.taskProgress.next(0)
           if (this.uiSrv.isTablet && ret) {
             this.router.navigate(['taskProgress'])
@@ -215,16 +228,22 @@ export class DataService {
       } 
     },
     taskProgress : {topic: 'rvautotech/fobo/action/completion' ,
-                    mapping : {taskItemIndex : (d)=>d['taskItemIndex'] , taskProgress : (d)=>{
-                      let taskItemList = this.signalRSubj.taskActive.value?.['taskItemList']                     
+                    mapping : {taskItemIndex : (d )=>d['taskItemIndex'] , taskProgress : (d)=>{
+                      let taskItemList : TaskItem[] = (<JTask>this.signalRSubj.taskActive.value)?.taskItemList                  
                       if(taskItemList){
-                        let ttlActionsCnt = taskItemList.map(itm => itm['actionList'].length).reduce((acc, inc) => inc + acc, 0)
-                        let currCnt = taskItemList.filter(itm=>taskItemList.indexOf(itm) < d['taskItemIndex']).map(itm => itm['actionList'].length).reduce((acc, inc) => inc + acc, 0) + d['actionIndex']
-                        this.signalRSubj.taskActionIndex.next( d['actionIndex'])
+                        let taskItemIndex = d['taskItemIndex']
+                        let actionIndex = d['actionIndex'] 
+                        let ttlActionsCnt = taskItemList.map(itm => itm.actionList.length).reduce((acc, inc) => inc + acc, 0)
+                        let currCnt = taskItemList.filter(itm=>taskItemList.indexOf(itm) < taskItemIndex).map(itm => itm.actionList.length).reduce((acc, inc) => inc + acc, 0) + actionIndex + 1
+                        // this.signalRSubj.taskActionIndex.next( d['actionIndex'])
+                        let lastActionOfTaskItem =  taskItemList[taskItemIndex].actionList.length - 1 == actionIndex
+                        let nextTaskItem = lastActionOfTaskItem? taskItemList[taskItemIndex + 1] : taskItemList[taskItemIndex]
+                        let nextActionIdx = lastActionOfTaskItem ? 0 : actionIndex  + 1
+                        this.signalRSubj.nextTaskAction.next(nextTaskItem?.actionList?.[nextActionIdx].alias)
                         return this.util.trimNum(currCnt/ttlActionsCnt * 100 , 2)
                       }else{
                         return 0
-                      }           
+                      }      
                     }}
                    },
    taskComplete:{topic:'rvautotech/fobo/completion', 
@@ -232,12 +251,15 @@ export class DataService {
                              taskActive : (d)=>{         
                                                this.signalRSubj.taskProgress.next(0)
                                                this.signalRSubj.taskItemIndex.next(0)    
-                                               this.signalRSubj.taskActionIndex.next(0)     
+                                               this.signalRSubj.nextTaskAction.next(null)
+                                              //  this.signalRSubj.taskActionIndex.next(0)     
                                                let msgType = d['exception']?.['message']? 'error': (d['completed']? 'success' : undefined);                                
                                                let msg = d['exception']?.['message']? 
                                                             this.uiSrv.translate('Task terminated with error : ') +  `${d['exception']['message']}` :  
                                                            (d['cancelled']? 'Task Cancelled' : (d['completed']? 'Task Completed' : 'Task ended with unknown status'))
-                                               this.onLoggedNotificationReceived(msg , d['robotId']  , <any>msgType);
+                                               if(!this.util.arcsApp){
+                                                this.onLoggedNotificationReceived(msg , d['robotId']  , <any>msgType);
+                                               }
                                                if (this.uiSrv.isTablet) {                                        
                                                  this.router.navigate(['login'])
                                                }
@@ -249,7 +271,9 @@ export class DataService {
     destinationReached:{topic:'rvautotech/fobo/navigation/move/result',
                         mapping: { destinationReached:(d)=>{ let ok = d['goalStatus']?.['status'] == 'SUCCEEDED';
                                                              let msg = ok? 'Destination Reached' : 'Navigation Failed'
-                                                             this.onLoggedNotificationReceived(msg , d['robotId']  , (ok ? 'success' : 'error'));
+                                                             if(!this.util.arcsApp){
+                                                              this.onLoggedNotificationReceived(msg , d['robotId']  , (ok ? 'success' : 'error'));
+                                                             }
                                                              return d['goalStatus']?.['status'] 
                                                            }
                                  }
@@ -1126,20 +1150,22 @@ export class JTask {
   executingFlag? :string
   expiration? : number
   remark?: string
-  taskItemList : {
-      index? : string,
-      actionListTimeout : number,
-      movement : {
-        floorPlanCode : string,
-        pointCode: string,
-        navigationMode : string,
-        orientationIgnored : boolean,
-        fineTuneIgnored : boolean,
-      },
-      actionList: { 
-        alias: string,
-        properties: { }
-      }[]
+  taskItemList : TaskItem[]
+}
+
+export class TaskItem{
+    index? : string
+    actionListTimeout : number
+    movement : {
+      floorPlanCode : string,
+      pointCode: string,
+      navigationMode : string,
+      orientationIgnored : boolean,
+      fineTuneIgnored : boolean,
+    }
+    actionList: { 
+      alias: string,
+      properties: { }
     }[]
 }
 
@@ -1251,6 +1277,9 @@ export class RobotStatusARCS {
   robotCode: string
   floorPlanCode: string
   robotStatus: string
+  obstacleDetected : boolean
+  tiltDetected : boolean
+  eStopped : boolean
 }
 
 export class RobotDetailARCS{
@@ -1259,6 +1288,9 @@ export class RobotDetailARCS{
   modeState: string
   batteryPercentage: number
   speed : number
+  obstacleDetected : boolean
+  tiltDetected : boolean
+  eStopped : boolean
 }
 
 
@@ -1285,6 +1317,7 @@ export class loginResponse{
     user_name ? : string
   }
 }
+
 
 
 
