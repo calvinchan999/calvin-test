@@ -912,24 +912,26 @@ export class DrawingBoardComponent implements OnInit , AfterViewInit {
       if(this._arcsRobotColors[robotCode]){
         let pixiRobot : PixiCommon =  this.robots.filter(r=>r.id == robotCode)[0]?.pixiGraphics
         if(pixiRobot){
-          pixiRobot.removeChild(pixiRobot['icon'])
-          pixiRobot['icon'] = new PixiCommon().getRobotIcon(Number(this._arcsRobotColors[robotCode]))
-          pixiRobot.addChild(pixiRobot['icon'])
+          let oldAngle = pixiRobot.icon.angle
+          pixiRobot.removeChild(pixiRobot.icon)
+          pixiRobot.icon = new PixiCommon().getRobotIcon(Number(this._arcsRobotColors[robotCode]))
+          pixiRobot.icon.angle = oldAngle
+          pixiRobot.addChild(pixiRobot.icon)
         }
       }
     })
     this.refreshRobotScale()
   }
 
-  public getRobot(point = new PIXI.Point(0,0) , angle = 0, option = new GraphicOptions()) {
-    let radius = 10
-    let robot = new PIXI.Graphics().beginFill(option.fillColor).drawCircle(0, 0, radius).endFill()
-    robot.moveTo(0, 0).beginFill(option.fillColor).drawPolygon([new PIXI.Point(-radius, 0), new PIXI.Point(0, - 2.25 * radius ), new PIXI.Point(radius, 0)]).endFill()
-    robot.position.set(point.x , point.y)
-    robot.angle = angle
-    return robot
-    // return this.robots.filter(r => r.id == id)[0];
-  }
+  // public getRobot(point = new PIXI.Point(0,0) , angle = 0, option = new GraphicOptions()) {
+  //   let radius = 10
+  //   let robot = new PIXI.Graphics().beginFill(option.fillColor).drawCircle(0, 0, radius).endFill()
+  //   robot.moveTo(0, 0).beginFill(option.fillColor).drawPolygon([new PIXI.Point(-radius, 0), new PIXI.Point(0, - 2.25 * radius ), new PIXI.Point(radius, 0)]).endFill()
+  //   robot.position.set(point.x , point.y)
+  //   robot.icon.angle = angle
+  //   return robot
+  //   // return this.robots.filter(r => r.id == id)[0];
+  // }
 
   public removeRobot(robot: Robot) {
     this.robots = this.robots.filter(r => r.id != robot.id);
@@ -1665,7 +1667,7 @@ export class DrawingBoardComponent implements OnInit , AfterViewInit {
     if(new PixiCommon().autoScaleOnZoomed){
       let getScale = (gr) => new PixiCommon().robotIconScale / (this._ngPixi.viewport.scale.x * gr.parent?.scale.x)
       this.robots.forEach(r=>r.setIconScale(getScale(r.pixiGraphics)))     
-      this.spawnPointObj.markerGraphic?.['icon'].scale.set(getScale(this.spawnPointObj.markerGraphic))
+      this.spawnPointObj.markerGraphic?.icon.scale.set(getScale(this.spawnPointObj.markerGraphic))
     }
   }
 
@@ -2543,7 +2545,7 @@ export class DrawingBoardComponent implements OnInit , AfterViewInit {
         let robotsAdded = []
         // console.log('test')
         let getPose = (robotId) => { return poseObj[mapCode][robotId] }
-        let refreshPose = (r) => r.refreshPose(getPose(r.id).x, getPose(r.id).y, getPose(r.id).angle, getPose(r.id).interval, mapCode, r.robotBase)
+        let refreshPose = (r : Robot) => r.refreshPose(getPose(r.id).x, getPose(r.id).y, getPose(r.id).angle, getPose(r.id).interval, mapCode, r.robotBase)
         //all related map containers MUST be added already before calling this function/all related map containers MUST be added already before calling this function
         //let container = this.mapContainerStore[mapCode] //  + robotBase //
         let robotCodes = Object.keys(poseObj[mapCode])
@@ -2919,12 +2921,20 @@ export class GraphicOptions{
 
 export class Robot {
   private parent : DrawingBoardComponent
+  public set alert(v){
+    this._alert = v
+    this.pixiGraphics.pixiAlertBadge.visible = v
+  }
+  public get alert(){
+    return this._alert
+  }
+  private _alert = false
   public mapCode
   public robotBase
   public id: string;
   public rosPose  = { position: { x: null, y: null }, angleRad: 0, frame_id: '' };
   public pose = { position: { x: null, y: null }, angle: 0, frame_id: '' };
-  public pixiGraphics = new  PixiCommon()
+  public pixiGraphics = new PixiCommon()
   public clicked = new EventEmitter();
   public tapped = new EventEmitter();
   private _enabled = true
@@ -3018,7 +3028,7 @@ export class Robot {
         this.clicked.emit(evt)
       });
     })
-    this.pixiGraphics.visible = true;
+    // this.pixiGraphics.visible = true;
     // this.pixiGraphics.x = this.pose.position.x
     // this.pixiGraphics.y = this.pose.position.y
     this.pixiGraphics.visible = false
@@ -3029,7 +3039,8 @@ export class Robot {
   }
 
   public setIconScale(scale = new PixiCommon().robotIconScale){
-    (<PIXI.Graphics>this.pixiGraphics['icon']).scale.set(scale)
+    (<PIXI.Graphics>this.pixiGraphics.icon).scale.set(scale);
+    (<PixiCommon>this.pixiGraphics.pixiAlertBadge.icon).scale.set(scale * 1.2)
   }
 
   public getPIXIGrahics(fillColor = this.visualCfg.fillColor , x = 0 , y = 0 , angle = 0){
@@ -3087,7 +3098,7 @@ export class Robot {
   enforcePose(){
     this.pixiGraphics.x =  this.pose.position.x;
     this.pixiGraphics.y = this.pose.position.y;
-    this.pixiGraphics.angle =  this.pose.angle;
+    this.pixiGraphics.icon.angle =  this.pose.angle;
     this.pixiGraphics.visible = true
   }
 
@@ -3152,7 +3163,7 @@ export class Robot {
           if (move > 1) {
             this.pixiGraphics.x = this.pixiGraphics.x + step_x;
             this.pixiGraphics.y = this.pixiGraphics.y + step_y;
-            this.pixiGraphics.angle = this.pixiGraphics.angle + step_angle;
+            this.pixiGraphics.icon.angle = this.pixiGraphics.icon.angle + step_angle;
             if(this.parent.cameraTraceEnabled){
               this.parent.relocateCamera()
             }
@@ -3194,6 +3205,7 @@ export class PixiTaskPath extends PixiLine{
 
 export class PixiCommon extends PIXI.Graphics{
   dataObj
+  pixiAlertBadge : PixiCommon
   imgEditHandleSize = 5
   floorplanShapeTypePrefix = 'fp_'
   autoScaleOnZoomed = true  //* * * TO BE CONFIGURED * * */
@@ -3213,6 +3225,7 @@ export class PixiCommon extends PIXI.Graphics{
   toolTipDelay = null
   robotIconScale = 0.1
   border : PixiBorder
+  icon
 
   constructor(){
     super()
@@ -3241,30 +3254,28 @@ export class PixiCommon extends PIXI.Graphics{
   public getRobotMarker(fillColor , x = 0 , y = 0 , angle = 0){
     let pivot  = [150, 200]// TO BE RETRIEVED FROM config
     let robot = this
-    let svgUrl = 'assets/icons/robot.svg'
+    // let svgUrl = 'assets/icons/robot.svg'
+
     robot.position.set(x,y)
-    // let icon 
-    // try {
-    //   icon = new PIXI.Sprite(PIXI.Texture.from(svgUrl))
-    // } catch (err) {
-    //   console.log('An Error has occurred when loading ' + svgUrl)
-    //   console.log(err)
-    //   throw err
-    // }
-    // let filters = this.getRobotColorFilters(fillColor)
-    // icon.filters = filters.defaultFilters
-    let icon = this.getRobotIcon(fillColor)
-    robot.addChild(icon)
+    robot.icon = this.getRobotIcon(fillColor)
+    robot.icon.angle = angle
+    robot.addChild(robot.icon)
     robot.pivot.set(pivot[0] , pivot[1])
-    robot.angle = angle
-    // icon.pivot.set(pivot[0] , pivot[1])
-    // icon.position.set(pivot[0] , pivot[1])
-    // icon.scale.set(new PixiCommon().robotIconScale)
-    // icon.interactive = true
-    // icon.cursor = 'pointer'
-    // icon.on("mouseover" , ()=> icon.filters = filters.mouseOverFilters)
-    // icon.on("mouseout" , ()=> icon.filters = filters.defaultFilters)
-    robot['icon'] = icon
+    this.pixiAlertBadge = new PixiCommon()
+    this.pixiAlertBadge.icon = new PixiCommon()
+    this.pixiAlertBadge.addChild(this.pixiAlertBadge.icon)
+    let badgeOffset = {x : 0 , y : -200}
+    this.pixiAlertBadge.icon.beginFill(0xFF0000).drawCircle(0 + badgeOffset.x , 0 + badgeOffset.y , 75).endFill()
+    this.pixiAlertBadge.icon.beginFill(0xFFFFFF).drawRect(-10 + badgeOffset.x , -50 + badgeOffset.y , 20 , 60).endFill()
+    this.pixiAlertBadge.icon.beginFill(0xFFFFFF).drawRect(-10 + badgeOffset.x , 30 + badgeOffset.y , 20 , 20).endFill()
+    this.pixiAlertBadge.icon.angle = -90
+    //this.pixiAlertBadge.addChild(new PIXI.Sprite(PIXI.Texture.from('assets/icons/alert.svg')))
+    this.pixiAlertBadge.visible = false
+    robot.addChild(this.pixiAlertBadge)
+    this.pixiAlertBadge.position.set(robot.pivot.x, robot.pivot.y)
+    this.pixiAlertBadge.zIndex = 2
+    robot.sortableChildren = true
+    // robot.icon = icon
     robot.zIndex = 100//20220611
     return robot
   }
@@ -4349,7 +4360,7 @@ export class PixiLocPoint extends PixiCommon {
 
   centerAndZoom(){
     if(this.pixiPointGroup?.pixiChildPoints?.[0]){
-      let zoomWidth = (this.pixiPointGroup.pixiChildPoints?.[0]?.robotIconScale * ROBOT_ACTUAL_LENGTH_METER) / this.getMasterComponent().util.config.METER_TO_PIXEL_RATIO
+      let zoomWidth = (this.pixiPointGroup.pixiChildPoints?.[0]?.robotIconScale * ROBOT_ACTUAL_LENGTH_METER) * this.getMasterComponent().util.config.METER_TO_PIXEL_RATIO
       let vp =  this.getViewport()
       let idx = Math.floor(this.pixiPointGroup?.pixiChildPoints?.length / 2) 
       let zoomPos = this.getMasterComponent()?.mainContainer.toLocal(this.pixiPointGroup?.toGlobal(new PIXI.Point(this.pixiPointGroup.pixiChildPoints?.[idx]?.x , this.pixiPointGroup.pixiChildPoints?.[idx]?.y)))

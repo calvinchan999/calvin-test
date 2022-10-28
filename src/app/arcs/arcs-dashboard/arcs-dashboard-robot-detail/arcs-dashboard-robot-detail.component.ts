@@ -30,6 +30,7 @@ export class ArcsDashboardRobotDetailComponent implements OnInit {
     PATROL : {id : 'topModule' , label : 'Module'},
     DELIVERY :{ id :'topModule' , label : 'Module'}
   }
+  alertMsg = null
 
   async ngOnInit() {
     let ticket = this.uiSrv.loadAsyncBegin()
@@ -68,6 +69,7 @@ export class ArcsDashboardRobotDetailComponent implements OnInit {
     this.ds.battery['signalR'].next(this.dataSrv.signalRMaster.battery.mapping.batteryRounded({percentage : robotDetail.batteryPercentage}))
     this.ds.mode['signalR'].next(this.dataSrv.signalRMaster.state.mapping.state({state : robotDetail.modeState}))
     this.ds.speed['signalR'].next(this.dataSrv.signalRMaster.speed.mapping.speed({speed : robotDetail.speed}))
+    this.alertMsg = (robotDetail.eStopped ? [this.uiSrv.commonAlertMessages.eStopped] :[]).concat(robotDetail.obstacleDetected ? [this.uiSrv.commonAlertMessages.obstacleDetected] :[]).concat(robotDetail.tiltDetected ? [this.uiSrv.commonAlertMessages.tiltDetected] :[]).join(" ,\n")
     this.uiSrv.loadAsyncDone(ticket)
   }
 

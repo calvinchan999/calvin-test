@@ -1,7 +1,7 @@
 import { ChangeDetectorRef, Component, NgZone, OnInit, ViewChild } from '@angular/core';
 import { RvHttpService } from 'src/app/services/rv-http.service';
 import { UiService } from 'src/app/services/ui.service';
-import { DrawingBoardComponent, PixiCommon } from 'src/app/ui-components/drawing-board/drawing-board.component';
+import { DrawingBoardComponent, PixiCommon, Robot } from 'src/app/ui-components/drawing-board/drawing-board.component';
 import { GeneralUtil } from 'src/app/utils/general/general.util';
 import { DataService, DropListBuilding, DropListFloorplan, DropListType, FloorPlanDataset, JSite, RobotStatusARCS as RobotStatus, RobotTaskInfoARCS, ShapeJData } from 'src/app/services/data.service';
 import { Router } from '@angular/router';
@@ -9,7 +9,7 @@ import { DialogRef } from '@progress/kendo-angular-dialog';
 import { CmTaskJobComponent } from 'src/app/common-components/cm-task/cm-task-job/cm-task-job.component';
 import { TableComponent } from 'src/app/ui-components/table/table.component';
 import { skip, takeUntil } from 'rxjs/operators';
-import { BehaviorSubject, Subject } from 'rxjs';
+import { BehaviorSubject, combineLatest, Observable, Subject } from 'rxjs';
 import { AuthService } from 'src/app/services/auth.service';
 import { ArcsDashboardRobotDetailComponent } from './arcs-dashboard-robot-detail/arcs-dashboard-robot-detail.component';
 import { ArcsTaskScheduleComponent } from './arcs-task-schedule/arcs-task-schedule.component';
@@ -24,6 +24,7 @@ type robotTypeInfo = { //A group can be an individual robot (when filtered by ro
   idleCount ? : number | null
   offlineCount ? : number | null
   reservedCount? : number | null
+  alertCount?: number | null
 } 
 
 type robotInfo = { //A group can be an individual robot (when filtered by robot type) OR robot type (no filter applied) 
@@ -34,6 +35,7 @@ type robotInfo = { //A group can be an individual robot (when filtered by robot 
   completedTaskCount? : number | null
   robotStatus : string
   robotStatusCssClass? : string
+  alert? : string
 } 
 
 
@@ -156,7 +158,8 @@ export class ArcsDashboardComponent implements OnInit {
     // this.chartTesting()
     this.tabs = this.tabs.filter(t=> t.authorized === false || this.authSrv.userAccessList.includes(t.functionId))
     this.selectedTab = 'dashboard'
-    this.dataSrv.subscribeSignalRs(['arcsRobotStatusChange' , 'arcsTaskInfoChange'])
+    this.dataSrv.subscribeSignalRs(['arcsRobotStatusChange' , 'arcsTaskInfoChange', 'obstacleDetection' , 'tilt' , 'estop'])
+
     this.dataSrv.signalRSubj.arcsRobotStatusChange.pipe(skip(1), takeUntil(this.$onDestroy)).subscribe((c)=>{
       if(( !this.floorPlanFilter || c?.floorPlanCode == this.floorPlanFilter ) && (!this.robotTypeFilter || c?.robotType == this.robotTypeFilter?.toUpperCase())){
         this.refreshRobotStatus()
@@ -165,6 +168,16 @@ export class ArcsDashboardComponent implements OnInit {
         this.robotDetailCompRef.refreshRobotStatus()
       }
     })
+
+    this.dataSrv.signalRSubj.arcsWarningChangedRobotCode.pipe(skip(1), takeUntil(this.$onDestroy)).subscribe((c)=>{
+      if(this.robotInfos.map(r=>r.robotCode).includes(c)){
+        this.refreshRobotStatus()
+      }
+      if(this.robotDetailCompRef && this.robotDetailId == c){
+        this.robotDetailCompRef.refreshRobotStatus()
+      }
+    })
+
     this.dataSrv.signalRSubj.arcsTaskInfoChange.pipe(skip(1), takeUntil(this.$onDestroy)).subscribe((c)=>{
       if(( !this.floorPlanFilter || c?.floorPlanCode == this.floorPlanFilter ) && (!this.robotTypeFilter || c?.robotType == this.robotTypeFilter?.toUpperCase())){
         this.refreshTaskInfo()
@@ -311,7 +324,7 @@ export class ArcsDashboardComponent implements OnInit {
                       }))
     this.robotTypeInfos = this.robotTypeInfos.filter(i=> data.map(d => d.robotType).includes(i.robotType)).
                           concat([... new Set(data.filter(d=> !this.robotTypeInfos.map(i=>i.robotType).includes(d.robotType)).map(i=>i.robotType))].map(t=> 
-                            {return {robotType : t , name : this.dropdownData.types.filter((d:DropListType)=> d.enumName == t)[0]?.description , executingTaskCount: 0, completedTaskCount: 0, processCount: 0, chargingCount : 0,idleCount : 0, offlineCount : 0}})
+                            {return {robotType : t , name : this.dropdownData.types.filter((d:DropListType)=> d.enumName == t)[0]?.description , executingTaskCount: 0, completedTaskCount: 0, processCount: 0, chargingCount : 0,idleCount : 0, offlineCount : 0 , alertCount : 0}})
                           )
     this.refreshRobotIconColorMap()
   }
@@ -392,8 +405,9 @@ export class ArcsDashboardComponent implements OnInit {
     //     floorPlanCode: "5W_0429",
     //     robotStatus: "EXECUTING"
     //   }
-    // ]
+    // ]  
     this.addAndRemoveRobotInfos(data)  
+
     let robotStatusCssClassMap = {
       IDLE : 'idle',
       EXECUTING : 'working',
@@ -401,27 +415,31 @@ export class ArcsDashboardComponent implements OnInit {
       UNKNOWN : 'offline',
       HOLD : 'reserved'
     }
+    
     this.robotInfos.forEach(i=>{
       let robot = data.filter(t=>t.robotCode == i.robotCode)[0]
       i.robotType = robot ?.robotType
       i.robotStatus = robot?.robotStatus
       i.floorPlanCode = robot?.floorPlanCode
       i.robotStatusCssClass =  robotStatusCssClassMap[robot?.robotStatus]
+      i.alert = (robot.eStopped ? [this.uiSrv.commonAlertMessages.eStopped] :[]).concat(robot.obstacleDetected ? [this.uiSrv.commonAlertMessages.obstacleDetected] :[]).concat(robot.tiltDetected ? [this.uiSrv.commonAlertMessages.tiltDetected] :[]).join(" ,\n")
     })    
 
-  
-    this.robotTypeInfos.forEach(i=>{
-      i.idleCount = data.filter(s=>s.robotType == i.robotType && s.robotStatus == 'IDLE').length
-      i.processCount = data.filter(s=>s.robotType == i.robotType && s.robotStatus == 'EXECUTING').length
-      i.chargingCount = data.filter(s=>s.robotType == i.robotType && s.robotStatus == 'CHARGING').length
-      i.offlineCount = data.filter(s=>s.robotType == i.robotType && s.robotStatus == 'UNKNOWN').length
-      i.reservedCount = data.filter(s=>s.robotType == i.robotType && s.robotStatus == 'HOLD').length
+    let alerted = (s : RobotStatus)=> s.obstacleDetected || s.eStopped || s.tiltDetected
+    this.robotTypeInfos.forEach(i => {
+      i.idleCount = data.filter(s => !alerted(s) && s.robotType == i.robotType && s.robotStatus == 'IDLE').length
+      i.processCount = data.filter(s => !alerted(s) && s.robotType == i.robotType && s.robotStatus == 'EXECUTING').length
+      i.chargingCount = data.filter(s => !alerted(s) && s.robotType == i.robotType && s.robotStatus == 'CHARGING').length
+      i.offlineCount = data.filter(s => !alerted(s) && s.robotType == i.robotType && s.robotStatus == 'UNKNOWN').length
+      i.reservedCount = data.filter(s => !alerted(s) && s.robotType == i.robotType && s.robotStatus == 'HOLD').length
+      i.alertCount = data.filter(s => alerted(s)).length
     })    
     
     data.forEach(d=>{
-      var robot = this.pixiElRef?.robots.filter(r=>r.id == d.robotCode)[0]
+      let robot : Robot = this.pixiElRef?.robots.filter(r=>r.id == d.robotCode)[0]
       if(robot){
         robot.offline = d.robotStatus == "UNKNOWN"
+        robot.alert = alerted(d)
       }
     })
 
@@ -483,189 +501,16 @@ export class ArcsDashboardComponent implements OnInit {
     content.parent = this
     content.dialogRef = dialog
     content.robotId = this.robotDetailId
-    dialog.result.subscribe(()=> this.loadData())
+    this.robotDetailCompRef = content
+    dialog.result.subscribe(()=> {
+      this.loadData()
+      this.robotDetailCompRef = null
+    })
   }
+
 
   async loadData(evt = null) {
     this.tableRef?.retrieveData()
     // this.uiSrv.loadAsyncDone(ticket)
   }
-
-  // onRobotClicked(evt){
-  //     this.robotDetailId = evt.id
-  // }
-
-    //  //20220805 DUMMY DATA
-    //  data = [
-    //   {
-    //     robotType: "MOBILE_CHAIR",
-    //     floorPlanCode: "HKAA-L5",
-    //     executingTaskCount: 1,
-    //     completedTaskCount: 5,
-    //     waitingTaskCount: 1,
-    //     robotCode: "MC01"
-    //   },
-    //   {
-    //     robotType: "MOBILE_CHAIR",
-    //     floorPlanCode: "HKAA-L5",
-    //     executingTaskCount: 1,
-    //     completedTaskCount: 3,
-    //     waitingTaskCount: 0,
-    //     robotCode: "MC02"
-    //   },
-    //   {
-    //     robotType: "MOBILE_CHAIR",
-    //     floorPlanCode: "HKAA-L5",
-    //     executingTaskCount: 0,
-    //     completedTaskCount: 10,
-    //     waitingTaskCount: 0,
-    //     robotCode: "MC03"
-    //   },
-    // ]
-    // //20220805 DUMMY DATA
-
-      // //20220805 DUMMY DATA
-      // data = [
-      //   {
-      //     robotType: "MOBILE_CHAIR",
-      //     robotCode: "MC01",
-      //     floorPlanCode: "HKAA-L5",
-      //     robotStatus: "EXECUTING"
-      //   },
-      //   {
-      //     robotType: "MOBILE_CHAIR",
-      //     robotCode: "MC02",
-      //     floorPlanCode: "HKAA-L5",
-      //     robotStatus: "EXECUTING"
-      //   },
-      //   {
-      //     robotType: "MOBILE_CHAIR",
-      //     robotCode: "MC03",
-      //     floorPlanCode: "HKAA-L5",
-      //     robotStatus: "IDLE"
-      //   }
-      // ]
-      // //20220805 DUMMY DATA
-  
-  // async loadSite(){ //Consider To move this into drawingBoardComponent
-  //   let ticket = this.uiSrv.loadAsyncBegin()
-  //   this.pixiElRef.reset()
-  //   // this.pixiElRef.selectedStyle.polygon.color = this.util.dbConfig['mapBrushs'].filter(r => r['lineType'] && r['lineType'].startsWith('zone')).map(r => r['fillColor'])[0]
-  //   // this.pixiElRef.selectedStyle.polygon.opacity = 0.8
-  //   // let sites = await this.dataSrv.httpSrv.get('api/locations/site/v1')
-  //   let siteData = await this.dataSrv.httpSrv.get('api/locations/site/v1/active')
-  //   if(siteData.length == 0){
-  //     this.loadFloorPlan()
-  //     return
-  //   }
-  //   // let planData : FloorPlanDataset = await this.dataSrv.getFloorplanFullDs(86)  //testing
-  //    this.pixiElRef.arcsObjs.hierarchy = { site: { id: siteData['locationId'], name: siteData['locationName'] }, building: { id: null, name: null } } // testing
-  //   if (siteData.imgSrc) {
-  //     // await this.pixiElRef.loadToMainContainer(planData.floorPlan.imgSrc)
-  //     await this.pixiElRef.loadToMainContainer(siteData.imgSrc)
-  //     this.pixiElRef.defaultPos = {
-  //       x: siteData['defaultX'],
-  //       y: siteData['defaultY'],
-  //       zoom : siteData['defaultZoom']
-  //     }
-  //     this.pixiElRef.setViewportCamera( this.pixiElRef.defaultPos.x ,  this.pixiElRef.defaultPos.y  , this.pixiElRef.defaultPos.zoom)
-  //     this.pixiElRef.loadShapes((await this.dataSrv.httpSrv.get('api/locations/site/v1/shape'))['shapes'])
-  //   }
-  //   this.uiSrv.loadAsyncDone(ticket)
-  // }
-
-
-  // public onSelectEnd(args: any): void {
-  //   // set the axis range displayed in the main pane to the selected range
-  //   this.chartObj.dailyQty.min = args.from;
-  //   this.chartObj.dailyQty.max = args.to;
-  //   // stop the animations
-  //   this.chartObj.dailyQty.transitions = false;
-  // }
-
-
-  // chartObj = {
-  //   textColor : '#FFFFFF',
-  //   style:{
-  //     seriesColors: this.util.getConfigColors()
-  //   },
-  //   robotUtil:{
-  //     labelContent:(arg : LegendLabelsContentArgs)=> arg.value > 0 ? arg.value + '%' : '',
-  //     categories:['R01-1','R01-2','R01-3','R01-4','R02-1','R02-2','R02-3','R02-4', 'R03-1','R03-2','R03-3','R03-4'],
-  //     data:{
-  //       operating:[],
-  //       charging:[],
-  //       downtime:[]
-  //     }
-  //   },
-  //   avgUtil:{
-  //     categories:[],
-  //     data:{
-  //       operating:[],
-  //       charging:[],
-  //       downtime:[]
-  //     }
-  //   },
-  //   type:{
-  //     // labelContent : (args: LegendLabelsContentArgs) => {
-  //     //   return `${args.dataItem.category} \n ${(args.percentage * 100).toFixed(2)}%`;
-  //     // },
-  //     labelVisual:(arg: SeriesLabelsVisualArgs ) => {
-  //       let ret = arg.createVisual();
-  //       let mainText = (<Group>ret).children.filter(c=>typeof c?.['chartElement'] === typeof new Text(undefined,undefined))[0]; //(c?.['chartElement']) instanceof Text
-  //       (<Text>mainText).content(arg.dataItem.category);
-  //       (<Group>ret).remove((<Group>ret).children.filter(c=>typeof c?.['Path'])[0])
-  //       let subText = new Text((arg.percentage * 100).toFixed(2) + '%', [(<Text>mainText).position().x, (<Text>mainText).position().y + 15] ,{font: `10px Arial`,fill:{color:'#BBBBBB'}});
-  //       (<Group>ret).append(subText)
-  //       return ret;
-  //     },
-  //     data:[
-  //       {category:'Disinfection' ,value :2611},
-  //       {category:'Delivery' ,value :4496},
-  //       {category:'RFID' ,value :852},
-  //       {category:'Patrol' ,value :2691},
-  //     ],
-  //     centerText:'10,650 \n Orders'
-  //   },
-  //   hourlyAvg:{
-  //     data:[],
-  //   },
-  //   dailyQty : {
-  //     data:[],
-  //     categories:[],
-  //     transitions:false,
-  //     navigatorStep: 365/12,
-  //     min: 0,
-  //     max: 0
-  //   }
-  // }
-
-
-  // chartTesting(){
-  //   for(let i = 0; i< 24 ; i++){
-  //     this.chartObj.hourlyAvg.data.push(Math.floor(Math.random() * 15))
-  //   }
-  //   let date = new Date(2021,0,1);
-  //   for (let i = 0; i < 365; i++) {
-  //     this.chartObj.dailyQty.categories.push(date);
-  //     this.chartObj.dailyQty.data.push(Math.floor(Math.random() * 200));
-  //     if(i <= 40){
-  //       this.chartObj.avgUtil.categories.push(date)
-  //       this.chartObj.avgUtil.data.operating.push(Math.floor(Math.random() * 75))
-  //       this.chartObj.avgUtil.data.charging.push(Math.floor(Math.random() * 20))
-  //       this.chartObj.avgUtil.data.downtime.push(Math.floor(Math.random() * 5))
-  //     }
-  //     let newDate = new Date()
-  //     newDate.setTime(date.getTime() + 86400000)
-  //     date = newDate
-  //   }
-  //   this.chartObj.dailyQty.min = this.chartObj.dailyQty.categories[0]
-  //   this.chartObj.dailyQty.max = this.chartObj.dailyQty.categories[Math.min(31,this.chartObj.dailyQty.categories.length - 1)]
-  //   this.chartObj.dailyQty.navigatorStep = Math.floor(this.chartObj.dailyQty.categories.length / 12);
-  //   this.chartObj.robotUtil.categories.forEach(c => {
-  //     this.chartObj.robotUtil.data.operating.push(Math.floor(Math.random() * 75))
-  //     this.chartObj.robotUtil.data.charging.push(Math.floor(Math.random() * 20))
-  //     this.chartObj.robotUtil.data.downtime.push(Math.floor(Math.random() * 5))
-  //   });
-  // }
 }

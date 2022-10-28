@@ -29,7 +29,11 @@
                                 <button kendoButton [class]="ds.status['robotStatus']  == 'HOLD' ? 'release' : 'reserve'" (click)="ds.status['robotStatus']  == 'HOLD'? releaseRobot() : reserveRobot() "> 
                                     {{ (ds.status['robotStatus']  == 'HOLD' ? 'Release' : 'Reserve') | label : uiSrv.langPack }}
                                 </button>
-                            </ng-container>
+                            </ng-container>     
+                            <div *ngIf="cell.id == 'status' && alertMsg && alertMsg.length > 0" class="error alert-container">
+                                <span class="mdi mdi-alert"></span>
+                                <span class="alert-msg">{{alertMsg | label : uiSrv.langPack}}</span>
+                            </div>                     
                         </ng-container>   
                     </kendo-tilelayout-item-body>      
                 </kendo-tilelayout-item>

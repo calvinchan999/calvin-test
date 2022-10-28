@@ -16,9 +16,9 @@ export class SaPagesAlertOverlayComponent implements OnInit {
   }
   subscriptions = []
   alertMap = {
-    estop: { dialogRef: null, message: 'Emergency Stop Switched On' },
-    obstacleDetected: { dialogRef: null, message: 'Obstacle Detected' },
-    tiltActive: { dialogRef: null, message: 'Excess tilt detected' }
+    estop: { dialogRef: null, message: this.uiSrv.commonAlertMessages.eStopped },
+    obstacleDetected: { dialogRef: null, message: this.uiSrv.commonAlertMessages.obstacleDetected },
+    tiltActive: { dialogRef: null, message: this.uiSrv.commonAlertMessages.tiltDetected}
   }
 
   ngOnInit(): void {
