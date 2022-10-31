@@ -9,7 +9,7 @@
                 <div class="label">
                     <span>{{usability.daily.min | date : 'dd/MM'}}</span>
                     <span> - </span>
-                    <span>{{usability.daily.max | date : 'dd/MM'}}</span>
+                    <span>{{(usability.daily.max.getTime() - 86400000) | date : 'dd/MM'}}</span>
                 </div>
             </div>
             <!-- <uc-dropdown  lab = "Location" [(value)] = 'location' [options] = "dropdownOptions.locations"></uc-dropdown> -->
@@ -175,7 +175,7 @@
                     <div class="label">
                         <span>{{utilization.daily.min | date : 'dd/MM'}}</span>
                         <span> - </span>
-                        <span>{{utilization.daily.max | date : 'dd/MM'}}</span>
+                        <span>{{(utilization.daily.max.getTime() - 86400000)  | date : 'dd/MM'}}</span>
                     </div>
                 </div>
             </div>

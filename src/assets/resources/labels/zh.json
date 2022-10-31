@@ -1,4 +1,5 @@
 {
+    "Robots":"機械人",
     "Password Policy":"密碼規則",
     "Minimum length":"最少長度",
     "Minimum count of upper case letter":"最少大寫字母字數",
@@ -55,7 +56,6 @@
     "Icon":"圖標",
     "Angle":"角度",
     "Agnostic Robotic Control System (ARCS)":"多元機械人控制系統 (ARCS)",
-    "Agnostic Robotic Control System":"多元機械人控制系統",
     "Forget Password?":"忘記密碼?",
     "Username":"用戶名稱",
     "Email":"電郵",
@@ -218,7 +218,7 @@
     "Action": "任務",
     "Define Parameters": "定義參數",
     "RV Robotic System": "RV機械人系統",
-    "Agonistic Robotic Control System": "機械人控制系統",
+    "Agnostic Robotic Control System": "機械人控制系統",
     "Location": "地點",
     "Link Map": "鏈接地圖",
     "Points": "",

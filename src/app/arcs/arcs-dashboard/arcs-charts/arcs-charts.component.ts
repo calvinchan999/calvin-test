@@ -157,14 +157,17 @@ export class ArcsChartsComponent implements OnInit {
   }
 
   async ngOnInit() {
+
     // this.init()
   }
 
   async ngAfterViewInit() {
+    let ticket = this.uiSrv.loadAsyncBegin()
     this.year = new Date().getFullYear()
     await this.initDropDown()
     this.init()
-    this.refreshChart()
+    await this.refreshChart()
+    this.uiSrv.loadAsyncDone(ticket)
   }
 
   init() {  
@@ -204,7 +207,7 @@ export class ArcsChartsComponent implements OnInit {
 
   public async onSelect(evt){
     this.dateRangeToolTip.from.content = this.datepipe.transform(evt.from , 'dd MMM')
-    this.dateRangeToolTip.to.content  = this.datepipe.transform(evt.to , 'dd MMM')
+    this.dateRangeToolTip.to.content  = this.datepipe.transform(evt.to.getTime() - 86400000 , 'dd MMM')
     // this.tooltipTo.popupRef.popupElement.innerHTML = this.toDateDragHandleEl.title 
   }
 
@@ -212,7 +215,6 @@ export class ArcsChartsComponent implements OnInit {
     this.tooltipFr.hide()
     this.tooltipTo.hide()
     // set the axis range displayed in the main pane to the selected range
-
     if(this.chartType == 'usability'){
       this.usability.daily.min = args.from;
       this.usability.daily.max = args.to;
@@ -223,7 +225,6 @@ export class ArcsChartsComponent implements OnInit {
       this.utilization.daily.transitions = false;
     }
     this.refreshChart(args.from , args.to)
-
   }
 
   style = {
@@ -265,6 +266,8 @@ export class ArcsChartsComponent implements OnInit {
     let isInit = fromDate == null && toDate == null
     fromDate = fromDate ? fromDate : this.getSelectedDateRange().fromDate
     toDate = toDate ? toDate : this.getSelectedDateRange().toDate    
+    toDate = new Date(toDate.getTime() - 86400000)
+    // toDate.setDate(toDate.getDate() - 1)
     let ticket = this.uiSrv.loadAsyncBegin()
     let frDateStr = `${fromDate.getFullYear()}-${(fromDate.getMonth() + 1).toString().padStart(2, '0')}-${(fromDate.getDate()).toString().padStart(2, '0')}`
     let toDateStr = `${toDate.getFullYear()}-${(toDate.getMonth() + 1).toString().padStart(2, '0')}-${(toDate.getDate()).toString().padStart(2, '0')}`
@@ -284,7 +287,7 @@ export class ArcsChartsComponent implements OnInit {
       if(this.chartType == 'utilization' && isInit){
         let tmpDate = toDate.getMonth() == 0 ?  new Date(toDate.getFullYear() , 0 , 1) : new Date(toDate.getFullYear() , toDate.getMonth() , toDate.getDate());
         tmpDate.setMonth(tmpDate.getMonth()-1);
-        this.onSelectEnd({from : tmpDate , to : toDate})
+        this.onSelectEnd({from : tmpDate , to : new Date(toDate.getTime() + 86400000)})
       }
     }
     let firstYear = data.filter(r=>r.type == 'FIRST_YEAR')[0]?.category
@@ -344,7 +347,7 @@ export class ArcsChartsComponent implements OnInit {
     let date = new Date(this.year, 0, 1);
     let to = this.year == new Date().getFullYear() ?  new Date() : new Date(this.year + 1 , 0 , 1) 
     let daysPassedInYear = Math.ceil((to.getTime() - date.getTime()) / (1000 * 3600 * 24))
-    for (let i = 0; i < daysPassedInYear; i++) {
+    for (let i = 0; i < daysPassedInYear + 1; i++) {
       this.utilization.daily.categories.push(date);
       Utilization_Status_Types.forEach(t=>{
         this.utilization.daily.data[t].push(0);
@@ -414,7 +417,7 @@ export class ArcsChartsComponent implements OnInit {
     let date = new Date(this.year, 0, 1);
     let to = this.year == new Date().getFullYear() ?  new Date() : new Date(this.year  + 1 , 0 , 1) 
     let daysPassedInYear = Math.ceil((to.getTime() - date.getTime()) / (1000 * 3600 * 24))
-    for (let i = 0; i < daysPassedInYear; i++) {
+    for (let i = 0; i < daysPassedInYear + 1 ; i++) {
       this.usability.daily.categories.push(date);
       this.usability.daily.data.push(0);
       let newDate = new Date()
