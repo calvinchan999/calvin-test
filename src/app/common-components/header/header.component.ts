@@ -15,12 +15,13 @@ import { environment } from 'src/environments/environment';
 import { WifiComponent } from './wifi/wifi.component';
 import { CmLoginComponent } from '../cm-login/cm-login.component';
 import { DataService } from 'src/app/services/data.service';
+import { style } from '@angular/animations';
 
 @Component({
     selector: 'app-header-component',
     templateUrl: './header.component.html'
-    
 })
+
 export class HeaderComponent {
     @Output() public toggle = new EventEmitter();
     @Input() public selectedPage: string;
@@ -28,6 +29,12 @@ export class HeaderComponent {
     @ViewChild("langButton") langButton : DropDownButtonComponent
     // public customMsgService: CustomMessagesService;
     
+    jobList = [
+        { jobId : "testing1" , dataSyncType : "EXPORT" , objectType : "FLOOR_PLAN" , dataSyncStatus : "TRANSFERRING" , objectCode : "FP1" , robotCode : "ROBOT-01" , progress : null , createdDateTime : new Date() },
+        { jobId : "testing2" , dataSyncType : "IMPORT" , objectType : "MAP" , dataSyncStatus : "TRANSFERRED" , objectCode : "MAP1" , robotCode : "ROBOT-02" , progress : null , createdDateTime : new Date() },
+        { jobId : "testing2" , dataSyncType : "IMPORT" , objectType : "MAP" , dataSyncStatus : "MALFUNCTION" , objectCode : "MAP1" , robotCode : "ROBOT-03" , progress : null , createdDateTime : new Date() }
+    ]
+
     public app = environment.app.toUpperCase()
     public selectedLanguage = { locale: 'English', localeId: 'en-US' };
     // public locales = locales;

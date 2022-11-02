@@ -248,7 +248,7 @@ export class ArcsDashboardComponent implements OnInit {
   refreshBuildingRobotCountTag(robotList : {floorPlanCode : string}[]){
     this.pixiElRef.dropdownData.floorplans.map((b:DropListBuilding)=> b.buildingCode).filter(b=>this.pixiElRef.allPixiPolygon.map(p=>p.arcsBuildingCode).includes(b)).forEach(buildingCode=>{
       let floorPlanList = (<DropListFloorplan[]>this.pixiElRef.dropdownData.floorplans).filter((fp) => fp.buildingCode == buildingCode).map(fp=>fp.floorPlanCode)
-      this.pixiElRef.setBuildingRobotCount(buildingCode , robotList.filter(r=>floorPlanList.includes(r.floorPlanCode)).length)
+      this.pixiElRef.setBuildingRobotCount(buildingCode , robotList.filter(r=> floorPlanList.includes(r.floorPlanCode)).length)
     })
   }
 
@@ -379,9 +379,9 @@ export class ArcsDashboardComponent implements OnInit {
     })    
     this.executingTaskCount = data.map(t=> t.executingTaskCount ).reduce((acc, i)=>  acc += i , 0)
     this.totalTaskCount =  data.map(t=> t.executingTaskCount + t.completedTaskCount).reduce((acc, i)=>  acc += i , 0)
-    if(this.pixiElRef && this.pixiElRef.arcsLocationTree.currentLevel == 'site'){
-      this.refreshBuildingRobotCountTag((<any>data))
-    }
+    // if(this.pixiElRef && this.pixiElRef.arcsLocationTree.currentLevel == 'site'){
+    //   this.refreshBuildingRobotCountTag((<any>data))
+    // }
   }
 
   async refreshRobotStatus(){
@@ -415,7 +415,6 @@ export class ArcsDashboardComponent implements OnInit {
       UNKNOWN : 'offline',
       HOLD : 'reserved'
     }
-    
     this.robotInfos.forEach(i=>{
       let robot = data.filter(t=>t.robotCode == i.robotCode)[0]
       i.robotType = robot ?.robotType
@@ -446,7 +445,7 @@ export class ArcsDashboardComponent implements OnInit {
     this.activeRobotCount = data.filter(s=>s.robotStatus != 'UNKNOWN').length
     this.totalRobotCount = data.length
     if(this.pixiElRef &&  this.pixiElRef.arcsLocationTree.currentLevel == 'site'){
-      this.refreshBuildingRobotCountTag(<any>data)
+      this.refreshBuildingRobotCountTag(<any> data.filter(s=>s.robotStatus != 'UNKNOWN'))
     }
   }
 

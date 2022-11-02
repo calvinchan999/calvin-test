@@ -54,8 +54,10 @@ export class ArcsSetupBuildingComponent implements OnInit {
   defaultFloorPlan
   site : JSite
   uploadSiteMsg = `Please setup site map to display the building if it is not set as 'Default Building' `
+  ngOnInit() {
 
-  async ngOnInit() {
+  }
+  async ngAfterViewInit() {
     let ticket = this.uiSrv.loadAsyncBegin()
     await this.initDropDown()
     await this.loadSite()
@@ -73,7 +75,6 @@ export class ArcsSetupBuildingComponent implements OnInit {
     if(!this.site){
       return
     }
-    this.pixiElRef.setViewportCamera(this.site.viewX,  this.site.viewY, this.site.viewZoom )
     await this.pixiElRef.loadToMainContainer( this.site.base64Image )
   }
   
@@ -84,9 +85,6 @@ export class ArcsSetupBuildingComponent implements OnInit {
 
   ngOnDestroy(){
     this.$onDestroy.next()
-  }
-
-  async ngAfterViewInit(){
   }
 
   
@@ -106,13 +104,13 @@ export class ArcsSetupBuildingComponent implements OnInit {
     if(this.site ){ // && this.site.siteCode == data.siteCode
       if(data.polygonCoordinates && data.polygonCoordinates.length > 0){
         this.pixiElRef.getBuildingPolygon(data.polygonCoordinates , {x : data.labelX , y: data.labelY} , false)
-        // let polygon = this.pixiElRef.getPolygon(data.polygonCoordinates)
-        // polygon.graphicOption.opacity = 0.8
-        // polygon.graphicOption.fillColor = new PixiCommon().mouseOverColor
-        // polygon.alpha = 0.8
-        // polygon.draw()
-        // this.pixiElRef.addPixiRobotCountTagToPolygon(polygon , {x : data.labelX , y: data.labelY} , 0 , false)
       }
+      this.pixiElRef.defaultPos = {
+        x: this.site.viewX,
+        y: this.site.viewY,
+        zoom: this.site.viewZoom
+      }
+      this.pixiElRef.setViewportCamera( this.pixiElRef.defaultPos.x ,  this.pixiElRef.defaultPos.y  , this.pixiElRef.defaultPos.zoom)
     }
     this.uiSrv.loadAsyncDone(ticket)
   }

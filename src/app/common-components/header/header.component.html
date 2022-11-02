@@ -13,6 +13,25 @@
             </a>
         </div>
 
+        
+        <!-- <div class="bg-job topnav" *ngIf="util.arcsApp && dataSrv.bgJobs.length > 0">
+            <kendo-menu [items]="[{id:'jobStatus' , items: dataSrv.bgJobs}]" class="job-menu">
+                <ng-template kendoMenuItemTemplate let-item="item">
+                    <ng-container *ngIf="item.id == 'jobStatus'">
+                        <a class="k-icon mdi mdi-cached"></a>
+                    </ng-container>
+                    <div *ngIf="item.jobId != null"> 
+                        <span [class]="item.dataSyncType == 'EXPORT' ? 'k-icon mdi mdi-cloud-download' : ( item.dataSyncType == 'IMPORT' ? 'k-icon mdi mdi-cloud-upload' : '')"></span>
+                        <span class="object-type">{{item.objectType | enum : true }}</span>
+                        <span class="object-code">{{item.objectCode}}</span>
+                        <span class="robot-code">{{item.robotCode}}</span>
+                        <span [class]="'status ' + item.status">{{item.dataSyncStatus}}</span>
+                    </div>
+                </ng-template>
+            </kendo-menu>
+        </div> -->
+
+
         <div class="profile topnav" *ngIf = "authSrv.username">
             <kendo-menu [items]="[{id:'user' , items: util.standaloneApp ? [{id: 'lang'} , {id:'pw'} , {id:'wifi'}] :[{id: 'lang'} , {id:'pw'} ]}] " #settingMenu (close) = "langMenuOpened ? $event.preventDefault() : null">
                 <!-- langMenuOpened ? $event.preventDefault() : null  -->

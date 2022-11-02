@@ -36,8 +36,8 @@ export class SaHomeComponent implements OnInit {
   taskTableColDefs = [
     { title: "Task ID", id: "taskId", width: 100 },
     { title: "Robot ID", id: "robotId", width: 70 },
-    { title: "Start Time", id: "startTime", type: 'date', pipeParam: 'medium', width: 100 },
-    { title: "End Time", id: "endTime", type: 'date', pipeParam: 'medium', width: 100 },
+    { title: "Start Time", id: "startTime", type: 'date', pipeArg: 'medium', width: 100 },
+    { title: "End Time", id: "endTime", type: 'date', pipeArg: 'medium', width: 100 },
     { title: "State", id: "state", width: 50 },
   ]
 

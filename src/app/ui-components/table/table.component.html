@@ -71,22 +71,25 @@
 
             <ng-template kendoGridCellTemplate let-dataItem let-rowIndex="rowIndex">
                 <ng-container *ngIf="colDef.ngIf === undefined || dataItem[colDef.id] == colDef.ngIf">
-                    <span *ngIf="!colDef.type">
+                    <span *ngIf="!colDef.type && !colDef.pipe">
                         {{ colDef.dropdownOptions && (dataItem[colDef.id]  | dropdownDesc : colDef.dropdownOptions )? 
                             ((dataItem[colDef.id]  | dropdownDesc : colDef.dropdownOptions ) | label : uiSrv.langPack) : 
                             dataItem[colDef.id] 
                         }}
                     </span>
-                    <span *ngIf="colDef.type == 'date'">
-                        {{(dataItem[colDef.id] | dateString) ? ((dataItem[colDef.id] | dateString) | date : colDef.pipeParam ? colDef.pipeParam : 'dd/MM/yyyy hh:mm:ss aa') : '' }}
+                    <span *ngIf="colDef.type == 'date' && !colDef.pipe">
+                        {{(dataItem[colDef.id] | dateString) ? ((dataItem[colDef.id] | dateString) | date : colDef.pipeArg ? colDef.pipeArg : 'dd/MM/yyyy hh:mm:ss aa') : '' }}
                     </span>
-                    <input *ngIf="colDef.type == 'checkbox'" type="checkbox" [(ngModel)]="dataItem[colDef.id]" 
+                    <input *ngIf="colDef.type == 'checkbox' && !colDef.pipe" type="checkbox" [(ngModel)]="dataItem[colDef.id]" 
                             (ngModelChange)="refreshSelectedData() ; cellClick.emit({row : dataItem , column : colDef.id , event : $event})"
                             kendoCheckBox />
-                    <a *ngIf="colDef.type == 'button'" 
+                    <a *ngIf="colDef.type == 'button' && !colDef.pipe" 
                         (click)="cellClick.emit({row : dataItem , column : colDef.id , event : $event})">
                         <span [class]="colDef.icon"></span>
                     </a>
+                    <span *ngIf="colDef.pipe">
+                        {{colDef.translate ?  ((dataItem[colDef.id] | pipe : colDef.pipe : colDef.pipeArg ) | label : uiSrv.langPack ): (dataItem[colDef.id] | pipe : colDef.pipe : colDef.pipeArg ) }}
+                    </span>
                 </ng-container>             
             </ng-template>
         </kendo-grid-column>

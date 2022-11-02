@@ -92,19 +92,6 @@ export class ArcsSetupComponent implements OnInit {
         { title: "Sub Type", id: "robotSubType", width: 80 },
       ],
     },
-
-    // type: {
-    //   apiUrl:"api/robot/type/v1/page",
-    //   columns: [
-    //     { title: "", type: "checkbox", id: "select", width: 15, fixed: true },
-    //     { title: "#", type: "button", id: "edit", width: 15, icon: 'k-icon k-i-edit iconButton', fixed: true },
-    //     { title: "Code", id: "typeCode", width: 50 },
-    //     { title: "Type", id: "typeName", width: 80 },
-    //     { title: "Sub Type", id: "subTypeName", width: 80 },
-    //     { title: "Actions Count", id: "typeActionsCount", width: 50 },
-    //   ]
-    // },
-
     site: {
       functionId:"SITE",
       apiUrl:"api/site/page/v1",
@@ -139,29 +126,17 @@ export class ArcsSetupComponent implements OnInit {
         { title: "Floor Plan", id: "floorPlanName", width: 150 },
       ]
     },
-    // action: {
-    //   apiUrl:"api/robot/action/v1/page",
-    //   columns: [
-    //     { title: "", type: "checkbox", id: "select", fixed: true },
-    //     { title: "#", type: "button", id: "edit", width: 20, icon: 'k-icon k-i-edit iconButton', fixed: true },
-    //     { title: "Code", id: "actionCode", width: 50 },
-    //     { title: "Action Description", id: "actionName", width: 150 },
-    //     { title: "Type", id: "typeNames", width: 50 },
-    //     { title: "Alias", id: "actionAlias", width: 150 },
-    //     { title: "Clazz", id: "actionClass", width: 150 },
-    //   ]
-    // }
   }
 
-  // columnDef = this.gridSettings.building.columns
   data = []
   tableDisabledButtons = { new: false, action: true }
   isTableLoading = false
-  dropdownData = {types:[]}
+  dropdownData = {types:[] , subTypes : []}
   dropdownOptions = {
     types:[],
     years:[], 
-    locations:[]
+    locations:[],
+    subTypes : []
   }
 
   selectedMapId = null
@@ -181,10 +156,12 @@ export class ArcsSetupComponent implements OnInit {
         this.onTabChange(params?.selectedTab)
       }
     })
-    let ddl = await this.dataSrv.getDropList('types')
-    this.dropdownData.types = ddl.data;
+    let ddl = await this.dataSrv.getDropLists(['types' , 'subTypes'])
+    this.dropdownData.types = ddl.data['types'];
+    this.dropdownData.subTypes = ddl.data['subTypes'];
     let newGridSettings = JSON.parse(JSON.stringify(this.gridSettings))
-    newGridSettings.robot.columns.filter(c=>c.id == 'robotType')[0]['dropdownOptions'] = ddl.options
+    newGridSettings.robot.columns.filter(c=>c.id == 'robotType')[0]['dropdownOptions'] = ddl.option['types']
+    newGridSettings.robot.columns.filter(c=>c.id == 'robotSubType')[0]['dropdownOptions'] = ddl.option['subTypes']
     this.gridSettings = newGridSettings
   }
 

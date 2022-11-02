@@ -1,6 +1,6 @@
 {
 	"CLIENT_ID":"11B7ED76-B978-411B-8ECB-36B21220DE3E",
-	"USE_SIGNALR": false,
+	"USE_SIGNALR": true,
 	"DEBUG_SIGNALR":false,
 	"DEBUG_SIGNALR_TYPE": "",
 	"ROBOT_BASE":"WC",
@@ -9,8 +9,8 @@
 	"IP_CAMERA_URLx" : "http://localhost:81/live?port=1935&app=live&stream=10240",
 	"PROTOCOL"    : "https",
 	"SIGNALR_URLxx":"https://rv-dev.eastasia.cloudapp.azure.com:5001/signalR",
-	"SERVER_URL"  : "rv-arcs-api.azurewebsites.net",
-	"PORT_NO"     : "",
+	"SERVER_URLx"  : "rv-arcs-api.azurewebsites.net",
+	"PORT_NO"     : "44329",
 	"APPLICATION" : "",
 	"JOYSTICK_REMOTE":{
 		"MAX_LINEAR" :0.2,

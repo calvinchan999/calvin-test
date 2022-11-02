@@ -1,4 +1,4 @@
-import { Component, Injectable, NgZone, Pipe, PipeTransform } from '@angular/core';
+import { Component, Injectable, NgZone, Pipe, PipeTransform ,Injector} from '@angular/core';
 import { DialogRef, DialogService, WindowRef, WindowService } from '@progress/kendo-angular-dialog';
 import {MatIconModule} from '@angular/material/icon';
 import { HttpClient } from '@angular/common/http';
@@ -192,7 +192,7 @@ export class UiService {
   }
   
 
-  public showNotificationBar(msg, type: 'success' | 'none' | 'warning' | 'info' | 'error' = 'info' , closable = false , translate = false , popWhenResumeFromHidden = false): void {
+  public showNotificationBar(msg, type: 'success' | 'none' | 'warning' | 'info' | 'error' = 'info' , closable = true , translate = false , popWhenResumeFromHidden = false): void {
     if( document.hidden && !popWhenResumeFromHidden){
       return
     }
@@ -203,7 +203,7 @@ export class UiService {
       position: { horizontal: "center", vertical: "bottom" },
       type: { style: type, icon: true },
       closable: closable,
-      hideAfter: 2000,
+      // hideAfter: 2000,
     });
   }
 
@@ -248,28 +248,28 @@ export class highlightSearchPipe implements PipeTransform {
 }
 
 @Pipe({name: 'roundDown'})
-export class roundDownPipe implements PipeTransform {
+export class RoundDownPipe implements PipeTransform {
     transform(value: number): number {
         return Math.floor(value);
     }
 } 
 
 @Pipe({name: 'roundUp'})
-export class roundUpPipe implements PipeTransform {
+export class RoundUpPipe implements PipeTransform {
     transform(value: number): number {
         return Math.ceil(value);
     }
 } 
 
 @Pipe({name: 'label'})
-export class label implements PipeTransform {
+export class TranslatePipe implements PipeTransform {
     transform(value: string , translateMap : Object): string {
         return value && translateMap[value] ? translateMap[value] : value;
     }
 } 
 
 @Pipe({name: 'cssClassName'})
-export class cssClassNamePipe implements PipeTransform {
+export class CssClassNamePipe implements PipeTransform {
     transform(value: string , prefix : string = '' ): string {
         return value? prefix  + value.toString().toLowerCase().split(" ").join("-").split("_").join("-") : '';
     }
@@ -277,7 +277,7 @@ export class cssClassNamePipe implements PipeTransform {
 
 
 @Pipe({name: 'dropdownDesc'})
-export class dropdownDescPipe implements PipeTransform {
+export class DropdownDescPipe implements PipeTransform {
     transform(value: string , options  , valueFld = 'value', textFld = 'text' ){
         let matches = (options?options:[]).filter(o=>o[valueFld] == value)
         return value!== null && matches.length == 0 ? false : matches[0]?.[textFld]
@@ -286,18 +286,62 @@ export class dropdownDescPipe implements PipeTransform {
 
 
 @Pipe({name: 'waypointName'})
-export class waypointNamePipe implements PipeTransform {
+export class WaypointNamePipe implements PipeTransform {
     transform(value: string ): string {
         return value.split('%')[value.split('%').length - 1]
     }
 } 
 
 @Pipe({name: 'dateString'})
-export class dateStringPipe implements PipeTransform {
+export class DateStringPipe implements PipeTransform {
     transform(value: string ): Date {        
         return  !value || value == '0001-01-01T00:00:00' ?  null :  new Date(value);
     }
 } 
+
+@Pipe({name: 'enum'})
+export class EnumNamePipe implements PipeTransform {
+  transform(value: string , upperCase = false): string {
+    return value.split("_").map(x => upperCase ? x.toUpperCase() : (x.length > 1 ? x.substring(0, 1).toUpperCase() + x.substring(1, x.length).toLowerCase() : x.toUpperCase())).join(" ");
+  }
+} 
+
+
+@Pipe({
+name: 'pipe'
+})
+export class DynamicPipe implements PipeTransform {
+  protected  pipeMap = {
+    enum : new EnumNamePipe(),
+    dateString : new DateStringPipe(),
+    waypointName : new  WaypointNamePipe(),
+    dropdownDesc : new  DropdownDescPipe(),
+    cssClassName : new CssClassNamePipe(),
+    label : new TranslatePipe(),
+    roundUp : new RoundUpPipe(),
+    roundDown : new RoundDownPipe()
+  }
+  public constructor(private injector: Injector) {
+  }
+
+  transform(value: any, pipeName: any, pipeArgs: any[]): any {
+
+    if (!this.pipeMap[pipeName]) {
+      return value;
+    }
+    else {
+      let pipe = this.pipeMap[pipeName];
+      if(pipeArgs){
+        return pipe.transform(value, ...pipeArgs);
+      }else{  
+        return pipe.transform(value);
+      }
+    }
+  }
+}
+
+
+
 
 
 

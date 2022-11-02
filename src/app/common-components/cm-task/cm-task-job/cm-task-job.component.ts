@@ -5,7 +5,7 @@ import { ListViewComponent } from '@progress/kendo-angular-listview';
 import { filter, take, takeUntil } from 'rxjs/operators';
 import { DataService, DropListAction, DropListDataset, DropListLocation, FloorPlanDataset, RobotMaster, ShapeJData, JTask, ActionParameter } from 'src/app/services/data.service';
 import { RvHttpService } from 'src/app/services/rv-http.service';
-import { label, UiService } from 'src/app/services/ui.service';
+import { TranslatePipe, UiService } from 'src/app/services/ui.service';
 import { DrawingBoardComponent, GraphicOptions, PixiCommon, PixiLocPoint } from 'src/app/ui-components/drawing-board/drawing-board.component';
 import { ListviewComponent, listViewFocusChangeEvent } from 'src/app/ui-components/listview/listview.component';
 import { GeneralUtil } from 'src/app/utils/general/general.util';

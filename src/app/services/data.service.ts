@@ -32,6 +32,11 @@ export class DataService {
   public arcsDefaultBuilding = null
   public codeRegex
   public codeRegexErrorMsg
+  public bgJobs = [
+      { jobId : "testing1" , dataSyncType : "EXPORT" , objectType : "FLOOR_PLAN" , dataSyncStatus : "TRANSFERRING" , objectCode : "FP1" , robotCode : "ROBOT-01" , progress : null , createdDateTime : new Date() },
+      { jobId : "testing2" , dataSyncType : "IMPORT" , objectType : "MAP" , dataSyncStatus : "TRANSFERRED" , objectCode : "MAP1" , robotCode : "ROBOT-02" , progress : null , createdDateTime : new Date() },
+      { jobId : "testing2" , dataSyncType : "IMPORT" , objectType : "MAP" , dataSyncStatus : "MALFUNCTION" , objectCode : "MAP1" , robotCode : "ROBOT-03" , progress : null , createdDateTime : new Date() }
+  ]
   public get locationPrefixDelimiter(){
     return "%"
   }
@@ -78,7 +83,6 @@ export class DataService {
   public signalRGeneralConfig = {
     backgroundSubscribeTypes : this.util.arcsApp? ['exception' , 'estop' , 'tilt' , 'obstacleDetection' ]: ['estop' , 'tilt' , 'obstacleDetection' , 'exception', 'taskActive' , 'taskComplete' , 'destinationReached', 'moving']
   }
-
 
   
   public signalRSubj = { //each signalR type must have a corresponding key, latest result received from signalR , start subscribing / unsubscribe using function 
@@ -166,10 +170,10 @@ export class DataService {
     lidar:{topic : 'rvautotech/fobo/lidar' , mapping: { lidar:(d)=> <any>(d)}},
     speed: { topic: 'rvautotech/fobo/speed', mapping: { speed: (d) => !isNaN(Number(d['speed']))? (Number(d['speed']).toFixed(2) == '-0.00' ? '0.00' : Number(d['speed']).toFixed(2)) : ' - ' } , api:'baseControl/v1/speed' },
     brake: { topic: "rvautotech/fobo/brake", mapping: { brakeActive: (d) => d['switchedOn'] } , api:'baseControl/v1/brake' },
-    estop: { topic: "rvautotech/fobo/estop", mapping: { estop: (d)=>{ if(d['detected'] ){
+    estop: { topic: "rvautotech/fobo/estop", mapping: { estop: (d)=>{ if(d['stopped'] ){
                                                                         this.onLoggedNotificationReceived('Emergency Stop Switched On', d['robotId'] , 'warning' , true)
                                                                       }; 
-                                                                      return d['detected']
+                                                                      return d['stopped']
                                                                     },
                                                         arcsWarningChangedRobotCode:(d)=>{
                                                           return d['robotId']
@@ -1317,6 +1321,7 @@ export class loginResponse{
     user_name ? : string
   }
 }
+
 
 
 

@@ -158,7 +158,7 @@ import '@progress/kendo-angular-intl/locales/en/all';
 import '@progress/kendo-angular-intl/locales/es/all';
 import '@progress/kendo-angular-intl/locales/fr/all';
 import { SaHomeComponent } from './standalone/sa-home/sa-home.component';
-import { cssClassNamePipe, roundDownPipe, roundUpPipe , highlightSearchPipe , label , dropdownDescPipe , waypointNamePipe , dateStringPipe } from './services/ui.service';
+import { CssClassNamePipe, RoundDownPipe, RoundUpPipe , highlightSearchPipe , TranslatePipe , DropdownDescPipe , WaypointNamePipe , DateStringPipe , EnumNamePipe , DynamicPipe } from './services/ui.service';
 import { DrawingBoardComponent } from './ui-components/drawing-board/drawing-board.component';
 import { DateRangeFilterComponent, MultiCheckFilterComponent, TableComponent } from './ui-components/table/table.component';
 import { TxtboxComponent } from './ui-components/txtbox/txtbox.component';
@@ -236,15 +236,17 @@ import { CmEventLogComponent } from './common-components/cm-event-log/cm-event-l
         // PatrolComponent,
         DrawingBoardComponent,
         SaHomeComponent,
-        dateStringPipe,
+        DynamicPipe,
+        DateStringPipe,
+        EnumNamePipe,
         highlightSearchPipe,    
-        roundDownPipe,
-        roundUpPipe,
-        dropdownDescPipe,
-        label,
+        RoundDownPipe,
+        RoundUpPipe,
+        DropdownDescPipe,
+        TranslatePipe,
         rowDetailToolTipPipe,
-        waypointNamePipe,
-        cssClassNamePipe,
+        WaypointNamePipe,
+        CssClassNamePipe,
         TableComponent,
         MsgDialogContent,
         TxtboxComponent,
