@@ -19,6 +19,6 @@
     </div>
     <div class="button-container">
         <button kendoButton (click)="onClose()" [disabled] = "isUploading">  {{'Cancel' | label : uiSrv.langPack}}</button>
-        <button kendoButton (click)="saveToDB()" [disabled] = "!frmGrp.controls['mapCode'].value || isUploading" >{{'Save' | label : uiSrv.langPack}}</button>
+        <button kendoButton (click)="saveToDB()" [disabled] = "!frmGrp.controls['mapCode'].value || isUploading" >{{'Upload' | label : uiSrv.langPack}}</button>
     </div>
 </div>

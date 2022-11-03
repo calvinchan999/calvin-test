@@ -25,3 +25,7 @@
 .home-container .first-tile-layout{
     height: calc(100vh - 150px);
 }
+
+:host .three-d-container{
+    height: calc(100vh - 190px);
+}

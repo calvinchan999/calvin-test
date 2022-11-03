@@ -54,9 +54,11 @@ export class ArcsSetupBuildingComponent implements OnInit {
   defaultFloorPlan
   site : JSite
   uploadSiteMsg = `Please setup site map to display the building if it is not set as 'Default Building' `
+
   ngOnInit() {
 
   }
+  
   async ngAfterViewInit() {
     let ticket = this.uiSrv.loadAsyncBegin()
     await this.initDropDown()

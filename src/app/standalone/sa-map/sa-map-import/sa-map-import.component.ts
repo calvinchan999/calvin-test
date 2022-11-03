@@ -61,7 +61,7 @@ export class SaMapImportComponent implements OnInit {
     var oldMap : DropListMap = mapList.filter(m=>m.mapCode == this.frmGrp.controls['mapCode'].value)[0]
     if(oldMap){
       var msg = this.uiSrv.translate( oldMap.floorPlanCode ? (' and remove it from floor plan ' + `[${oldMap.floorPlanCode}]`) : "")
-      return await this.uiSrv.showConfirmDialog(this.uiSrv.translate('Map record with same map code already exist. Are you sure to overwrite the existing record') + msg + '?')
+      return await this.uiSrv.showConfirmDialog(this.uiSrv.translate('Map record already exist. Are you sure to overwrite the existing record') + msg + '?')
     }
     return true
   }

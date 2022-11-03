@@ -1,0 +1,23 @@
+<th-canvas #canvas>
+    <th-scene #scene>
+      <th-ambientLight> </th-ambientLight>
+  
+      <th-object3D #object 
+        (onClick)="selected = !selected"
+      >
+      </th-object3D>
+      <!-- [scale]="selected ? [2, 2, 2] : [1, 1, 1]" -->
+  
+      <!-- <th-gridHelper [args]="[1000, 1000]"></th-gridHelper> -->
+      <th-pointLight [position]="[10, 10, 10]"></th-pointLight>
+  
+      <th-perspectiveCamera #camera
+        [args]="[45, 1, 0.1, 1000000000]"
+        [position]="[120, 700 , 900]"
+      >
+      
+      <!-- [lookAt]="[10, 10, 10]" -->
+        <th-orbitControls #orbitControl></th-orbitControls> 
+      </th-perspectiveCamera>
+    </th-scene>
+</th-canvas>  

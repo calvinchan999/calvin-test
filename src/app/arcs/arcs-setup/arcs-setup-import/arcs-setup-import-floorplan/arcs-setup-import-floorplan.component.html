@@ -1,6 +1,6 @@
-<div class="dialog-content import-map">
+<div class="dialog-content import-floorplan">
     <kendo-dialog-titlebar (close)="onClose()">
-        <div>{{'Import map from robot' | label: uiSrv.langPack}}</div>
+        <div>{{'Import floor plan from robot' | label: uiSrv.langPack}}</div>
     </kendo-dialog-titlebar>
 
     <div class="form-container">
@@ -12,13 +12,13 @@
                 <uc-dropdown lab="Robot" [frmGrp]="frmGrp" frmCtrl="robotCode" [options]="dropdown.options.robots" (valueChange)="onRobotSelected()"  [showValue] = "true"></uc-dropdown>
             </div>
             <div class="form-row" *ngIf="frmGrp.controls['robotCode'].value">
-                <uc-dropdown lab="Map" [frmGrp]="frmGrp" frmCtrl="mapCode"  [options]="dropdown.options.maps"  [showValue] = "true" ></uc-dropdown>
+                <uc-dropdown lab="Floor Plan" [frmGrp]="frmGrp" frmCtrl="floorPlanCode"  [options]="dropdown.options.floorplans"  [showValue] = "true" ></uc-dropdown>
             </div>
         </form>
     </div>
 
     <div class="button-container">
         <button kendoButton (click)="onClose()"> {{'Cancel' | label : uiSrv.langPack}}</button>
-        <button kendoButton (click)="saveToDB()" [disabled] = "!frmGrp.controls['robotCode'].value || !frmGrp.controls['mapCode'].value" >{{'Import' | label : uiSrv.langPack}}</button>
+        <button kendoButton (click)="saveToDB()" [disabled] = "!frmGrp.controls['robotCode'].value || !frmGrp.controls['floorPlanCode'].value" >{{'Import' | label : uiSrv.langPack}}</button>
     </div>
 </div>

@@ -1,35 +1,37 @@
 import { Component, OnInit } from '@angular/core';
 import { FormControl, FormGroup, Validators } from '@angular/forms';
 import { HttpResponse } from '@microsoft/signalr';
-import { DataService, DropListMap, DropListRobot } from 'src/app/services/data.service';
+import { DataService, DropListFloorplan, DropListMap, DropListRobot } from 'src/app/services/data.service';
 import { RvHttpService } from 'src/app/services/rv-http.service';
 import { UiService } from 'src/app/services/ui.service';
 import { GeneralUtil } from 'src/app/utils/general/general.util';
 
 @Component({
-  selector: 'app-arcs-setup-import-map',
-  templateUrl: './arcs-setup-import-map.component.html',
-  styleUrls: ['./arcs-setup-import-map.component.scss']
+  selector: 'app-arcs-setup-import-floorplan',
+  templateUrl: './arcs-setup-import-floorplan.component.html',
+  styleUrls: ['./arcs-setup-import-floorplan.component.scss']
 })
-export class ArcsSetupImportMapComponent implements OnInit {
+export class ArcsSetupImportFloorplanComponent implements OnInit {
+
   frmGrp = new FormGroup({
     robotBase: new FormControl(null, Validators.required),
     robotCode: new FormControl(null, Validators.required),
-    mapCode: new FormControl(null, Validators.required),
+    floorPlanCode: new FormControl(null, Validators.required),
   })
   dialogRef
   dropdown = {
     data : {
       bases: [],
       robots: [],
-      maps: []
+      floorplans: []
     },
     options : {
       bases: [],
       robots: [],
-      maps: []
+      floorplans: []
     }
   }
+
   
   constructor(public uiSrv : UiService , private dataSrv : DataService, public httpSrv : RvHttpService, public util : GeneralUtil){ }
 
@@ -44,17 +46,17 @@ export class ArcsSetupImportMapComponent implements OnInit {
 
   onRobotSelected(){
     this.frmGrp.controls['robotBase'].setValue(this.dropdown.data.robots.filter((r : DropListRobot)=> r.robotCode == this.frmGrp.controls['robotCode'].value)[0]?.robotBase)
-    this.getStandaloneMapList(this.frmGrp.controls['robotCode'].value)
+    this.getStandaloneFloorPlanList(this.frmGrp.controls['robotCode'].value)
   }
 
-  async getStandaloneMapList(robotCode){
+  async getStandaloneFloorPlanList(robotCode){
     if(!robotCode){
       return
     }
-    this.dropdown.options.maps = []
+    this.dropdown.options.floorplans = []
     let ticket = this.uiSrv.loadAsyncBegin()
-    let maps = await this.httpSrv.rvRequest("GET",`dataSync/v1/mapList/${robotCode}` , undefined, false)
-    this.dropdown.options.maps = this.dataSrv.getDropListOptions('maps' , maps)
+    this.dropdown.data.floorplans =  await this.httpSrv.rvRequest("GET",`dataSync/v1/floorPlanList/${robotCode}` , undefined, false)
+    this.dropdown.options.floorplans = this.dataSrv.getDropListOptions('floorplans' , this.dropdown.data.floorplans)
     this.uiSrv.loadAsyncDone(ticket)
   }
 
@@ -88,10 +90,18 @@ export class ArcsSetupImportMapComponent implements OnInit {
     if(!this.util.validateFrmGrp(this.frmGrp)){
       return false
     }
-    var mapList = (<DropListMap[]>(await this.dataSrv.getDropList('maps')).data)
-    var oldMap : DropListMap = mapList.filter(m=>m.mapCode == this.frmGrp.controls['mapCode'].value && m.robotBase == this.frmGrp.controls['robotBase'].value)[0]
-    if(oldMap){
-      return await this.uiSrv.showConfirmDialog(this.uiSrv.translate('Map record already exist. Are you sure to overwrite the existing record ?'))
+    let dropLists = await this.dataSrv.getDropLists(['floorplans' , 'maps'])
+    let floorPlanList = (<DropListFloorplan[]>dropLists.data['floorplans'])
+    let mapList = (<DropListMap[]>dropLists.data['maps'])
+    let fpCode = this.frmGrp.controls['floorPlanCode'].value
+    var oldFloorPlan : DropListFloorplan = floorPlanList.filter(m=>m.floorPlanCode == fpCode)[0]
+    var selectedFloorPlan : AMRfloorPlanResponse = this.dropdown.data.floorplans.filter((f:AMRfloorPlanResponse)=>f.floorPlanCode == fpCode)[0]
+    var oldMap : DropListMap = mapList.filter(m=> selectedFloorPlan.map?.mapCode && m.mapCode == selectedFloorPlan.map?.mapCode && m.robotBase == this.frmGrp.controls['robotBase'].value)[0]
+    if(oldFloorPlan && !await this.uiSrv.showConfirmDialog(this.uiSrv.translate('Floor plan record already exist. Are you sure to overwrite the existing record ?'))){
+      return false
+    }
+    if(oldMap && !await this.uiSrv.showConfirmDialog(this.uiSrv.translate('Map record [${MAP_CODE}] linked to the floor plan already exist. Are you sure to overwrite the existing map record ?'.replace("${MAP_CODE}", selectedFloorPlan.map?.mapCode)))){    
+      return false
     }
     return true
   }
@@ -101,10 +111,19 @@ export class ArcsSetupImportMapComponent implements OnInit {
       return
     }
     let ticket = this.uiSrv.loadAsyncBegin()
-    let result  = await this.httpSrv.rvRequest("PUT",`dataSync/v1/map/import/${this.frmGrp.controls['robotCode'].value}/${this.frmGrp.controls['mapCode'].value}` ,undefined , true , "Start Map Import")
+    let result  = await this.httpSrv.rvRequest("PUT",`dataSync/v1/floorPlanCode/import/${this.frmGrp.controls['robotCode'].value}/${this.frmGrp.controls['floorPlanCode'].value}` ,undefined , true , "Start Floor Plan Import")
     if(result?.['status'] == 200){
       this.dialogRef.close()
     }
     this.uiSrv.loadAsyncDone(ticket)   
+  }
+}
+
+class AMRfloorPlanResponse {
+  floorPlanCode: string
+  name: string
+  map: {
+    mapCode: string
+    name: string
   }
 }

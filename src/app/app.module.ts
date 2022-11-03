@@ -101,6 +101,7 @@ import {OverlayModule} from '@angular/cdk/overlay';
 import {MsgDialogContent} from  './services/ui.service';
 import { PowerBIEmbedModule } from 'powerbi-client-angular';
 import { RECAPTCHA_V3_SITE_KEY, RecaptchaV3Module } from "ng-recaptcha";
+import { NgxThreeModule } from 'ngx-three';
 
 var routes = [];
 var standaloneApp = environment.app.toUpperCase() == 'STANDALONE'
@@ -220,6 +221,9 @@ import { ArcsPasswordPolicyComponent } from './common-components/cm-user/arcs-pa
 import { SaMapImportComponent } from './standalone/sa-map/sa-map-import/sa-map-import.component';
 import { SaMapExportComponent } from './standalone/sa-map/sa-map-export/sa-map-export.component';
 import { CmEventLogComponent } from './common-components/cm-event-log/cm-event-log.component';
+import { ThreejsViewportComponent } from './ui-components/threejs-viewport/threejs-viewport.component';
+import { ArcsSetupImportFloorplanComponent } from './arcs/arcs-setup/arcs-setup-import/arcs-setup-import-floorplan/arcs-setup-import-floorplan.component';
+import { ArcsSetupExportFloorplanComponent } from './arcs/arcs-setup/arcs-setup-export/arcs-setup-export-floorplan/arcs-setup-export-floorplan.component';
 
 @NgModule({
     declarations: [
@@ -306,9 +310,13 @@ import { CmEventLogComponent } from './common-components/cm-event-log/cm-event-l
         SaMapImportComponent,
         SaMapExportComponent,
         CmEventLogComponent,
+        ThreejsViewportComponent,
+        ArcsSetupImportFloorplanComponent,
+        ArcsSetupExportFloorplanComponent,
         
     ],
     imports: [
+        NgxThreeModule,
         PowerBIEmbedModule,
         ZXingScannerModule,
         A11yModule,

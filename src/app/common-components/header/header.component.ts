@@ -28,12 +28,7 @@ export class HeaderComponent {
     @ViewChild("settingMenu") settingMenu : MenuComponent
     @ViewChild("langButton") langButton : DropDownButtonComponent
     // public customMsgService: CustomMessagesService;
-    
-    jobList = [
-        { jobId : "testing1" , dataSyncType : "EXPORT" , objectType : "FLOOR_PLAN" , dataSyncStatus : "TRANSFERRING" , objectCode : "FP1" , robotCode : "ROBOT-01" , progress : null , createdDateTime : new Date() },
-        { jobId : "testing2" , dataSyncType : "IMPORT" , objectType : "MAP" , dataSyncStatus : "TRANSFERRED" , objectCode : "MAP1" , robotCode : "ROBOT-02" , progress : null , createdDateTime : new Date() },
-        { jobId : "testing2" , dataSyncType : "IMPORT" , objectType : "MAP" , dataSyncStatus : "MALFUNCTION" , objectCode : "MAP1" , robotCode : "ROBOT-03" , progress : null , createdDateTime : new Date() }
-    ]
+
 
     public app = environment.app.toUpperCase()
     public selectedLanguage = { locale: 'English', localeId: 'en-US' };

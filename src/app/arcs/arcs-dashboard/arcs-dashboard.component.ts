@@ -138,6 +138,7 @@ export class ArcsDashboardComponent implements OnInit {
       { id: 'schedule' , label : 'Schedule', functionId :  this.gridSettings.schedule.functionId},
     ].filter(t=> t.authorized === false || this.authSrv.userAccessList.includes(t.functionId.toUpperCase())) : 
     [
+      // { id: '3dTest', label: '3D Test', authorized: false } , 
       { id: 'dashboard', label: 'Dashboard', authorized: false } , 
       { id: 'usability', label: 'Usability', authorized: false },
       { id: 'utilization', label: 'Utilization', authorized: false }
@@ -186,7 +187,7 @@ export class ArcsDashboardComponent implements OnInit {
         this.tableRef.retrieveData();
       }
     })
-    this.loadingTicket = this.uiSrv.loadAsyncBegin()
+    // this.loadingTicket = this.uiSrv.loadAsyncBegin()
   }
 
   ngOnDestroy(){

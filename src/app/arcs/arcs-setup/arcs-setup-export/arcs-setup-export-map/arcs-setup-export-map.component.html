@@ -1,1 +1,24 @@
-<p>arcs-setup-export-map works!</p>
+<div class="dialog-content export-map">
+    <kendo-dialog-titlebar  (close)="onClose()">
+        <div>{{'Export map to robot' | label: uiSrv.langPack}}</div>
+    </kendo-dialog-titlebar>
+
+    <div class="form-container">
+        <form [formGroup]="frmGrp" class="content">
+            <div class="form-row">
+                <uc-dropdown lab="Map" [frmGrp]="frmGrp" frmCtrl="mapCode"  [options]="dropdown.options.maps"  [showValue] = "true" ></uc-dropdown>
+            </div>
+            <div class="form-row">
+                <uc-dropdown lab="Robot Base" [frmGrp]="frmGrp" frmCtrl="robotBase"  [options]="dropdown.options.bases" (valueChange)="onBaseSelected()"></uc-dropdown>
+            </div>
+            <div class="form-row">
+                <uc-dropdown lab="Robot" [frmGrp]="frmGrp" frmCtrl="robotCode" [options]="dropdown.options.robots" (valueChange)="onRobotSelected()"  [showValue] = "true"></uc-dropdown>
+            </div>   
+        </form>
+    </div>
+
+    <div class="button-container">
+        <button kendoButton (click)="onClose()"> {{'Cancel' | label : uiSrv.langPack}}</button>
+        <button kendoButton (click)="saveToDB()" [disabled] = "!frmGrp.controls['robotCode'].value || !frmGrp.controls['mapCode'].value" >{{'Export' | label : uiSrv.langPack}}</button>
+    </div>
+</div>

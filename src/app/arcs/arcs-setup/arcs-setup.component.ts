@@ -15,7 +15,9 @@ import { DrawingBoardComponent } from 'src/app/ui-components/drawing-board/drawi
 import { TableComponent } from 'src/app/ui-components/table/table.component';
 import { GeneralUtil } from 'src/app/utils/general/general.util';
 import { ArcsSetupBuildingComponent } from './arcs-setup-building/arcs-setup-building.component';
+import { ArcsSetupExportFloorplanComponent } from './arcs-setup-export/arcs-setup-export-floorplan/arcs-setup-export-floorplan.component';
 import { ArcsSetupExportMapComponent } from './arcs-setup-export/arcs-setup-export-map/arcs-setup-export-map.component';
+import { ArcsSetupImportFloorplanComponent } from './arcs-setup-import/arcs-setup-import-floorplan/arcs-setup-import-floorplan.component';
 import { ArcsSetupImportMapComponent } from './arcs-setup-import/arcs-setup-import-map/arcs-setup-import-map.component';
 import { ArcsSetupPointTypeComponent } from './arcs-setup-point-type/arcs-setup-point-type.component';
 import { ArcsSetupRobotComponent } from './arcs-setup-robot/arcs-setup-robot.component';
@@ -37,7 +39,7 @@ export class ArcsSetupComponent implements OnInit {
       Object.keys(this.tableCustomButtons).forEach(k=> {
         this.tableCustomButtons[k].forEach(btn=>{
           if(!this.authSrv.hasRight(btn?.functionId)){
-            delete this.tableCustomButtons[k]
+            this.tableCustomButtons[k] = this.tableCustomButtons[k].filter(b=> b!=btn)
           }
         })
       })
@@ -54,9 +56,10 @@ export class ArcsSetupComponent implements OnInit {
   ]
   selectedTab = 'floorplan' 
   tableCustomButtons = {
-    map:[{id : 'importMap' , label : 'Import' , icon : 'import' , disabled : false  ,  functionId : 'MAP_IMPORT' }]
+    map:[{id : 'importMap' , label : 'Import' , icon : 'import' , disabled : false  ,  functionId : 'MAP_IMPORT' }  , {id : 'exportMap' , label : 'Export' , icon : 'export' , disabled : false ,  functionId : 'MAP_EXPORT' }],
+    floorplan:[{id : 'importFloorplan' , label : 'Import' , icon : 'import' , disabled : false  ,  functionId : 'FLOORPLAN_IMPORT' } ,  {id : 'exportFloorplan' , label : 'Export' , icon : 'export' , disabled : false ,  functionId : 'FLOORPLAN_EXPORT'}]
   }
-  // ,{id : 'exportMap' , label : 'Export' , icon : 'export' , disabled : false  }
+
 
   gridSettings = { //consider to move them into a json file
     building : {
@@ -197,6 +200,8 @@ export class ArcsSetupComponent implements OnInit {
 
   showDetail(evt = null , id = null) {
     const idCompMap = {
+      importFloorplan : ArcsSetupImportFloorplanComponent,
+      exportFloorplan : ArcsSetupExportFloorplanComponent,
       importMap : ArcsSetupImportMapComponent,
       exportMap : ArcsSetupExportMapComponent,      
       robot:ArcsSetupRobotComponent,
