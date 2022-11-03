@@ -39,10 +39,12 @@ jobs:
           skip_app_build: true
           app_location: "dist/schmidt-arcs-website"
       - name: Zip File And Create New Directory
-        run: tar -zcvf fobo-amr-web.tar.gz target/dist && mkdir ./target/dist/zip && mv ./fobo-amr-web.tar.gz ./target/dist/zip
+        run: tar -zcvf fobo-amr-web.tar.gz dist && mkdir ./dist/zip && mv ./fobo-amr-web.tar.gz ./dist/zip
       - name: Upload to Azure File Container
         uses: lauchacarro/Azure-Storage-Action@v1.1
         with:
           connection-string: ${{ secrets.CONNECTION_STRING }}
-          folder: target/dist/zip
+          folder: dist/zip
           blob-container-name: fobo-amr-web
+
+          
