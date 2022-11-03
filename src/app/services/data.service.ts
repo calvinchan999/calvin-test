@@ -1,7 +1,7 @@
 import { Injectable } from '@angular/core';
 import { DataStateChangeEvent } from '@progress/kendo-angular-grid';
 import { RvHttpService } from './rv-http.service';
-import { UiService } from './ui.service';
+import { EnumNamePipe, UiService } from './ui.service';
 import { GeneralUtil } from 'src/app/utils/general/general.util';
 import { toDataSourceRequestString, toODataString } from '@progress/kendo-data-query';
 import { SignalRService } from './signal-r.service';
@@ -12,8 +12,10 @@ import { PixiCommon } from '../ui-components/drawing-board/drawing-board.compone
 import { Router } from '@angular/router';
 import { AzurePubsubService } from './azure-pubsub.service';
 import { DatePipe } from '@angular/common'
-export type dropListType =  'floorplans' | 'buildings' | 'sites' | 'maps' | 'actions' | 'types' | 'locations' | 'userGroups' | 'subTypes' | 'robots' | 'missions'
-export type localStorageKey = 'lang' | 'uitoggle' | 'lastLoadedFloorplanCode' | 'eventLog' | 'unreadNotificationCount'
+export type syncStatus = 'TRANSFERRED' | 'TRANSFERRING' | 'MALFUNCTION'
+export type syncLog =  {dataSyncId? : string , dataSyncType? : string , objectType? : string , dataSyncStatus?: syncStatus , objectCode?: string , robotCode?: string , progress? : any , startDateTime? : Date , endDateTime : Date  }
+export type dropListType =  'floorplans' | 'buildings' | 'sites' | 'maps' | 'actions' | 'types' | 'locations' | 'userGroups' | 'subTypes' | 'robots' | 'missions' 
+export type localStorageKey = 'lang' | 'uitoggle' | 'lastLoadedFloorplanCode' | 'eventLog' | 'unreadNotificationCount' | 'unreadSyncLogCount' | 'syncDoneLog'
 export type sessionStorageKey = 'arcsLocationTree' | 'dashboardFloorPlanCode'| 'isGuestMode' | 'userAccess' | 'arcsDefaultBuilding' | 'userId' | 'currentUser'
 export type eventLog = {datetime? : string , type? : string , message : string  , robotCode?: string }
 export type signalRType = 'activeMap' | 'occupancyGridMap' | 'navigationMove' | 'chargingResult' | 'chargingFeedback' | 'state' | 'battery' | 'pose' | 'speed'|
@@ -21,22 +23,20 @@ export type signalRType = 'activeMap' | 'occupancyGridMap' | 'navigationMove' | 
                     'followMeAoa' | 'digitalOutput' | 'wifi' | 'cellular' | 'ieq' | 'rfid' | 'cabinet' | 'rotaryHead' | 'nirCamera' | 'nirCameraDetection' |
                     'thermalCamera' | 'thermalCameraDetection' | 'webcam' | 'heartbeatServer' | 'heartbeatClient' | 'arcsPoses' | 'taskActive' | 'lidarStatus' |
                     'led' | 'fan' | 'pauseResume' | 'taskComplete' | 'taskDepart' | 'taskArrive' | 'destinationReached' | 'taskProgress' | 'moving' | 'lidar'| 'taskPopups'|
-                    'arcsRobotStatusChange' | 'arcsTaskInfoChange' 
+                    'arcsRobotStatusChange' | 'arcsTaskInfoChange' | 'arcsSyncLog'
 
 @Injectable({
   providedIn: 'root'
 })
 export class DataService {
   public unreadNotificationCount = new BehaviorSubject<number>(0)
+  public unreadSyncLogCount = new BehaviorSubject<number>(0)
   public arcsDefaultSite = null
   public arcsDefaultBuilding = null
   public codeRegex
   public codeRegexErrorMsg
-  public bgJobs = [
-      { jobId : "testing1" , dataSyncType : "EXPORT" , objectType : "FLOOR_PLAN" , dataSyncStatus : "TRANSFERRING" , objectCode : "FP1" , robotCode : "ROBOT-01" , progress : null , createdDateTime : new Date() },
-      { jobId : "testing2" , dataSyncType : "IMPORT" , objectType : "MAP" , dataSyncStatus : "TRANSFERRED" , objectCode : "MAP1" , robotCode : "ROBOT-02" , progress : null , createdDateTime : new Date() },
-      { jobId : "testing2" , dataSyncType : "IMPORT" , objectType : "MAP" , dataSyncStatus : "MALFUNCTION" , objectCode : "MAP1" , robotCode : "ROBOT-03" , progress : null , createdDateTime : new Date() }
-  ]
+  public enumPipe = new EnumNamePipe()
+  public objectTypeDropDownOptions = ObjectTypes.map(t=> {return {value : t , text : this.enumPipe.transform(t)}})
   public get locationPrefixDelimiter(){
     return "%"
   }
@@ -66,7 +66,7 @@ export class DataService {
     actions: { url: this.util.arcsApp ? 'operation/v1' : 'action/v1',  descFld: 'name', valFld: 'alias' ,  fromRV : true },
     userGroups : { url: 'api/user/userGroup/dropList/v1',  descFld: 'name', valFld: 'userGroupCode' , fromRV : false },
     robots : { url: 'robot/v1',  descFld: 'name', valFld: 'robotCode' , fromRV : true },
-    missions : {url : 'api/task/mission/droplist/v1' , descFld : 'name' , valFld: 'missionId' , fromRV : false },
+    missions : {url : 'api/task/mission/droplist/v1' , descFld : 'name' , valFld: 'missionId' , fromRV : false }
   }
 
   public dataStore = {//persist until dataService is destroyed
@@ -81,7 +81,7 @@ export class DataService {
   //DONE : ticket system (~uiSrv.loadAsyncBegin() & loadAsyncDone()) to subscribe / unbscribe as singleton
   //DONE : concat robotCode / mapCode to the topic for ARCS
   public signalRGeneralConfig = {
-    backgroundSubscribeTypes : this.util.arcsApp? ['exception' , 'estop' , 'tilt' , 'obstacleDetection' ]: ['estop' , 'tilt' , 'obstacleDetection' , 'exception', 'taskActive' , 'taskComplete' , 'destinationReached', 'moving']
+    backgroundSubscribeTypes : this.util.arcsApp? ['exception' , 'estop' , 'tilt' , 'obstacleDetection' , 'arcsSyncLog' ]: ['estop' , 'tilt' , 'obstacleDetection' , 'exception', 'taskActive' , 'taskComplete' , 'destinationReached', 'moving']
   }
 
   
@@ -134,7 +134,8 @@ export class DataService {
     arcsRobotStatusChange : new BehaviorSubject<{robotType : string , floorPlanCode : string}>(null),
     arcsTaskInfoChange : new BehaviorSubject<{robotType : string , floorPlanCode : string}>(null),
     arcsWarningChangedRobotCode : new BehaviorSubject<string>(null),
-    nextTaskAction : new BehaviorSubject<string>(null)
+    nextTaskAction : new BehaviorSubject<string>(null),
+    arcsSyncLog : new BehaviorSubject<syncLog[]>([])
     // taskActionActiveAlias : new BehaviorSubject<any>(null)
   }
 
@@ -369,6 +370,19 @@ export class DataService {
                },
     arcsRobotStatusChange :{ topic : 'rvautotech/fobo/ARCS/robot/info' ,mapping: { arcsRobotStatusChange : null}},
     arcsTaskInfoChange :{ topic : 'rvautotech/fobo/ARCS/task/info' ,mapping: { arcsTaskInfoChange : null}},
+    arcsSyncLog : { topic: "rvautotech/fobo/ARCS/data/sync/log" , mapping : {arcsSyncLog : (d:syncLog)=>{
+                        var ret :syncLog[] = this.signalRSubj.arcsSyncLog.value ? JSON.parse(JSON.stringify(this.signalRSubj.arcsSyncLog.value))  : [] 
+                        if(ret.filter(l=>l.dataSyncId != d.dataSyncId || l.dataSyncStatus != d.dataSyncStatus).length > 0 ){
+                          this.unreadSyncLogCount.next(this.unreadSyncLogCount.value + 1)
+                          this.setlocalStorage('unreadSyncLogCount', JSON.stringify( this.unreadSyncLogCount.value))
+                        }
+                        ret = [JSON.parse(JSON.stringify(d))].concat(ret.filter(l=>l.dataSyncId != d.dataSyncId))
+                        this.setlocalStorage('syncDoneLog', JSON.stringify(ret.filter(l=>l.dataSyncStatus != 'TRANSFERRING')))    
+                        return ret
+                      }
+                    },
+                    api:'api/sync/log/processing/v1'
+                  },
   }
 
   eventLog = new BehaviorSubject<eventLog[]>([])
@@ -396,10 +410,20 @@ export class DataService {
 
   loadDataFromLocalStorage(){
     let notiCount = this.getlocalStorage('unreadNotificationCount')
+    let syncCount = this.getlocalStorage('unreadSyncLogCount')
+    let syncDoneLog = this.getlocalStorage('syncDoneLog')
+    let log = this.getlocalStorage('eventLog')
     if(notiCount != null){
       this.unreadNotificationCount.next(Number(notiCount))
     }
-    let log = this.getlocalStorage('eventLog')
+    if(syncCount != null){
+      this.unreadSyncLogCount.next(Number(syncCount))
+    }
+    if(syncDoneLog != null){
+      let oldLogs = this.signalRSubj.arcsSyncLog.value ? this.signalRSubj.arcsSyncLog.value : []
+      let unreadLogs : syncLog[] = JSON.parse(syncDoneLog)
+      this.signalRSubj.arcsSyncLog.next(unreadLogs.concat(oldLogs.filter(l=>l.dataSyncStatus!='TRANSFERRING')))
+    }
     if(log!=null){
       this.eventLog.next(JSON.parse(log))
     }
@@ -572,14 +596,21 @@ export class DataService {
                 this.updateSignalRBehaviorSubject(type, JSON.parse(resp.body) , paramString)
               }
           }
-        } else if(this.util.arcsApp && ['ieq'].includes(type)){       
-            if(this.getSubscribedCount(type, paramString) == 0){          
-              let resp = await this.httpSrv.rvRequest('GET' , this.signalRMaster[type]['api'] + '/' + paramString)
-              if(resp && resp.status == 200){
-                this.updateSignalRBehaviorSubject(type, JSON.parse(resp.body), paramString)
-              }
-            }
-        }
+        } else if(this.util.arcsApp){       
+            if(this.getSubscribedCount(type, paramString) == 0){      
+              if(['ieq'].includes(type)){
+                let resp = await this.httpSrv.rvRequest('GET' , this.signalRMaster[type]['api'] + '/' + paramString)
+                if(resp && resp.status == 200){
+                  this.updateSignalRBehaviorSubject(type, JSON.parse(resp.body), paramString)
+                }
+              }else if( ['arcsSyncLog'].includes(type)){
+                let ticket = this.uiSrv.loadAsyncBegin()
+                let resp = await this.httpSrv.get(this.signalRMaster[type]['api']);
+                this.signalRSubj.arcsSyncLog.next((this.getlocalStorage('syncDoneLog') ? JSON.parse(this.getlocalStorage('syncDoneLog')) : []).concat(resp))
+                this.uiSrv.loadAsyncDone(ticket)
+              }  
+            } 
+        } 
       }
 
       if (newSubscription) {
@@ -1321,6 +1352,9 @@ export class loginResponse{
     user_name ? : string
   }
 }
+
+export const ObjectTypes = ['ROBOT' ,'FLOOR_PLAN' , 'FLOOR_PLAN_POINT' , 'MAP' , 'MAP_POINT' , 'TASK' , 'OPERATION' , 'MISSION']
+
 
 
 

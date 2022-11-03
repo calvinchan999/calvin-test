@@ -48,7 +48,11 @@ export class AuthService {
 	}
 
 	hasRight(functionId){
-		return this.userAccessList.includes(functionId.toUpperCase())
+		if(functionId == 'SYNC_LOG'){
+			return this.userAccessList.filter(f=>f.includes("_IMPORT") || f.includes("_EXPORT")).length > 0
+		}else{
+			return this.userAccessList.includes(functionId.toUpperCase())
+		}
 	}
 	
 

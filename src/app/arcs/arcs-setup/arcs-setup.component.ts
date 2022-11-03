@@ -34,7 +34,7 @@ export class ArcsSetupComponent implements OnInit {
   @ViewChild('pixi') pixiElRef: DrawingBoardComponent
   constructor(public windowSrv: DialogService, public dataSrv : DataService, public uiSrv: UiService, public http: RvHttpService, private location : Location, private router : Router,
               private changeDectector: ChangeDetectorRef, private route : ActivatedRoute, private util: GeneralUtil, private ngZone: NgZone , private authSrv : AuthService) { 
-      this.tabs = this.tabs.filter(t=> t.authorized === false || this.authSrv.userAccessList.includes(this.gridSettings[t.id].functionId?.toUpperCase()))
+      this.tabs = this.tabs.filter(t=> t.authorized === false || this.authSrv.hasRight(this.gridSettings[t.id].functionId?.toUpperCase()))
       this.selectedTab = this.route.snapshot.paramMap.get('selectedTab') ? this.route.snapshot.paramMap.get('selectedTab') : this.tabs[0].id
       Object.keys(this.tableCustomButtons).forEach(k=> {
         this.tableCustomButtons[k].forEach(btn=>{
@@ -52,6 +52,7 @@ export class ArcsSetupComponent implements OnInit {
     { id: 'floorplan', label: 'Floor Plan' },
     { id: 'map', label: 'Map' },
     { id: 'pointType', label: 'Waypoint Type'},
+    { id: 'synclog', label: 'Data Exchange Log' },
     { id: 'log', label: 'Event Log' , authorized : false},
   ]
   selectedTab = 'floorplan' 
@@ -129,6 +130,19 @@ export class ArcsSetupComponent implements OnInit {
         { title: "Floor Plan", id: "floorPlanName", width: 150 },
       ]
     },
+    synclog:{
+      functionId:"SYNC_LOG",
+      apiUrl:"api/sync/log/page/v1",
+      columns: [
+        { title: "Operation", id: "dataSyncType", width: 100 , type:'pipe' , pipe :'enum' },
+        { title: "Record Type", id: "objectType", width: 100 , dropdownOptions:this.dataSrv.objectTypeDropDownOptions},
+        { title: "Robot Code", id: "robotCode", width: 150 },
+        { title: "Record Code", id: "objectCode", width: 200 },        
+        { title: "Start Time", id: "startDateTime", type: "date" , width: 200 },
+        { title: "End Time", id: "endDateTime", type: "date" , width: 200 },
+        { title: "Status", id: "dataSyncStatus", width: 150 , type:'pipe' , pipe :'enum' }
+      ]
+    }
   }
 
   data = []
@@ -157,6 +171,9 @@ export class ArcsSetupComponent implements OnInit {
     this.route.params.pipe(takeUntil(this.$onDestroy)).subscribe((params)=>{
       if(params?.selectedTab){
         this.onTabChange(params?.selectedTab)
+        if(params.selectedTab == 'synclog'){
+          this.tableElRef?.retrieveData()
+        }
       }
     })
     let ddl = await this.dataSrv.getDropLists(['types' , 'subTypes'])
@@ -185,17 +202,6 @@ export class ArcsSetupComponent implements OnInit {
 
   async loadData(evt = null) {
     await this.tableElRef?.retrieveData()
-
-    //PENDING : filter tableCustomButtons by user acess
-
-
-    // if(this.selectedTab == 'site' && this.tableElRef?.data.length > 0){
-    //   let original = JSON.parse(JSON.stringify(this.tableDisabledButtons))
-    //   let tmp = JSON.parse(original)
-    //   tmp['new'] = true
-    //   this.tableDisabledButtons = tmp
-    // }
-    // this.uiSrv.loadAsyncDone(ticket)
   }
 
   showDetail(evt = null , id = null) {

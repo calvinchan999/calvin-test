@@ -14,22 +14,27 @@
         </div>
 
         
-        <!-- <div class="bg-job topnav" *ngIf="util.arcsApp && dataSrv.bgJobs.length > 0">
-            <kendo-menu [items]="[{id:'jobStatus' , items: dataSrv.bgJobs}]" class="job-menu">
+        <div class="bg-job topnav" *ngIf="util.arcsApp && dataSrv.signalRSubj.arcsSyncLog.value.length > 0">
+            <kendo-menu #syncMenu [items]="[{id:'jobStatus' , items: dataSrv.signalRSubj.arcsSyncLog.value}]" class="job-menu" [openOnClick]="{ toggle: 'click' }" (open)="updateUnreadCount()" (close)="updateUnreadLog()">
                 <ng-template kendoMenuItemTemplate let-item="item">
-                    <ng-container *ngIf="item.id == 'jobStatus'">
-                        <a class="k-icon mdi mdi-cached"></a>
-                    </ng-container>
-                    <div *ngIf="item.jobId != null"> 
+                    <div *ngIf="item.id == 'jobStatus'" (click) = "syncMenu.toggle(true, '0') ; updateUnreadCount()">
+                        <a class="k-icon mdi mdi-cached">
+                            <kendo-badge *ngIf="dataSrv.unreadSyncLogCount.value > 0" rounded="medium" themeColor="info" position="edge" 
+                                         [align] = "{ vertical: 'bottom', horizontal: 'end' }">
+                                {{dataSrv.unreadSyncLogCount.value}}
+                            </kendo-badge>
+                        </a>
+                    </div>
+                    <button kendoButton *ngIf="item.dataSyncId != null" (click)="router.navigate(['/setup', {selectedTab : 'synclog'}])"> 
                         <span [class]="item.dataSyncType == 'EXPORT' ? 'k-icon mdi mdi-cloud-download' : ( item.dataSyncType == 'IMPORT' ? 'k-icon mdi mdi-cloud-upload' : '')"></span>
                         <span class="object-type">{{item.objectType | enum : true }}</span>
                         <span class="object-code">{{item.objectCode}}</span>
                         <span class="robot-code">{{item.robotCode}}</span>
                         <span [class]="'status ' + item.status">{{item.dataSyncStatus}}</span>
-                    </div>
+                    </button>
                 </ng-template>
             </kendo-menu>
-        </div> -->
+        </div>
 
 
         <div class="profile topnav" *ngIf = "authSrv.username">

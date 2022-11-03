@@ -27,6 +27,7 @@ export class HeaderComponent {
     @Input() public selectedPage: string;
     @ViewChild("settingMenu") settingMenu : MenuComponent
     @ViewChild("langButton") langButton : DropDownButtonComponent
+    @ViewChild("syncMenu") syncMenu : MenuComponent
     // public customMsgService: CustomMessagesService;
 
 
@@ -130,5 +131,17 @@ export class HeaderComponent {
             this.authSrv.logout()
         }
     }    
+
+    public updateUnreadCount(){
+        console.log('menu opened')
+        this.dataSrv.unreadSyncLogCount.next(0)
+        this.dataSrv.setlocalStorage('unreadSyncLogCount' ,JSON.stringify(0))
+    }
+
+    public updateUnreadLog(){
+        let processingLogs = (this.dataSrv.signalRSubj.arcsSyncLog.value ? this.dataSrv.signalRSubj.arcsSyncLog.value : []).filter(l=>l.dataSyncStatus == 'TRANSFERRING')
+        this.dataSrv.signalRSubj.arcsSyncLog.next( processingLogs)
+        this.dataSrv.setlocalStorage('syncDoneLog' , JSON.stringify([]))
+    }
 
 }

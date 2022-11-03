@@ -23,11 +23,11 @@ export class TestSignalRComponent implements OnInit {
   ngOnInit(): void {
   }
 
-  publish(topic : string , payload){
-    if(this.util.arcsApp && !this.util.config.USE_SIGNALR){
+  publish(topic: string, payload) {
+    if (this.util.arcsApp && !this.util.config.USE_SIGNALR) {
       this.pubsubSrv.publish(topic, payload)
-    }else{
-      this.signalRSrv.invoke("Publish", [topic, payload]) 
+    } else {
+      this.signalRSrv.invoke("Publish", [topic, payload])
     }
   }
 
@@ -97,6 +97,11 @@ export class TestSignalRComponent implements OnInit {
   }
 
   sampleData = {
+    arcsSyncLog:{
+      seriesInterval: 0,
+      topic: 'rvautotech/fobo/ARCS/data/sync/log',
+      content:`{"dataSyncId":"CHRIS-TEST-1","objectCode":"CHRIS-1","objectType":"FLOOR_PLAN","robotCode":"ROBOT-01","dataSyncType":"EXPORT","startDateTime":"2022-11-02T11:34:14.57+08:00","endDateTime":"2022-11-02T11:36:50.73+08:00","dataSyncStatus":"TRANSFERRING"}`
+    },
     arcsPose:{
       seriesInterval: 0,
       topic: 'rvautotech/fobo/pose/5W_0429',
