@@ -7,7 +7,10 @@ import { GLTF, GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader';
 import { DragControls } from 'three/examples/jsm/controls/DragControls';
 import { Mesh, Object3D } from 'three';
 import { GeneralUtil } from 'src/app/utils/general/general.util';
-
+import { DataService } from 'src/app/services/data.service';
+import { debounce, debounceTime, filter, retry, share, skip, switchMap, take, takeUntil } from 'rxjs/operators';
+import { radRatio } from '../drawing-board/drawing-board.component';
+import { Subject } from 'rxjs';
 
 @Component({
   selector: 'uc-3d-viewport',
@@ -20,20 +23,85 @@ export class ThreejsViewportComponent implements OnInit {
   public loadingTicket = null
   @ViewChild('object') mainObj: ThObject3D
   @ViewChild('scene') scene : ThScene
-  @ViewChild('canvas') canvas : ThCanvas
+  @ViewChild('canvas') canvas 
   @ViewChild('camera') camera : ThCamera
   @ViewChild('orbitControl') orbitCtrl : ThOrbitControls
   dragCtrl : DragControls
   loader : GLTFLoader
-  constructor(public uiSrv: UiService , public ngZone : NgZone , public util : GeneralUtil ) {
+  robots : RobotObject3D[] = []
+  maps : MapMesh[] = []
+  floorplan : FloorPlanMesh
+  $onDestroy = new Subject()
+  constructor(public uiSrv: UiService , public ngZone : NgZone , public util : GeneralUtil , public dataSrv : DataService) {
     // this.loadingTicket = this.uiSrv.loadAsyncBegin()
   }
 
+  mouse = new THREE.Vector2();
+  raycaster = new THREE.Raycaster();
+
+  get3dCommonObject(obj: any) {
+    if (obj instanceof Object3DCommon) {
+      return obj
+    } else if (obj.parent) {
+      return this.get3dCommonObject(obj.parent)
+    } else {
+      return null
+    }
+  }
+
+  onMouseMove(event : MouseEvent) {
+    if(!this.canvas?._rendererCanvas){
+      return
+    }
+    const canvasHTML : HTMLElement = this.canvas._rendererCanvas.nativeElement
+    const rect = this.canvas._rendererCanvas.nativeElement.getBoundingClientRect();
+    this.mouse.x = ((event.clientX - rect.left) / (rect.right - rect.left)) * 2 - 1;
+    this.mouse.y = - ((event.clientY - rect.top) / (rect.bottom - rect.top)) * 2 + 1;
+    // this.mouse.x = ( event.clientX / window.innerWidth ) * 2 - 1;
+		// this.mouse.y = - ( event.clientY / window.innerHeight ) * 2 + 1;
+    this.raycaster.setFromCamera(this.mouse, this.camera.objRef);
+    const intersects = this.raycaster.intersectObjects(this.scene.objRef.children, true);
+    // reset colors
+    this.scene.objRef.traverse((object: any) => {
+      if (object instanceof Object3DCommon ) {
+        object.removeMouseOverEffect()
+      }
+    });
+    
+
+    if (intersects.length > 0) {
+      intersects.map(i=>this.get3dCommonObject(i.object)).filter(o=>o).forEach((object : Object3DCommon )=>{
+        object.setMousOverEffect()
+      })
+      // intersects.map(i=>i.object).filter((i:any)=>i?.material?.originalColor).forEach(o=>{
+      //   o.traverse((obj: any) => {
+      //     if (obj.isMesh === true) {
+      //       obj.material.color.set(0xff0000);
+      //     }
+      //   })
+      // });
+    }
+  }
+
   ngOnInit(): void {
+    
+  }
+
+  getRobot(robotCode : string): RobotObject3D{
+    return this.robots.filter(r=>r.robotCode == robotCode)[0]
+  }
+
+  getMapMesh(mapCode : string , robotBase : string = null):MapMesh{
+    return this.maps.filter(m=> m.mapCode == mapCode)[0]
+  }
+
+  ngOnDestroy(){
 
   }
 
   async ngAfterViewInit() {
+
+    document.addEventListener('pointermove', (e)=>this.onMouseMove(e), false);
     // let ticket = this.uiSrv.loadAsyncBegin()
     this.loader = new GLTFLoader();
     // this.loader.load(this.glbPath ,(gltf : GLTF)=> {
@@ -43,29 +111,74 @@ export class ThreejsViewportComponent implements OnInit {
     //const geometry = new THREE.PlaneGeometry( 11.12, 10.76 );
     // const material = new THREE.MeshBasicMaterial( {color: 0xffffff, side: THREE.DoubleSide} );
     // const plane = new THREE.Mesh( geometry, mapMaterial );
-    const floorPlanPlane = new THREE.Mesh(new THREE.PlaneGeometry(fpWidth, fpHeight), new THREE.MeshLambertMaterial({ map : THREE.ImageUtils.loadTexture(FP_BASE64) }));
-    floorPlanPlane.material.side = THREE.DoubleSide;
-    floorPlanPlane.rotateX(-1.57);
-    this.scene.objRef.add(floorPlanPlane);
-    const mapPlane = new MapMesh(this, MAP_BASE64 , mapScale, mapRotate , mapTranslateX , mapTranslateY , mapWidth , mapHeight , originX , originY );
-    mapPlane.rotateX(-1.57);
-    mapPlane.rotateZ(mapRotate);
-    mapPlane.position.set( mapTranslateX - fpWidth/2 + mapWidth / 2  , 0.1 , mapTranslateY  - fpHeight/2 + mapHeight/2)
-    mapPlane.scale.set(mapScale , mapScale , 1 )
-    
+    this.floorplan = new FloorPlanMesh(this , FP_BASE64 ,  fpWidth , fpHeight );
+    this.scene.objRef.add(this.floorplan );
+    const mapPlane = new MapMesh(this, "5W_2022" , MAP_BASE64 , mapScale, mapRotate , mapTranslateX , mapTranslateY , mapWidth , mapHeight , originX , originY );
     this.scene.objRef.add(mapPlane);
+    // mapPlane.rotateX(-1.57);
+    // mapPlane.rotateZ(mapRotate);
+    // mapPlane.position.set( mapTranslateX - fpWidth/2 + mapWidth / 2  , 0.1 , mapTranslateY  - fpHeight/2 + mapHeight/2)
+    // mapPlane.scale.set(mapScale , mapScale , 1 )
+    
+
 
     var axesHelper = new THREE.AxesHelper( 5 );
     this.scene.objRef.add( axesHelper );
     this.orbitCtrl.objRef.addEventListener( 'change', (v)=> this.onOrbitControlChange(v) );
-    let robot = new RobotObject3D(this);
+    let robot = new RobotObject3D(this , "RV-ROBOT-103");
     mapPlane.addRobot(robot)
-    let vector = this.getConvertedRobotVector(2.16, 1.07, mapPlane)
+    // let vector = this.getConvertedRobotVector(2.16, 1.07, mapPlane)
 
-    robot.position.set(vector.x, vector.y, vector.z)
-    robot.rotateY(0.215 - 1.57)
+    // robot.position.set(vector.x, vector.y, vector.z)
+    // robot.rotateY(0.215 - 1.57)
     //robot.position.set(mapWidth/2 , mapHeight/2 , 20)
     this.camera.objRef.lookAt(0,-50 ,150)
+    this.subscribeRobotPoses()
+  }
+
+  public subscribeRobotPoses(){
+    this.dataSrv.subscribeSignalR('arcsPoses' , '5W_2022')
+    this.dataSrv.signalRSubj.arcsPoses.pipe(filter(v => v) , takeUntil(this.$onDestroy)).subscribe(async (poseObj) => { //{mapCode : robotId : pose}
+      if(poseObj['5W_2022']?.['RV-ROBOT-103']){
+        let robot = this.getRobot('RV-ROBOT-103')
+        let pose : {x : number , y : number , angle : number} = poseObj['5W_2022']['RV-ROBOT-103']
+        if(robot && this.getMapMesh('5W_2022')){
+          robot.visible = true
+          let vector =  this.getConvertedRobotVector(pose.x , pose.y , this.getMapMesh('5W_2022'))
+          robot.position.set(vector.x, vector.y, vector.z)
+          robot.rotation.set(robot.rotation.x , (pose.angle - 90 / radRatio) , robot.rotation.z ) 
+        }
+      }
+      Object.keys(poseObj).forEach(mapCode => {
+        let robotsAdded = []
+        // console.log('test')
+
+        // let refreshPose = (r : Robot) => r.refreshPose(getPose(r.id).x, getPose(r.id).y, getPose(r.id).angle, getPose(r.id).interval, mapCode, r.robotBase)
+        // //all related map containers MUST be added already before calling this function/all related map containers MUST be added already before calling this function
+        // //let container = this.mapContainerStore[mapCode] //  + robotBase //
+        // let robotCodes = Object.keys(poseObj[mapCode])
+
+        // let robotCodesToAdd = robotCodes.filter(c => !this.robots.map(r => r.id).includes(c) || (this.robots.filter(r => r.id == c)[0].mapCode != mapCode))
+        // let robotsToUpdate = this.robots.filter(r => robotCodes.includes(r.id) && r.pixiGraphics.parent == this.getMapContainer(mapCode, r.robotBase))
+        // let robotsToRemove = this.robots.filter(r => r.mapCode == mapCode && !robotCodes.includes(r.id))
+
+        // robotsToRemove.forEach(r => this.removeRobot(r))
+        // robotCodesToAdd.forEach(code => {
+        //   let robotMaster = (<DropListRobot[]>this.dropdownData.robots).filter(r2 => r2.robotCode == code)[0]
+        //   if (this.arcsRobotType && robotMaster.robotType.toUpperCase() != this.arcsRobotType.toUpperCase()) {
+        //     return
+        //   }
+        //   let r = this.addRobot(code, mapCode, robotMaster?.robotBase)
+        //   r.observed = true
+        //   robotsAdded.push(r)
+        //   setTimeout(() => refreshPose(r))
+        // })
+        // robotsToUpdate.forEach(r => refreshPose(r))
+        // if(robotsAdded.length > 0 || robotsToRemove.length > 0){
+        //   this.refreshRobotColors()
+        // }
+      })
+    })
   }
   
   public onOrbitControlChange(evt) {
@@ -86,7 +199,21 @@ export class ThreejsViewportComponent implements OnInit {
   }
 }
 
+class FloorPlanMesh extends Mesh{
+  floorPlanCode
+  width 
+  height
+  constructor(public master: ThreejsViewportComponent , base64Image : string , width : number , height : number){
+    super(new THREE.PlaneGeometry(width, height), new THREE.MeshLambertMaterial({ map : THREE.ImageUtils.loadTexture(base64Image) }))
+    this.width = width;
+    this.height = height;
+    (<any>this).material.side = THREE.DoubleSide;
+    this.rotateX(-90 / radRatio);
+  }
+}
+
 class MapMesh extends Mesh {
+  mapCode
   transformedScale
   transformedRadian
   translatedX 
@@ -97,16 +224,22 @@ class MapMesh extends Mesh {
   originY
   meterToPixelRatio = this.master.util.config.METER_TO_PIXEL_RATIO
   robots: RobotObject3D[] = []
-  constructor(public master: ThreejsViewportComponent ,base64 : string, scale : number, angle : number , x  : number , y  : number , width  : number , height  : number , originX : number , originY : number){
-    super(new THREE.PlaneGeometry(width, height), new THREE.MeshLambertMaterial({ map : THREE.ImageUtils.loadTexture(base64) , opacity:0 , transparent :true }))
+  constructor(public master: ThreejsViewportComponent , mapCode : string ,base64 : string, scale : number, angle : number , x  : number , y  : number , width  : number , height  : number , originX : number , originY : number){
+    super(new THREE.PlaneGeometry(width, height), new THREE.MeshLambertMaterial({ map : THREE.ImageUtils.loadTexture(base64) , opacity: 0.5 , transparent :true }))
+    this.mapCode = mapCode
+    this.master.maps = this.master.maps.filter(m=>m!= this).concat(this)
     this.transformedScale = scale
-    this.transformedRadian = angle / 57.2957795
+    this.transformedRadian = angle / radRatio
     this.translatedX = x 
     this.translatedY = y
     this.width = width
     this.height = height
     this.originX = originX
     this.originY = originY
+    this.rotateX(-90 / radRatio);
+    this.rotateZ(this.transformedRadian);
+    this.position.set( x - this.master.floorplan.width/2 + width / 2  , 0.1 , y  - this.master.floorplan.height/2 + height/2)
+    this.scale.set(scale , scale , 1 )
   }
 
   addRobot(robot : RobotObject3D){
@@ -115,29 +248,137 @@ class MapMesh extends Mesh {
     this.add(robot)
     this.robots = this.robots.filter(r=>r!=robot).concat(robot)
   }
+
 }
 
-class RobotObject3D extends Object3D{
-  loader : GLTFLoader
-  readonly glbPath = "assets/3D/robot.glb" // Raptor Heavy Planetary Crawler by Aaron Clifford [CC-BY] via Poly Pizza
-  // Remote car by Nutpam [CC-BY] via Poly Pizza
-  constructor(public master: ThreejsViewportComponent ){
+class Object3DCommon extends Object3D{
+  master : ThreejsViewportComponent
+  mouseOverChangeColor = true
+  gltf : GLTF
+  constructor(master : ThreejsViewportComponent){
     super()
-    this.loader = new GLTFLoader();
-    let ticket = this.master.uiSrv.loadAsyncBegin()
-     this.loader.load(this.glbPath ,(gltf : GLTF)=> {
-      this.add(gltf.scene)
-      this.master.uiSrv.loadAsyncDone(ticket)
-      this.scale.set(20 ,20 ,20)
-    })
+    this.master = master
+    // this.setMouseOver()
   }
 
+  storeOriginalMaterialData(){
+    if(!this.gltf){
+      return
+    }
+    this.gltf.scene.traverse((object: any) => {
+      if (object.isMesh === true) {
+       object.material.originalColor = object.material.color.clone();
+       object.material.originalHex = object.material.emissive.getHex();
+     } // used for resetting
+    });
+  }
+
+  resetColor(){
+    if(!this.gltf){
+      return
+    }
+    this.gltf.scene.traverse( (s : any)=> {      
+      if (s.isMesh === true && s.material?.originalColor){
+        s.material.color.set(s.material.originalColor);
+      } 
+    } );
+  }
+
+  setMousOverEffect(color = 0x3399FF){
+    if(!this.gltf){
+      return
+    }
+    this.gltf.scene.traverse( (s : any)=> {      
+      if (s.isMesh === true && s.material?.originalHex!= null){
+        s.material.emissive.setHex(color)
+      } 
+    } );
+  }
+
+  removeMouseOverEffect(){
+    if(!this.gltf){
+      return
+    }
+    this.gltf.scene.traverse( (s : any)=> {      
+      if (s.isMesh === true && s.material?.originalHex!=null){
+        s.material.emissive.setHex( s.material.originalHex )
+      } 
+    } );
+  }
+
+  reColor(color : number){
+    if(!this.gltf){
+      return
+    }
+    this.gltf.scene.traverse( (s : any)=> {      
+      if (s.isMesh === true && s.material?.originalColor){
+        s.material.color.set(color);
+      } 
+    } );
+  }
+
+  
+  // setMouseOver(){
+  //   var raycaster = new THREE.Raycaster();
+  //   var mouse = new THREE.Vector2(1, 1);
+  //   var intersects = [];
+  //   let onMouseMove = (event)=>{
+  //     const rect = this.master.canvas._rendererCanvas.nativeElement.getBoundingClientRect();
+  //     mouse.x = ((event.clientX - rect.left) / (rect.width - rect.left)) * 2 - 1;
+  //     mouse.y = - ((event.clientY - rect.top) / (rect.bottom - rect.top)) * 2 + 1;
+
+  //     this.master.camera.objRef.updateMatrixWorld();
+  //     raycaster.setFromCamera(mouse, this.master.camera.objRef);
+  //     intersects = raycaster.intersectObject(this);
+  //     console.log(intersects)
+  //   	if (intersects.length !== 0) {
+  //   		let obj = intersects[0].object;
+  //   		obj.material.color.set(0xffff00);
+  //   	}
+  //   }       
+  //   document.addEventListener('pointermove', onMouseMove, false);
+
+  // }
+}
+class RobotObject3D extends Object3DCommon{
+  loader : GLTFLoader
+  robotCode : string
+  master : ThreejsViewportComponent
+  // mesh : Mesh
+  readonly glbPath = "assets/3D/robot.glb" // Raptor Heavy Planetary Crawler by Aaron Clifford [CC-BY] via Poly Pizza
+  // Remote car by Nutpam [CC-BY] via Poly Pizza
+  constructor( master: ThreejsViewportComponent , _robotCode : string ){
+    super(master)
+    this.robotCode = _robotCode;
+    this.master = master
+    this.master.robots = this.master.robots.filter(r=>r != this).concat(this)
+    this.loader = new GLTFLoader();
+    // const geometry = new THREE.BoxGeometry( 40, 40, 40 );
+    // const material = new THREE.MeshBasicMaterial( {color: 0xff0000} );
+    // this.mesh = new THREE.Mesh( geometry, material ) 
+    // this.add(this.mesh)
+    let ticket = this.master.uiSrv.loadAsyncBegin()
+     this.loader.load(this.glbPath ,(gltf : GLTF)=> {
+      this.gltf = gltf
+      this.add(gltf.scene)
+      this.storeOriginalMaterialData()
+      //  gltf.scene.traverse((object: any) => {
+      //    if (object.isMesh === true) {
+      //     object.material.originalColor = object.material.color.clone();
+      //   } // used for resetting
+      //  });
+       this.master.uiSrv.loadAsyncDone(ticket)
+      this.scale.set(20 ,20 ,20)
+    })
+    this.visible = false
+  }
+  
 }
 
 
 
 const mapScale = 1.347
-const mapRotate = -1.546
+const mapRotate = -1.546 * radRatio
 const mapTranslateX = 261.255
 const mapTranslateY =  387.661 
 const mapWidth = 555

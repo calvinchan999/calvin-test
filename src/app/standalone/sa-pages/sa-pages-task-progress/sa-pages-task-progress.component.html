@@ -2,7 +2,7 @@
 <div *ngIf="dataSrv.signalRSubj.taskActive.value && dataSrv.signalRSubj.taskActive.value['taskItemList']" class="task-overlay">
     <div class="header">
      <span *ngIf="dataSrv.signalRSubj.nextTaskAction.value">
-        {{actions[dataSrv.signalRSubj.nextTaskAction.value] ?actions[dataSrv.signalRSubj.nextTaskAction.value] : dataSrv.signalRSubj.nextTaskAction.value }}
+        {{actions && actions[dataSrv.signalRSubj.nextTaskAction.value] ?actions[dataSrv.signalRSubj.nextTaskAction.value] : dataSrv.signalRSubj.nextTaskAction.value }}
      </span>
      <!-- *ngIf="dataSrv.signalRSubj.taskActive.value['taskItemList'][dataSrv.signalRSubj.taskItemIndex.value] &&  
      dataSrv.signalRSubj.taskActive.value['taskItemList'][dataSrv.signalRSubj.taskItemIndex.value]['actionList'] && 
