@@ -789,7 +789,7 @@ export class DataService {
     resp = resp ? resp : {result : false}
     this.uiSrv.loadAsyncDone(ticket)
     if (resp?.result == true) {
-      this.uiSrv.showNotificationBar("Save Successful" , 'success')
+      this.uiSrv.showNotificationBar("Save Successful" , 'success' , undefined , undefined, true)
     } else{
       if(resp?.validationResults ){
         this.util.showErrors(resp.validationResults , errorMap, resp)

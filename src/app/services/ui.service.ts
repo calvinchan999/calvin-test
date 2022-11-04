@@ -192,7 +192,7 @@ export class UiService {
   }
   
 
-  public showNotificationBar(msg, type: 'success' | 'none' | 'warning' | 'info' | 'error' = 'info' , closable = true , translate = false , popWhenResumeFromHidden = false): void {
+  public showNotificationBar(msg, type: 'success' | 'none' | 'warning' | 'info' | 'error' = 'info' , closable = false , translate = false , popWhenResumeFromHidden = false): void {
     if( document.hidden && !popWhenResumeFromHidden){
       return
     }
@@ -203,7 +203,7 @@ export class UiService {
       position: { horizontal: "center", vertical: "bottom" },
       type: { style: type, icon: true },
       closable: closable,
-      // hideAfter: 2000,
+      hideAfter: 2000,
     });
   }
 

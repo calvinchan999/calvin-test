@@ -26,7 +26,7 @@ export class ArcsTaskScheduleComponent implements OnInit {
   frmGrp = new FormGroup({
     id: new FormControl(),
     missionId: new FormControl(null , Validators.required),
-    startDateTime: new FormControl(new Date(new Date().getFullYear() , new Date().getMonth() ,new Date().getDay() , new Date().getHours() , new Date().getMinutes() , new Date().getSeconds()) , Validators.required),
+    startDateTime: new FormControl(new Date(new Date().getFullYear() , new Date().getMonth() ,new Date().getDate() , new Date().getHours() , new Date().getMinutes() , new Date().getSeconds()) , Validators.required),
     endDateTime: new FormControl(),
     cronExpress: new FormControl(),
     name: new FormControl(""),

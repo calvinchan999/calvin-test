@@ -525,7 +525,8 @@ export class CmTaskJobComponent implements OnInit {
         return
       }
       let ds = this.getSubmitDataset()
-      if ((await this.dataSrv.saveRecord(((this.isTemplate && !this.isExecuteTemplate )? "api/task/mission/v1" : ("api/task/v1"))  , ds , this.frmGrp , this.isCreate || this.isExecuteTemplate)).result == true) {
+      let url = ((this.isTemplate && !this.isExecuteTemplate )? "api/task/mission/v1" : (`api/task/v1${this.util.arcsApp || !this.frmGrp2.controls['loop'].value ? '' : ('/' + this.frmGrp2.controls['loop'].value)}`))
+      if ((await this.dataSrv.saveRecord( url , ds , this.frmGrp , this.isCreate || this.isExecuteTemplate)).result == true) {
         this.parent.loadData()
         this.onClose(false)
       }

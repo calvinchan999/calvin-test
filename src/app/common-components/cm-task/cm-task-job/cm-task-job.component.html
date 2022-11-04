@@ -43,9 +43,9 @@
             <!-- <uc-dropdown #fpdropdown *ngIf="util.standaloneApp" lab="Floor" [frmGrp]="frmGrp" frmCtrl="floorPlanCode"  [disabled] = 'readonly'
                         [options]="dropdownOptions.floorplans" (change) = "onFloorplanChange_SA($event)">
             </uc-dropdown> -->
-            <!-- <uc-txtbox *ngIf="(isCreate && !isTemplate) || isExecuteTemplate" lab="Loop" [frmGrp]="frmGrp2" frmCtrl="loop"
+            <uc-txtbox *ngIf="util.standaloneApp && ((isCreate && !isTemplate) || isExecuteTemplate)" lab="Recurrent" [frmGrp]="frmGrp2" frmCtrl="loop"
                         [numeric]="true" [numDecimals] = "0" numFormat="n0" [disabled] = 'readonly'>
-            </uc-txtbox> -->
+            </uc-txtbox>
         </div>
         <!-- <div class="form-row">
             <uc-txtbox lab="Remarks" [frmGrp]="frmGrp" frmCtrl="remarks" [textArea]="true">

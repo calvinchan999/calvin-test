@@ -2126,6 +2126,8 @@ export class DrawingBoardComponent implements OnInit , AfterViewInit {
       this.spawnPointObj.markerGraphic['interval'] = setInterval(() => {
         this.spawnPointObj.markerGraphic.alpha = this.spawnPointObj.markerGraphic.alpha == 1 ? 0.4 : 1
       }, 1000)
+      setTimeout(()=>this.refreshRobotScale())
+      // this.refreshRobotScale()
       this.mapContainerStore[this.spawnPointObj.selectedMap].addChild(this.spawnPointObj.markerGraphic)
     }
   }
@@ -2332,7 +2334,7 @@ export class DrawingBoardComponent implements OnInit , AfterViewInit {
   refreshSpawnMarkerPos(refreshRosValue = true){
     if(this.spawnPointObj.markerGraphic){
       this.spawnPointObj.markerGraphic.position.set(this.spawnPointObj.x , this.spawnPointObj.y)
-      this.spawnPointObj.markerGraphic.angle = 90 - this.spawnPointObj.rotation  //RV default align origin robot direction align with x-axis
+      this.spawnPointObj.markerGraphic.icon.angle = 90 - this.spawnPointObj.rotation  //RV default align origin robot direction align with x-axis
       if(refreshRosValue){
         this.spawnPointObj.rosX = this.calculateRosX(this.spawnPointObj.x , this.spawnPointObj.selectedMap)
         this.spawnPointObj.rosY = this.calculateRosY(this.spawnPointObj.y, this.spawnPointObj.selectedMap)
