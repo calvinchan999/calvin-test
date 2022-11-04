@@ -293,7 +293,7 @@
           [matTooltip]="'Line Color'| label : uiSrv.langPack" matTooltipPosition="below"
           (valueChange)=" selectedGraphics?.type == 'line'? selectedGraphics.draw(true , $event.replace('#','0x')) : null">
         </kendo-colorpalette>      
-        <kendo-slider [smallStep]="1" [fixedTickWidth]="10" [min]="0.5" [max]="10" 
+        <kendo-slider [smallStep]="1" [fixedTickWidth]="10" [min]="1" [max]="10" 
           [(ngModel)]="selectedStyle.line.width" [showButtons]="uiSrv.isTablet" matTooltip="Line Width"
           matTooltipPosition="below">
                 <kendo-slider-messages></kendo-slider-messages>

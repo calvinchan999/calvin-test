@@ -220,10 +220,10 @@ export class DataService {
             },
     taskActive:{topic:'rvautotech/fobo/execution',   mapping:{
       taskItemIndex: ()=> 0 , 
-      nextTaskAction : (d : JTask)=> d.taskItemList?.[0]?.actionList?.[0]?.alias ,     
-      currentTaskId :  (d : JTask)=> d.taskId,
-        taskActive: (d : JTask) => {
-          let ret =  d.taskId!= null ? d : d['moveTask'] 
+      nextTaskAction : (d : {moveTask : JTask})=> d.moveTask.taskItemList.filter(t=>t.actionList.length > 0)[0]?.actionList[0].alias ,     
+      currentTaskId :  (d :  {taskId : string})=> d.taskId,
+        taskActive: (d :  {taskId : string ,moveTask : JTask}) => {
+          let ret =  d.taskId!= null ? d : d.moveTask
           this.signalRSubj.taskProgress.next(0)
           if (this.uiSrv.isTablet && ret) {
             this.router.navigate(['taskProgress'])

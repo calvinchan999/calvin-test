@@ -139,13 +139,13 @@ export class TestSignalRComponent implements OnInit {
                  "fineTuneIgnored":true
               },
               "actionList":[
-                 {
-                    "alias":"NIL",
-                    "properties":{
-                       
-                    }
-                 }
-              ]
+                {
+                   "alias":"SAFETY_ZONE_CHANGE",
+                   "properties":{
+                         "mode":"NORMAL"
+                   }
+                }
+             ]
            },
            {
               "actionListTimeout":0,
