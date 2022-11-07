@@ -27,7 +27,7 @@
     </div>
 
     <div *ngIf="selectedTab == '3dTest'" class="three-d-container">
-        <uc-3d-viewport></uc-3d-viewport>
+        <uc-3d-viewport (robotClicked)="showRobotDetailDialog($event?.id)"></uc-3d-viewport>
     </div>
 
 

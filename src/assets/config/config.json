@@ -5,7 +5,7 @@
 	"DEBUG_SIGNALR_TYPE": "",
 	"ROBOT_BASE":"WC",
 	"SIGNALR_URL":"http://localhost:5001/signalR",
-	"SIGNALR_URLxxx":"https://rv-dev.eastasia.cloudapp.azure.com:5001/signalR",
+	"SIGNALR_URLx":"https://rv-dev.eastasia.cloudapp.azure.com:5001/signalR",
 	"IP_CAMERA_URLxx" : "http://localhost/live?port=1935&app=live&stream=stream",
 	"IP_CAMERA_URLx" : "http://localhost:81/live?port=1935&app=live&stream=10240",
 	"PROTOCOL"    : "https",
