@@ -26,8 +26,8 @@
         <span></span>
     </div>
 
-    <div *ngIf="selectedTab == '3dTest'" class="three-d-container">
-        <uc-3d-viewport (robotClicked)="showRobotDetailDialog($event?.id)"></uc-3d-viewport>
+    <div *ngIf="selectedTab == '3dMap'" class="three-d-container">
+        <uc-3d-viewport (robotClicked)="showRobotDetailDialog($event?.id)" [floorPlanDataset] = "currentFloorPlan"></uc-3d-viewport>
     </div>
 
 

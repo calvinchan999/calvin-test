@@ -64,7 +64,7 @@ export class SaMapExportComponent implements OnInit {
           a.href = objectUrl
           a.download = this.mapCode + '.zip';
           a.click();
-          this.uiSrv.showNotificationBar('Map exported successfully', 'success')
+          this.uiSrv.showNotificationBar('Map exported successfully', 'success' , undefined , undefined , true)
           this.onClose()
         }else{
           this.uiSrv.showMsgDialog(respData?.msg ? respData?.msg : 'Map export failed')

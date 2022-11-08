@@ -83,7 +83,7 @@ export class SaMapImportComponent implements OnInit {
         const respData : SaveRecordResp = resp.body?.['data']
         this.uiSrv.loadAsyncDone(this.loadingTicket)
         if(resp.status == 200 && respData.result == true){
-          this.uiSrv.showNotificationBar('Map imported successfully', 'success')
+          this.uiSrv.showNotificationBar('Map imported successfully', 'success' , undefined , undefined , true)
           this.onClose()
         }else{
           this.uiSrv.showMsgDialog(respData?.msg ? respData?.msg : 'Map import failed')

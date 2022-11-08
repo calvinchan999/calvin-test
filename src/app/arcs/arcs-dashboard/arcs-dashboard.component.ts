@@ -138,14 +138,13 @@ export class ArcsDashboardComponent implements OnInit {
       { id: 'schedule' , label : 'Schedule', functionId :  this.gridSettings.schedule.functionId},
     ].filter(t=> t.authorized === false || this.authSrv.userAccessList.includes(t.functionId.toUpperCase())) : 
     [
-      { id: '3dTest', label: '3D Test', authorized: false } , 
       { id: 'dashboard', label: 'Dashboard', authorized: false } , 
       { id: 'usability', label: 'Usability', authorized: false },
       { id: 'utilization', label: 'Utilization', authorized: false }
     ]
 
   }
-  tabs = []
+  tabs: { id: string, label: string, authorized?: boolean, functionId?: string }[] = []
 
   columnDef = [ ]
   robotDetailId = null
@@ -154,7 +153,8 @@ export class ArcsDashboardComponent implements OnInit {
   selectedFloorPlanCode
   site : JSite
   loadingTicket
-  
+  currentFloorPlan = null
+
   constructor(  private util :GeneralUtil , private authSrv : AuthService , private httpSrv : RvHttpService, public uiSrv : UiService , private dataSrv : DataService, private router : Router , private ngZone : NgZone ) {
     // this.chartTesting()
     this.tabs = this.tabs.filter(t=> t.authorized === false || this.authSrv.userAccessList.includes(t.functionId))
@@ -234,6 +234,7 @@ export class ArcsDashboardComponent implements OnInit {
     sessionStorage.removeItem('dashboardFloorPlanCode')
     this.selectedFloorPlanCode = null
     if( this.pixiElRef){
+      this.tabs = this.tabs.filter(t=>t.id != '3dMap')
       this.pixiElRef.reset()
       this.pixiElRef.arcsLocationTree.currentLevel = 'site'
       this.pixiElRef.arcsLocationTree.site.code = this.site.siteCode
@@ -281,7 +282,6 @@ export class ArcsDashboardComponent implements OnInit {
     floorPlanCode = floorPlanCode ? floorPlanCode : floorPlans.filter(f=> f.buildingCode == defaultBuilding || !defaultBuilding )[0]?.floorPlanCode
     return floorPlanCode
   }
- 
 
   async loadFloorPlan(code = null) {
     let ticket = this.uiSrv.loadAsyncBegin()
@@ -292,16 +292,18 @@ export class ArcsDashboardComponent implements OnInit {
       return 
     }
     let floorplan = await this.dataSrv.getFloorPlanV2(code);
+    this.currentFloorPlan = floorplan
     if(floorplan?.floorPlanCode){
       this.dataSrv.setSessionStorage('dashboardFloorPlanCode', floorplan.floorPlanCode);  
     }
     await this.pixiElRef.loadFloorPlanDatasetV2(floorplan, true, true);
     this.selectedFloorPlanCode = floorplan.floorPlanCode
-    // console.log([... new Set(floorplan.mapList.map(m => m.mapCode))])
+    
     this.pixiElRef.subscribeRobotsPose_ARCS([... new Set(floorplan.mapList.map(m => m.mapCode))])
     this.floorPlanFilter = floorplan.floorPlanCode
     await this.refreshTaskInfo()
     await this.refreshRobotStatus()
+    this.tabs = (floorplan.mapList.length == 0 ? [] : [{ id: '3dMap', label: '3D Map', authorized: false }]).concat(<any>this.getTabs())
     this.uiSrv.loadAsyncDone(ticket)
   }
 

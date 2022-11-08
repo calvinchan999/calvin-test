@@ -14,6 +14,7 @@ import * as PIXI from 'pixi.js';
 import { JPath } from 'src/app/services/data.service';
 import {GraphBuilder, DijkstraStrategy} from "js-shortest-path"
 import { Bezier} from "bezier-js/dist/bezier.js";
+import { Vector2 } from 'three';
 
 export function mod(n: number, m: number) {
   return ((n % m) + m) % m;
@@ -224,4 +225,61 @@ export function centroidOfPolygon(vertices : {x : number , y : number}[])
         maxY = (vertices[i].y > maxY || maxY == null) ? vertices[i].y : maxY;
     }
     return {x : (minX + maxX) / 2,  y: (minY + maxY) / 2};
+}
+
+
+
+export function getBorderVertices(vertices: { x: number, y: number }[] , thickness : number = 5) :  { x: number, y: number }[]{
+  let ret = []
+  for (let i = 0; i < vertices.length; i++) {
+    let previousVertex = i == 0 ? vertices[vertices.length - 1] : vertices[i - 1];
+    let currentVertex = vertices[i];
+    let nextVertex = i == vertices.length - 1 ? vertices[0] : vertices[i + 1];
+
+    var pt1 = getBorderVertex(new Vector2(previousVertex.x , previousVertex.y), new Vector2(currentVertex.x , currentVertex.y), new Vector2(nextVertex.x , nextVertex.y), thickness);
+    var pt2 = getBorderVertex(new Vector2(previousVertex.x , previousVertex.y), new Vector2(currentVertex.x , currentVertex.y), new Vector2(nextVertex.x , nextVertex.y), -1 * thickness);
+    ret[i] = inside(pt1 , vertices) ? pt1 : pt2
+  }
+  return ret
+}
+
+// function isConvex(previousVertex : Vector2,  currentVertex : Vector2,  nextVertex : Vector2) : boolean{
+//   return (
+//       previousVertex.x * (nextVertex.y - currentVertex.y) +
+//       currentVertex.x * (previousVertex.y - nextVertex.y) +
+//       nextVertex.x * (currentVertex.y - previousVertex.y)
+//   ) < 0;
+// }
+
+function getBorderVertex( previousVertex : Vector2,  currentVertex : Vector2, nextVertex : Vector2, thicknes : number) : Vector2 {
+  //I'm using the word "vector" here to distinguish numbers which are directions, 
+  //whereas "vertex" refers to a point. Mathematically, there's no difference.
+  let line1 = new Vector2(currentVertex.x - previousVertex.x, currentVertex.y - previousVertex.y);
+  //normalize == make the length equal to 1
+  line1.normalize();
+  let line2 = new Vector2(currentVertex.x - nextVertex.x, currentVertex.y - nextVertex.y);
+  line2.normalize();
+
+  //We really shouldn't have joints that are just straight lines 
+  //(especially because floating point numbers are imprecise), 
+  //but we want the formula to be generic enough to handle this edge case (pun intended)
+
+  //The Dot Product is the same as the dot product algorithm you learned in primary school geometry.
+  let dotProduct = line1.dot(line2);
+  if(dotProduct == 1 || dotProduct == -1) {
+      let normalVector = new Vector2(line1.y * thicknes , -line1.x * thicknes) ;
+      normalVector = normalVector.multiplyScalar(thicknes);
+      return new Vector2(currentVertex.x + normalVector.x, currentVertex.y + normalVector.y);
+  }
+
+  let halfwayLine = line1.add(line2) ;
+  //We want the algorithm to work correctly regardless of whether it's a concave joint 
+  //or a convex joint. If it's concave, we need to reverse the direction.
+  // if(!isConvex(previousVertex, currentVertex, nextVertex)){
+  //   halfwayLine = halfwayLine.multiplyScalar(-1);
+  // }
+
+  halfwayLine.normalize();
+  halfwayLine = halfwayLine.multiplyScalar(thicknes);
+  return new Vector2(currentVertex.x + halfwayLine.x, currentVertex.y + halfwayLine.y);
 }

@@ -30,7 +30,7 @@ import { toJSON } from '@progress/kendo-angular-grid/dist/es2015/filtering/opera
 // adapted from
 // http://jsfiddle.net/eZQdE/43/
 
-export const radRatio =  57.2958
+export const radRatio = 180 / 3.14159265358979323846264338327950288419716939937510
 const VIRTUAL_MAP_ROS_HEIGHT = 20
 const WebGLMaxMobileTextureSize = 4096
 const WebGLMaxPcTextureSize = 16384
@@ -1183,6 +1183,7 @@ export class DrawingBoardComponent implements OnInit , AfterViewInit {
       let vertices = this.drawObj.segments.filter(s => s instanceof PixiVertex).map((s : PixiVertex ) => s.point)
       this.endDraw()   
       let polygon = this.getPolygon(vertices , new GraphicOptions(new PixiCommon(), undefined, this.palette.map.length > 0 ? new PixiCommon().hexToNumColor( this.palette.map[0]) : new PixiCommon().mouseOverColor, -1))
+      // console.log(JSON.stringify(polygon.vertices))
       this.drawingsCreated.push(polygon)
       this.onDrawingsCreated.emit(polygon)
       // this.selectGraphics(this.drawingsCreated[this.drawingsCreated.length - 1])
