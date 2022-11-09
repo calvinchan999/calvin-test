@@ -5,7 +5,7 @@ import * as THREE from 'three';
 import { ThGLTFLoader } from 'ngx-three';
 import { GLTF, GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader';
 import { DragControls } from 'three/examples/jsm/controls/DragControls';
-import { AmbientLight, DirectionalLight, DoubleSide, Mesh, Object3D, ShapeGeometry } from 'three';
+import { AmbientLight, DirectionalLight, DoubleSide, Group, Mesh, Object3D, ShapeGeometry, WebGLRenderer ,BufferGeometry, LineSegments } from 'three';
 import { GeneralUtil } from 'src/app/utils/general/general.util';
 import { DataService, JFloorPlan, JMap, JPoint } from 'src/app/services/data.service';
 import { debounce, debounceTime, filter, retry, share, skip, switchMap, take, takeUntil } from 'rxjs/operators';
@@ -13,14 +13,15 @@ import { radRatio } from '../drawing-board/drawing-board.component';
 import { Subject } from 'rxjs';
 import { CSS2DRenderer, CSS2DObject } from 'three/examples/jsm/renderers/CSS2DRenderer'; //three-css2drender
 import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls';
-import { Geometry } from 'three/examples/jsm/deprecated/Geometry';
+import { BufferGeometryUtils  } from 'three/examples/jsm/utils/BufferGeometryUtils';
 import { EffectComposer  } from  'three/examples/jsm/postprocessing/EffectComposer.js' ;
 import {  RenderPass  } from  'three/examples/jsm/postprocessing/RenderPass' ;
 import {  ShaderPass  } from  'three/examples/jsm/postprocessing/ShaderPass' ;
 import {  OutlinePass  } from  'three/examples/jsm/postprocessing/OutlinePass' ;
 import {  FXAAShader  } from  'three/examples/jsm/shaders/FXAAShader' ;
 import { getBorderVertices } from 'src/app/utils/math/functions';
-
+import { Geometry } from 'pixi.js';
+import * as OUTLINE from 'three-line-outline'
 const NORMAL_ANGLE_ADJUSTMENT =  - 90 / radRatio
 @Component({
   selector: 'uc-3d-viewport',
@@ -44,7 +45,7 @@ export class ThreejsViewportComponent implements OnInit {
   maps : MapMesh[] = []
   floorplan : FloorPlanMesh
   $onDestroy = new Subject()
-  renderer : THREE.Renderer
+  renderer : WebGLRenderer
   labelRenderer : CSS2DRenderer
   suspended = false
   composer : EffectComposer
@@ -52,6 +53,7 @@ export class ThreejsViewportComponent implements OnInit {
   outlinePass : OutlinePass
   ROSmapScale = 1
   mapCode = ''
+  focusedObj = null
   constructor(public uiSrv: UiService , public ngZone : NgZone , public util : GeneralUtil , public dataSrv : DataService ,  public ngRenderer:Renderer2) {
     // this.loadingTicket = this.uiSrv.loadAsyncBegin()
   }
@@ -63,13 +65,20 @@ export class ThreejsViewportComponent implements OnInit {
 
   @HostListener('window:resize', ['$event'])
   onResize() {
-    this.labelRenderer.setSize( this.container.clientWidth, this.container.clientHeight )
+    const width  = this.container.clientWidth
+    const height =  this.container.clientHeight
+    this.labelRenderer.setSize( width, height )
+    this.outlinePass.setSize( width, height )
+    this.effectFXAA.uniforms.resolution.value.set(1 /width, 1 / height);
+    this.composer.setSize( width, height );
   }
 
   animate() {
     if(!this.suspended){
       this.labelRenderer.render( this.scene.objRef, this.camera.objRef );
       this.computeRayCaster()
+      this.composer?.render()
+      // this.renderer?.render(this.scene.objRef, this.camera.objRef);
     }
   }
 
@@ -103,6 +112,7 @@ export class ThreejsViewportComponent implements OnInit {
         firstObj.showToolTip(tip)
       }
     }
+    this.focusedObj = firstObj && (firstObj instanceof RobotObject3D || firstObj instanceof MarkerObject3D) ? firstObj : null
 
     let blocks = firstObj ? this.getIntersectedBlocks(this.focusedRaycaster , firstObj ) : []
     this.floorplan?.children.filter(c => c instanceof Extruded2DMesh).forEach((b: Extruded2DMesh) => {
@@ -180,9 +190,18 @@ export class ThreejsViewportComponent implements OnInit {
     this.initFloorPlan(floorplan , dimension.width , dimension.height);
     this.initROSmaps(floorplan.mapList)
     this.initWaypoints(floorplan.pointList)
-    //this.initBlocks() // TBR
-    this.camera.objRef.position.set(this.floorplan.width / 10, this.floorplan.height / 2, this.maps[0].scale.x * 20 * 30)
-    this.camera.objRef.lookAt(0, - this.floorplan.height / 10, this.maps[0].scale.x * 20)
+    // this.initBlocks() // TBR
+    this.camera.objRef.position.set(0, this.floorplan.height  , this.floorplan.height * 0.7 )
+    this.camera.objRef.lookAt(1, -0.9 , -0.5)
+    this.orbitCtrl.update()
+    this.camera.objRef.position.z += this.floorplan.height * 0.1
+    // this.orbitCtrl.target.set(1, -0.9 , -0.5)
+    // var lookAtVector = new THREE.Vector3(0, 0, -1);
+    // lookAtVector.applyQuaternion(this.camera.objRef.quaternion);
+    // this.orbitCtrl.target.set(1, -0.9 , -0.5)
+    //this.orbitCtrl.update()
+
+    // TBR : HOW TO UPDATE CONTROL WITHOUT CHANGING BACK ITS POSITION Z AGAIN??
   }
 
   async getImageDimension(base64 : string) : Promise<{width : number , height : number}>{
@@ -201,17 +220,56 @@ export class ThreejsViewportComponent implements OnInit {
     if(this.floorPlanDataset){
       await this.loadFloorPlan(this.floorPlanDataset)
       this.subscribeRobotPoses();
+      //v TESTING v
+      this.initShaders()  
+      let robot = new RobotObject3D(this , "TEST-ROBOT" , "WC")
+      robot.visible = true
+      let map = this.getMapMesh(robot.robotBase)
+      if(map){
+        map.add(robot)
+        var origin = this.getConvertedRobotVector(0 , 0 , map)
+        robot.position.set(origin.x , origin.y , origin.z)
+      }
+      //^ TESTING ^ 
     }
     // this.floorplan = new FloorPlanMesh(this ,FP_BASE64 , fpWidth , fpHeight);
     // this.scene.objRef.add(this.floorplan );
     // this.initROSmaps(JSON.parse(MAP_LIST));
     // await this.loadFloorPlan(JSON.parse(FP_DATASET))
- 
-
     // this.subscribeRobotPoses();
-
     // this.initBlocks()
   }
+
+  initShaders() {
+    this.renderer.setClearColor(0x222222,.0);
+    this.renderer.shadowMap.enabled = true;
+    this.composer = new EffectComposer(this.renderer);
+    this.composer.setSize( this.container.clientWidth, this.container.clientHeight );
+    const renderPass = new RenderPass(this.scene.objRef, this.camera.objRef);
+    this.composer.addPass(renderPass);
+
+    this.outlinePass = new OutlinePass(new THREE.Vector2(this.container.clientWidth, this.container.clientHeight), this.scene.objRef, this.camera.objRef);
+    this.outlinePass.edgeStrength = 3;
+    this.outlinePass.edgeGlow = 1;
+    this.outlinePass.edgeThickness = 10;
+    this.outlinePass.pulsePeriod = 0;
+    this.outlinePass.visibleEdgeColor.set(0xFFFFFF);
+    this.outlinePass.hiddenEdgeColor.set(0xFF00FF);
+    this.outlinePass.renderToScreen = true;
+    this.composer.addPass(this.outlinePass);
+    // let outlinePass = this.outlinePass
+    // const textureLoader = new THREE.TextureLoader();
+    // textureLoader.load('assets/3D/tri_pattern.jpg', function (texture) {
+    //   outlinePass.patternTexture = texture;
+    //   texture.wrapS = THREE.RepeatWrapping;
+    //   texture.wrapT = THREE.RepeatWrapping;
+    // });
+
+    // this.effectFXAA = new ShaderPass(FXAAShader);
+    // this.effectFXAA.uniforms.resolution.value.set(1 / this.container.clientWidth, 1 / this.container.clientHeight);
+    // this.composer.addPass(this.effectFXAA);
+  }
+      
 
   initWaypoints(waypoints : JPoint[]){
     waypoints.forEach(p=>{
@@ -253,7 +311,6 @@ export class ThreejsViewportComponent implements OnInit {
   }
 
   public subscribeRobotPoses(mapCode = this.mapCode){
-    console.log(mapCode)
     this.dataSrv.subscribeSignalR('arcsPoses' , mapCode)
     this.$onDestroy.subscribe(()=>this.dataSrv.unsubscribeSignalR('arcsPoses' , false , mapCode))
     this.dataSrv.signalRSubj.arcsPoses.pipe(filter(v => v) , takeUntil(this.$onDestroy)).subscribe(async (poseObj) => { //{mapCode : robotId : pose}
@@ -276,13 +333,17 @@ export class ThreejsViewportComponent implements OnInit {
   }
   
   public onOrbitControlChange(evt) {
-
+    // console.log(this.orbitCtrl.object.position)
+    // console.log(this.camera.objRef.position)
+    // var lookAtVector = new THREE.Vector3(0,0, -1);
+    // lookAtVector.applyQuaternion(this.camera.objRef.quaternion);
+    // console.log(lookAtVector)
   }
 
   getConvertedRobotVector(rosX: number, rosY: number, map: MapMesh ): THREE.Vector3 {
     let retX = (rosX - map.originX) * map.meterToPixelRatio - map.width / 2
     let retY = (map.originY - rosY) * map.meterToPixelRatio + map.height / 2
-    return new THREE.Vector3(retX, -retY, 20)
+    return new THREE.Vector3(retX, -retY, 15)
   }
 }
 
@@ -331,7 +392,7 @@ class MapMesh extends Mesh {
     this.position.set( x - this.master.floorplan.width/2 + width / 2  , 0.1 , y  - this.master.floorplan.height/2 + height/2)
     // this.rotateX(this.transformedRadian);
     // this.position.set( x  , y , 0.1 )
-    this.scale.set(scale , scale , 1 )
+    this.scale.set(scale , scale , scale )
   }
 
   // addRobot(robot : RobotObject3D){
@@ -396,7 +457,7 @@ class Object3DCommon extends Object3D{
     div.style.lineHeight = '12px'
     div.style.background = 'rgba( 0, 0, 0, .6 )'
     this.toolTip = new CSS2DObject(div);
-    this.toolTip.position.set(0, 40 , 0);
+    this.toolTip.position.set(0, 40 / this.scale.y , 0);
     this.toolTip.layers.set(0);
   }
 
@@ -456,11 +517,14 @@ class Object3DCommon extends Object3D{
 
   removeMouseClickListener() {
     if (this.clickListener) {
-      this.master.container.style.cursor = 'default'
+      if(!this.master.focusedObj){
+        this.master.container.style.cursor = 'default'
+      }
       this.clickListener()
       this.clickListener = null
     }
   }
+
 
   // reColor(color : number){
   //   if(!this.gltf){
@@ -482,19 +546,19 @@ class MarkerObject3D extends Object3DCommon {
   constructor( master: ThreejsViewportComponent , private _name : string){
     super(master)
     this.pointCode = _name
-    this.toolTip.position.set(0 , 50 , 0)
     this.loader = new GLTFLoader();
+    let scale = this.size * this.master.ROSmapScale * this.master.util.config.METER_TO_PIXEL_RATIO
     let ticket = this.master.uiSrv.loadAsyncBegin()
      this.loader.load(this.glbPath ,(gltf : GLTF)=> {
        this.gltf = gltf
-       let scale = this.size * this.master.ROSmapScale * this.master.util.config.METER_TO_PIXEL_RATIO
        gltf.scene.rotateX(- NORMAL_ANGLE_ADJUSTMENT)
        gltf.scene.scale.set(scale, scale, scale)
-       gltf.scene.position.set(0, 0, 5)
+       gltf.scene.position.set(0, 0, this.master.ROSmapScale / 5  * this.master.util.config.METER_TO_PIXEL_RATIO ) //TBR
        this.add(gltf.scene)
        this.storeOriginalMaterialData()
        this.master.uiSrv.loadAsyncDone(ticket)
     })
+    this.toolTip.position.set(0, (this.size * 20) * this.master.ROSmapScale , 0)
   }
 }
 
@@ -503,7 +567,9 @@ class RobotObject3D extends Object3DCommon{
   robotCode : string
   robotBase : string
   master : ThreejsViewportComponent
-  readonly size = 0.8
+  outlineMesh : Mesh
+  outlineSegments : LineSegments
+  readonly size = 20
   // mesh : Mesh  
   readonly glbPath = "assets/3D/robot.glb" // Raptor Heavy Planetary Crawler by Aaron Clifford [CC-BY] via Poly Pizza
   // Remote car by Nutpam [CC-BY] via Poly Pizza
@@ -517,10 +583,18 @@ class RobotObject3D extends Object3DCommon{
     let ticket = this.master.uiSrv.loadAsyncBegin()
      this.loader.load(this.glbPath ,(gltf : GLTF)=> {
       this.gltf = gltf
-      let scale =  this.size * this.master.ROSmapScale * this.master.util.config.METER_TO_PIXEL_RATIO
-      this.add(gltf.scene)      
-      this.gltf.scene.scale.set(scale ,scale ,scale)
+
+      this.gltf.scene.scale.set(this.size ,this.size ,this.size)
       this.gltf.scene.rotateX( - NORMAL_ANGLE_ADJUSTMENT)
+      
+      this.initOutline(gltf)
+      this.gltf.scene.add(this.outlineMesh);
+      // const edges = new THREE.EdgesGeometry(this.outlineMesh.geometry);
+      // const line = new THREE.LineSegments(edges, new THREE.LineBasicMaterial({ color: 0x00ff00 }));
+      // this.add(line);
+      this.add(this.gltf.scene)
+      // let scale =  this.size * this.master.ROSmapScale * this.master.util.config.METER_TO_PIXEL_RATIO
+
       this.storeOriginalMaterialData()
       this.master.uiSrv.loadAsyncDone(ticket)
     })
@@ -529,8 +603,38 @@ class RobotObject3D extends Object3DCommon{
       this.master.robotClicked.emit({id:this.robotCode , object : this})
     })
     this.master.robots = this.master.robots.filter(r=>r!= this).concat(this)
+    this.master.outlinePass.enabled = true
+    this.master.outlinePass.selectedObjects = (this.master.outlinePass.selectedObjects ? this.master.outlinePass.selectedObjects : []).concat(this)
   }
-  
+
+
+  initOutline(gltf: GLTF) {
+    let geometries = [];
+    let mergeDescendants = (c) => {
+      if (c instanceof Group) {
+        c.children.forEach(c2 => mergeDescendants(c2))
+      } else if (c instanceof Mesh) {
+        c.updateMatrix()
+        geometries.push(c.geometry)
+      }
+    }
+
+    gltf.scene.children.forEach(c => mergeDescendants(c));
+    let mergedGeo = BufferGeometryUtils.mergeBufferGeometries(geometries)
+    // var tmpMaterial = new THREE.MeshPhongMaterial({color: 0xFF0000});
+    let material = new THREE.MeshPhongMaterial({ color: 0x00FF00 , side: THREE.BackSide});
+
+    this.outlineMesh = new THREE.Mesh(mergedGeo, material);
+
+    //this.outlineMesh.scale.set(this.size, this.size, this.size)
+    //this.outlineMesh.rotateX(- NORMAL_ANGLE_ADJUSTMENT)
+    //this.outlineSegments =  new Object3DCommon(this.master).createOutlineSegments(this.outlineMesh.geometry , 0x00FF00 ) ;
+    //this.outlineSegments.scale.set(this.size, this.size, this.size)
+    //this.outlineSegments.rotateX(- NORMAL_ANGLE_ADJUSTMENT)
+    //console.log(this.outlineSegments)
+    this.outlineMesh.scale.multiplyScalar(1.05);
+  }
+
 }
 
 
@@ -610,29 +714,7 @@ class Extruded2DMesh extends Mesh{
   //   // scene.add(ambient); 
   // }
 
-  // initShaders() {
-  //   // this.composer = new EffectComposer(this.renderer);
-
-  //   // const renderPass = new RenderPass(this.scene.objRef, this.camera.objRef);
-  //   // this.composer.addPass(renderPass);
-
-  //   // this.outlinePass = new OutlinePass(new THREE.Vector2(window.innerWidth, window.innerHeight), this.scene.objRef, this.camera.objRef);
-  //   // this.composer.addPass(this.outlinePass);
-
-  //   // const textureLoader = new THREE.TextureLoader();
-  //   // textureLoader.load('textures/tri_pattern.jpg', function (texture) {
-
-  //   //   this.outlinePass.patternTexture = texture;
-  //   //   texture.wrapS = THREE.RepeatWrapping;
-  //   //   texture.wrapT = THREE.RepeatWrapping;
-
-  //   // });
-
-  //   // this.effectFXAA = new ShaderPass(FXAAShader);
-  //   // this.effectFXAA.uniforms['resolution'].value.set(1 / window.innerWidth, 1 / window.innerHeight);
-  //   // this.composer.addPass(this.effectFXAA);
-  // }
-      
+ 
       // if(poseObj[mapCode]?.['RV-ROBOT-103']){
       //   let robot = this.getRobot('RV-ROBOT-103')
       //   let pose : {x : number , y : number , angle : number} = poseObj['5W_2022']['RV-ROBOT-103']
@@ -685,3 +767,241 @@ const BLOCK1_VERTICES = `[{"x":99.02021985708224,"y":267.2522632772183},{"x":170
 const BLOCK2_VERTICES = `[{"x" : 665 , "y": 782} , {"x" : 665 , "y": 948} , {"x" : 591 , "y": 948} , {"x" : 591 , "y": 1026},{"x" : 905 , "y": 1026} ,{"x" : 905 , "y": 782}]`
 const BLOCK3_VERTICES = `[{"x" : 415 , "y": 782} , {"x" : 660 , "y": 782} , {"x" : 660 , "y": 945} , {"x" : 415 , "y": 945} ]`
 const BLOCK4_VERTICES = `[{"x" : 105 , "y": 782} , {"x" : 410 , "y": 782} , {"x" : 410 , "y": 945} , {"x" : 105 , "y": 945} ]`
+
+// const VERTEX_SHADER = `
+// attribute vec3 control0;
+// attribute vec3 control1;
+// attribute vec3 direction;
+// attribute float collapse;
+// attribute vec3 instPos;
+
+// #include <common>
+// #include <color_pars_vertex>
+// #include <fog_pars_vertex>
+// #include <logdepthbuf_pars_vertex>
+// #include <clipping_planes_pars_vertex>
+// void main() {
+//       #include <color_vertex>
+
+//       // Transform the line segment ends and control points into camera clip space
+//       vec4 c0 = projectionMatrix * modelViewMatrix * vec4( control0 + instPos, 1.0 );
+//       vec4 c1 = projectionMatrix * modelViewMatrix * vec4( control1 + instPos, 1.0 );
+//       vec4 p0 = projectionMatrix * modelViewMatrix * vec4( position + instPos, 1.0 );
+//       vec4 p1 = projectionMatrix * modelViewMatrix * vec4( position + instPos + direction, 1.0 );
+
+//       c0.xy /= c0.w;
+//       c1.xy /= c1.w;
+//       p0.xy /= p0.w;
+//       p1.xy /= p1.w;
+
+//       // Get the direction of the segment and an orthogonal vector
+//       vec2 dir = p1.xy - p0.xy;
+//       vec2 norm = vec2( -dir.y, dir.x );
+
+//       // Get control point directions from the line
+//       vec2 c0dir = c0.xy - p1.xy;
+//       vec2 c1dir = c1.xy - p1.xy;
+
+//       // If the vectors to the controls points are pointed in different directions away
+//       // from the line segment then the line should not be drawn.
+//       float d0 = dot( normalize( norm ), normalize( c0dir ) );
+//       float d1 = dot( normalize( norm ), normalize( c1dir ) );
+//       float discardFlag = float( sign( d0 ) != sign( d1 ) );
+
+// vec3 p = position + instPos + ((discardFlag > 0.5) ? direction * collapse : vec3(0));    
+// vec4 mvPosition = modelViewMatrix * vec4( p, 1.0 );
+//       gl_Position = projectionMatrix * mvPosition;
+
+//       #include <logdepthbuf_vertex>
+//       #include <clipping_planes_vertex>
+//       #include <fog_vertex>
+// }
+// `
+
+// const LINE_FRAG_SHADER =`
+// uniform vec3 diffuse;
+// uniform float opacity;
+
+// #include <common>
+// #include <color_pars_fragment>
+// #include <fog_pars_fragment>
+// #include <logdepthbuf_pars_fragment>
+// #include <clipping_planes_pars_fragment>
+// void main() {
+//       #include <clipping_planes_fragment>
+//       vec3 outgoingLight = vec3( 0.0 );
+//       vec4 diffuseColor = vec4( diffuse, opacity );
+//       #include <logdepthbuf_fragment>
+//       #include <color_fragment>
+//       outgoingLight = diffuseColor.rgb; // simple shader
+//       gl_FragColor = vec4( outgoingLight, diffuseColor.a );
+//       #include <tonemapping_fragment>
+//       #include <encodings_fragment>
+//       #include <fog_fragment>
+//       #include <premultiplied_alpha_fragment>
+// }
+// `
+
+// createOutlineSegments(geometry :THREE.BufferGeometry , color : number){
+//   let eg = this.getOutlineGeometry(geometry);
+//   let m = new THREE.ShaderMaterial({
+//     vertexShader: VERTEX_SHADER,
+//     fragmentShader: LINE_FRAG_SHADER,
+//     uniforms: {
+//       diffuse: {
+//         value: new THREE.Color(color)
+//       },
+//       opacity: {
+//         value: 0
+//       }
+//     },
+//     transparent: false
+//   });
+//   //let m =  new THREE.MeshPhongMaterial({ color: 0x00FF00 , side: THREE.DoubleSide});
+//   //let o = new THREE.LineSegments(eg, m);
+//   let o = new THREE.LineSegments( eg, new THREE.LineBasicMaterial( { color: 0x00ff00 } ) );
+//   // o.geometry.setAttribute("instPos", new THREE.InstancedBufferAttribute(new Float32Array([0,0,0]), 3));
+//   return o;
+// }
+
+// getOutlineGeometry(geometry: THREE.BufferGeometry, thresholdAngle = 1) : THREE.EdgesGeometry {
+//   let g = new THREE.EdgesGeometry(geometry , thresholdAngle);
+//   // g.type = 'EdgesGeometry';
+//   // g['parameters'] = {
+//   //   thresholdAngle: thresholdAngle
+//   // };
+
+//   // thresholdAngle = (thresholdAngle !== undefined) ? thresholdAngle : 1;
+//   // buffer
+//   const vertices = [];
+//   const control0 = [];
+//   const control1 = [];
+//   const direction = [];
+//   const collapse = [];
+//   // helper variables
+//   const thresholdDot = Math.cos(THREE.MathUtils.DEG2RAD * thresholdAngle);
+
+//   const edge = [0, 0], edges = {}, eArray = [];
+//   let edge1, edge2, key;
+//   const keys = ['a', 'b', 'c'];
+
+//   // prepare source geometry
+//   let geometry2, geometry2a;
+
+//   geometry2a = geometry.clone();
+//       //console.log(geometry2a.index.count / geometry2a.attributes.position.array.length);
+//   var ratio = (geometry2a.attributes.position.array.length / geometry2a.index.count)
+//   geometry2 = BufferGeometryUtils.mergeVertices(geometry2a, ratio);
+//   console.log(geometry2a);
+//   //geometry2.mergeVertices();
+//   geometry2.computeVertexNormals();
+
+//   const sourceVertices = geometry2.attributes.position;
+
+//   var sv = [];
+//   var normalss = []
+//   const faces = [];
+//   const vs = [];
+//   var ori = new THREE.Vector3()
+
+//   var a = new THREE.Vector3();
+//   var b = new THREE.Vector3()
+//   var c = new THREE.Vector3();
+//   var tri = new THREE.Triangle()
+
+//   for (let s = 0; s < sourceVertices.array.length; s++) {
+//     sv.push(new THREE.Vector3(sourceVertices.array[s * 3 + 0], sourceVertices.array[s * 3 + 1], sourceVertices.array[s * 3 + 2]))
+//   }
+//   this.master.scene.objRef.updateMatrixWorld()
+
+//   var index = geometry2.index;
+//   var facess = index.count / 3;
+//   var normIdx = [];
+//   for (let i = 0; i < facess; i++) {
+//     var triy: any = {};
+//     triy.a = index.array[i * 3 + 0];
+//     triy.b = index.array[i * 3 + 1];
+//     triy.c = index.array[i * 3 + 2];
+
+//     var dir = new THREE.Vector3();
+//     a.fromBufferAttribute(sourceVertices, index.array[i * 3 + 0]);
+//     b.fromBufferAttribute(sourceVertices, index.array[i * 3 + 1]);
+//     c.fromBufferAttribute(sourceVertices, index.array[i * 3 + 2]);
+//     tri.set(a, b, c);
+//     tri.getMidpoint(ori);
+//     tri.getNormal(dir);
+
+//     triy.normal = dir
+//     faces.push(triy)
+
+//   }
+
+//   for (let i = 0; i < faces.length; i++) {
+//     var face = faces[i]
+//     for (let j = 0; j < 3; j++) {
+//       edge1 = face[keys[j]];
+//       edge2 = face[keys[(j + 1) % 3]];
+//       edge[0] = Math.min(edge1, edge2);
+//       edge[1] = Math.max(edge1, edge2);
+//       key = edge[0] + ',' + edge[1];
+//       if (edges[key] === undefined) {
+//         edges[key] = { index1: edge[0], index2: edge[1], face1: i, face2: undefined };
+//       } else {
+//         edges[key].face2 = i;
+//       }
+//     }
+//   }
+//   // generate vertices
+//   const v3 = new THREE.Vector3();
+//   const n = new THREE.Vector3();
+//   const n1 = new THREE.Vector3();
+//   const n2 = new THREE.Vector3();
+//   const d = new THREE.Vector3();
+
+//   for (key in edges) {
+//     const e = edges[key];
+//     // an edge is only rendered if the angle (in degrees) between the face normals of the adjoining faces exceeds this value. default = 1 degree.
+//     if (e.face2 === undefined || faces[e.face1].normal.dot(faces[e.face2].normal) <= thresholdDot) {
+//       //console.log('fshg');
+//       let vertex1 = sv[e.index1];
+//       let vertex2 = sv[e.index2];
+//       //console.log(vertex1);
+//       vertices.push(vertex1.x, vertex1.y, vertex1.z);
+//       vertices.push(vertex2.x, vertex2.y, vertex2.z);
+//       //console.log(vertices);
+
+//       d.subVectors(vertex2, vertex1);
+//       collapse.push(0, 1);
+//       n.copy(d).normalize();
+//       direction.push(d.x, d.y, d.z);
+//       n1.copy(faces[e.face1].normal);
+//       n1.crossVectors(n, n1);
+//       d.subVectors(vertex1, vertex2);
+//       n.copy(d).normalize();
+//       n2.copy(faces[e.face2].normal);
+//       n2.crossVectors(n, n2);
+//       direction.push(d.x, d.y, d.z);
+
+//       v3.copy(vertex1).add(n1); // control0
+//       control0.push(v3.x, v3.y, v3.z);
+//       v3.copy(vertex1).add(n2); // control1
+//       control1.push(v3.x, v3.y, v3.z);
+
+//       v3.copy(vertex2).add(n1); // control0
+//       control0.push(v3.x, v3.y, v3.z);
+//       v3.copy(vertex2).add(n2); // control1
+//       control1.push(v3.x, v3.y, v3.z);
+//     }
+
+//   }
+
+//   // build geometry
+//   //g.setAttribute( 'position', new THREE.BufferAttribute (new Float32Array( vertices), 3)  );
+//   g.setAttribute('position', new THREE.Float32BufferAttribute(vertices, 3));
+//   g.setAttribute('control0', new THREE.Float32BufferAttribute(control0, 3));
+//   g.setAttribute('control1', new THREE.Float32BufferAttribute(control1, 3));
+//   g.setAttribute('direction', new THREE.Float32BufferAttribute(direction, 3));
+//   g.setAttribute('collapse', new THREE.Float32BufferAttribute(collapse, 1));
+//   console.log(g);
+//   return g;
+// }

@@ -10,10 +10,10 @@
       <!-- [scale]="selected ? [2, 2, 2] : [1, 1, 1]" -->
   
       <!-- <th-gridHelper [args]="[1000, 1000]"></th-gridHelper> -->
-      <th-pointLight [position]="[floorplan?.width / 2 ,  floorplan?.height / 2  ,  maps[0]?.scale.x * 20 * 10 ]" [intensity]="0.5"></th-pointLight>
+      <th-pointLight [position]="[floorplan?.width / 2 ,  floorplan?.height  ,  floorplan?.height / 2]" [intensity]="0.5"></th-pointLight>
   
       <th-perspectiveCamera #camera
-        [args]="[45, 1, 0.1, 1000000000]"
+        [args]="[45, 1, 0.1, 10000000]"
       >
       <!-- [position]="[120, 700 , 900]" -->
       <!-- [lookAt]="[10, 10, 10]" -->
