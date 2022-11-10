@@ -28397,16 +28397,16 @@ app-cm-map-floorplan .form-container .content .txtbox-container {
 app-cm-map-floorplan .form-container .content .map-container {
   flex-grow: 1;
 }
-uc-drawing-board .drawing-board-container {
+.drawing-board .drawing-board-container {
   height: fit-content;
   width: fit-content;
   pointer-events: none;
 }
-uc-drawing-board .pixi-viewport {
+.drawing-board .pixi-viewport {
   height: 100%;
   width: 100%;
 }
-uc-drawing-board .buttons-container {
+.drawing-board .buttons-container {
   z-index: 100;
   position: absolute;
   padding: 8px;
@@ -28415,28 +28415,28 @@ uc-drawing-board .buttons-container {
   display: flex;
   flex-direction: column;
 }
-uc-drawing-board .buttons-container.t2 {
+.drawing-board .buttons-container.t2 {
   position: absolute;
   right: 0px;
   top: 28px;
   left: auto;
 }
-uc-drawing-board .title + .buttons-container.t1, uc-drawing-board .title + .buttons-container.t2 {
+.drawing-board .title + .buttons-container.t1, .drawing-board .title + .buttons-container.t2 {
   top: 40px;
 }
-.container uc-drawing-board .buttons-container.t2 {
+.container .drawing-board .buttons-container.t2 {
   top: 0px;
 }
-uc-drawing-board .buttons-container.t4 {
+.drawing-board .buttons-container.t4 {
   position: absolute;
   bottom: 65px;
   right: auto;
   top: initial;
 }
-.card-container.control uc-drawing-board .buttons-container.t4 {
+.card-container.control .drawing-board .buttons-container.t4 {
   bottom: 148px;
 }
-uc-drawing-board .buttons-container .k-button, uc-drawing-board .buttons-container.t2 .k-button {
+.drawing-board .buttons-container .k-button, .drawing-board .buttons-container.t2 .k-button {
   margin: 3px 0;
   border-radius: 5px;
   height: 30px;
@@ -28446,10 +28446,10 @@ uc-drawing-board .buttons-container .k-button, uc-drawing-board .buttons-contain
   font-size: 1.4em;
   padding-top: 5px;
 }
-uc-drawing-board .buttons-container .k-button.curved-arrow .mdi, uc-drawing-board .buttons-container .k-button.bi-curved-arrow .mdi {
+.drawing-board .buttons-container .k-button.curved-arrow .mdi, .drawing-board .buttons-container .k-button.bi-curved-arrow .mdi {
   transform: rotate(-45deg)
 }
-uc-drawing-board .buttons-container .k-button.bi-curved-arrow .mdi:after {
+.drawing-board .buttons-container .k-button.bi-curved-arrow .mdi:after {
   display: inline-block;
   font: normal normal normal 24px/1 "Material Design Icons";
   font-size: 0.9em;
@@ -28461,13 +28461,13 @@ uc-drawing-board .buttons-container .k-button.bi-curved-arrow .mdi:after {
   right: -5px;
   transform: rotate(180deg);
 }
-uc-drawing-board .buttons-container .k-button.bi-curved-arrow .mdi:before {
+.drawing-board .buttons-container .k-button.bi-curved-arrow .mdi:before {
   position: absolute;
   top: -15px;
   left: -4px;
   font-size: 0.9em;
 }
-uc-drawing-board .bottom-panel {
+.drawing-board .bottom-panel {
   background: rgba(0, 0, 0, 0.7);
   display: flex;
   position: absolute;
@@ -28475,7 +28475,7 @@ uc-drawing-board .bottom-panel {
   z-index: 1;
   bottom: 0;
 }
-uc-drawing-board .bottom-panel .bottom-sector {
+.drawing-board .bottom-panel .bottom-sector {
   display: flex;
   align-items: center;
   gap: 10px;
@@ -28486,41 +28486,41 @@ uc-drawing-board .bottom-panel .bottom-sector {
   padding: 0;
   margin: 10px;
 }
-uc-drawing-board .bottom-panel .bottom-sector .form-group {
+.drawing-board .bottom-panel .bottom-sector .form-group {
   margin-bottom: 0;
 }
-uc-drawing-board .bottom-panel .bottom-sector .txtbox-container.numeric .numeric-container {
+.drawing-board .bottom-panel .bottom-sector .txtbox-container.numeric .numeric-container {
   margin-top: 5px;
 }
-uc-drawing-board .bottom-panel .bottom-sector.remote {
+.drawing-board .bottom-panel .bottom-sector.remote {
   justify-content: space-between;
 }
-uc-drawing-board .bottom-panel .bottom-sector.remote .k-switch, uc-drawing-board .bottom-panel .bottom-sector.remote .k-button {
+.drawing-board .bottom-panel .bottom-sector.remote .k-switch, .drawing-board .bottom-panel .bottom-sector.remote .k-button {
   align-self: center;
 }
-uc-drawing-board .btn-active {
+.drawing-board .btn-active {
   background: orange;
 }
-uc-drawing-board .brush-sector {
+.drawing-board .brush-sector {
   display: block;
 }
-uc-drawing-board .point-sector {
+.drawing-board .point-sector {
   display: contents;
 }
-uc-drawing-board .point-sector .mat-button-toggle-group {
+.drawing-board .point-sector .mat-button-toggle-group {
   height: 32px;
   align-items: center;
   margin-left: 15px;
 }
-uc-drawing-board .k-colorpalette {
+.drawing-board .k-colorpalette {
   border: 1px solid rgba(0, 0, 0, 0.15);
 }
-uc-drawing-board .mat-icon-button {
+.drawing-board .mat-icon-button {
   color: #f55f54;
   margin-left: 15px;
   top: -12px;
 }
-uc-drawing-board .overlay {
+.drawing-board .overlay {
   z-index: 1;
   position: absolute;
   top: 0;
@@ -28802,24 +28802,24 @@ uc-dropdown .dropdown-container {
   opacity: 0.7;
 }
 /* Start Location - Bottom Panel*/
-uc-drawing-board .bottom-panel {
+.drawing-board .bottom-panel {
   /* adding: 5px 10px 0; 
   width: calc(100% - 20px); */
   gap: 10px;
 }
-uc-drawing-board .bottom-panel .buttons-container {
+.drawing-board .bottom-panel .buttons-container {
   display: inline-flex;
   flex-direction: row;
   gap: 10px;
   width: auto;
   align-self: center;
 }
-uc-drawing-board .bottom-sector .k-button {
+.drawing-board .bottom-sector .k-button {
   height: 32px;
   align-self: center;
   margin-top: 7px;
 }
-uc-drawing-board .bottom-panel .bottom-sector.brush-sector .k-button, uc-drawing-board .bottom-panel .bottom-sector.line-sector .k-button {
+.drawing-board .bottom-panel .bottom-sector.brush-sector .k-button, .drawing-board .bottom-panel .bottom-sector.line-sector .k-button {
   margin-top: 0;
 }
 /* Task - Details */
@@ -29154,33 +29154,33 @@ app-sa-pages-task-overlay, app-sa-pages-task-overlay .task-overlay {
   width: auto;
   min-width: 150px;
 }
-.card-container.home uc-drawing-board .bottom-panel .buttons-container.t3 {
+.card-container.home .drawing-board .bottom-panel .buttons-container.t3 {
   width: auto;
   padding: 0;
   height: auto;
   align-self: flex-end;
   position: relative;
 }
-.card-container.home uc-drawing-board .bottom-panel .buttons-container.t3 .k-button {
+.card-container.home .drawing-board .bottom-panel .buttons-container.t3 .k-button {
   margin: 0;
 }
-.card-container uc-drawing-board .fullscreen .buttons-container {
+.card-container .drawing-board .fullscreen .buttons-container {
   align-self: end;
   margin-bottom: -2px;
 }
-.card-container .controls-container uc-drawing-board .fullscreen .buttons-container.t2 {
+.card-container .controls-container .drawing-board .fullscreen .buttons-container.t2 {
   top: 0
 }
-.card-container uc-drawing-board .fullscreen .bottom-sector {
+.card-container .drawing-board .fullscreen .bottom-sector {
   gap: 10px;
 }
-.card-container uc-drawing-board .bottom-sector .k-button {
+.card-container .drawing-board .bottom-sector .k-button {
   align-self: end;
 }
-uc-drawing-board .bottom-sector .k-switch {
+.drawing-board .bottom-sector .k-switch {
   align-self: end;
 }
-.card-container.home uc-drawing-board .fullscreen .bottom-panel .buttons-container:empty {
+.card-container.home .drawing-board .fullscreen .bottom-panel .buttons-container:empty {
   display: none;
 }
 .card-container.home .viewport-container {
@@ -29393,17 +29393,17 @@ uc-drawing-board .bottom-sector .k-switch {
   height: 40px;
   width: 100%;
 }
-uc-drawing-board .k-slider-horizontal {
+.drawing-board .k-slider-horizontal {
   margin-top: -2px;
 }
-uc-drawing-board .slider-wrapper {
+.drawing-board .slider-wrapper {
   display: flex;
   flex-direction: column;
 }
-uc-drawing-board .slider-wrapper .display-value {
+.drawing-board .slider-wrapper .display-value {
   text-align: center;
 }
-uc-drawing-board .slider-wrapper .k-slider-buttons .k-button {
+.drawing-board .slider-wrapper .k-slider-buttons .k-button {
   margin: 0 !important;
   height: initial;
 }
@@ -29603,11 +29603,11 @@ uc-drawing-board .slider-wrapper .k-slider-buttons .k-button {
     font-size: 1.2em;
     margin-top: 15px;
   }
-  uc-drawing-board .buttons-container .k-button.bi-curved-arrow .mdi:before {
+  .drawing-board .buttons-container .k-button.bi-curved-arrow .mdi:before {
     top: -0.9em;
     left: -0.15em;
   }
-  uc-drawing-board .buttons-container .k-button.bi-curved-arrow .mdi:after {
+  .drawing-board .buttons-container .k-button.bi-curved-arrow .mdi:after {
     top: -0.9em;
     left: -0.2em;
   }
@@ -29664,11 +29664,11 @@ uc-drawing-board .slider-wrapper .k-slider-buttons .k-button {
     line-height: 2.2;
     font-size: 1.2em;
   }
-  uc-drawing-board .buttons-container .k-button.bi-curved-arrow .mdi:before {
+  .drawing-board .buttons-container .k-button.bi-curved-arrow .mdi:before {
     top: -0.9em;
     left: -0.15em;
   }
-  uc-drawing-board .buttons-container .k-button.bi-curved-arrow .mdi:after {
+  .drawing-board .buttons-container .k-button.bi-curved-arrow .mdi:after {
     top: -0.9em;
     left: -0.2em;
   }

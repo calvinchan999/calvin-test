@@ -26,6 +26,7 @@ import {GraphBuilder, DijkstraStrategy} from "js-shortest-path"
 import { TxtboxComponent } from '../txtbox/txtbox.component';
 import { PositionService } from '@progress/kendo-angular-popup';
 import { toJSON } from '@progress/kendo-angular-grid/dist/es2015/filtering/operators/filter-operator.base';
+import { ArcsDashboardComponent } from 'src/app/arcs/arcs-dashboard/arcs-dashboard.component';
 
 // adapted from
 // http://jsfiddle.net/eZQdE/43/
@@ -51,6 +52,7 @@ export class DrawingBoardComponent implements OnInit , AfterViewInit {
   @Input() waypointEditable = false
   @Input() uploadMustMatchOriginalSize = false
   @Input() showWaypointType = false
+  @Input() arcsParent : ArcsDashboardComponent
   get withMapLayer(){
     return Object.values(this.mapLayerStore).length > 0
   }
@@ -138,7 +140,8 @@ export class DrawingBoardComponent implements OnInit , AfterViewInit {
   @Output() cancelFullScreen : EventEmitter<any> = new EventEmitter(); 
   @Output() terminateRemoteControl :  EventEmitter<any> = new EventEmitter(); 
   @Output() demoWaypointLoaded :  EventEmitter<any> = new EventEmitter(); 
- 
+  @Output() to3D :  EventEmitter<any> = new EventEmitter(); 
+  
   onViewportZoomed : BehaviorSubject<any> = new BehaviorSubject<any>(null)
   mapTransformedScale  =  null
   arcsPoseSubscription 
@@ -2268,18 +2271,18 @@ export class DrawingBoardComponent implements OnInit , AfterViewInit {
     // console.log(this.dropdownOptions.floorplans)
   }
 
-  async setFloorplanRobotCount(){
-    if(this.util.arcsApp){
-      let ticket = this.uiSrv.loadAsyncBegin()
-      let robotInfo : RobotStatusARCS[]  =  await this.dataSrv.httpSrv.rvRequest('GET', 'robot/v1/robotInfo' + (this.arcsRobotType ? `?robotType=${this.arcsRobotType.toUpperCase()}` : ''), undefined, false)
-      this.dropdownOptions.floorplans.forEach((o : {value : string , text : string , suffix: string})=>{
-        let count = robotInfo.filter(r=>r.floorPlanCode == o.value).length
-        o.suffix =  count == 0 ? undefined : count.toString()
-      })
+  // async setFloorplanRobotCount(){
+  //   if(this.util.arcsApp){
+  //     let ticket = this.uiSrv.loadAsyncBegin()
+  //     let robotInfo : RobotStatusARCS[]  =  await this.dataSrv.httpSrv.rvRequest('GET', 'robot/v1/robotInfo' + (this.arcsRobotType ? `?robotType=${this.arcsRobotType.toUpperCase()}` : ''), undefined, false)
+  //     this.dropdownOptions.floorplans.forEach((o : {value : string , text : string , suffix: string})=>{
+  //       let count = robotInfo.filter(r=>r.floorPlanCode == o.value).length
+  //       o.suffix =  count == 0 ? undefined : count.toString()
+  //     })
 
-      this.uiSrv.loadAsyncDone(ticket)
-    }
-  }
+  //     this.uiSrv.loadAsyncDone(ticket)
+  //   }
+  // }
 
   async refreshLocationOptions(){
     if(this.pickSpawnPoint){

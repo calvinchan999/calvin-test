@@ -39,8 +39,8 @@
       </div>
       <span class="floorplan" *ngIf = "arcsLocationTree.currentLevel == 'floorplan'"> 
         <uc-dropdown   [options]="dropdownOptions?.floorplans"  class = "arcs-floorplan-picker"
-                       [(value)] = "selectedFloorPlanCode" (valueChange)="selectedFloorPlanCodeChange.emit($event)" [allowClear] = "false"  [customDropItemTemplate] = "true"
-                       (open)="setFloorplanRobotCount(); suspendViewportPlugin('wheel')" (close)="resumeViewportPlugin('wheel')">
+                       [(value)] = "selectedFloorPlanCode" (valueChange)="arcsParent? arcsParent.loadFloorPlan($event) : null;" [allowClear] = "false"  [customDropItemTemplate] = "true"
+                       (open)="arcsParent? arcsParent.setFloorplanRobotCount(dropdownOptions.floorplans) : null; suspendViewportPlugin('wheel')" (close)="resumeViewportPlugin('wheel')">
         </uc-dropdown>
       </span>
     </div>
@@ -59,6 +59,11 @@
                 [disabled]="disableButton['showPath']" matTooltipPosition="right" (click)="uitoggle.showPath = !uitoggle.showPath ; togglePath()"
                 [ngClass]="{'btn-active': uitoggle.showPath}">
           <span [class]="'mdi mdi-arrow-top-right-bottom-left'"></span>
+      </button>
+      
+      <button *ngIf="isDashboard && util.arcsApp && arcsLocationTree.currentLevel == 'floorplan'" kendoButton class="3d-switch" [matTooltip]="'3D Map' | label : uiSrv.langPack"  
+                (click)="to3D.emit()" >
+          <span [class]="'mdi mdi-video-3d'"></span>
       </button>
 
       <ng-container *ngIf="!hideButton.all">       

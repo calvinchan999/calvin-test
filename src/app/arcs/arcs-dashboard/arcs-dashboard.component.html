@@ -26,9 +26,6 @@
         <span></span>
     </div>
 
-    <div *ngIf="selectedTab == '3dMap'" class="three-d-container">
-        <uc-3d-viewport (robotClicked)="showRobotDetailDialog($event?.id)" [floorPlanDataset] = "currentFloorPlan"></uc-3d-viewport>
-    </div>
 
 
 
@@ -134,13 +131,22 @@
     </kendo-tilelayout-item>
 
     <kendo-tilelayout-item class = "ts-map" [col]="3" [row]="1" [rowSpan] = "5" [colSpan] = "5">
-        <div class = "viewport-container" (wheel)="$event.preventDefault()">
-            <uc-drawing-board #pixi [isDashboard] = "true" [hideButton] = "{ all : true}" [readonly] = "true" (robotClicked)="showRobotDetailDialog($event?.id)" 
+        <div *ngIf="!use3DMap" class = "viewport-container" (wheel)="$event.preventDefault()">
+            <uc-drawing-board #pixi [arcsParent] = "me" [isDashboard] = "true" [hideButton] = "{ all : true}" [readonly] = "true" (robotClicked)="showRobotDetailDialog($event?.id)" 
                                     [arcsRobotType] = "robotTypeFilter"  [(selectedFloorPlanCode)]="selectedFloorPlanCode" 
-                                    (selectedFloorPlanCodeChange)="loadFloorPlan(selectedFloorPlanCode)" [arcsRobotColors]="robotIconColorMap"
-                                    (onBuildingSelected) = "onPixiBuildingSelected($event)" (onSiteSelected) = "loadSite()">
+                                    [arcsRobotColors]="robotIconColorMap"
+                                    (onBuildingSelected) = "onPixiBuildingSelected($event)" (onSiteSelected) = "loadSite()" 
+                                    (to3D)="dropdownOptions.floorplans = pixiElRef.dropdownOptions.floorplans ; locationTree = pixiElRef.arcsLocationTree ; use3DMap = true">
             </uc-drawing-board> 
         </div>
+        <div *ngIf="use3DMap" class="three-d-container">
+            <uc-3d-viewport #threeJs [parent] = "me" (robotClicked)="showRobotDetailDialog($event?.id)" 
+                            (to2D)="use3DMap = false ; initPixi($event.floorPlanCode , $event.showSite )" 
+                            [floorPlanOptions] = "dropdownOptions.floorplans" [robotColorMapping] = "robotIconColorMap"
+                            [floorPlanDataset] = "currentFloorPlan" [locationTree] = "locationTree">
+            </uc-3d-viewport>
+        </div>
+        <!-- loadFloorPlan(currentFloorPlan?.floorPlanCode) -->
     </kendo-tilelayout-item>
 </kendo-tilelayout>
 

@@ -152,9 +152,9 @@ export class CmMapFloorplanComponent implements OnInit {
     } 
     this.util.loadToFrmgrp(this.frmGrp ,  data);
     (<any>this.pixiElRef.allPixiPoints).concat((<any>this.pixiElRef.allPixiArrows)).forEach(gr=>gr.visible = this.selectedTab == 'locations');
-    // (<any>this.pixiElRef.allPixiPoints).concat((<any>this.pixiElRef.allPixiArrows)).forEach(gr=>this.pixiElRef.removeGraphics(gr))
+    //(<any>this.pixiElRef.allPixiPoints).concat((<any>this.pixiElRef.allPixiArrows)).forEach(gr=>this.pixiElRef.removeGraphics(gr))
     this.uiSrv.loadAsyncDone(ticket);
-    // JSON.parse(EU_WP).forEach(w => {
+    // JSON.parse(HKAA_1110).forEach(w => {
     //   this.add_UserTrainingWaypoint(w['name'].toUpperCase(), w['x'], w['y'] , w['angle'])
     // })
   }
@@ -507,7 +507,114 @@ export class CmMapFloorplanComponent implements OnInit {
   //   return [ret]
   // }
 }
-
+const HKAA_1110 = `
+[
+  {
+    "id": 81,
+    "name": "G29",
+    "mapName": "aa_2022_1107",
+    "x": -48.4131860859269,
+    "y": 224.5536079844658,
+    "angle": -2.88608334691888
+  },
+  {
+    "id": 82,
+    "name": "G30",
+    "mapName": "aa_2022_1107",
+    "x": -31.15699842385631,
+    "y": 229.6553018000234,
+    "angle": 0.24632676794803973
+  },
+  {
+    "id": 83,
+    "name": "G28",
+    "mapName": "aa_2022_1107",
+    "x": -13.66135371429824,
+    "y": 160.0312385918187,
+    "angle": 0.24767971403381447
+  },
+  {
+    "id": 84,
+    "name": "G27",
+    "mapName": "aa_2022_1107",
+    "x": -25.2155563361731,
+    "y": 136.0282393482742,
+    "angle": -2.923041162087549
+  },
+  {
+    "id": 85,
+    "name": "G25",
+    "mapName": "aa_2022_1107",
+    "x": -6.060370205616088,
+    "y": 63.49129741616618,
+    "angle": -2.911496080945027
+  },
+  {
+    "id": 86,
+    "name": "G26",
+    "mapName": "aa_2022_1107",
+    "x": 5.796341552157386,
+    "y": 82.52715362929607,
+    "angle": 0.23159271812473745
+  },
+  {
+    "id": 87,
+    "name": "G24",
+    "mapName": "aa_2022_1107",
+    "x": 27.08458500025414,
+    "y": 4.138400195808729,
+    "angle": 0.21489909923622508
+  },
+  {
+    "id": 88,
+    "name": "CHARGE",
+    "mapName": "aa_2022_1107",
+    "x": 1.551250269191875,
+    "y": -1.291920739105948,
+    "angle": -1.2570127115448217
+  },
+  {
+    "id": 89,
+    "name": "G23",
+    "mapName": "aa_2022_1107",
+    "x": 9.95125039436163,
+    "y": -5.123126009999176,
+    "angle": -2.926133199633175
+  },
+  {
+    "id": 90,
+    "name": "EXIT",
+    "mapName": "aa_2022_1107",
+    "x": 28.55343709017329,
+    "y": -64.1610970135638,
+    "angle": -1.33030798344777
+  },
+  {
+    "id": 91,
+    "name": "G12",
+    "mapName": "aa_2022_1107",
+    "x": 39.02010594731068,
+    "y": -55.73243992748124,
+    "angle": 0.21253048074951325
+  },
+  {
+    "id": 92,
+    "name": "G32",
+    "mapName": "aa_2022_1107",
+    "x": -50.92816998352235,
+    "y": 297.1278926479058,
+    "angle": 0.220585698615184
+  },
+  {
+    "id": 93,
+    "name": "G31",
+    "mapName": "aa_2022_1107",
+    "x": -65.27493337033336,
+    "y": 281.3241726231862,
+    "angle": -2.8991705597201105
+  }
+]
+`
 const EU_WP = `
 [
   {

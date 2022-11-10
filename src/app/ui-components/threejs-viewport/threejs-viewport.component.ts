@@ -1,13 +1,13 @@
-import { Component, OnInit, ViewChild , NgZone, HostListener, EventEmitter, Renderer2, Output , Input} from '@angular/core';
+import { Component, OnInit, ViewChild , NgZone, HostListener, EventEmitter, Renderer2, Output , Input , HostBinding} from '@angular/core';
 import { ThCamera, ThCanvas, ThDragControls, ThObject3D , ThOrbitControls, ThScene } from 'ngx-three';
 import { UiService } from 'src/app/services/ui.service';
 import * as THREE from 'three';
 import { ThGLTFLoader } from 'ngx-three';
 import { GLTF, GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader';
 import { DragControls } from 'three/examples/jsm/controls/DragControls';
-import { AmbientLight, DirectionalLight, DoubleSide, Group, Mesh, Object3D, ShapeGeometry, WebGLRenderer ,BufferGeometry, LineSegments } from 'three';
+import { AmbientLight, DirectionalLight, DoubleSide, Group, Mesh, Object3D, ShapeGeometry, WebGLRenderer ,BufferGeometry, LineSegments, MeshStandardMaterial } from 'three';
 import { GeneralUtil } from 'src/app/utils/general/general.util';
-import { DataService, JFloorPlan, JMap, JPoint } from 'src/app/services/data.service';
+import { DataService, DropListFloorplan, DropListRobot, JFloorPlan, JMap, JPoint } from 'src/app/services/data.service';
 import { debounce, debounceTime, filter, retry, share, skip, switchMap, take, takeUntil } from 'rxjs/operators';
 import { radRatio } from '../drawing-board/drawing-board.component';
 import { Subject } from 'rxjs';
@@ -22,6 +22,7 @@ import {  FXAAShader  } from  'three/examples/jsm/shaders/FXAAShader' ;
 import { getBorderVertices } from 'src/app/utils/math/functions';
 import { Geometry } from 'pixi.js';
 import * as OUTLINE from 'three-line-outline'
+import { ArcsDashboardComponent } from 'src/app/arcs/arcs-dashboard/arcs-dashboard.component';
 const NORMAL_ANGLE_ADJUSTMENT =  - 90 / radRatio
 @Component({
   selector: 'uc-3d-viewport',
@@ -36,7 +37,18 @@ export class ThreejsViewportComponent implements OnInit {
   @ViewChild('canvas') canvas 
   @ViewChild('camera') camera : ThCamera
   @Output() robotClicked = new EventEmitter<any>();
+  @Output() to2D =  new EventEmitter<{floorPlanCode? : string, showSite? : boolean}>();
   @Input() floorPlanDataset : JFloorPlan= null;
+  @Input() floorPlanOptions : any[]
+  @Input() parent : ArcsDashboardComponent
+  @Input() set robotColorMapping(v){
+    this._robotColorMapping = v
+    this.refreshRobotColors() 
+  }
+  get robotColorMapping(){
+    return this._robotColorMapping
+  }
+  _robotColorMapping = {}
   // @ViewChild('orbitControl') 
   orbitCtrl : OrbitControls
   container : HTMLElement
@@ -44,7 +56,7 @@ export class ThreejsViewportComponent implements OnInit {
   robots : RobotObject3D[] = []
   maps : MapMesh[] = []
   floorplan : FloorPlanMesh
-  $onDestroy = new Subject()
+  $mapCodeChanged = new Subject()
   renderer : WebGLRenderer
   labelRenderer : CSS2DRenderer
   suspended = false
@@ -54,6 +66,23 @@ export class ThreejsViewportComponent implements OnInit {
   ROSmapScale = 1
   mapCode = ''
   focusedObj = null
+  @Input() locationTree : {
+    site : {
+      code : string ,
+      name : string 
+    },
+    building :{
+      code : string ,
+      name : string 
+    },
+    currentLevel : 'floorplan' | 'site'
+    selected : {
+      building: string,
+      floorplan : string,
+    }
+  } = null
+  subscribedPoseMapCode = null
+  robotLists : DropListRobot[]
   constructor(public uiSrv: UiService , public ngZone : NgZone , public util : GeneralUtil , public dataSrv : DataService ,  public ngRenderer:Renderer2) {
     // this.loadingTicket = this.uiSrv.loadAsyncBegin()
   }
@@ -64,13 +93,14 @@ export class ThreejsViewportComponent implements OnInit {
   cameraRayCaster = new THREE.Raycaster();
 
   @HostListener('window:resize', ['$event'])
+  @HostBinding('class') customClass = 'drawing-board'
   onResize() {
     const width  = this.container.clientWidth
     const height =  this.container.clientHeight
     this.labelRenderer.setSize( width, height )
-    this.outlinePass.setSize( width, height )
-    this.effectFXAA.uniforms.resolution.value.set(1 /width, 1 / height);
-    this.composer.setSize( width, height );
+    this.outlinePass?.setSize( width, height )
+    this.effectFXAA?.uniforms.resolution.value.set(1 /width, 1 / height);
+    this.composer?.setSize( width, height );
   }
 
   animate() {
@@ -161,8 +191,8 @@ export class ThreejsViewportComponent implements OnInit {
     })
   }
 
-  ngOnInit(): void {
-    
+  async ngOnInit() {
+
   }
 
   getRobot(robotCode : string): RobotObject3D{
@@ -174,7 +204,7 @@ export class ThreejsViewportComponent implements OnInit {
   }
 
   ngOnDestroy(){
-    this.$onDestroy.next()
+    this.unsubscribeRobotPoses()
   }
 
   initLabelRenderer(){
@@ -185,7 +215,17 @@ export class ThreejsViewportComponent implements OnInit {
     this.container.appendChild( this.labelRenderer.domElement );
   }
 
-  async loadFloorPlan(floorplan : JFloorPlan){
+  resetScene(){
+    this.scene.objRef.remove(this.floorplan)
+    this.maps.forEach(m=>this.scene.objRef.remove(m))
+    this.maps = []
+    this.robots.forEach(r=>this.scene.objRef.remove(r))
+    this.robots = []
+    this.unsubscribeRobotPoses()
+  }
+
+  async loadFloorPlan(floorplan : JFloorPlan , subscribePoses = true){
+    this.resetScene()
     let dimension =  await this.getImageDimension(floorplan.base64Image)
     this.initFloorPlan(floorplan , dimension.width , dimension.height);
     this.initROSmaps(floorplan.mapList)
@@ -195,6 +235,21 @@ export class ThreejsViewportComponent implements OnInit {
     this.camera.objRef.lookAt(1, -0.9 , -0.5)
     this.orbitCtrl.update()
     this.camera.objRef.position.z += this.floorplan.height * 0.1
+    if(subscribePoses){
+      this.subscribeRobotPoses()
+    }
+    //v TESTING v
+    // let robot = new RobotObject3D(this , "TEST-ROBOT" , "WC")
+    // robot.visible = true
+    // let map = this.getMapMesh(robot.robotBase)
+    // if(map){
+    //   map.add(robot)
+    //   var origin = this.getConvertedRobotVector(0 , 0 , map)
+    //   robot.position.set(origin.x , origin.y , origin.z)
+    // }
+    if(this.mapCode == '5W_2022'){
+      this.initBlocks()
+    } 
     // this.orbitCtrl.target.set(1, -0.9 , -0.5)
     // var lookAtVector = new THREE.Vector3(0, 0, -1);
     // lookAtVector.applyQuaternion(this.camera.objRef.quaternion);
@@ -210,26 +265,25 @@ export class ThreejsViewportComponent implements OnInit {
     return await <any>ret.pipe(filter(v => ![null, undefined].includes(v)), take(1)).toPromise()
   }
 
+  async getRobotList(){
+    let ticket = this.uiSrv.loadAsyncBegin()
+    this.robotLists = await this.dataSrv.getRobotList();
+    this.uiSrv.loadAsyncDone(ticket);
+  }
+
   async ngAfterViewInit() {
     this.renderer = this.canvas.engServ.renderer
     this.container =  this.canvas.rendererCanvas.nativeElement.parentElement
+    await this.getRobotList()
     this.initLabelRenderer()
+    this.initShaders()  //TESTING
     this.orbitCtrl = new OrbitControls( this.camera.objRef, this.labelRenderer.domElement );
     this.orbitCtrl.addEventListener( 'change', (v)=> this.onOrbitControlChange(v) );
     document.addEventListener('pointermove', (e)=>this.onMouseMove(e), false);
+    setTimeout(() => this.onResize())
+
     if(this.floorPlanDataset){
       await this.loadFloorPlan(this.floorPlanDataset)
-      this.subscribeRobotPoses();
-      //v TESTING v
-      this.initShaders()  
-      let robot = new RobotObject3D(this , "TEST-ROBOT" , "WC")
-      robot.visible = true
-      let map = this.getMapMesh(robot.robotBase)
-      if(map){
-        map.add(robot)
-        var origin = this.getConvertedRobotVector(0 , 0 , map)
-        robot.position.set(origin.x , origin.y , origin.z)
-      }
       //^ TESTING ^ 
     }
     // this.floorplan = new FloorPlanMesh(this ,FP_BASE64 , fpWidth , fpHeight);
@@ -237,7 +291,7 @@ export class ThreejsViewportComponent implements OnInit {
     // this.initROSmaps(JSON.parse(MAP_LIST));
     // await this.loadFloorPlan(JSON.parse(FP_DATASET))
     // this.subscribeRobotPoses();
-    // this.initBlocks()
+
   }
 
   initShaders() {
@@ -310,13 +364,24 @@ export class ThreejsViewportComponent implements OnInit {
     });
   }
 
-  public subscribeRobotPoses(mapCode = this.mapCode){
+  public subscribeRobotPoses(mapCode = this.mapCode){ //Assume 1 Map per robot per floor plan
     this.dataSrv.subscribeSignalR('arcsPoses' , mapCode)
-    this.$onDestroy.subscribe(()=>this.dataSrv.unsubscribeSignalR('arcsPoses' , false , mapCode))
-    this.dataSrv.signalRSubj.arcsPoses.pipe(filter(v => v) , takeUntil(this.$onDestroy)).subscribe(async (poseObj) => { //{mapCode : robotId : pose}
+    this.dataSrv.signalRSubj.arcsPoses.pipe(filter(v => v) , takeUntil(this.$mapCodeChanged)).subscribe(async (poseObj) => { //{mapCode : robotId : pose}
       Object.keys(poseObj[mapCode]).forEach((robotCode)=>{
-        let robot = this.getRobot(robotCode) ?   this.getRobot(robotCode) : new RobotObject3D(this , robotCode , TEST_ROBOTS_BASE_MAP[robotCode] )
+        let robotData : DropListRobot = this.robotLists.filter(r=>r.robotCode == robotCode)[0]
+        if(!robotData){
+          console.log(`ERROR : Robot not found : [${robotCode}`)
+        }
+        let robot = this.getRobot(robotCode) ?   this.getRobot(robotCode) : new RobotObject3D(this , robotCode , robotData.robotBase )
         let mapMesh = this.getMapMesh(robot.robotBase)
+        let oldMapMesh = this.maps.filter(m=>robot && m.robotBase!=robotData.robotBase && m.children.includes(robot))[0]
+        if(oldMapMesh){
+          oldMapMesh.remove(robot)
+        }
+        if(!mapMesh){
+          console.log(`ERROR : Map not found : [${mapCode}] (ROBOT BASE [${robot.robotBase}] , ROBOT [${robotCode}])`)
+          return
+        }
         if(!mapMesh.children.includes(robot)){
           mapMesh.add(robot)
         }
@@ -329,6 +394,26 @@ export class ThreejsViewportComponent implements OnInit {
         }
      })
 
+    })
+    this.subscribedPoseMapCode = mapCode
+  }
+  
+  unsubscribeRobotPoses() {
+    if (this.subscribedPoseMapCode) {
+      this.$mapCodeChanged.next()
+      this.dataSrv.unsubscribeSignalR('arcsPoses', false, this.subscribedPoseMapCode)
+      this.subscribedPoseMapCode = null
+    }
+  }
+
+   refreshRobotColors(){
+    Object.keys(this._robotColorMapping).forEach(robotCode=>{
+      if(this._robotColorMapping[robotCode]){
+        let robot : RobotObject3D = this.robots.filter(r=>r.robotCode == robotCode)[0]
+        if(robot){
+          robot.color = Number(this._robotColorMapping[robotCode])
+        }
+      }
     })
   }
   
@@ -562,13 +647,31 @@ class MarkerObject3D extends Object3DCommon {
   }
 }
 
-class RobotObject3D extends Object3DCommon{
+export class RobotObject3D extends Object3DCommon{
   loader : GLTFLoader
   robotCode : string
   robotBase : string
   master : ThreejsViewportComponent
   outlineMesh : Mesh
   outlineSegments : LineSegments
+  _color : number = this.master.util.config.robot?.visuals?.[0].fillColor ?  Number(this.master.util.config.robot?.visuals?.[0].fillColor) : 0x00CED1
+  get color(){
+    return this._color
+  }
+  set color(v : number){
+    this._color = v
+    if(this.gltf){
+      this.changeMainColor(this._color)
+    }
+  }
+  _offline = false
+  get offline(){
+    return this._offline
+  }
+  set offline(v){
+    this._offline = v
+    this.visible = !v
+  }
   readonly size = 20
   // mesh : Mesh  
   readonly glbPath = "assets/3D/robot.glb" // Raptor Heavy Planetary Crawler by Aaron Clifford [CC-BY] via Poly Pizza
@@ -596,8 +699,10 @@ class RobotObject3D extends Object3DCommon{
       // let scale =  this.size * this.master.ROSmapScale * this.master.util.config.METER_TO_PIXEL_RATIO
 
       this.storeOriginalMaterialData()
+      this.changeMainColor(this.color)
       this.master.uiSrv.loadAsyncDone(ticket)
     })
+    this.toolTip.position.set(0, 0 , 25 );
     this.visible = false
     this.onClick.subscribe(()=>{
       this.master.robotClicked.emit({id:this.robotCode , object : this})
@@ -605,6 +710,23 @@ class RobotObject3D extends Object3DCommon{
     this.master.robots = this.master.robots.filter(r=>r!= this).concat(this)
     this.master.outlinePass.enabled = true
     this.master.outlinePass.selectedObjects = (this.master.outlinePass.selectedObjects ? this.master.outlinePass.selectedObjects : []).concat(this)
+  }
+
+  changeMainColor(color: number) {
+    var recolorMaterials:MeshStandardMaterial[] = []
+    let pushMainColorMaterials = (c) => {
+      if (c instanceof Group) {
+        c.children.forEach(c2 => pushMainColorMaterials(c2))
+      } else if (c instanceof Mesh) {
+        c.updateMatrix()
+        if (c.material.name == 'mat16') { // TBR : DEPENDS ON GLTF
+          recolorMaterials.push( c.material)
+        }
+      }
+    }
+    pushMainColorMaterials(this.gltf.scene)
+    recolorMaterials.forEach(m=>m.color.set(color));
+    (<THREE.MeshPhongMaterial>this.outlineMesh?.material).color.set(color)
   }
 
 
@@ -622,7 +744,7 @@ class RobotObject3D extends Object3DCommon{
     gltf.scene.children.forEach(c => mergeDescendants(c));
     let mergedGeo = BufferGeometryUtils.mergeBufferGeometries(geometries)
     // var tmpMaterial = new THREE.MeshPhongMaterial({color: 0xFF0000});
-    let material = new THREE.MeshPhongMaterial({ color: 0x00FF00 , side: THREE.BackSide});
+    let material = new THREE.MeshPhongMaterial({ color: this.color , side: THREE.BackSide});
 
     this.outlineMesh = new THREE.Mesh(mergedGeo, material);
 
@@ -632,7 +754,7 @@ class RobotObject3D extends Object3DCommon{
     //this.outlineSegments.scale.set(this.size, this.size, this.size)
     //this.outlineSegments.rotateX(- NORMAL_ANGLE_ADJUSTMENT)
     //console.log(this.outlineSegments)
-    this.outlineMesh.scale.multiplyScalar(1.05);
+    this.outlineMesh.scale.multiplyScalar(1.02);
   }
 
 }
@@ -757,11 +879,11 @@ class Extruded2DMesh extends Mesh{
 
 
 
-const TEST_ROBOTS_BASE_MAP = {
-  "RV-ROBOT-103" : "WC",
-  "RV-ROBOT-104" : "PATROL",
-  "Mobilechair-02" : "DEFAULT"
-}
+// const TEST_ROBOTS_BASE_MAP = {
+//   "RV-ROBOT-103" : "WC",
+//   "RV-ROBOT-104" : "PATROL",
+//   "Mobilechair-02" : "DEFAULT"
+// }
 
 const BLOCK1_VERTICES = `[{"x":99.02021985708224,"y":267.2522632772183},{"x":170.25654617656147,"y":266.30885246868274},{"x":171.67184476950354,"y":405.4625135450282},{"x":156.57546081761444,"y":405.4625135450282},{"x":159.8778074045427,"y":726.6950904657913},{"x":909.8634512709015,"y":722.744217751932},{"x":904.6554591338161,"y":217.79894773168402},{"x":883.9066521146965,"y":217.79894773168402},{"x":883.845186132649,"y":57.19247468823681},{"x":96.52106182998074,"y":62.65031168422087}]`
 const BLOCK2_VERTICES = `[{"x" : 665 , "y": 782} , {"x" : 665 , "y": 948} , {"x" : 591 , "y": 948} , {"x" : 591 , "y": 1026},{"x" : 905 , "y": 1026} ,{"x" : 905 , "y": 782}]`

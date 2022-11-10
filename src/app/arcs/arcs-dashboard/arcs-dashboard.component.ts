@@ -3,7 +3,7 @@ import { RvHttpService } from 'src/app/services/rv-http.service';
 import { UiService } from 'src/app/services/ui.service';
 import { DrawingBoardComponent, PixiCommon, Robot } from 'src/app/ui-components/drawing-board/drawing-board.component';
 import { GeneralUtil } from 'src/app/utils/general/general.util';
-import { DataService, DropListBuilding, DropListFloorplan, DropListType, FloorPlanDataset, JSite, RobotStatusARCS as RobotStatus, RobotTaskInfoARCS, ShapeJData } from 'src/app/services/data.service';
+import { DataService, DropListBuilding, DropListFloorplan, DropListType, FloorPlanDataset, JFloorPlan, JSite, RobotStatusARCS as RobotStatus, RobotStatusARCS, RobotTaskInfoARCS, ShapeJData } from 'src/app/services/data.service';
 import { Router } from '@angular/router';
 import { DialogRef } from '@progress/kendo-angular-dialog';
 import { CmTaskJobComponent } from 'src/app/common-components/cm-task/cm-task-job/cm-task-job.component';
@@ -13,6 +13,7 @@ import { BehaviorSubject, combineLatest, Observable, Subject } from 'rxjs';
 import { AuthService } from 'src/app/services/auth.service';
 import { ArcsDashboardRobotDetailComponent } from './arcs-dashboard-robot-detail/arcs-dashboard-robot-detail.component';
 import { ArcsTaskScheduleComponent } from './arcs-task-schedule/arcs-task-schedule.component';
+import { RobotObject3D, ThreejsViewportComponent } from 'src/app/ui-components/threejs-viewport/threejs-viewport.component';
 
 type robotTypeInfo = { //A group can be an individual robot (when filtered by robot type) OR robot type (no filter applied) 
   robotType: string
@@ -47,6 +48,7 @@ type robotInfo = { //A group can be an individual robot (when filtered by robot 
 })
 export class ArcsDashboardComponent implements OnInit {
   @ViewChild('pixi') pixiElRef: DrawingBoardComponent
+  @ViewChild('threeJs')threeJsElRef : ThreejsViewportComponent
   @ViewChild('mainContainer') mainContainer 
   @ViewChild('table') tableRef : TableComponent
   @ViewChild('robotDetailComp') robotDetailCompRef : ArcsDashboardRobotDetailComponent
@@ -72,11 +74,12 @@ export class ArcsDashboardComponent implements OnInit {
   robotTypeFilter = null
   year
   location
-  dropdownData = {types:[]}
+  dropdownData = { types: []}
   dropdownOptions = {
-    types:[],
-    years:[], 
-    locations:[]
+    types: [],
+    years: [],
+    locations: [],
+    floorplans: []
   }
   data = []
   robotIconColorMap = {}
@@ -153,10 +156,27 @@ export class ArcsDashboardComponent implements OnInit {
   selectedFloorPlanCode
   site : JSite
   loadingTicket
-  currentFloorPlan = null
-
+  currentFloorPlan : JFloorPlan = null
+  use3DMap = false 
+  locationTree : {
+    site : {
+      code : string ,
+      name : string 
+    },
+    building :{
+      code : string ,
+      name : string 
+    },
+    currentLevel : 'floorplan' | 'site'
+    selected : {
+      building: string,
+      floorplan : string,
+    }
+  } = null
+  me
   constructor(  private util :GeneralUtil , private authSrv : AuthService , private httpSrv : RvHttpService, public uiSrv : UiService , private dataSrv : DataService, private router : Router , private ngZone : NgZone ) {
     // this.chartTesting()
+    this.me = this
     this.tabs = this.tabs.filter(t=> t.authorized === false || this.authSrv.userAccessList.includes(t.functionId))
     this.selectedTab = 'dashboard'
     this.dataSrv.subscribeSignalRs(['arcsRobotStatusChange' , 'arcsTaskInfoChange', 'obstacleDetection' , 'tilt' , 'estop'])
@@ -212,17 +232,17 @@ export class ArcsDashboardComponent implements OnInit {
     this.initPixi()
   }
 
-  async initPixi() {
+  async initPixi(floorPlanCode = null , showSite = false) {
     // let ticket = this.uiSrv.loadAsyncBegin()
     setTimeout(async () => {
-      this.pixiElRef.initDone$.subscribe(async () => {
+      this.pixiElRef?.initDone$.subscribe(async () => {
         if(this.dataSrv.getSessionStorage('arcsLocationTree')){
-          this.pixiElRef.arcsLocationTree = JSON.parse(this.dataSrv.getSessionStorage('arcsLocationTree'))
+          this.pixiElRef.arcsLocationTree = this.locationTree ? this.locationTree : JSON.parse(this.dataSrv.getSessionStorage('arcsLocationTree'))
         }
-        if(this.site && ! this.dataSrv.getSessionStorage('dashboardFloorPlanCode')){
+        if(this.site &&  (!this.dataSrv.getSessionStorage('dashboardFloorPlanCode') || showSite)){
           this.loadSite()
         }else{
-          this.loadFloorPlan()
+          this.loadFloorPlan(floorPlanCode)
         }
         this.uiSrv.loadAsyncDone(this.loadingTicket)
       })
@@ -234,7 +254,7 @@ export class ArcsDashboardComponent implements OnInit {
     sessionStorage.removeItem('dashboardFloorPlanCode')
     this.selectedFloorPlanCode = null
     if( this.pixiElRef){
-      this.tabs = this.tabs.filter(t=>t.id != '3dMap')
+      // this.tabs = this.tabs.filter(t=>t.id != '3dMap')
       this.pixiElRef.reset()
       this.pixiElRef.arcsLocationTree.currentLevel = 'site'
       this.pixiElRef.arcsLocationTree.site.code = this.site.siteCode
@@ -265,11 +285,22 @@ export class ArcsDashboardComponent implements OnInit {
       if(fpCode){
         // console.log(this.pixiElRef.arcsLocationTree)
         this.pixiElRef.dropdownOptions.floorplans = this.dataSrv.getDropListOptions('floorplans' , this.pixiElRef.dropdownData.floorplans , {buildingCode : buildingCode})
+
         this.loadFloorPlan(fpCode) 
       }else{
         this.uiSrv.showNotificationBar(`No available floor plans found for the selected building [${buildingCode}]`)
       }
     })
+  }
+
+  async setFloorplanRobotCount(options :  { value: string, text: string, suffix: string }[]) {
+    let ticket = this.uiSrv.loadAsyncBegin()
+    let robotInfo: RobotStatusARCS[] = await this.dataSrv.httpSrv.rvRequest('GET', 'robot/v1/robotInfo' + (this.robotTypeFilter ? `?robotType=${this.robotTypeFilter.toUpperCase()}` : ''), undefined, false)
+    options.forEach((o) => {
+      let count = robotInfo.filter(r => r.floorPlanCode == o.value).length
+      o.suffix = count == 0 ? undefined : count.toString()
+    })
+    this.uiSrv.loadAsyncDone(ticket)
   }
 
   async getDefaultFloorPlanCode(){
@@ -286,7 +317,7 @@ export class ArcsDashboardComponent implements OnInit {
   async loadFloorPlan(code = null) {
     let ticket = this.uiSrv.loadAsyncBegin()
     code = code ? code :  await this.getDefaultFloorPlanCode()
-    if(!code){
+    if(!code &&  this.pixiElRef){
       this.pixiElRef.overlayMsg = this.uiSrv.translate("No floorplan records found.")
       this.uiSrv.loadAsyncDone(ticket)
       return 
@@ -296,17 +327,24 @@ export class ArcsDashboardComponent implements OnInit {
     if(floorplan?.floorPlanCode){
       this.dataSrv.setSessionStorage('dashboardFloorPlanCode', floorplan.floorPlanCode);  
     }
-    await this.pixiElRef.loadFloorPlanDatasetV2(floorplan, true, true);
     this.selectedFloorPlanCode = floorplan.floorPlanCode
-    
-    this.pixiElRef.subscribeRobotsPose_ARCS([... new Set(floorplan.mapList.map(m => m.mapCode))])
+    if(this.pixiElRef){
+      await this.pixiElRef.loadFloorPlanDatasetV2(floorplan, true, true);
+      this.pixiElRef.subscribeRobotsPose_ARCS([... new Set(floorplan.mapList.map(m => m.mapCode))])
+    }
+    if(this.threeJsElRef ){
+      this.threeJsElRef.floorPlanDataset = floorplan
+      this.threeJsElRef.loadFloorPlan(floorplan)
+    }    
+   
     this.floorPlanFilter = floorplan.floorPlanCode
     await this.refreshTaskInfo()
     await this.refreshRobotStatus()
-    this.tabs = (floorplan.mapList.length == 0 ? [] : [{ id: '3dMap', label: '3D Map', authorized: false }]).concat(<any>this.getTabs())
+    // this.tabs = (floorplan.mapList.length == 0 ? [] : [{ id: '3dMap', label: '3D Map', authorized: false }]).concat(<any>this.getTabs())
     this.uiSrv.loadAsyncDone(ticket)
   }
 
+  
   refreshRobotIconColorMap(){
     for(let i = 0 ; i <this.robotInfos.length ; i++){
       let idx = 0
@@ -434,14 +472,20 @@ export class ArcsDashboardComponent implements OnInit {
       i.chargingCount = data.filter(s => !alerted(s) && s.robotType == i.robotType && s.robotStatus == 'CHARGING').length
       i.offlineCount = data.filter(s => !alerted(s) && s.robotType == i.robotType && s.robotStatus == 'UNKNOWN').length
       i.reservedCount = data.filter(s => !alerted(s) && s.robotType == i.robotType && s.robotStatus == 'HOLD').length
-      i.alertCount = data.filter(s => alerted(s)).length
+      i.alertCount = data.filter(s => alerted(s) && s.robotType == i.robotType).length
     })    
     
     data.forEach(d=>{
-      let robot : Robot = this.pixiElRef?.robots.filter(r=>r.id == d.robotCode)[0]
-      if(robot){
-        robot.offline = d.robotStatus == "UNKNOWN"
-        robot.alert = alerted(d)
+      if(this.pixiElRef){
+        let robot2D : Robot = this.pixiElRef?.robots.filter(r=>r.id == d.robotCode)[0]
+        if(robot2D){
+          robot2D.offline = d.robotStatus == "UNKNOWN"
+          robot2D.alert = alerted(d)
+        }
+      }
+      if(this.threeJsElRef){
+        let robot3D : RobotObject3D = this.threeJsElRef?.robots.filter(r=>r.robotCode == d.robotCode)[0]
+        robot3D.offline =  d.robotStatus == "UNKNOWN"
       }
     })
 
@@ -515,4 +559,5 @@ export class ArcsDashboardComponent implements OnInit {
     this.tableRef?.retrieveData()
     // this.uiSrv.loadAsyncDone(ticket)
   }
+  
 }

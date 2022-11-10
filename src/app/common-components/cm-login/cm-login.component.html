@@ -15,7 +15,7 @@
                 <uc-txtbox *ngIf="!auth2FASegment" lab = "Login ID" [frmGrp] = "frmGrp" frmCtrl = "username" [disabled]="auth2FASegment"></uc-txtbox>
                 <uc-txtbox *ngIf="!auth2FASegment" lab = "Password" type = "password" [frmGrp] = "frmGrp" frmCtrl = "password"></uc-txtbox>
                 <uc-txtbox *ngIf="auth2FASegment" lab = "Verification Code" [frmGrp] = "frmGrp" frmCtrl = "verificationCode"></uc-txtbox>
-                <span class="error">{{errMsg}}</span>
+                <span *ngIf="errMsg" class="error">{{errMsg}}</span>
                 <a class="forgot-pw" *ngIf= "util.arcsApp && !auth2FASegment" (click)="showForgetPasswordDialog = true">{{'Forget Password?'| label : uiSrv.langPack}}</a>
                 <button class="login-button" kendoButton (click)="login()">{{'Login' | label : uiSrv.langPack}}</button>
             </form>         
@@ -47,7 +47,7 @@
 <kendo-dialog class="tablet-login-dialog" *ngIf="showTabletLoginDialog" [title]="'Login' | label: uiSrv.langPack" (close) = " toExitGuestMode ? dialogRef.close() : showTabletLoginDialog = false">
     <uc-txtbox lab = "Login ID" customClass = "''" [frmGrp] = "frmGrp" frmCtrl = "username"></uc-txtbox>
     <uc-txtbox lab = "Password" customClass = "''" type = "password" [frmGrp] = "frmGrp" frmCtrl = "password"></uc-txtbox>
-    <span class="error">{{errMsg}}</span> 
+    <span *ngIf="errMsg" class="error">{{errMsg}}</span> 
 
     <span  *ngIf="!toExitGuestMode" class="guest-mode-option">
         <input class="checkbox" type="checkbox" kendoCheckBox [(ngModel)]="guestMode" />
