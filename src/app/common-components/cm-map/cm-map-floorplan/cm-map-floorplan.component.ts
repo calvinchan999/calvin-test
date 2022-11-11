@@ -154,7 +154,7 @@ export class CmMapFloorplanComponent implements OnInit {
     (<any>this.pixiElRef.allPixiPoints).concat((<any>this.pixiElRef.allPixiArrows)).forEach(gr=>gr.visible = this.selectedTab == 'locations');
     //(<any>this.pixiElRef.allPixiPoints).concat((<any>this.pixiElRef.allPixiArrows)).forEach(gr=>this.pixiElRef.removeGraphics(gr))
     this.uiSrv.loadAsyncDone(ticket);
-    // JSON.parse(HKAA_1110).forEach(w => {
+    // JSON.parse(RNR_1110).forEach(w => {
     //   this.add_UserTrainingWaypoint(w['name'].toUpperCase(), w['x'], w['y'] , w['angle'])
     // })
   }
@@ -507,6 +507,51 @@ export class CmMapFloorplanComponent implements OnInit {
   //   return [ret]
   // }
 }
+
+const RNR_1110 = `
+[
+  {
+    "id": 507,
+    "name": "P3",
+    "mapName": "10-17_RnR_warehouse",
+    "x": 11.08719,
+    "y": 0.10071,
+    "angle": -0.04927062716638903
+  },
+  {
+    "id": 508,
+    "name": "HOME_2",
+    "mapName": "10-17_RnR_warehouse",
+    "x": -0.05748,
+    "y": -0.03996,
+    "angle": -3.109669469664443
+  },
+  {
+    "id": 509,
+    "name": "P1",
+    "mapName": "10-17_RnR_warehouse",
+    "x": 0.28147,
+    "y": 0.70312,
+    "angle": -0.06981314511709409
+  },
+  {
+    "id": 510,
+    "name": "P4",
+    "mapName": "10-17_RnR_warehouse",
+    "x": 3.16881,
+    "y": 3.68867,
+    "angle": 2.534603386689777
+  },
+  {
+    "id": 511,
+    "name": "P2",
+    "mapName": "10-17_RnR_warehouse",
+    "x": 5.25134,
+    "y": 0.32662,
+    "angle": -0.08799946942009712
+  }
+]
+`
 const HKAA_1110 = `
 [
   {

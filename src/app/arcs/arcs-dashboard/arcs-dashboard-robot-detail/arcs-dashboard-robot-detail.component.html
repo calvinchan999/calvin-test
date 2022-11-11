@@ -7,7 +7,7 @@
         <!-- tab buttons -->
         <div class="card-buttons">
             <kendo-buttongroup #buttonGroup selection="single">
-                <button *ngFor="let tab of tabs" kendoButton [toggleable]="true" [selected]="selectedTab == tab.id" (click) = "selectedTab = tab.id "> 
+                <button *ngFor="let tab of tabs" kendoButton [toggleable]="true" [selected]="selectedTab == tab.id" (click) = "selectedTab = tab.id ; selectedTab == 'camera' ? getStreamingUrl() : null;"> 
                     {{ tab.label | label : uiSrv.langPack }}
                 </button>
             </kendo-buttongroup>
@@ -67,6 +67,15 @@
         </ng-template>
         
     </ng-container>    
+
+    <ng-container *ngIf="selectedTab == 'camera' && streamingUrl">
+        <uc-video-player [isAzure]="true" [src] = "streamingUrl"></uc-video-player>
+        <!-- <video controls width="500">
+            <source src="https://rv-media-720p-rvdevmedia.preview-aaea.channel.media.azure.net/fca4139f-e83f-43da-bf43-49734edbf9ca/preview.ism/manifest" type="video/webm">
+        </video> -->
+        <!-- <video id="video"  width="500" src="https://rv-media-720p-rvdevmedia.preview-aaea.channel.media.azure.net/fca4139f-e83f-43da-bf43-49734edbf9ca/preview.ism/manifest"  autoplay="autoplay"></video> -->
+        <!-- <uc-video-player src = "https://rv-media-720p-rvdevmedia.preview-aaea.channel.media.azure.net/fca4139f-e83f-43da-bf43-49734edbf9ca/preview.ism/manifest"></uc-video-player> -->
+    </ng-container>
 
 
 <!-- (click)=" tab.id == selectedTab ? null : onTabChange(tab.id) " -->

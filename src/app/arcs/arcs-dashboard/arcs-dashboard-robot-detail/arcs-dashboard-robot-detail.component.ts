@@ -27,10 +27,11 @@ export class ArcsDashboardRobotDetailComponent implements OnInit {
   robotSubType 
   topics : signalRType[] =  ['battery' , 'speed' , 'state'] 
   topModuleTabs = {
-    PATROL : {id : 'topModule' , label : 'Module'},
-    DELIVERY :{ id :'topModule' , label : 'Module'}
+    PATROL : [{id : 'topModule' , label : 'Module'} , {id : 'camera' , label : 'Cameras'}],
+    DELIVERY :[{ id :'topModule' , label : 'Module'}]
   }
   alertMsg = null
+  streamingUrl = null
 
   async ngOnInit() {
     let ticket = this.uiSrv.loadAsyncBegin()
@@ -88,6 +89,14 @@ export class ArcsDashboardRobotDetailComponent implements OnInit {
       await this.dataSrv.httpSrv.rvRequest("PUT",`robot/v1/hold?robotCode=${this.robotId}&hold=false`, undefined, true, this.uiSrv.translate("Robot released sucessfully - ") + this.robotId)
       this.uiSrv.loadAsyncDone(ticket)
       this.refreshRobotStatus()
+    }
+  }
+
+  async getStreamingUrl(){
+    if(!this.streamingUrl){
+      let ticket = this.uiSrv.loadAsyncBegin()
+      this.streamingUrl = await this.dataSrv.httpSrv.get(`api/sysparas/streamingUrl/${this.robotId}/v1`)
+      this.uiSrv.loadAsyncDone(ticket)
     }
   }
 }

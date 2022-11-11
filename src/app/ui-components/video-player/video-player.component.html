@@ -1,2 +1,6 @@
 <!-- <video id="test_video" controls autoplay src="rtsp://your_rtsp_stream/url"></video> -->
-<video #video  [width]="width" [height]="height"></video>
+<video #video id="vid1" [class]="isAzure ? 'azuremediaplayer amp-default-skin' : '' " [width]="width" [height]="height">   
+    <p *ngIf="isAzure" class="amp-no-js">
+        To view this video please enable JavaScript, and consider upgrading to a web browser that supports HTML5 video
+    </p>
+</video>

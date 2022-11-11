@@ -1,7 +1,7 @@
 <kendo-scrollview *ngIf="!util.arcsApp  && (robotType == 'patrol' && !isTaskLayout)" [data]="patrolFlvSrc ? [1 , 2] : [1]" [arrows]="!uiSrv.isTablet" [pageable]="true">
     <ng-template let-item="item">
         <ng-container *ngIf="item == 2">
-            <app-video-player [width]="1700" [height]="700" [src]="patrolFlvSrc"></app-video-player>
+            <uc-video-player [width]="1700" [height]="700" [src]="patrolFlvSrc"></uc-video-player>
         </ng-container>
         <ng-container *ngIf="item == 1">
             <ng-container *ngTemplateOutlet="tileLayout"></ng-container>
@@ -12,7 +12,6 @@
 <ng-container *ngIf="util.arcsApp || robotType != 'patrol' || isTaskLayout">
     <ng-container *ngTemplateOutlet = "tileLayout"></ng-container>
 </ng-container>
-
 
 <ng-template #tileLayout let-items="tileLayout">
     <kendo-tilelayout [columns]="4" [resizable]="false" [reorderable]="false" >
