@@ -116,7 +116,7 @@ export class ArcsSetupComponent implements OnInit {
         { title: "Floor Plan Name", id: "floorPlanName", width: 200 },       
       ].concat(this.dataSrv.arcsDefaultBuilding ? [{ title: "Building", id: "buildingName", width: 200 }] : []).concat(
         <any>[{ title: "Default", id: "defaultPerBuilding", width: 50 , dropdownOptions:[{text : "Yes" , value : true},{text : "No" , value : false}] }]
-      )
+      ).concat(<any>[{ title: "", type: "button", id: "alert", width: 80, icon: 'mdi mdi-exclamation-thick', fixed: true , ngIf: true , matTooltip : 'alertMsg' }])
     },
     map: {
       functionId:"MAP",
@@ -171,7 +171,7 @@ export class ArcsSetupComponent implements OnInit {
     this.route.params.pipe(takeUntil(this.$onDestroy)).subscribe((params)=>{
       if(params?.selectedTab){
         this.onTabChange(params?.selectedTab)
-        if(params.selectedTab == 'synclog'){
+        if(['synclog' , 'floorplan'].includes(params.selectedTab)){
           this.tableElRef?.retrieveData()
         }
       }
@@ -249,6 +249,22 @@ export class ArcsSetupComponent implements OnInit {
     let resp = await this.dataSrv.deleteRecordsV2(urlMapping[this.selectedTab] ,   this.data.filter(r => r['select'] == true))
     if (resp == true) {
       this.loadData()
+    }
+  }
+
+  async onGridDataChanged(){ //get alert by sql seems like a more elegant way but may lead to performance issue? rather have delay for showing alert? 
+    if(this.tableElRef && this.selectedTab == 'floorplan'){
+      await this.dataSrv.updateFloorPlansAlert_ARCS() // after updating floor plan this will be triggered so that header notification can be updated
+      this.tableElRef.myData =  JSON.parse(JSON.stringify(this.tableElRef.myData.map(d=> {
+        let alertFloorPlan = this.dataSrv.alertFloorPlans.filter(a=>a.floorPlanCode == d.floorPlanCode)[0]
+        if (alertFloorPlan) {
+          d['alert'] = true
+          d['alertMsg'] = this.uiSrv.translate(`Please update the floor plan for map [$mapCode] of robot bases [$robotBases]`).
+            replace('$mapCode', alertFloorPlan.mapCode).
+            replace('$robotBases', alertFloorPlan.robotBases.join(' , '))
+        }
+         return d
+      })))
     }
   }
 }

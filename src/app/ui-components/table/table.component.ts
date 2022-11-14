@@ -22,7 +22,7 @@ export class TableComponent implements OnInit {
   @ViewChild('kGrid') kGrid : GridComponent
    myData = []
   @Input() serverSidePagination = false
-  @Input() customButtons  : {id :  string , label : string , disabled : boolean , icon : string }[]= []
+  @Input() customButtons: { id: string, label: string, disabled: boolean, icon: string }[] = []
   @Input() set data(v){
     this.myData = v
     this.dataChange.emit(this.data)

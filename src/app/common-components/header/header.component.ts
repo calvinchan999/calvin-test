@@ -28,6 +28,7 @@ export class HeaderComponent {
     @ViewChild("settingMenu") settingMenu : MenuComponent
     @ViewChild("langButton") langButton : DropDownButtonComponent
     @ViewChild("syncMenu") syncMenu : MenuComponent
+    syncMenuItems =[]
     // public customMsgService: CustomMessagesService;
 
 
@@ -132,16 +133,27 @@ export class HeaderComponent {
         }
     }    
 
+    public openSyncMenu(){
+        this.syncMenuItems = this.dataSrv.alertFloorPlans.concat(<any> this.dataSrv.signalRSubj.arcsSyncLog.value ) 
+        this.updateUnreadCount()
+        setTimeout(()=> this.syncMenu.toggle(true , '0'))
+    }
+
     public updateUnreadCount(){
-        console.log('menu opened')
-        this.dataSrv.unreadSyncLogCount.next(0)
-        this.dataSrv.setlocalStorage('unreadSyncLogCount' ,JSON.stringify(0))
+        this.dataSrv.unreadSyncMsgCount.next(0)
+        this.dataSrv.setlocalStorage('unreadSyncMsgCount' ,JSON.stringify(0))
     }
 
     public updateUnreadLog(){
+        console.log(this.dataSrv.signalRSubj.arcsSyncLog.value )
         let processingLogs = (this.dataSrv.signalRSubj.arcsSyncLog.value ? this.dataSrv.signalRSubj.arcsSyncLog.value : []).filter(l=>l.dataSyncStatus == 'TRANSFERRING')
         this.dataSrv.signalRSubj.arcsSyncLog.next( processingLogs)
         this.dataSrv.setlocalStorage('syncDoneLog' , JSON.stringify([]))
+    }
+
+    public onSyncMenuClose(){
+        this.updateUnreadLog()
+        this.syncMenuItems = []
     }
 
 }

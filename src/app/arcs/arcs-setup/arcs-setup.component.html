@@ -14,7 +14,7 @@
     </div>
     <div class="table-container" *ngIf="selectedTab != 'log'" >
         <uc-table #table  [customButtons] = "tableCustomButtons[selectedTab] ? tableCustomButtons[selectedTab] : [] "
-                          (customButtonClick) = "showDetail(null , $event)"
+                          (customButtonClick) = "showDetail(null , $event)" (dataChange) = "onGridDataChanged()"
                           [toolbarButtons] ="{new : (selectedTab != 'map') && !(selectedTab == 'site' && data.length > 0), action: true}" 
                           [columnDefs] = "gridSettings[selectedTab]['columns']" [(data)]="data" [serverSidePagination] = "true"
                           [dataSourceApiEndpoint] = "gridSettings[selectedTab]['apiUrl']"    [functionId] = "gridSettings[selectedTab]['functionId']"

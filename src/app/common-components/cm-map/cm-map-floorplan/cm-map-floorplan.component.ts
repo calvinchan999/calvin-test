@@ -142,14 +142,18 @@ export class CmMapFloorplanComponent implements OnInit {
     // data = JSON.parse(testDs4)
     this.mapCode = data.mapList[0]?.mapCode
     this.mapTree.refreshExpandedKeys()
-    await this.pixiElRef.loadFloorPlanDatasetV2(data , undefined , undefined , false)
-    this.mapsStore.set(this.mapCode , JSON.parse(JSON.stringify(data.mapList)))
-    for (let i = 0; i < data.mapList.length; i++) {
-      let pixiMap = await this.pixiElRef.loadMapV2(data.mapList[i])
-      if (!this.readonly && i == data.mapList.length - 1) {
-        this.pixiElRef.selectGraphics(pixiMap)
-      }
-    } 
+    await this.pixiElRef.loadFloorPlanDatasetV2(data, undefined, undefined, false)
+    if (this.mapCode) {
+      await this.getMapsData(this.mapCode)
+      await this.loadMapsToPixi(this.mapCode, false)
+    }
+    // this.mapsStore.set(this.mapCode , JSON.parse(JSON.stringify(data.mapList)))
+    // for (let i = 0; i < this.mapsStore.get(this.mapCode).length; i++) {
+    //   let pixiMap = await this.pixiElRef.loadMapV2(this.mapsStore.get(this.mapCode)[i])
+    //   if (!this.readonly && i == data.mapList.length - 1) {
+    //     this.pixiElRef.selectGraphics(pixiMap)
+    //   }
+    // } 
     this.util.loadToFrmgrp(this.frmGrp ,  data);
     (<any>this.pixiElRef.allPixiPoints).concat((<any>this.pixiElRef.allPixiArrows)).forEach(gr=>gr.visible = this.selectedTab == 'locations');
     //(<any>this.pixiElRef.allPixiPoints).concat((<any>this.pixiElRef.allPixiArrows)).forEach(gr=>this.pixiElRef.removeGraphics(gr))
@@ -170,19 +174,28 @@ export class CmMapFloorplanComponent implements OnInit {
 
   async initDropDown(){
     let ticket = this.uiSrv.loadAsyncBegin()
-    this.dropdownData.maps = <any>(await this.dataSrv.getDropList('maps')).data.filter((m : DropListMap ) => !m.floorPlanCode  || m.floorPlanCode == this.code)
+    this.dropdownData.maps = <any>(await this.dataSrv.getDropList('maps')).data
+    let excludeMapCodes = this.dropdownData.maps.filter(m=>m.floorPlanCode != null && m.floorPlanCode != this.code).map(m=>m.mapCode)
+    this.dropdownData.maps = this.dropdownData.maps.filter(m=> !excludeMapCodes.includes(m.mapCode))
     this.dropdownOptions.maps = this.dataSrv.getDropListOptions('maps',this.dropdownData.maps) 
     if(this.util.arcsApp){
       let buildingDDL = await this.dataSrv.getDropList('buildings')
       this.dropdownData.buildings = <any>buildingDDL.data
       this.dropdownOptions.buildings = buildingDDL.options
       
-      let tmpObj = this.util.getGroupedListsObject(this.dropdownData.maps , 'mapCode') 
-      this.mapTree.data = Object.keys(tmpObj).map(k=>{
+      let tmpObj = this.util.getGroupedListsObject(this.dropdownData.maps , 'mapCode')
+      this.mapTree.data = Object.keys(tmpObj).map(k => {
         return {
-          mapCode : k,
-          name :  k,
-          robotBases : tmpObj[k].map((v :DropListMap)=>{return {robotBase: v.robotBase ,  name : `[${v.robotBase}] ${v.name}` , mapCode : v.mapCode }})
+          mapCode: k,
+          name: k,
+          robotBases: tmpObj[k].map((v: DropListMap) => {
+            return {
+              robotBase: v.robotBase,
+              name: `[${v.robotBase}] ${v.name}`,
+              mapCode: v.mapCode,
+              alert: !v.floorPlanCode && this.dropdownData.maps.filter(m => m.floorPlanCode == this.code && m.mapCode == v.mapCode).length > 0
+            }
+          }),
         }
       })
     }
@@ -305,22 +318,28 @@ export class CmMapFloorplanComponent implements OnInit {
     this.pixiMapBorders = []
     if(this.mapCode){
       await this.getMapsData(this.mapCode)
-      for (let i = 0; i < this.mapsStore.get(this.mapCode)?.length ; i++) {
-        var map = await this.pixiElRef.loadMapV2(this.mapsStore.get(this.mapCode)[i])
-        // if (i == this.mapsStore.get(this.mapCode).length - 1) {
-        //   this.pixiElRef.selectGraphics(map)
-        // }
-      }
-
-      setTimeout(()=>{
-        if(this.selectedTab == 'maps'){         
-          this.pixiElRef.selectGraphics(map)  
-        }else if(this.pixiElRef.selectedGraphics == map){
-          this.pixiElRef.selectGraphics(null)
-        }
-      })
+      await this.loadMapsToPixi()
     }   
     await this.changeTab(originalTab)
+  }
+
+  async loadMapsToPixi(mapCode : string = this.mapCode , select = true){
+    let maps = this.mapsStore.get(this.mapCode)
+    for (let i = 0; i < maps.length ; i++) {
+      var map = await this.pixiElRef.loadMapV2(maps[i])
+      if(select && !this.readonly && i == maps.length - 1){
+        setTimeout(()=>{
+          if(this.selectedTab == 'maps'){         
+            this.pixiElRef.selectGraphics(map)  
+          }else if(this.pixiElRef.selectedGraphics == map){
+            this.pixiElRef.selectGraphics(null)
+          }
+        })
+      }
+      if (!this.readonly && i == maps.length - 1) {
+        this.pixiElRef.selectGraphics(map)
+      }
+    } 
   }
 
 

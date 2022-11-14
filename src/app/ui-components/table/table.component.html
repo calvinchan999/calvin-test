@@ -83,7 +83,7 @@
                     <input *ngIf="colDef.type == 'checkbox' && !colDef.pipe" type="checkbox" [(ngModel)]="dataItem[colDef.id]" 
                             (ngModelChange)="refreshSelectedData() ; cellClick.emit({row : dataItem , column : colDef.id , event : $event})"
                             kendoCheckBox />
-                    <a *ngIf="colDef.type == 'button' && !colDef.pipe" 
+                    <a *ngIf="colDef.type == 'button' && !colDef.pipe" [matTooltip]="dataItem[colDef.matTooltip]"
                         (click)="cellClick.emit({row : dataItem , column : colDef.id , event : $event})">
                         <span [class]="colDef.icon"></span>
                     </a>

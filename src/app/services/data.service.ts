@@ -15,7 +15,7 @@ import { DatePipe } from '@angular/common'
 export type syncStatus = 'TRANSFERRED' | 'TRANSFERRING' | 'MALFUNCTION'
 export type syncLog =  {dataSyncId? : string , dataSyncType? : string , objectType? : string , dataSyncStatus?: syncStatus , objectCode?: string , robotCode?: string , progress? : any , startDateTime? : Date , endDateTime : Date  }
 export type dropListType =  'floorplans' | 'buildings' | 'sites' | 'maps' | 'actions' | 'types' | 'locations' | 'userGroups' | 'subTypes' | 'robots' | 'missions' 
-export type localStorageKey = 'lang' | 'uitoggle' | 'lastLoadedFloorplanCode' | 'eventLog' | 'unreadNotificationCount' | 'unreadSyncLogCount' | 'syncDoneLog'
+export type localStorageKey = 'lang' | 'uitoggle' | 'lastLoadedFloorplanCode' | 'eventLog' | 'unreadNotificationCount' | 'unreadSyncMsgCount' | 'syncDoneLog' 
 export type sessionStorageKey = 'arcsLocationTree' | 'dashboardFloorPlanCode'| 'isGuestMode' | 'userAccess' | 'arcsDefaultBuilding' | 'userId' | 'currentUser'
 export type eventLog = {datetime? : string , type? : string , message : string  , robotCode?: string }
 export type signalRType = 'activeMap' | 'occupancyGridMap' | 'navigationMove' | 'chargingResult' | 'chargingFeedback' | 'state' | 'battery' | 'pose' | 'speed'|
@@ -29,8 +29,9 @@ export type signalRType = 'activeMap' | 'occupancyGridMap' | 'navigationMove' | 
   providedIn: 'root'
 })
 export class DataService {
+  public alertFloorPlans :{type : string ,floorPlanCode : string , mapCode : string , robotBases : string[]}[] = []
   public unreadNotificationCount = new BehaviorSubject<number>(0)
-  public unreadSyncLogCount = new BehaviorSubject<number>(0)
+  public unreadSyncMsgCount = new BehaviorSubject<number>(0)
   public arcsDefaultSite = null
   public arcsDefaultBuilding = null
   public codeRegex
@@ -202,7 +203,7 @@ export class DataService {
                                     }
                                   }
                         },
-    exception: { topic: "rvautotech/fobo/exception", mapping: { exception: (d)=>{let msg = `FOBO Error : ${d['message']} \n (Activate debug console for details)}`;
+    exception: { topic: "rvautotech/fobo/exception", mapping: { exception: (d)=>{let msg = `FOBO Error : ${d['message']}`;
                                                                                  this.uiSrv.showNotificationBar(msg ,'error') ; 
                                                                                  this.addEventLogToLocalStorage(msg , d['robotId'] , 'error'); 
                                                                                  console.log(d) ;
@@ -373,11 +374,14 @@ export class DataService {
     arcsSyncLog : { topic: "rvautotech/fobo/ARCS/data/sync/log" , mapping : {arcsSyncLog : (d:syncLog)=>{
                         var ret :syncLog[] = this.signalRSubj.arcsSyncLog.value ? JSON.parse(JSON.stringify(this.signalRSubj.arcsSyncLog.value))  : [] 
                         if(ret.filter(l=>l.dataSyncId != d.dataSyncId || l.dataSyncStatus != d.dataSyncStatus).length > 0 ){
-                          this.unreadSyncLogCount.next(this.unreadSyncLogCount.value + 1)
-                          this.setlocalStorage('unreadSyncLogCount', JSON.stringify( this.unreadSyncLogCount.value))
+                          this.unreadSyncMsgCount.next(this.unreadSyncMsgCount.value + 1)
+                          this.setlocalStorage('unreadSyncMsgCount', JSON.stringify( this.unreadSyncMsgCount.value))
                         }
-                        ret = [JSON.parse(JSON.stringify(d))].concat(ret.filter(l=>l.dataSyncId != d.dataSyncId))
+                        ret = [JSON.parse(JSON.stringify(d))].concat(ret.filter(l=>l.dataSyncId != d.dataSyncId)) 
                         this.setlocalStorage('syncDoneLog', JSON.stringify(ret.filter(l=>l.dataSyncStatus != 'TRANSFERRING')))    
+                        if(d.dataSyncStatus == "TRANSFERRED"){
+                          this.updateFloorPlansAlert_ARCS()
+                        }
                         return ret
                       }
                     },
@@ -408,16 +412,34 @@ export class DataService {
     })
   }
 
+  async updateFloorPlansAlert_ARCS(){
+    let maps : DropListMap[] = (<any>(await this.getDropList('maps')).data)
+    let alertMaps = maps.filter(m=> !m.floorPlanCode && maps.filter(m2=> m2.mapCode == m.mapCode && m2.floorPlanCode != m.floorPlanCode).length > 0)
+    this.alertFloorPlans = []
+    alertMaps.forEach(m=>{
+      let floorPlanCode = maps.filter(m2=> m2.mapCode == m.mapCode && m2.floorPlanCode != m.floorPlanCode).map(m2=>m2.floorPlanCode)[0]
+      let alertFloorPlanObj : {type : string ,floorPlanCode : string , mapCode : string , robotBases : string[] } = this.alertFloorPlans.filter(f=>f.floorPlanCode == floorPlanCode)[0]
+      if (!alertFloorPlanObj) {
+        alertFloorPlanObj = {type : 'SyncAlert' , floorPlanCode: floorPlanCode, mapCode: m.mapCode, robotBases: []  }
+        this.alertFloorPlans.push(alertFloorPlanObj)
+      }
+      if(!alertFloorPlanObj.robotBases.includes(m.robotBase)){
+        alertFloorPlanObj.robotBases.push(m.robotBase)
+      }
+    })
+    this.setlocalStorage('unreadSyncMsgCount', this.unreadSyncMsgCount.value.toString())
+  }
+
   loadDataFromLocalStorage(){
     let notiCount = this.getlocalStorage('unreadNotificationCount')
-    let syncCount = this.getlocalStorage('unreadSyncLogCount')
+    let syncCount = this.getlocalStorage('unreadSyncMsgCount')
     let syncDoneLog = this.getlocalStorage('syncDoneLog')
     let log = this.getlocalStorage('eventLog')
     if(notiCount != null){
       this.unreadNotificationCount.next(Number(notiCount))
     }
     if(syncCount != null){
-      this.unreadSyncLogCount.next(Number(syncCount))
+      this.unreadSyncMsgCount.next(Number(syncCount))
     }
     if(syncDoneLog != null){
       let oldLogs = this.signalRSubj.arcsSyncLog.value ? this.signalRSubj.arcsSyncLog.value : []
@@ -497,6 +519,7 @@ export class DataService {
         this.uiSrv.showWarningDialog('Lidar Sensor Turned On.')
       }
     } else {
+      this.updateFloorPlansAlert_ARCS()
       if (!this.getSessionStorage("arcsDefaultBuilding")) {
         await this.getArcsDefaultBuilding()
       }
