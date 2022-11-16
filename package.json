@@ -8,8 +8,9 @@
     "test": "ng test",
     "lint": "ng lint",
     "e2e": "ng e2e",
-    "build-prod": "node --max_old_space_size=64384 ./node_modules/@angular/cli/bin/ng build --prod --base-href /ChainStorePlus/",
-    "serve-prod": "node --max_old_space_size=64384 ./node_modules/@angular/cli/bin/ng serve --prod"
+    "set-prod-environment": "node ./replace.build.js",
+    "build-arcs": "npm run set-prod-environment -- arcs && node --max-old-space-size=10240 ./node_modules/@angular/cli/bin/ng build --prod --base-href \"/arcs/\"",
+    "build-sa": "npm run set-prod-environment -- standalone &&  node --max-old-space-size=10240 ./node_modules/@angular/cli/bin/ng build --prod --base-href  \"/rv_standalone/\""
   },
   "private": true,
   "dependencies": {
@@ -94,6 +95,7 @@
     "pixi-viewport": "^3.23.2",
     "pixi.js": "^5.0.4",
     "powerbi-client-angular": "^2.0.0",
+    "replace-in-file": "^6.2.0",
     "rxjs": "~6.6.7",
     "three": "^0.127.0",
     "three-line-outline": "0.0.7",

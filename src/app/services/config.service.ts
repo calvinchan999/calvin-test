@@ -2,7 +2,7 @@
 import { Injectable, APP_INITIALIZER } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Observable } from 'rxjs';
-
+import { environment } from 'src/environments/environment';
 //import { environment } from 'environments/environment'; //path to your environment files
 
 //import custom library
@@ -65,7 +65,7 @@ export class ConfigService {
             //     }
             // })
 
-			this.http.get("assets/config/config.json")
+			this.http.get(environment.production ? "assets/config/config.json" : "assets/config/config_dev.json")
                 // .map(res => res.json())
                 .subscribe((data) => {
                     this._config = data;

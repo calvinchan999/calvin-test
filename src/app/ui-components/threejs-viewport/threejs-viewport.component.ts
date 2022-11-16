@@ -53,8 +53,6 @@ export class ThreejsViewportComponent implements OnInit {
   orbitCtrl : OrbitControls
   container : HTMLElement
   dragCtrl : DragControls
-  robots : RobotObject3D[] = []
-  maps : MapMesh[] = []
   floorplan : FloorPlanMesh
   $mapCodeChanged = new Subject()
   renderer : WebGLRenderer
@@ -66,6 +64,11 @@ export class ThreejsViewportComponent implements OnInit {
   ROSmapScale = 1
   mapCode = ''
   focusedObj = null
+  @Input() uiToggles = {
+    showWall : true,
+    showWaypoint:true,
+    showWaypointName : true
+  }
   @Input() locationTree : {
     site : {
       code : string ,
@@ -91,6 +94,24 @@ export class ThreejsViewportComponent implements OnInit {
   mouseRaycaster = new THREE.Raycaster();
   focusedRaycaster = new THREE.Raycaster();
   cameraRayCaster = new THREE.Raycaster();
+
+
+  get waypointMeshes() : MarkerObject3D[]{
+    return this.floorplan?  <any>this.floorplan?.children.filter(c=>c instanceof MarkerObject3D) :[]
+  }
+  get mapMeshes() : MapMesh[]{
+    return <any>this.scene?.objRef.children.filter(c=> c instanceof MapMesh)
+  }
+  get robotObjs():RobotObject3D[]{
+    let ret = []
+    this.mapMeshes.forEach(m=> {
+      ret = ret.concat(m.children.filter(c=>c instanceof RobotObject3D))
+    })
+    return ret
+  }
+  get blockMeshes() : Extruded2DMesh[] {
+    return this.floorplan? <any>this.floorplan?.children.filter(b=>b instanceof Extruded2DMesh) : []
+  }
 
   @HostListener('window:resize', ['$event'])
   @HostBinding('class') customClass = 'drawing-board'
@@ -122,6 +143,19 @@ export class ThreejsViewportComponent implements OnInit {
     }
   }
 
+  uiToggled(key : string){    
+    let storedToggle =this.dataSrv.getlocalStorage('uitoggle') ?  JSON.parse(this.dataSrv.getlocalStorage('uitoggle')) : {}
+    Object.keys(this.uiToggles).forEach(k=> storedToggle[k] = this.uiToggles[k])
+    this.dataSrv.setlocalStorage('uitoggle' , JSON.stringify(storedToggle)) //SHARED BY 2D and 3D viewport
+    if(key == 'wall'){
+      this.blockMeshes.forEach(b=>b.visible = this.uiToggles.showWall)
+    }else if(key == 'waypoint'){
+      this.uiToggles.showWaypointName = !this.uiToggles.showWaypoint ? false : this.uiToggles.showWaypointName
+      this.waypointMeshes.forEach(m=>  m.visible = this.uiToggles.showWaypoint) 
+    }else if(key == 'waypointName'){
+      this.waypointMeshes.forEach(m=>m.toolTipAlwaysOn = this.uiToggles.showWaypointName)
+    }
+  }
 
   onMouseMove(event : MouseEvent) {
     if(!this.canvas?._rendererCanvas || this.suspended){
@@ -139,13 +173,15 @@ export class ThreejsViewportComponent implements OnInit {
       if (firstObj instanceof RobotObject3D || firstObj instanceof MarkerObject3D) {
         firstObj.addMouseClickListener()
         let tip = firstObj instanceof RobotObject3D ? firstObj.robotCode : (firstObj instanceof MarkerObject3D ? firstObj.pointCode : null)
-        firstObj.showToolTip(tip)
+        if(!(firstObj instanceof MarkerObject3D && firstObj.toolTipAlwaysOn)){
+          firstObj.showToolTip(tip)
+        }
       }
     }
     this.focusedObj = firstObj && (firstObj instanceof RobotObject3D || firstObj instanceof MarkerObject3D) ? firstObj : null
 
     let blocks = firstObj ? this.getIntersectedBlocks(this.focusedRaycaster , firstObj ) : []
-    this.floorplan?.children.filter(c => c instanceof Extruded2DMesh).forEach((b: Extruded2DMesh) => {
+    this.blockMeshes.forEach((b: Extruded2DMesh) => {
       b.blockedFocusedObject = blocks.includes(b)
     })
 
@@ -154,7 +190,9 @@ export class ThreejsViewportComponent implements OnInit {
         object.removeMouseOverEffect()
         if(object instanceof RobotObject3D || object instanceof MarkerObject3D){
           object.removeMouseClickListener()
-          object.hideToolTip()
+          if(!(object instanceof MarkerObject3D && object.toolTipAlwaysOn)){
+            object.hideToolTip()
+          }
         }
       }
     });
@@ -183,24 +221,30 @@ export class ThreejsViewportComponent implements OnInit {
     let cameraPostion = new THREE.Vector3();
     this.camera.objRef.getWorldPosition(cameraPostion);
     let transparentBlocks = []
-    this.robots.forEach(r => {
+    this.robotObjs.forEach(r => {
       transparentBlocks = transparentBlocks.concat(this.getIntersectedBlocks(this.cameraRayCaster, r))
     })
-    this.floorplan?.children.filter(c => c instanceof Extruded2DMesh).forEach((b: Extruded2DMesh) => {
+    this.blockMeshes.forEach((b) => {
       b.setOpactiy(transparentBlocks.includes(b) || b.blockedFocusedObject ? b.transparentOpacity : b.defaultOpacity)
     })
   }
 
   async ngOnInit() {
     console.log('THREE JS VERSION : ' + THREE.REVISION )
+    let storedToggle =  JSON.parse(this.dataSrv.getlocalStorage('uitoggle')) //SHARED by 2D & 3D viewport
+    Object.keys(storedToggle).forEach(k=> {
+      if(Object.keys(this.uiToggles).includes(k)){
+        this.uiToggles[k] = storedToggle[k] 
+      }
+    })
   }
 
   getRobot(robotCode : string): RobotObject3D{
-    return this.robots.filter(r=>r.robotCode == robotCode)[0]
+    return this.robotObjs.filter(r=>r.robotCode == robotCode)[0]
   }
 
   getMapMesh( robotBase : string = ""):MapMesh{
-    return this.maps.filter(m=>  m.robotBase == robotBase)[0]
+    return this.mapMeshes.filter(m=>  m.robotBase == robotBase)[0]
   }
 
   ngOnDestroy(){
@@ -217,10 +261,8 @@ export class ThreejsViewportComponent implements OnInit {
 
   resetScene(){
     this.scene.objRef.remove(this.floorplan)
-    this.maps.forEach(m=>this.scene.objRef.remove(m))
-    this.maps = []
-    this.robots.forEach(r=>this.scene.objRef.remove(r))
-    this.robots = []
+    this.mapMeshes.forEach(m=>this.scene.objRef.remove(m))
+    // this.robotObjs.forEach(r=>this.scene.objRef.remove(r))
     this.unsubscribeRobotPoses()
   }
 
@@ -374,7 +416,7 @@ export class ThreejsViewportComponent implements OnInit {
         }
         let robot = this.getRobot(robotCode) ?   this.getRobot(robotCode) : new RobotObject3D(this , robotCode , robotData.robotBase )
         let mapMesh = this.getMapMesh(robot.robotBase)
-        let oldMapMesh = this.maps.filter(m=>robot && m.robotBase!=robotData.robotBase && m.children.includes(robot))[0]
+        let oldMapMesh = this.mapMeshes.filter(m=>robot && m.robotBase!=robotData.robotBase && m.children.includes(robot))[0]
         if(oldMapMesh){
           oldMapMesh.remove(robot)
         }
@@ -407,7 +449,7 @@ export class ThreejsViewportComponent implements OnInit {
    refreshRobotColors(){
     Object.keys(this._robotColorMapping).forEach(robotCode=>{
       if(this._robotColorMapping[robotCode]){
-        let robot : RobotObject3D = this.robots.filter(r=>r.robotCode == robotCode)[0]
+        let robot : RobotObject3D = this.robotObjs.filter(r=>r.robotCode == robotCode)[0]
         if(robot){
           robot.color = Number(this._robotColorMapping[robotCode])
         }
@@ -461,7 +503,7 @@ class MapMesh extends Mesh {
     super(new THREE.PlaneGeometry(width, height), new THREE.MeshLambertMaterial({ map : THREE.ImageUtils.loadTexture(base64) , opacity: 0.5 , transparent :true , visible : false }))
     this.mapCode = mapCode
     this.robotBase = robotBase
-    this.master.maps = this.master.maps.filter(m=>m!= this).concat(this)
+    // this.master.maps = this.master.maps.filter(m=>m!= this).concat(this)
     this.transformedScale = scale
     this.transformedRadian = angle / -radRatio
     this.translatedX = x 
@@ -494,6 +536,13 @@ class Object3DCommon extends Object3D{
   mouseOvered = false
   clickListener
   onClick = new Subject()
+  defaultTooltipStyle = {
+    padding : '8px',
+    borderRadius : '5px',
+    lineHeight : '12px',
+    fontSize : '14px',
+    background : 'rgba( 0, 0, 0, 0.6 )'
+  }
 
   set toolTipText(v){
     this.toolTip.element.textContent = v
@@ -514,9 +563,17 @@ class Object3DCommon extends Object3D{
     // }
   }
 
-  showToolTip(text : string = null , position : THREE.Vector3 = null){
+  showToolTip(text : string = null , position : THREE.Vector3 = null , addonStyle : object = null){
     if(text){
       this.toolTipText = text
+    }
+    Object.keys(this.defaultTooltipStyle).forEach(k=>{
+      this.toolTip.element.style[k] = this.defaultTooltipStyle[k]
+    })
+    if(addonStyle){
+      Object.keys(addonStyle).forEach(k=>{
+        this.toolTip.element.style[k] = addonStyle[k]
+      })
     }
     if(position){
       this.toolTip.position.set(position.x , position.y , position.z)
@@ -534,11 +591,7 @@ class Object3DCommon extends Object3D{
     this.layers.enableAll()
     const div = document.createElement('div');
     div.className = 'label-3js';
-    div.textContent = 'test';
-    div.style.padding = '8px';
-    div.style.borderRadius = '5px';
-    div.style.lineHeight = '12px'
-    div.style.background = 'rgba( 0, 0, 0, .6 )'
+    div.textContent = '';
     this.toolTip = new CSS2DObject(div);
     this.toolTip.position.set(0, 40 / this.scale.y , 0);
     this.toolTip.layers.set(0);
@@ -626,6 +679,20 @@ class MarkerObject3D extends Object3DCommon {
   readonly size : number = 2
   loader : GLTFLoader
   readonly glbPath = "assets/3D/pin.glb"
+  set toolTipAlwaysOn(v){
+    this._toolTipAlwaysOn = v
+    this.toolTip.position.set(0, (v ? -0.2 : 1 )* (this.size * 20) * this.master.ROSmapScale  , 0)
+    if(v){
+      this.showToolTip(this.pointCode , undefined , {fontSize : '10px' , lineHeight : '0px' , background : 'rgba(0,0,0,0.4)'})
+    }else{
+      this.hideToolTip()
+    }
+  }
+  get toolTipAlwaysOn(){
+    return this._toolTipAlwaysOn
+  }
+  _toolTipAlwaysOn = false
+
   constructor( master: ThreejsViewportComponent , private _name : string){
     super(master)
     this.pointCode = _name
@@ -689,7 +756,7 @@ export class RobotObject3D extends Object3DCommon{
     this.robotCode = _robotCode;
     this.robotBase = _robotBase
     this.master = master
-    this.master.robots = this.master.robots.filter(r=>r != this).concat(this)
+    // this.master.robots = this.master.robots.filter(r=>r != this).concat(this)
     this.loader = new GLTFLoader();
     let ticket = this.master.uiSrv.loadAsyncBegin()
      this.loader.load(this.glbPath ,(gltf : GLTF)=> {
@@ -717,7 +784,7 @@ export class RobotObject3D extends Object3DCommon{
     this.onClick.subscribe(()=>{
       this.master.robotClicked.emit({id:this.robotCode , object : this})
     })
-    this.master.robots = this.master.robots.filter(r=>r!= this).concat(this)
+    // this.master.robots = this.master.robots.filter(r=>r!= this).concat(this)
     this.master.outlinePass.enabled = true
     this.master.outlinePass.selectedObjects = (this.master.outlinePass.selectedObjects ? this.master.outlinePass.selectedObjects : []).concat(this)
   }

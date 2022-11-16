@@ -1946,7 +1946,13 @@ export class DrawingBoardComponent implements OnInit , AfterViewInit {
       }
     })
     if(this.isDashboard && this.dataSrv.getlocalStorage('uitoggle')){
-      this.uitoggle = JSON.parse(this.dataSrv.getlocalStorage('uitoggle'))
+      let storedToggle =  JSON.parse(this.dataSrv.getlocalStorage('uitoggle')) //SHARED by 2D & 3D viewport
+      Object.keys(storedToggle).forEach(k=> {
+        if(Object.keys(this.uitoggle).includes(k)){
+          this.uitoggle[k] = storedToggle[k] 
+        }
+      })
+      // this.uitoggle = JSON.parse(this.dataSrv.getlocalStorage('uitoggle'))
     }
     this.toggleWaypoint(this.uitoggle.showWaypoint)
     this.togglePath()
@@ -2379,9 +2385,15 @@ export class DrawingBoardComponent implements OnInit , AfterViewInit {
     }
   }
 
+  updateUiToggleLocalStorage(){
+    let storedToggle = this.dataSrv.getlocalStorage('uitoggle') ?  JSON.parse(this.dataSrv.getlocalStorage('uitoggle')) : {}
+    Object.keys(this.uitoggle).forEach(k=> storedToggle[k] = this.uitoggle[k])
+    this.dataSrv.setlocalStorage('uitoggle' , JSON.stringify(this.uitoggle)) //SHARED BY 2D and 3D viewport
+  }
+
   toggleWaypoint(show = this.uitoggle.showWaypoint){
     if(this.isDashboard){
-      this.dataSrv.setlocalStorage('uitoggle' , JSON.stringify(this.uitoggle))
+      this.updateUiToggleLocalStorage()
     }
     this.uitoggle.showWaypoint = show;
     this.allPixiPoints.forEach(p=>{
@@ -2393,7 +2405,7 @@ export class DrawingBoardComponent implements OnInit , AfterViewInit {
 
   togglePath(show = this.uitoggle.showPath){
     if(this.isDashboard){
-      this.dataSrv.setlocalStorage('uitoggle' , JSON.stringify(this.uitoggle))
+      this.updateUiToggleLocalStorage()
     }
     this.uitoggle.showPath = show;
     this.allPixiArrows.forEach(p=>{

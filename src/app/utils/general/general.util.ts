@@ -34,6 +34,9 @@ export class GeneralUtil {
 	constructor(private http : HttpClient) {
 		this.standaloneApp = environment.app.toUpperCase() == 'STANDALONE'
 		this.arcsApp = environment.app.toUpperCase() == 'ARCS'
+		console.log('**************************************************************************************')
+		console.log(`FOBO-AMR-WEB [${ environment.app.toUpperCase()}] BUILD ${environment.version} By RV Automation Technology Company Limited `)
+		console.log('**************************************************************************************')
 	}
 
 	public trimNum(value , decimalPlaces = 3){

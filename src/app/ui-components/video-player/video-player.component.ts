@@ -30,7 +30,6 @@ export class VideoPlayerComponent implements OnInit, OnDestroy {
   ngOnInit() { }
   // Instantiate a Video.js player OnInit
   ngAfterViewInit() {
-    console.log(this.src)
     if(this.isAzure){
       this.player = amp('vid1' );
       let player : amp.Player = this.player 

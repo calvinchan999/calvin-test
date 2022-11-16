@@ -489,7 +489,7 @@ export class ArcsDashboardComponent implements OnInit {
         }
       }
       if(this.threeJsElRef){
-        let robot3D : RobotObject3D = this.threeJsElRef?.robots.filter(r=>r.robotCode == d.robotCode)[0]
+        let robot3D : RobotObject3D = this.threeJsElRef?.robotObjs.filter(r=>r.robotCode == d.robotCode)[0]
         robot3D.offline =  d.robotStatus == "UNKNOWN"
       }
     })

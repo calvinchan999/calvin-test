@@ -17,6 +17,15 @@
   <button kendoButton class="2d-switch" [matTooltip]="'2D Map' | label : uiSrv.langPack" (click)="to2D.emit({floorPlanCode : floorPlanDataset.floorPlanCode })">
     <span class="mdi mdi-video-2d"></span>
   </button>
+  <button kendoButton class="wall" [matTooltip]="'Show walls' | label : uiSrv.langPack" (click)="uiToggles.showWall = !uiToggles.showWall ; uiToggled('wall')" [ngClass]="{'btn-active':uiToggles.showWall}" >
+    <span class="mdi mdi-wall"></span>
+  </button>
+ <button  kendoButton class="show-waypoint" [matTooltip]="((uiToggles.showWaypoint && uiToggles.showWaypointName) ? 'Hide Waypoint Name' : ((uiToggles.showWaypoint && !uiToggles.showWaypointName) ? 'Hide Waypoint' : 'Show Waypoint'))| label : uiSrv.langPack"  
+                 matTooltipPosition="right" 
+                (click)=" uiToggles.showWaypointName = !(uiToggles.showWaypoint && uiToggles.showWaypointName); uiToggles.showWaypoint = !(uiToggles.showWaypoint && uiToggles.showWaypointName) ; uiToggled('waypoint') ; uiToggled('waypointName') "  
+                [ngClass]="{'btn-intermediate': uiToggles.showWaypoint && !uiToggles.showWaypointName , 'btn-active': uiToggles.showWaypoint && uiToggles.showWaypointName }">
+          <span class="mdi mdi-map-marker"></span>
+ </button>
 </div>
 
 <th-canvas #canvas (onRender)="animate()">
