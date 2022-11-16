@@ -150,15 +150,19 @@
     </kendo-tilelayout-item>
 </kendo-tilelayout>
 
-<div class="table-container"  *ngIf="selectedTab == 'schedule'  || selectedTab == 'task' || selectedTab == 'template'">
+<div class="table-container"  *ngIf="selectedTab == 'schedule'  || selectedTab == 'task' || selectedTab == 'template' || selectedTab == 'group'">
     <uc-table #table  [toolbarButtons] ="tableButtons" [columnDefs] = "gridSettings[selectedTab]['columns']" [(data)]="data"    
                       [functionId] = "gridSettings[selectedTab]['functionId']"
                       [dataSourceApiEndpoint] = "gridSettings[selectedTab]['apiUrl']"
                       [disabledButtons] = "tableDisabledButtons" 
                       (selectedDataChange) = "tableDisabledButtons = {new : false , action : $event.length == 0}"
                       (actionClick) = "$event.actionId == 'delete' ? delete(): null " [serverSidePagination] = "true"
-                      (cellClick) = "$event.column == 'edit' || $event.column ==  'execute' ? showTaskDetail($event) : ($event.column ==  'cancel' ? cancelTask($event) : null)"
-                      (createClick) = "showTaskDetail()" 
+                      (cellClick) = "selectedTab == 'group' && $event.column == 'edit' ? 
+                                        showGroupDialog($event) : 
+                                        ($event.column == 'edit' || $event.column ==  'execute' ?
+                                             showTaskDetail($event) : 
+                                             ($event.column ==  'cancel' ? cancelTask($event) : null))"
+                      (createClick) = "selectedTab == 'group'? showGroupDialog() : showTaskDetail()" 
                       [useColumnFilter]='true' [defaultState] = "gridSettings[selectedTab]['defaultState'] ? gridSettings[selectedTab]['defaultState'] : null">
     </uc-table>
 </div>

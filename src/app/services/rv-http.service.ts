@@ -87,13 +87,13 @@ export class RvHttpService {
 
   //v * * * internal API , mainly for schmidt DB CRUD * * * v
 
-  public async get(endpoint: string, body: object = {}, queryParm = null, header = null, apiUrl: string = this.generalUtil.getAPIUrl(), throwErr = false , isPolling = false , returnDataPartOnly = true ): Promise<any> {
+  public async get(endpoint: string, body: object = {}, queryParm = null, header = null, apiUrl: string = this.generalUtil.getAPIUrl(), throwErr = false , suppressErrorNoti = false , returnDataPartOnly = true ): Promise<any> {
     try{
       let resp = await this.http.request('get', apiUrl + '/' + endpoint + (queryParm ? this.generalUtil.convertToFormStr(queryParm) : ''), { headers:header, body: body}).toPromise()
       let returnRawEndpoints = [] 
       return (!returnRawEndpoints.includes(endpoint) && returnDataPartOnly) ? resp?.['data'] : resp
     } catch (err) {
-      if(!isPolling){
+      if(!suppressErrorNoti){
         this.uiSrv.showNotificationBar('API HTTP [GET] ERROR : ' +  endpoint ,'error')
         console.log(err)
       }

@@ -30,18 +30,22 @@ export class VideoPlayerComponent implements OnInit, OnDestroy {
   ngOnInit() { }
   // Instantiate a Video.js player OnInit
   ngAfterViewInit() {
+    console.log(this.src)
     if(this.isAzure){
       this.player = amp('vid1' );
       let player : amp.Player = this.player 
       player.addEventListener('error',(e)=>{
         console.log(e)
       })      
-      player.autoplay(true);
-      player.controls(true);
-      player.src({
-          type: "application/dash+xml",
-          src: this.src,
-      });
+    
+      setTimeout(()=>{
+        player.autoplay(true);
+        player.controls(true);
+        player.src({
+            type: "application/dash+xml",
+            src: this.src,
+        });
+      })
 
     }else{
       if (flvjs.isSupported()) {   

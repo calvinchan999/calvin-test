@@ -104,8 +104,8 @@ export class TestSignalRComponent implements OnInit {
     },
     arcsPose:{
       seriesInterval: 0,
-      topic: 'rvautotech/fobo/pose/5W_0429',
-      content:`{"robotId":"RV-ROBOT-100","mapName":"5W_0429","x":0.002865711592390685,"y":-0.010194407119371363,"angle":-2.7410346655388328272}`
+      topic: 'rvautotech/fobo/pose/5W_2022',
+      content:`{"robotId":"RV-ROBOT-100","mapName":"5W_2022","x":0.002865711592390685,"y":-0.010194407119371363,"angle":-2.7410346655388328272}`
     },
     scanMap: {
       seriesInterval: 0.5,

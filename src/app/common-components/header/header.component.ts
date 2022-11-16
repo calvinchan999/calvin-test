@@ -145,7 +145,6 @@ export class HeaderComponent {
     }
 
     public updateUnreadLog(){
-        console.log(this.dataSrv.signalRSubj.arcsSyncLog.value )
         let processingLogs = (this.dataSrv.signalRSubj.arcsSyncLog.value ? this.dataSrv.signalRSubj.arcsSyncLog.value : []).filter(l=>l.dataSyncStatus == 'TRANSFERRING')
         this.dataSrv.signalRSubj.arcsSyncLog.next( processingLogs)
         this.dataSrv.setlocalStorage('syncDoneLog' , JSON.stringify([]))

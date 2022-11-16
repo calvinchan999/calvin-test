@@ -224,6 +224,7 @@ import { CmEventLogComponent } from './common-components/cm-event-log/cm-event-l
 import { ThreejsViewportComponent } from './ui-components/threejs-viewport/threejs-viewport.component';
 import { ArcsSetupImportFloorplanComponent } from './arcs/arcs-setup/arcs-setup-import/arcs-setup-import-floorplan/arcs-setup-import-floorplan.component';
 import { ArcsSetupExportFloorplanComponent } from './arcs/arcs-setup/arcs-setup-export/arcs-setup-export-floorplan/arcs-setup-export-floorplan.component';
+import { ArcsRobotGroupComponent } from './arcs/arcs-dashboard/arcs-robot-group/arcs-robot-group.component';
 
 @NgModule({
     declarations: [
@@ -313,6 +314,7 @@ import { ArcsSetupExportFloorplanComponent } from './arcs/arcs-setup/arcs-setup-
         ThreejsViewportComponent,
         ArcsSetupImportFloorplanComponent,
         ArcsSetupExportFloorplanComponent,
+        ArcsRobotGroupComponent,
         
     ],
     imports: [

@@ -14,6 +14,7 @@ import { AuthService } from 'src/app/services/auth.service';
 import { ArcsDashboardRobotDetailComponent } from './arcs-dashboard-robot-detail/arcs-dashboard-robot-detail.component';
 import { ArcsTaskScheduleComponent } from './arcs-task-schedule/arcs-task-schedule.component';
 import { RobotObject3D, ThreejsViewportComponent } from 'src/app/ui-components/threejs-viewport/threejs-viewport.component';
+import { ArcsRobotGroupComponent } from './arcs-robot-group/arcs-robot-group.component';
 
 type robotTypeInfo = { //A group can be an individual robot (when filtered by robot type) OR robot type (no filter applied) 
   robotType: string
@@ -60,13 +61,7 @@ export class ArcsDashboardComponent implements OnInit {
 
   robotInfos: robotInfo[] = []
   robotTypeInfos: robotTypeInfo[] = []
-  robotGroups: robotTypeInfo[] = [
-    // { name: 'TYPE-01', completedTask: 8, totalTask: 10, processCount: 0, chargingCount: 0, idleCount: 0, offlineCount: 10 },
-    // { name: 'TYPE-02', completedTask: 8, totalTask: 12, processCount: 0, chargingCount: 0, idleCount: 0, offlineCount: 9 },
-    // { name: 'TYPE-03', completedTask: 2, totalTask: 5, processCount: 0, chargingCount: 0, idleCount: 0, offlineCount: 8 },
-    // { name: 'TYPE-04', completedTask: 27, totalTask: 30, processCount: 0, chargingCount: 0, idleCount: 0, offlineCount: 7 },
-    // { name: 'TYPE-05', completedTask: 3, totalTask: 5, processCount: 0, chargingCount: 0, idleCount: 0, offlineCount: 6 },
-  ] // TO BE RETREIVED FROM DataSrv , should be inside a object that has floorplan code as its property key
+
   scrollToBottom = ()=> this.mainContainer.nativeElement.scrollTop = this.mainContainer.nativeElement.scrollHeight
   tableDisabledButtons = { new: false, action: true }
   tableButtons = { new: true, action: true }
@@ -129,7 +124,16 @@ export class ArcsDashboardComponent implements OnInit {
           { title: "Active", id: "active", width: 50 , dropdownOptions:[{text : "Yes" , value :true},{text : "No" , value :false} ]},
           { title: "Expired", id: "expired", width: 50 , dropdownOptions:[{text : "Yes" , value :true},{text : "No" , value :false} ]},
         ],
-      }
+      },
+      group: {
+        functionId: "TASK_TEMPLATE", //!!!TBR
+        apiUrl: "api/task/mission/page/v1" + (this.robotTypeFilter ? `/${this.robotTypeFilter}` : ''),//!!!TBR
+        columns: [
+          { title: "", type: "checkbox", id: "select", width: 30, fixed: true },//!!!TBR
+          { title: "#", type: "button", id: "edit", width: 30, icon: 'k-icon k-i-edit iconButton', fixed: true },
+          { title: "Template Code", id: "missionId", width: 50 },//!!!TBR
+        ],
+      },
     }
   }
   
@@ -143,7 +147,8 @@ export class ArcsDashboardComponent implements OnInit {
     [
       { id: 'dashboard', label: 'Dashboard', authorized: false } , 
       { id: 'usability', label: 'Usability', authorized: false },
-      { id: 'utilization', label: 'Utilization', authorized: false }
+      { id: 'utilization', label: 'Utilization', authorized: false },
+      // { id: 'group', label: 'Group' },
     ]
 
   }
@@ -494,6 +499,17 @@ export class ArcsDashboardComponent implements OnInit {
     if(this.pixiElRef &&  this.pixiElRef.arcsLocationTree.currentLevel == 'site'){
       this.refreshBuildingRobotCountTag(<any> data.filter(s=>s.robotStatus != 'UNKNOWN'))
     }
+  }
+
+  showGroupDialog(evt = null){
+    let dialog : DialogRef = this.uiSrv.openKendoDialog({content: ArcsRobotGroupComponent, preventAction:()=>true});
+    const content = dialog.content.instance;
+    content.dialogRef = dialog
+    content.parent = this
+    content.parentRow = evt?.row
+    dialog.result.subscribe(()=>{
+      this.tableRef.retrieveData()
+    })
   }
 
   showTaskDetail(evt = null){

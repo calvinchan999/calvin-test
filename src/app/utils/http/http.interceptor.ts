@@ -58,7 +58,8 @@ export class CustomHttpInterceptor implements HttpInterceptor {
             // location.reload()
             return of(error)
           }else{
-            this.uiSrv.showNotificationBar(`HTTP ERROR [${error.status }] ${error.message? ' : ' + error.message : ''  }` , 'error' )
+            console.log(`HTTP ERROR [${error.status }] ${error.message? ' : ' + error.message : ''  }`)
+            // this.uiSrv.showNotificationBar(`HTTP ERROR [${error.status }] ${error.message? ' : ' + error.message : ''  }` , 'error' )
             return throwError(error)
           }       
         }));

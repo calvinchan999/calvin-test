@@ -32,6 +32,7 @@ export class ArcsDashboardRobotDetailComponent implements OnInit {
   }
   alertMsg = null
   streamingUrl = null
+  streamingError = null
 
   async ngOnInit() {
     let ticket = this.uiSrv.loadAsyncBegin()
@@ -93,9 +94,16 @@ export class ArcsDashboardRobotDetailComponent implements OnInit {
   }
 
   async getStreamingUrl(){
+    this.streamingError = null
     if(!this.streamingUrl){
       let ticket = this.uiSrv.loadAsyncBegin()
-      this.streamingUrl = await this.dataSrv.httpSrv.get(`api/sysparas/streamingUrl/${this.robotId}/v1`)
+      try{
+        this.streamingUrl = await this.dataSrv.httpSrv.get(`api/sysparas/streamingUrl/${this.robotId}/v1` , undefined,undefined,undefined,undefined,true , true)
+      }catch(err){
+        console.log(err)
+        this.streamingUrl = null
+        this.streamingError = 'No available streaming source found in Azure'
+      }
       this.uiSrv.loadAsyncDone(ticket)
     }
   }
