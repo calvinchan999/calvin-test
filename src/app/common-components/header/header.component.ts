@@ -28,7 +28,9 @@ export class HeaderComponent {
     @ViewChild("settingMenu") settingMenu : MenuComponent
     @ViewChild("langButton") langButton : DropDownButtonComponent
     @ViewChild("syncMenu") syncMenu : MenuComponent
+    @ViewChild('anchor') anchor 
     syncMenuItems =[]
+    syncMenuOpened = false
     // public customMsgService: CustomMessagesService;
 
 
@@ -70,7 +72,6 @@ export class HeaderComponent {
         // this.uiSrv.lang.subscribe(()=>this.changeDectector.detectChanges())
         // this.localeId = this.selectedLanguage.localeId;
         // this.setLocale(this.localeId);
-
         // this.customMsgService = this.messages as CustomMessagesService;
         // this.customMsgService.language = this.selectedLanguage.localeId;
     }
@@ -134,6 +135,7 @@ export class HeaderComponent {
     }    
 
     public openSyncMenu(){
+        this.syncMenuOpened = true
         this.syncMenuItems = this.dataSrv.alertFloorPlans.concat(<any> this.dataSrv.signalRSubj.arcsSyncLog.value ) 
         this.updateUnreadCount()
         setTimeout(()=> this.syncMenu.toggle(true , '0'))
@@ -150,7 +152,14 @@ export class HeaderComponent {
         this.dataSrv.setlocalStorage('syncDoneLog' , JSON.stringify([]))
     }
 
+    public closeSyncMenu(){
+        this.syncMenuOpened = false
+        this.syncMenu.toggle(false , '0')
+        this.onSyncMenuClose()
+    }
+
     public onSyncMenuClose(){
+        this.syncMenuOpened = false
         this.updateUnreadLog()
         this.syncMenuItems = []
     }

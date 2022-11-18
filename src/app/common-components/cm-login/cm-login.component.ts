@@ -80,7 +80,8 @@ export class CmLoginComponent implements OnInit {
   async login() {
     let sendRequest = async (token) => {
       let ticket = this.uiSrv.loadAsyncBegin(1000)
-      let resp : loginResponse = await (this.authSrv.login(this.frmGrp.controls['username'].value,
+      try{
+        let resp : loginResponse = await (this.authSrv.login(this.frmGrp.controls['username'].value,
         this.frmGrp.controls['password'].value,
         this.uiSrv.lang.value,
         this.guestMode,
@@ -128,6 +129,10 @@ export class CmLoginComponent implements OnInit {
       } else {
         this.errMsg = this.uiSrv.translate(resp?.msg ? resp?.msg : 'An Error Has Occurred')
       }
+      }catch(e){
+       this.uiSrv.showNotificationBar('HTTP Request Failed','error') 
+      }
+
     }
     if (this.util.standaloneApp) {
       sendRequest(null)

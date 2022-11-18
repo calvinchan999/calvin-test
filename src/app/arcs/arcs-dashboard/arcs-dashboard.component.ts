@@ -490,7 +490,10 @@ export class ArcsDashboardComponent implements OnInit {
       }
       if(this.threeJsElRef){
         let robot3D : RobotObject3D = this.threeJsElRef?.robotObjs.filter(r=>r.robotCode == d.robotCode)[0]
-        robot3D.offline =  d.robotStatus == "UNKNOWN"
+        if(robot3D){
+          robot3D.offline =  d.robotStatus == "UNKNOWN"
+          robot3D.alert = alerted(d)
+        }
       }
     })
 

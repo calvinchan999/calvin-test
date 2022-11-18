@@ -5,7 +5,7 @@ import * as THREE from 'three';
 import { ThGLTFLoader } from 'ngx-three';
 import { GLTF, GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader';
 import { DragControls } from 'three/examples/jsm/controls/DragControls';
-import { AmbientLight, DirectionalLight, DoubleSide, Group, Mesh, Object3D, ShapeGeometry, WebGLRenderer ,BufferGeometry, LineSegments, MeshStandardMaterial, Vector3, MeshBasicMaterial, ShaderMaterial } from 'three';
+import { AmbientLight, DirectionalLight, DoubleSide, Group, Mesh, Object3D, ShapeGeometry, WebGLRenderer ,BufferGeometry, LineSegments, MeshStandardMaterial, Vector3, MeshBasicMaterial, ShaderMaterial, Material } from 'three';
 import { GeneralUtil } from 'src/app/utils/general/general.util';
 import { DataService, DropListFloorplan, DropListRobot, JFloorPlan, JMap, JPoint } from 'src/app/services/data.service';
 import { debounce, debounceTime, filter, retry, share, skip, switchMap, take, takeUntil } from 'rxjs/operators';
@@ -100,7 +100,7 @@ export class ThreejsViewportComponent implements OnInit {
     return this.floorplan?  <any>this.floorplan?.children.filter(c=>c instanceof MarkerObject3D) :[]
   }
   get mapMeshes() : MapMesh[]{
-    return <any>this.scene?.objRef.children.filter(c=> c instanceof MapMesh)
+    return this.scene?.objRef ? <any>this.scene?.objRef.children.filter(c=> c instanceof MapMesh) : []
   }
   get robotObjs():RobotObject3D[]{
     let ret = []
@@ -113,8 +113,9 @@ export class ThreejsViewportComponent implements OnInit {
     return this.floorplan? <any>this.floorplan?.children.filter(b=>b instanceof Extruded2DMesh) : []
   }
 
-  @HostListener('window:resize', ['$event'])
   @HostBinding('class') customClass = 'drawing-board'
+  
+  @HostListener('window:resize', ['$event'])
   onResize() {
     const width  = this.container.clientWidth
     const height =  this.container.clientHeight
@@ -224,7 +225,9 @@ export class ThreejsViewportComponent implements OnInit {
     this.robotObjs.forEach(r => {
       transparentBlocks = transparentBlocks.concat(this.getIntersectedBlocks(this.cameraRayCaster, r))
     })
+    
     this.blockMeshes.forEach((b) => {
+      // console.log(b)
       b.setOpactiy(transparentBlocks.includes(b) || b.blockedFocusedObject ? b.transparentOpacity : b.defaultOpacity)
     })
   }
@@ -313,21 +316,139 @@ export class ThreejsViewportComponent implements OnInit {
     this.uiSrv.loadAsyncDone(ticket);
   }
 
+  // async ngAfterViewInit() {
+  //   renderer.render(scene, camera);
+  // }
+
+  testVolumetricLight(){    
+    const VolumetricSpotLightMaterial = function () {
+      // 
+      var vertexShader = [
+        'varying vec3 vNormal;',
+        'varying vec3 vWorldPosition;',
+        'void main(){',
+        '// compute intensity',
+        'vNormal        = normalize( normalMatrix * normal );',
+        'vec4 worldPosition = modelMatrix * vec4( position, 1.0 );',
+        'vWorldPosition     = worldPosition.xyz;',
+        '// set gl_Position',
+        'gl_Position    = projectionMatrix * modelViewMatrix * vec4( position, 1.0 );',
+        '}',
+      ].join('\n')
+      var fragmentShader = [
+        'varying vec3       vNormal;',
+        'varying vec3       vWorldPosition;',
+        'uniform vec3       lightColor;',
+        'uniform vec3       spotPosition;',
+        'uniform float      attenuation;',
+        'uniform float      anglePower;',
+        'void main(){',
+        'float intensity;',
+        //////////////////////////////////////////////////////////
+        // distance attenuation                 //
+        //////////////////////////////////////////////////////////
+        'intensity  = distance(vWorldPosition, spotPosition)/attenuation;',
+        'intensity  = 1.0 - clamp(intensity, 0.0, 1.0);',
+        //////////////////////////////////////////////////////////
+        // intensity on angle                   //
+        //////////////////////////////////////////////////////////
+        'vec3 normal    = vec3(vNormal.x, vNormal.y, abs(vNormal.z));',
+        'float angleIntensity   = pow( dot(normal, vec3(0.0, 0.0, 1.0)), anglePower );',
+        'intensity  = intensity * angleIntensity;',
+        // 'gl_FragColor    = vec4( lightColor, intensity );',
+        //////////////////////////////////////////////////////////
+        // final color                      //
+        //////////////////////////////////////////////////////////
+        // set the final color
+        'gl_FragColor   = vec4( lightColor, intensity);',
+        '}',
+      ].join('\n')
+      // create custom material from the shader code above
+      //   that is within specially labeled script tags
+      var material = new THREE.ShaderMaterial({
+        uniforms: {
+          attenuation: <any>{
+            type: "f",
+            value: 100000000000
+          },
+          anglePower: <any>{
+            type: "f",
+            value: -100000000000
+          },
+          spotPosition: <any>{
+            type: "v3",
+            value: new THREE.Vector3(0, 0, 0)
+          },
+          lightColor: <any>{
+            type: "c",
+            value: new THREE.Color('cyan')
+          },
+        },
+
+        vertexShader: vertexShader,
+        fragmentShader: fragmentShader,
+        side: THREE.BackSide,
+        blending: THREE.AdditiveBlending,
+        transparent: true,
+        depthWrite: false,
+      });
+      return material
+    }
+
+
+    // var renderer = new THREE.WebGLRenderer();
+    // renderer.setSize(1500, 500);
+    // document.body.appendChild(renderer.domElement);
+    // var scene = new THREE.Scene();
+    // var camera = new THREE.PerspectiveCamera(45, window.innerWidth / window.innerHeight, 0.3, 10);
+    // camera.position.set(0, 2, 5)
+    // camera.lookAt(scene.position)
+
+    //////////////////////////////////////////////////////////////////////////////////
+    //		create a scene							//
+    //////////////////////////////////////////////////////////////////////////////////
+
+    //////////////////////////////////////////////////////////////////////////////////
+    //		add a volumetric spotligth					//
+    //////////////////////////////////////////////////////////////////////////////////
+    // add spot light
+    var obj = new Object3D()
+    var scale = 1
+    var geometry = new THREE.CylinderGeometry(0.1 * scale, 1.5 *scale, 5 * scale, 32 * 2 * scale, 20 * scale, true);
+    // var geometry	= new THREE.CylinderGeometry( 0.1, 5*Math.cos(Math.PI/3)/1.5, 5, 32*2, 20, true);
+    geometry.applyMatrix4(new THREE.Matrix4().makeTranslation(0, -geometry.parameters.height / 2, 0));
+    geometry.applyMatrix4(new THREE.Matrix4().makeRotationX(-Math.PI / 2));
+    var material = VolumetricSpotLightMaterial();
+    var mesh = new THREE.Mesh(geometry, material);
+    mesh.position.set(0, 0, 0)
+    mesh.lookAt(new THREE.Vector3(0, 0, 0))
+    material.uniforms.lightColor.value.set('red')
+
+    material.uniforms.spotPosition.value = mesh.position
+    obj.add(mesh)
+    // mesh.position.set(0, 0, 0)
+    // material.uniforms.spotPosition.value = mesh.position
+    this.scene.objRef.add(obj);
+    obj.position.set(50,150,50)
+    obj.scale.set(100,100,100)
+  }
+
   async ngAfterViewInit() {
     this.renderer = this.canvas.engServ.renderer
     this.container =  this.canvas.rendererCanvas.nativeElement.parentElement
+ 
     await this.getRobotList()
     this.initLabelRenderer()
-    this.initShaders()  //TESTING
+    // //this.initShaders()  //TESTING
     this.orbitCtrl = new OrbitControls( this.camera.objRef, this.labelRenderer.domElement );
     this.orbitCtrl.addEventListener( 'change', (v)=> this.onOrbitControlChange(v) );
     document.addEventListener('pointermove', (e)=>this.onMouseMove(e), false);
     setTimeout(() => this.onResize())
-
+    //this.testVolumetricLight()
     if(this.floorPlanDataset){
-      await this.loadFloorPlan(this.floorPlanDataset)
-      //^ TESTING ^ 
+     await this.loadFloorPlan(this.floorPlanDataset)
     }
+
     // this.floorplan = new FloorPlanMesh(this ,FP_BASE64 , fpWidth , fpHeight);
     // this.scene.objRef.add(this.floorplan );
     // this.initROSmaps(JSON.parse(MAP_LIST));
@@ -369,7 +490,7 @@ export class ThreejsViewportComponent implements OnInit {
 
   initWaypoints(waypoints : JPoint[]){
     waypoints.forEach(p=>{
-      var marker = new MarkerObject3D(this , p.pointCode);
+      var marker = new MarkerObject3D(this , p.pointCode , p.pointType);
       marker.position.set( p.guiX -this.floorplan.width/2 , this.floorplan?.height/2 - p.guiY , 5)
       this.floorplan.add(marker)
     })
@@ -426,6 +547,7 @@ export class ThreejsViewportComponent implements OnInit {
         }
         if(!mapMesh.children.includes(robot)){
           mapMesh.add(robot)
+          this.refreshRobotColors()
         }
         let pose : {x : number , y : number , angle : number , interval : number} = poseObj[mapCode][robotCode]
         if(robot && mapMesh){
@@ -563,6 +685,20 @@ class Object3DCommon extends Object3D{
     // }
   }
 
+  getMaterials(obj : Object3D | Group) : MeshStandardMaterial[]{
+    let ret = []
+    let pushMainColorMaterials = (c) => {
+      if (c instanceof Mesh) {
+        ret.push(c.material)
+        c.children.forEach(c2 => pushMainColorMaterials(c2))
+      }else if (c instanceof Group || c instanceof Object3D) {
+        c.children.forEach(c2 => pushMainColorMaterials(c2))
+      }
+    }
+    pushMainColorMaterials(obj)
+    return ret
+  }
+
   showToolTip(text : string = null , position : THREE.Vector3 = null , addonStyle : object = null){
     if(text){
       this.toolTipText = text
@@ -675,13 +811,31 @@ class Object3DCommon extends Object3D{
 }
 
 class MarkerObject3D extends Object3DCommon {
+  // 95 37 159
+  readonly color = 0x60259f
   pointCode : string
-  readonly size : number = 2
+  pointType : string
   loader : GLTFLoader
-  readonly glbPath = "assets/3D/pin.glb"
+  glbSettings = {
+    path :  'assets/3D/pin.glb',
+    size : 2,
+    position : new Vector3( 0 , 0 , 0.2),
+    recolorMaterials : ['mat14'],
+  }
+  private customGlb = {
+    CHARGING_STATION : {
+      path :  'assets/3D/battery.glb',
+      size : 0.75,
+      position : new Vector3( 0 , 0 , 0.4),
+      recolorMaterials : [],
+      replaceMaterial:{
+        Battery : 'assets/3D/battery.png'
+      }
+    }
+  }
   set toolTipAlwaysOn(v){
     this._toolTipAlwaysOn = v
-    this.toolTip.position.set(0, (v ? -0.2 : 1 )* (this.size * 20) * this.master.ROSmapScale  , 0)
+    this.toolTip.position.set(0, (v ? -0.2 : 1 )* (this.glbSettings.size * 20) * this.master.ROSmapScale  , 0)
     if(v){
       this.showToolTip(this.pointCode , undefined , {fontSize : '10px' , lineHeight : '0px' , background : 'rgba(0,0,0,0.4)'})
     }else{
@@ -693,27 +847,40 @@ class MarkerObject3D extends Object3DCommon {
   }
   _toolTipAlwaysOn = false
 
-  constructor( master: ThreejsViewportComponent , private _name : string){
+  constructor( master: ThreejsViewportComponent , private _name : string , private _pointType = 'NORMAL'){
     super(master)
     this.pointCode = _name
+    this.pointType = _pointType
     this.loader = new GLTFLoader();
-    let scale = this.size * this.master.ROSmapScale * this.master.util.config.METER_TO_PIXEL_RATIO
+    let custom = this.customGlb[this.pointType]
+    let scale =  (custom ? custom.size : this.glbSettings.size )* this.master.ROSmapScale * this.master.util.config.METER_TO_PIXEL_RATIO
     let ticket = this.master.uiSrv.loadAsyncBegin()
-     this.loader.load(this.glbPath ,(gltf : GLTF)=> {
+     this.loader.load(custom ?  custom.path : this.glbSettings.path ,(gltf : GLTF)=> {
        this.gltf = gltf
        gltf.scene.rotateX(- NORMAL_ANGLE_ADJUSTMENT)
        gltf.scene.scale.set(scale, scale, scale)
-       gltf.scene.position.set(0, 0, this.master.ROSmapScale / 5  * this.master.util.config.METER_TO_PIXEL_RATIO ) //TBR
+       let position =  (<Vector3>(custom ? custom.position : this.glbSettings.position)).multiplyScalar(this.master.ROSmapScale  * this.master.util.config.METER_TO_PIXEL_RATIO )
+       gltf.scene.position.set(position.x , position.y , position.z) ;//TBR
+       let materials = new Object3DCommon(this.master).getMaterials(gltf.scene);
+       if (custom?.replaceMaterial) {
+         materials.filter(m => Object.keys(custom.replaceMaterial).includes(m.name)).forEach(m => {
+          console.log(custom.replaceMaterial[m.name])
+           m.map = THREE.ImageUtils.loadTexture(custom.replaceMaterial[m.name]);
+           m.needsUpdate = true;
+         })
+       }
+       materials.filter(m=> (custom ? custom.recolorMaterials : this.glbSettings.recolorMaterials).includes(m.name)).forEach(m=>m.color.set(this.color))
        this.add(gltf.scene)
        this.storeOriginalMaterialData()
        this.master.uiSrv.loadAsyncDone(ticket)
     })
-    this.toolTip.position.set(0, (this.size * 20) * this.master.ROSmapScale , 0)
+    this.toolTip.position.set(0, (this.glbSettings.size * 20) * this.master.ROSmapScale , 0)
   }
 }
 
 export class RobotObject3D extends Object3DCommon{
   loader : GLTFLoader
+  alertIcon : Group
   robotCode : string
   robotBase : string
   master : ThreejsViewportComponent
@@ -728,6 +895,17 @@ export class RobotObject3D extends Object3DCommon{
     ticksRemaining : number
   }
   _color : number = this.master.util.config.robot?.visuals?.[0].fillColor ?  Number(this.master.util.config.robot?.visuals?.[0].fillColor) : 0x00CED1
+  get opacity(){
+    return this._opacity
+  } 
+  set opacity(v){
+    new Object3DCommon(this.master).getMaterials(this.gltf.scene).forEach((m)=>{
+      m.transparent = true
+      m.opacity = v
+    })
+    this._opacity = v 
+  }
+  _opacity
   frontFacePointer : Mesh
 
   get color(){
@@ -745,11 +923,24 @@ export class RobotObject3D extends Object3DCommon{
   }
   set offline(v){
     this._offline = v
-    this.visible = !v
+    this.opacity =  v ? 0.5 : 1
   }
+  set alert(v){
+    this._alert = v
+    this.alertIcon.visible = v
+  }
+  get alert(){
+    return this._alert
+  }
+  _alert = false
   readonly size = 20
+  readonly alertIconSetting = {
+    size : 0.15 ,
+    positionY : 0.6
+  }
   // mesh : Mesh  
   readonly glbPath = "assets/3D/robot.glb" // Raptor Heavy Planetary Crawler by Aaron Clifford [CC-BY] via Poly Pizza
+  readonly alertIconPath = 'assets/3D/exclamation/scene.gltf' //This work is based on "Exclamation Mark 3D icon" (https://sketchfab.com/3d-models/exclamation-mark-3d-icon-35fcb8285f134554989f822ab90ee974) by summer57 (https://sketchfab.com/summer5717) licensed under CC-BY-4.0 (http://creativecommons.org/licenses/by/4.0/)
   // Remote car by Nutpam [CC-BY] via Poly Pizza
   constructor( master: ThreejsViewportComponent , _robotCode : string , _robotBase : string){
     super(master)
@@ -758,25 +949,38 @@ export class RobotObject3D extends Object3DCommon{
     this.master = master
     // this.master.robots = this.master.robots.filter(r=>r != this).concat(this)
     this.loader = new GLTFLoader();
+    //
     let ticket = this.master.uiSrv.loadAsyncBegin()
      this.loader.load(this.glbPath ,(gltf : GLTF)=> {
-      this.gltf = gltf
+      new GLTFLoader().load(this.alertIconPath, (alertGltf : GLTF)=>{
+        this.gltf = gltf       
 
-      this.gltf.scene.scale.set(this.size ,this.size ,this.size)
-      this.gltf.scene.rotateX( - NORMAL_ANGLE_ADJUSTMENT)
-      
-      this.initOutline(gltf)
-      this.gltf.scene.add(this.outlineMesh);
-      // const edges = new THREE.EdgesGeometry(this.outlineMesh.geometry);
-      // const line = new THREE.LineSegments(edges, new THREE.LineBasicMaterial({ color: 0x00ff00 }));
-      // this.add(line);
-      this.add(this.gltf.scene)
-      // let scale =  this.size * this.master.ROSmapScale * this.master.util.config.METER_TO_PIXEL_RATIO
-      this.storeOriginalMaterialData()
-      this.addFrontFacePointer()
-      this.changeMainColor(this.color)
+        this.alertIcon = alertGltf.scene
+        new Object3DCommon(this.master).getMaterials(  this.alertIcon ).forEach(m=>m.color.set(0xFF0000))
+        // let alertMaterial = new MeshBasicMaterial({color : 0xFF0000})
+        // this.alertIcon.children[0]['material'] = alertMaterial
+        this.alertIcon.scale.set(this.alertIconSetting.size , this.alertIconSetting.size , this.alertIconSetting.size)
+        this.alertIcon.position.y = this.alertIconSetting.positionY
+        this.gltf.scene.add(this.alertIcon)
 
-      this.master.uiSrv.loadAsyncDone(ticket)
+        this.gltf.scene.scale.set(this.size ,this.size ,this.size)
+        this.gltf.scene.rotateX(- NORMAL_ANGLE_ADJUSTMENT)
+        
+        this.initOutline(gltf)
+        this.gltf.scene.add(this.outlineMesh);
+        // const edges = new THREE.EdgesGeometry(this.outlineMesh.geometry);
+        // const line = new THREE.LineSegments(edges, new THREE.LineBasicMaterial({ color: 0x00ff00 }));
+        // this.add(line);
+        this.add(this.gltf.scene)
+        // let scale =  this.size * this.master.ROSmapScale * this.master.util.config.METER_TO_PIXEL_RATIO
+        this.storeOriginalMaterialData()
+        //this.addFrontFacePointer()
+        this.changeMainColor(this.color)
+        let robotInfo = this.master.parent.robotInfos.filter(r=>r.robotCode == this.robotCode)[0]
+        this.offline = robotInfo?.robotStatus == 'UNKNOWN'
+        this.alert = this.robotCode == robotInfo?.alert!=null && robotInfo.alert.length > 0 
+        this.master.uiSrv.loadAsyncDone(ticket)
+      })
     })
 
     this.toolTip.position.set(0, 0 , 25 );
@@ -785,8 +989,10 @@ export class RobotObject3D extends Object3DCommon{
       this.master.robotClicked.emit({id:this.robotCode , object : this})
     })
     // this.master.robots = this.master.robots.filter(r=>r!= this).concat(this)
-    this.master.outlinePass.enabled = true
-    this.master.outlinePass.selectedObjects = (this.master.outlinePass.selectedObjects ? this.master.outlinePass.selectedObjects : []).concat(this)
+    if( this.master.outlinePass){
+      this.master.outlinePass.enabled = true
+      this.master.outlinePass.selectedObjects = (this.master.outlinePass.selectedObjects ? this.master.outlinePass.selectedObjects : []).concat(this)
+    }
   }
 
   updatePositionAndRotation(pose : {x : number  , y : number , angle : number , interval : number}){
@@ -805,7 +1011,9 @@ export class RobotObject3D extends Object3DCommon{
       this.rotation.z = r
     }
 
-    if(this.targetPose?.ticksRemaining > 0 ){
+    if(!this.targetPose){//just spawn or not using smooth transition
+      forceUpdate(vector , pose.angle - 90 / radRatio)
+    }else if(this.targetPose.ticksRemaining > 0 ){ 
       forceUpdate(this.targetPose.vector , this.targetPose.rotation)
     }
 
@@ -833,19 +1041,19 @@ export class RobotObject3D extends Object3DCommon{
   }
 
   changeMainColor(color: number) {
-    var recolorMaterials:MeshStandardMaterial[] = []
-    let pushMainColorMaterials = (c) => {
-      if (c instanceof Group) {
-        c.children.forEach(c2 => pushMainColorMaterials(c2))
-      } else if (c instanceof Mesh) {
-        c.updateMatrix()
-        if (c?.material?.name == 'mat16') { // TBR : DEPENDS ON GLTF
-          recolorMaterials.push( c.material)
-        }
-      }
-    }
-    pushMainColorMaterials(this.gltf.scene)
-    recolorMaterials.forEach(m=>m.color.set(color));
+    var materials: MeshStandardMaterial[] = new Object3DCommon(this.master).getMaterials(this.gltf.scene)
+    // let pushMainColorMaterials = (c) => {
+    //   if (c instanceof Group) {
+    //     c.children.forEach(c2 => pushMainColorMaterials(c2))
+    //   } else if (c instanceof Mesh) {
+    //     c.updateMatrix()
+    //     if (c?.material?.name == 'mat16') { // TBR : DEPENDS ON GLTF
+    //       recolorMaterials.push( c.material)
+    //     }
+    //   }
+    // }
+    // pushMainColorMaterials(this.gltf.scene)
+    materials.filter(m=>m.name == 'mat16').forEach(m=>m.color.set(color));
     (<THREE.MeshPhongMaterial>this.outlineMesh?.material).color.set(color)
   }
 
@@ -880,102 +1088,91 @@ export class RobotObject3D extends Object3DCommon{
   addFrontFacePointer() {
     var scale = 1
     var geometry = new THREE.CylinderGeometry(0.1 * scale, 1.5 * scale, 5 * scale, 32 * 2 * scale, 20 * scale, true);
-     geometry.applyMatrix4(new THREE.Matrix4().makeTranslation(0, -geometry.parameters.height / 2, 0));
-     geometry.applyMatrix4(new THREE.Matrix4().makeRotationX(-Math.PI / 2));
+    geometry.applyMatrix4(new THREE.Matrix4().makeTranslation(0, -geometry.parameters.height / 2, 0));
+    geometry.applyMatrix4(new THREE.Matrix4().makeRotationX(-Math.PI / 2));
     var getMaterial = ()=>{
-      {
         // 
-        var vertexShader	= [
+        var vertexShader = [
           'varying vec3 vNormal;',
           'varying vec3 vWorldPosition;',
-          
           'void main(){',
-            '// compute intensity',
-            'vNormal		= normalize( normalMatrix * normal );',
-      
-            'vec4 worldPosition	= modelMatrix * vec4( position, 1.0 );',
-            'vWorldPosition		= worldPosition.xyz;',
-      
-            '// set gl_Position',
-            'gl_Position	= projectionMatrix * modelViewMatrix * vec4( position, 1.0 );',
+          '// compute intensity',
+          'vNormal        = normalize( normalMatrix * normal );',
+          'vec4 worldPosition = modelMatrix * vec4( position, 1.0 );',
+          'vWorldPosition     = worldPosition.xyz;',
+          '// set gl_Position',
+          'gl_Position    = projectionMatrix * modelViewMatrix * vec4( position, 1.0 );',
           '}',
-        ].join('\n')
-        var fragmentShader	= [
-          'varying vec3		vNormal;',
-          'varying vec3		vWorldPosition;',
-      
-          'uniform vec3		lightColor;',
-      
-          'uniform vec3		spotPosition;',
-      
-          'uniform float		attenuation;',
-          'uniform float		anglePower;',
-      
+      ].join('\n')
+      var fragmentShader = [
+          'varying vec3       vNormal;',
+          'varying vec3       vWorldPosition;',
+          'uniform vec3       lightColor;',
+          'uniform vec3       spotPosition;',
+          'uniform float      attenuation;',
+          'uniform float      anglePower;',
           'void main(){',
-            'float intensity;',
-      
-            //////////////////////////////////////////////////////////
-            // distance attenuation					//
-            //////////////////////////////////////////////////////////
-            'intensity	= distance(vWorldPosition, spotPosition)/attenuation;',
-            'intensity	= 1.0 - clamp(intensity, 0.0, 1.0);',
-      
-            //////////////////////////////////////////////////////////
-            // intensity on angle					//
-            //////////////////////////////////////////////////////////
-            'vec3 normal	= vec3(vNormal.x, vNormal.y, abs(vNormal.z));',
-            'float angleIntensity	= pow( dot(normal, vec3(0.0, 0.0, 1.0)), anglePower );',
-            'intensity	= intensity * angleIntensity;',		
-            // 'gl_FragColor	= vec4( lightColor, intensity );',
-      
-            //////////////////////////////////////////////////////////
-            // final color						//
-            //////////////////////////////////////////////////////////
-      
-            // set the final color
-            'gl_FragColor	= vec4( lightColor, intensity);',
+          'float intensity;',
+          //////////////////////////////////////////////////////////
+          // distance attenuation                 //
+          //////////////////////////////////////////////////////////
+          'intensity  = distance(vWorldPosition, spotPosition)/attenuation;',
+          'intensity  = 1.0 - clamp(intensity, 0.0, 1.0);',
+          //////////////////////////////////////////////////////////
+          // intensity on angle                   //
+          //////////////////////////////////////////////////////////
+          'vec3 normal    = vec3(vNormal.x, vNormal.y, abs(vNormal.z));',
+          'float angleIntensity   = pow( dot(normal, vec3(0.0, 0.0, 1.0)), anglePower );',
+          'intensity  = intensity * angleIntensity;',
+          // 'gl_FragColor    = vec4( lightColor, intensity );',
+          //////////////////////////////////////////////////////////
+          // final color                      //
+          //////////////////////////////////////////////////////////
+          // set the final color
+          'gl_FragColor   = vec4( lightColor, intensity);',
           '}',
-        ].join('\n')
-      
-        // create custom material from the shader code above
-        //   that is within specially labeled script tags
-        var material	= new THREE.ShaderMaterial({
-          uniforms: { 
-            attenuation	: <any>{
-              type	: "f",
-              value	: 5.0
-            },
-            anglePower	: <any>{
-              type	: "f",
-              value	: 1.2
-            },
-            spotPosition		: <any>{
-              type	: "v3",
-              value	: new THREE.Vector3( 0, 0, 0 )
-            },
-            lightColor	: <any>{
-              type	: "c",
-              value	: new THREE.Color('cyan')
-            },
+      ].join('\n')
+      // create custom material from the shader code above
+      //   that is within specially labeled script tags
+      var material = new THREE.ShaderMaterial({
+        uniforms: {
+          attenuation: <any>{
+            type: "f",
+            value: 100000000000
           },
-          vertexShader	: vertexShader,
-          fragmentShader	: fragmentShader,
-          // side		: THREE.DoubleSide,
-          // blending	: THREE.AdditiveBlending,
-          transparent	: true,
-          depthWrite	: false,
-        });
-        return material
-      }
+          anglePower: <any>{
+            type: "f",
+            value: -100000000000
+          },
+          spotPosition: <any>{
+            type: "v3",
+            value: new THREE.Vector3(0, 0, 0)
+          },
+          lightColor: <any>{
+            type: "c",
+            value: new THREE.Color('cyan')
+          },
+        },
+
+        vertexShader: vertexShader,
+        fragmentShader: fragmentShader,
+        side: THREE.BackSide,
+        blending: THREE.AdditiveBlending,
+        transparent: true,
+        depthWrite: false,
+      });
+      return material
     }
-    let material = new SpotLightMaterial()//getMaterial()
-    console.log(material)
+    //let material = new SpotLightMaterial()//getMaterial()
+    let material = getMaterial()
     this.frontFacePointer = new THREE.Mesh(geometry, material);
+    
     // this.frontFacePointer.position.set(1.5, 2, 0)
     // this.frontFacePointer.lookAt(new THREE.Vector3(0, 0, 0))
-    material.uniforms.lightColor.value.set('red')
+    material.uniforms.lightColor.value.set(this.color)
     material.uniforms.spotPosition.value = this.frontFacePointer.position
     this.gltf.scene.add(this.frontFacePointer)
+    this.master.renderer.render(this.master.scene.objRef,this.master.camera.objRef)
   }
 
 }
@@ -987,6 +1184,7 @@ class Extruded2DMesh extends Mesh{
   readonly wallThickness = 0.3
   readonly defaultOpacity = 0.8
   readonly transparentOpacity = 0.15
+  materials : THREE.MeshPhongMaterial[] = []
   constructor(public master : ThreejsViewportComponent , private vertices : {x : number ,y:number}[]){
     super();
     const shape = new THREE.Shape(); 
@@ -1023,12 +1221,12 @@ class Extruded2DMesh extends Mesh{
     shape.holes.push(hole);
 
     this.shapeGeom = new THREE.ExtrudeGeometry(shape, extrudeSettings);
-    var materials = [
+    this.materials = [
       new THREE.MeshPhongMaterial({ color: 0x777777, opacity: this.defaultOpacity, transparent: true }),
       new THREE.MeshPhongMaterial({ color: 0xEAE6EA, opacity: this.defaultOpacity, transparent: true , side : THREE.DoubleSide  }) //0xEAE6EA
     ]
 
-    super(this.shapeGeom, materials);
+    super(this.shapeGeom, this.materials);
     // this.shapeGeom.computeVertexNormals();
     // this.shapeGeom.computeBoundingSphere();
     // this.shapeGeom.computeBoundingBox();
@@ -1038,7 +1236,8 @@ class Extruded2DMesh extends Mesh{
   }
 
   setOpactiy(opacity : number){
-    (<any>this.material).forEach(o=>{
+    this.materials.forEach(o=>{
+      o.depthWrite = opacity >= this.defaultOpacity
       o.opacity = opacity
     })
   }

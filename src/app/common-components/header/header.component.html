@@ -15,25 +15,23 @@
 
         
         <div class="bg-job topnav" *ngIf="util.arcsApp && (dataSrv.signalRSubj.arcsSyncLog.value.length > 0  || dataSrv.alertFloorPlans.length > 0) ">
-            <kendo-menu #syncMenu [items]="[{id:'jobStatus' , items: syncMenuItems}]" class="job-menu" [openOnClick]="{ toggle: 'click' }" (click)="openSyncMenu(); " (close)="onSyncMenuClose()"> 
+            <kendo-menu #syncMenu [items]="[{id:'jobStatus' , items: syncMenuItems}]" class="job-menu" (click)="syncMenuOpened ? null :  openSyncMenu(); " (close)="onSyncMenuClose()"> 
                  <!-- (open)="updateUnreadCount()" -->
                 <ng-template kendoMenuItemTemplate let-item="item">
-                    <div *ngIf="item.id == 'jobStatus'" (click) = "syncMenu.toggle(true, '0') ; updateUnreadCount()">
-                        <a class="k-icon mdi mdi-cached">
-                            <kendo-badge *ngIf="dataSrv.unreadSyncMsgCount.value +  dataSrv.alertFloorPlans.length > 0" rounded="medium" themeColor="info" position="edge" 
-                                         [align] = "{ vertical: 'bottom', horizontal: 'end' }">
-                                {{dataSrv.unreadSyncMsgCount.value + dataSrv.alertFloorPlans.length }}
-                            </kendo-badge>
-                        </a>
-                    </div>
-                    <button kendoButton *ngIf="item.dataSyncId != null" (click)="router.navigate(['/setup', {selectedTab : 'synclog'}])"> 
-                        <span [class]="item.dataSyncType == 'EXPORT' ? 'k-icon mdi mdi-cloud-download' : ( item.dataSyncType == 'IMPORT' ? 'k-icon mdi mdi-cloud-upload' : '')"></span>
+                    <a  *ngIf="item.id == 'jobStatus'" class="k-icon mdi mdi-cached" >
+                        <kendo-badge *ngIf="dataSrv.unreadSyncMsgCount.value +  dataSrv.alertFloorPlans.length > 0" rounded="medium" themeColor="info" position="edge" 
+                                            [align] = "{ vertical: 'bottom', horizontal: 'end' }">
+                            {{dataSrv.unreadSyncMsgCount.value + dataSrv.alertFloorPlans.length }}
+                        </kendo-badge>
+                    </a>
+                    <button kendoButton *ngIf="item.dataSyncId != null" (click)="router.navigate(['/setup', {selectedTab : 'synclog'}])" class="sync"> 
+                        <span [class]="item.dataSyncType == 'EXPORT' ? 'k-icon mdi mdi-cloud-download sync' : ( item.dataSyncType == 'IMPORT' ? 'k-icon mdi mdi-cloud-upload' : '')"></span>
                         <span class="object-type">{{item.objectType | enum : true }}</span>
                         <span class="object-code">{{item.objectCode}}</span>
                         <span class="robot-code">{{item.robotCode}}</span>
                         <span [class]="'status ' + item.status">{{item.dataSyncStatus}}</span>
                     </button>
-                    <button kendoButton *ngIf="item.type == 'SyncAlert'" (click)="router.navigate(['/setup', {selectedTab : 'floorplan'}])"> 
+                    <button kendoButton *ngIf="item.type == 'SyncAlert'" (click)="router.navigate(['/setup', {selectedTab : 'floorplan'}])" class="alert">  
                         <span class="mdi mdi-exclamation-thick"></span>
                         <span>{{ 'Floor Plan [' + item.floorPlanCode + '] need to be updated' | label : uiSrv.langPack}}</span>
                     </button>

@@ -1,6 +1,6 @@
 //import standard library
 import { map, mergeMap,catchError } from 'rxjs/operators';
-import { Observable } from 'rxjs';
+import { Observable, throwError } from 'rxjs';
 import { Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 
@@ -74,18 +74,21 @@ export class AuthService {
 
 
 		return this.httpSrv.http.post<any>(this.generalUtil.getAPIUrl() + '/api/Auth/login', dataObj)
-			.pipe(map((response : loginResponse) => {
-				if(response?.result == true && response.validationResults){
-					Object.keys(this.sessionStorageCredentialsMap).forEach(k => sessionStorage.setItem(k ,  response.validationResults[this.sessionStorageCredentialsMap[k]]))
+			.pipe(map((response: loginResponse) => {
+				if (response?.result == true && response.validationResults) {
+					Object.keys(this.sessionStorageCredentialsMap).forEach(k => sessionStorage.setItem(k, response.validationResults[this.sessionStorageCredentialsMap[k]]))
 					this.username = this.generalUtil.getCurrentUser()
-					this.userAccessList = response.validationResults?.accessFunctionList.map(f=>f.functionCode)
-					this.dataSrv.setSessionStorage('userAccess',JSON.stringify(this.userAccessList))
-					this.dataSrv.setSessionStorage('isGuestMode',JSON.stringify(guestMode))
+					this.userAccessList = response.validationResults?.accessFunctionList.map(f => f.functionCode)
+					this.dataSrv.setSessionStorage('userAccess', JSON.stringify(this.userAccessList))
+					this.dataSrv.setSessionStorage('isGuestMode', JSON.stringify(guestMode))
 					this.isGuestMode = guestMode
 					this.dataSrv.init()
 				}
 				return response;
-			}))
+			}), catchError((e: any) => {
+				//do your processing here
+				return throwError(e);
+			}));
 			// response['data'][this.sessionStorageCredentialsMap[k]]
 	}
 

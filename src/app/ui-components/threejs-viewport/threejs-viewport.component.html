@@ -14,23 +14,24 @@
 </div>
 
 <div class="buttons-container t1">
-  <button kendoButton class="2d-switch" [matTooltip]="'2D Map' | label : uiSrv.langPack" (click)="to2D.emit({floorPlanCode : floorPlanDataset.floorPlanCode })">
-    <span class="mdi mdi-video-2d"></span>
-  </button>
-  <button kendoButton class="wall" [matTooltip]="'Show walls' | label : uiSrv.langPack" (click)="uiToggles.showWall = !uiToggles.showWall ; uiToggled('wall')" [ngClass]="{'btn-active':uiToggles.showWall}" >
-    <span class="mdi mdi-wall"></span>
-  </button>
- <button  kendoButton class="show-waypoint" [matTooltip]="((uiToggles.showWaypoint && uiToggles.showWaypointName) ? 'Hide Waypoint Name' : ((uiToggles.showWaypoint && !uiToggles.showWaypointName) ? 'Hide Waypoint' : 'Show Waypoint'))| label : uiSrv.langPack"  
+  <button  kendoButton class="show-waypoint" [matTooltip]="((uiToggles.showWaypoint && uiToggles.showWaypointName) ? 'Hide Waypoint Name' : ((uiToggles.showWaypoint && !uiToggles.showWaypointName) ? 'Hide Waypoint' : 'Show Waypoint'))| label : uiSrv.langPack"  
                  matTooltipPosition="right" 
                 (click)=" uiToggles.showWaypointName = !(uiToggles.showWaypoint && uiToggles.showWaypointName); uiToggles.showWaypoint = !(uiToggles.showWaypoint && uiToggles.showWaypointName) ; uiToggled('waypoint') ; uiToggled('waypointName') "  
                 [ngClass]="{'btn-intermediate': uiToggles.showWaypoint && !uiToggles.showWaypointName , 'btn-active': uiToggles.showWaypoint && uiToggles.showWaypointName }">
           <span class="mdi mdi-map-marker"></span>
  </button>
+  <button kendoButton class="wall" [matTooltip]="'Show walls' | label : uiSrv.langPack" (click)="uiToggles.showWall = !uiToggles.showWall ; uiToggled('wall')" [ngClass]="{'btn-active':uiToggles.showWall}" >
+    <span class="mdi mdi-wall"></span>
+  </button>
+  <button kendoButton class="2d-switch" [matTooltip]="'2D Map' | label : uiSrv.langPack" (click)="to2D.emit({floorPlanCode : floorPlanDataset.floorPlanCode })">
+    <span class="mdi mdi-video-2d"></span>
+  </button>
 </div>
 
 <th-canvas #canvas (onRender)="animate()">
   <th-scene #scene>
     <th-ambientLight [intensity]="0.7"> </th-ambientLight>
+     <!-- [intensity]="0.7" -->
 
     <!-- <th-object3D #object 
         (onClick)="selected = !selected"
@@ -40,6 +41,7 @@
 
     <!-- <th-gridHelper [args]="[1000, 1000]"></th-gridHelper> -->
     <th-pointLight [position]="[floorplan?.width / 2 ,  floorplan?.height  ,  floorplan?.height / 2]" [intensity]="0.5">
+      <!-- [intensity]="0.5" -->
     </th-pointLight>
 
     <th-perspectiveCamera #camera [args]="[45, 1, 0.1, 10000000]">
@@ -47,5 +49,9 @@
       <!-- [lookAt]="[10, 10, 10]" -->
       <!-- <th-orbitControls #orbitControl></th-orbitControls>  -->
     </th-perspectiveCamera>
+
+    <!-- <th-effectComposer>
+      <th-renderPass></th-renderPass>
+    </th-effectComposer> -->
   </th-scene>
 </th-canvas>
