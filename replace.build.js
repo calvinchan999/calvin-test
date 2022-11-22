@@ -23,7 +23,7 @@ async function main(){
 	  fs.copyFile('src/environments/environment.template.ts', 'src/environments/environment.prod.ts', async(err) => {
 		 if(err){
   		  console.log('An error has occured');
-		  console.log(err)
+		    console.log(err)
 		  throw err;
 		 }else{
             await replace(options1);
@@ -34,14 +34,14 @@ async function main(){
       fs.copyFile(`src/assets/base_${isArcs? 'arcs': 'sa'}.css`, 'src/assets/base.css', async(err) => {
         if(err){
   		  console.log('An error has occured during base.css replacement');
-		  console.log(err)
+		    console.log(err)
 		  throw err;
 		 }
       })
       fs.copyFile(`src/assets/theme-default/custom_${isArcs? 'arcs': 'sa'}.css`, 'src/assets/theme-default/custom.css', async(err) => {
         if(err){
   		  console.log('An error has occured during custom.css replacement');
-		  console.log(err)
+		    console.log(err)
 		  throw err;
 		 }
       })

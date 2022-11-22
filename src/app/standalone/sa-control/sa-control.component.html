@@ -48,13 +48,13 @@
                     <uc-txtbox lab="Type" [frmGrp]="frmGrpRobot" frmCtrl="robotType"  [disabled]="true"></uc-txtbox>
                     <!-- <uc-dropdown lab="Status" [frmGrp]="frmGrpRobot" frmCtrl="robotStatus"></uc-dropdown> -->
                 </div>
-                <ng-container *ngIf="!readonly.robot">
+                <ng-container *ngIf="!readonly.robot && (!dataSrv.disabledModule_SA.maxSpeed || !dataSrv.disabledModule_SA.safetyZone)">
                     <div class="form-row">
                         <label>{{ "Configuration" | label : uiSrv.langPack }}</label>
                     </div>
                     <div class="form-row">
-                        <button kendoButton (click) = "optionObj.type = 'maxSpeed' ;  optionObj.title = 'Set Maximum Speed'" >{{ "Maximum Speed" | label : uiSrv.langPack }}</button>
-                        <button kendoButton (click) = "optionObj.type = 'safetyZone' ; optionObj.title = 'Set Safety Zone'" >{{ "Safety Zone" | label : uiSrv.langPack }}</button>
+                        <button *ngIf="!dataSrv.disabledModule_SA.maxSpeed" kendoButton (click) = "optionObj.type = 'maxSpeed' ;  optionObj.title = 'Set Maximum Speed'" >{{ "Maximum Speed" | label : uiSrv.langPack }}</button>
+                        <button *ngIf="!dataSrv.disabledModule_SA.safetyZone" kendoButton (click) = "optionObj.type = 'safetyZone' ; optionObj.title = 'Set Safety Zone'" >{{ "Safety Zone" | label : uiSrv.langPack }}</button>
                         <!-- <uc-txtbox lab="Maximum Speed" [frmGrp]="frmGrpRobot" frmCtrl="robotMaxSpeed" [numeric]="true"></uc-txtbox>
                         <uc-txtbox lab="Safety Zone" [frmGrp]="frmGrpRobot" frmCtrl="robotSafetyZone" [numeric]="true"></uc-txtbox> -->
                     </div>

@@ -46,7 +46,11 @@ export class SaControlButtonsComponent implements OnInit {
 
   @Input() buttonIds : string[] = null
 
-  constructor(public uiSrv : UiService, public windowSrv: DialogService, private util : GeneralUtil , private httpSrv : RvHttpService, public dataSrv:DataService) { }
+  constructor(public uiSrv : UiService, public windowSrv: DialogService, private util : GeneralUtil , private httpSrv : RvHttpService, public dataSrv:DataService) {
+    Object.keys(this.dataSrv.disabledModule_SA).filter(k=>this.dataSrv.disabledModule_SA[k] == true).forEach(k=>{
+      this.layout.forEach(l => l.buttons =(<any>l.buttons).filter(b => b.id != k))
+    })
+  }
   layout = [
     {
       title: 'Power',  icon : 'mdi mdi-power-plug', buttons: [

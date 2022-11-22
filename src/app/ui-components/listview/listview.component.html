@@ -3,10 +3,12 @@
     <div class="listview-header-row-container" >
         <div class="listview-header-row" [style.left]="-1 * (virtualScrollViewport?.elementRef?.nativeElement?.scrollLeft) + 'px'">
             <ng-container *ngFor="let col of columnDef">
-                <div class="col-header-cell-container" [style.width]="col['width']?  col['width'] + 'px'  : 100">
-                    <div class="col-header col-header-cell-content" (mousedown)="$event.preventDefault()"> {{col['title'] | label : uiSrv.langPack}} </div>
-                    <div [style.minWidth]="resizeGripWidth + 'px'" class="resize-col-grip" (mousedown)="onColumnResize($event ,col['id'])"></div>
-                </div>
+                <ng-container *ngIf="!col['hidden']">
+                    <div class="col-header-cell-container" [style.width]="col['width']?  col['width'] + 'px'  : 100">
+                        <div class="col-header col-header-cell-content" (mousedown)="$event.preventDefault()"> {{col['title'] | label : uiSrv.langPack}} </div>
+                        <div [style.minWidth]="resizeGripWidth + 'px'" class="resize-col-grip" (mousedown)="onColumnResize($event ,col['id'])"></div>
+                    </div>
+                </ng-container>
             </ng-container>
         </div>
     </div>
@@ -75,13 +77,15 @@
 <ng-template #rowTemplate let-row="row">
     <div class="listview-row"  [class] = "(errorsMap.has(row)? 'error-row' : '') + (draggingRow == row ? ' dragging' : '' )"  >
         <ng-container  *ngFor = "let col of columnDef" >
-            <ng-container *ngTemplateOutlet = "cellTemplate;  
+            <ng-container *ngIf="!col['hidden']">
+                <ng-container *ngTemplateOutlet = "cellTemplate;  
                                                context:{ 
                                                          col:(row == newRow && col['newRow'] ? col['newRow']  : col) , 
                                                          row : row ,
                                                          orgCol : col
                                                        }">
-            </ng-container>
+                </ng-container>
+            </ng-container>         
         </ng-container>
     </div>
 </ng-template>

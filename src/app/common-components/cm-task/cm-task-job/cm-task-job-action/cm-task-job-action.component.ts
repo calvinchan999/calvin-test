@@ -1,8 +1,10 @@
 import { Component, NgZone, OnInit, ViewChild } from '@angular/core';
 import { FormControl, FormGroup } from '@angular/forms';
 import { ListViewComponent } from '@progress/kendo-angular-listview';
+import { DataService } from 'src/app/services/data.service';
 import { UiService } from 'src/app/services/ui.service';
 import { ListviewComponent, listViewFocusChangeEvent } from 'src/app/ui-components/listview/listview.component';
+import { GeneralUtil } from 'src/app/utils/general/general.util';
 import { CmTaskJobComponent } from '../cm-task-job.component';
 
 @Component({
@@ -40,7 +42,7 @@ export class CmTaskJobActionComponent implements OnInit {
 
   actionNewRow = {}
 
-  constructor(public uiSrv: UiService, private ngZone : NgZone) { }
+  constructor(public uiSrv: UiService, private ngZone : NgZone , public dataSrv : DataService , public util : GeneralUtil) { }
 
   get currLoc(){
     return this.frmGrp.controls['pointCode'].value
@@ -55,7 +57,7 @@ export class CmTaskJobActionComponent implements OnInit {
     this.actionListDef = [
       { id: 'seq', title: '#', width: 5 },
       { id: 'actionAlias', title: 'Action', width: 25 ,type : 'dropdown' , options : this.dropdownOptions['actions'], translateOption : true}, 
-      { id: 'navigationMode', title: 'Navigation Mode', width: 25 ,type : 'dropdown' , options : this.dropdownOptions['navigationMode'] , translateOption : true}, 
+      { id: 'navigationMode', title: 'Navigation Mode', width: 25 ,type : 'dropdown' , options : this.dropdownOptions['navigationMode'] , translateOption : true , hidden : this.util.standaloneApp && this.dataSrv.disabledModule_SA.pathFollowing}, 
       { id: 'orientation', title: 'Orientation', width: 10 ,type : 'checkbox' }, 
       // { id: 'lock', title: 'Lock', width: 25 , type : 'textbox'},
       // { id: 'otp', title: 'OTP', width: 30 , type : 'textbox'},

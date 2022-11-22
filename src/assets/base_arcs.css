@@ -16241,6 +16241,8 @@ select.k-dropdown:focus, select.k-dropdowntree:focus {
   padding: 0;
   position: fixed;
   box-sizing: border-box;
+  max-width: 95%;
+  max-height: 95%;
 }
 .k-dialog.k-dialog-centered {
   -webkit-transform: translate(-50%, -50%);
@@ -27607,7 +27609,6 @@ a {
   width: 100%;
   height: auto;
   overflow: hidden;
- 
 }
 .k-menu-popup .k-menu-item .k-button.alert {
   display: flex;
@@ -27665,23 +27666,23 @@ a {
   border-radius: 50%;
   height: 23px;
 }
-
 .k-menu-popup .k-menu-item .k-button.sync .status.transferring:before {
-    content: "\F04E6";
-    color: darkturquoise;
-	    animation: rotate 3s linear infinite;
+  content: "\F04E6";
+  color: darkturquoise;
+  animation: rotate 3s linear infinite;
 }
-@keyframes rotate{
-  to{ transform: rotate(-360deg); }
+@keyframes rotate {
+  to {
+    transform: rotate(-360deg);
+  }
 }
 .k-menu-popup .k-menu-item .k-button.sync .status.transferred:before {
-    content: "\F05E0";
-    color: limegreen;
+  content: "\F05E0";
+  color: limegreen;
 }
-
 .k-menu-popup .k-menu-item .k-button.sync .status.malfunction:before {
-    content: "\F0159";
-    color: orangered;
+  content: "\F0159";
+  color: orangered;
 }
 /* Menu */
 .sidebar {
@@ -27752,6 +27753,9 @@ a {
 .k-window .dialog-content {
   min-width: 400px;
   min-height: 100px;
+}
+.k-window .dialog-content .k-tabstrip {
+  padding-top: 0;
 }
 .k-window .dialog-content.robot-detail {
   height: 65vh;
@@ -28136,6 +28140,9 @@ a {
   height: calc(100% - 30px);
   width: 100%;
 }
+.k-window .dialog-content.table-container {
+  height: 100%;
+}
 /* Input */
 .form-group {
   margin-bottom: 8px;
@@ -28333,11 +28340,11 @@ uc-table .kendo-grid {
 .login .tablet-login-dialog {
   z-index: 10001;
 }
-.error {
-  color: #ff6c6c;
-}
 .login .error {
   font-size: 0.9em;
+}
+.login .error {
+  color: #ff6c6c;
 }
 .login .error + .forgot-pw {
   margin-top: -18px
@@ -28346,7 +28353,7 @@ uc-table .kendo-grid {
 .setup-map .container {
   display: flex;
   justify-content: space-between;
-  height: 70vh;
+  height: 68vh;
   width: 70vw;
   gap: 15px;
 }
@@ -29316,6 +29323,9 @@ app-sa-pages-task-overlay, app-sa-pages-task-overlay .task-overlay {
   font-size: 0.45em;
   align-self: flex-end;
   margin-left: 10px;
+}
+.card-container .k-tilelayout .k-card .k-card-body a {
+  text-decoration: underline;
 }
 .card-container .k-tilelayout .k-card.select-year {
   padding: 12px;

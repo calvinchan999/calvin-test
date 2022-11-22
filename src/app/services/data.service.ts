@@ -29,6 +29,24 @@ export type signalRType = 'activeMap' | 'occupancyGridMap' | 'navigationMove' | 
   providedIn: 'root'
 })
 export class DataService {
+  public disabledModule_SA = {
+    fan: false,
+    brake: false,
+    led: false,
+    followMe: false,
+    manual: false,
+    pathFollowing : false,
+    restart : false,
+    charge  : false,
+    stop : false,
+    pause : false,
+    pairing : false,
+    auto : false,
+    changeMap : false,
+    localize  : false,
+    maxSpeed : false,
+    safetyZone : false
+  }
   public alertFloorPlans :{type : string ,floorPlanCode : string , mapCode : string , robotBases : string[]}[] = []
   public unreadNotificationCount = new BehaviorSubject<number>(0)
   public unreadSyncMsgCount = new BehaviorSubject<number>(0)
@@ -500,6 +518,12 @@ export class DataService {
 
 
   async init(){
+    if(this.util.config.DISABLED_FUNCTIONS){
+      let keys : string[]= this.util.config.DISABLED_FUNCTIONS.filter(f=>Object.keys(this.disabledModule_SA).includes(f))
+      keys.forEach(k=> this.disabledModule_SA[k] = true)
+      console.log(`DISABLED FUNCTION (from UI config.json) : ${keys}`)
+    }
+    this.disabledModule_SA.pairing = this.disabledModule_SA.followMe // binded
     if(this.util.config.LANGUAGES){
       let options = []
       Object.keys(this.util.config.LANGUAGES).forEach(k=> options.push({value : k , text : this.util.config.LANGUAGES[k]}))

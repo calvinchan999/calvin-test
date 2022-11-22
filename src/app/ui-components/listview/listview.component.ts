@@ -262,7 +262,7 @@ export class ListviewComponent implements OnInit {
   }
 
   getColumnTotalWidth(){
-    return this.columnDef.filter(c => !isNaN(Number(c['width']))).map(c => Number(c['width'])).reduce((acc, inc) => acc + inc, 0)
+    return this.columnDef.filter(c => c['hidden']!=true && !isNaN(Number(c['width']))).map(c => Number(c['width'])).reduce((acc, inc) => acc + inc, 0)
   }
 
   onColumnResize(event, id) {
