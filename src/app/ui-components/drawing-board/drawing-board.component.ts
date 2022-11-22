@@ -342,7 +342,7 @@ export class DrawingBoardComponent implements OnInit , AfterViewInit {
     this.arcsLocationTree.site = v
   }
   
-  arcsLocationTree : {
+  @Input() arcsLocationTree : {
     site : {
       code : string ,
       name : string 
@@ -371,6 +371,7 @@ export class DrawingBoardComponent implements OnInit , AfterViewInit {
       floorplan : null,
     }
   }
+  @Output() arcsLocationTreeChange = new EventEmitter()
 
 
   dijkstra : { paths : JPath [],graph : any} = {
@@ -833,7 +834,7 @@ export class DrawingBoardComponent implements OnInit , AfterViewInit {
 
   async loadToMainContainer(url, width = null, height = null , floorPlanName = null, containerId = null , setCamera = false ) {
     url = url.startsWith('data:image') ? url : ('data:image/png;base64,' + url)
-    this.dataSrv.setlocalStorage('lastLoadedFloorplanCode' , containerId)
+    this.dataSrv.setLocalStorage('lastLoadedFloorplanCode' , containerId)
     this.mainContainerId = containerId
     this.header = floorPlanName
     let sprite = await this.getSpriteFromUrl(url)
@@ -1872,6 +1873,7 @@ export class DrawingBoardComponent implements OnInit , AfterViewInit {
     ret =  await <any>ret.pipe(filter(v => ![null, undefined].includes(v)), take(1)).toPromise()
     this.uiSrv.loadAsyncDone(ticket)
     this.arcsLocationTree.currentLevel = 'floorplan'
+    this.arcsLocationTreeChange.emit(this.arcsLocationTree)
     return ret
   }
 
@@ -1945,8 +1947,8 @@ export class DrawingBoardComponent implements OnInit , AfterViewInit {
         pixiArrow.visible = false
       }
     })
-    if(this.isDashboard && this.dataSrv.getlocalStorage('uitoggle')){
-      let storedToggle =  JSON.parse(this.dataSrv.getlocalStorage('uitoggle')) //SHARED by 2D & 3D viewport
+    if(this.isDashboard && this.dataSrv.getLocalStorage('uitoggle')){
+      let storedToggle =  JSON.parse(this.dataSrv.getLocalStorage('uitoggle')) //SHARED by 2D & 3D viewport
       Object.keys(storedToggle).forEach(k=> {
         if(Object.keys(this.uitoggle).includes(k)){
           this.uitoggle[k] = storedToggle[k] 
@@ -2267,8 +2269,8 @@ export class DrawingBoardComponent implements OnInit , AfterViewInit {
     // this.spawnPickObj.dropdownOptions.floorplans = dropLists.option['floorplans']
     // this.spawnPickObj.dropdownData.maps = dropLists.data['maps']
     if (loadFp && this.dropdownOptions.floorplans.length > 0) {
-      this.spawnPointObj.selectedPlan = this.dropdownOptions.floorplans.map(p=>p.value.toString()).includes(this.dataSrv.getlocalStorage('lastLoadedFloorplanCode')) ?
-                           this.dataSrv.getlocalStorage('lastLoadedFloorplanCode') : 
+      this.spawnPointObj.selectedPlan = this.dropdownOptions.floorplans.map(p=>p.value.toString()).includes(this.dataSrv.getLocalStorage('lastLoadedFloorplanCode')) ?
+                           this.dataSrv.getLocalStorage('lastLoadedFloorplanCode') : 
                            this.dropdownOptions.floorplans[0].value
       this.spawnPointObj.selectedMap = this.dropdownData.maps.filter((m:DropListMap)=>m.floorPlanCode ==  (<DropListFloorplan>this.spawnPointObj.selectedPlan[0]?.floorPlanCode))
       this.onFloorplanSelected_SA()
@@ -2386,9 +2388,9 @@ export class DrawingBoardComponent implements OnInit , AfterViewInit {
   }
 
   updateUiToggleLocalStorage(){
-    let storedToggle = this.dataSrv.getlocalStorage('uitoggle') ?  JSON.parse(this.dataSrv.getlocalStorage('uitoggle')) : {}
+    let storedToggle = this.dataSrv.getLocalStorage('uitoggle') ?  JSON.parse(this.dataSrv.getLocalStorage('uitoggle')) : {};
     Object.keys(this.uitoggle).forEach(k=> storedToggle[k] = this.uitoggle[k])
-    this.dataSrv.setlocalStorage('uitoggle' , JSON.stringify(this.uitoggle)) //SHARED BY 2D and 3D viewport
+    this.dataSrv.setLocalStorage('uitoggle' , JSON.stringify(storedToggle)) //SHARED BY 2D and 3D viewport
   }
 
   toggleWaypoint(show = this.uitoggle.showWaypoint){
@@ -3575,7 +3577,7 @@ export class PixiToolTip extends PIXI.Graphics{
     this.addChild(this.text)
   }
   get stage(){
-    return this.getViewport().parent
+    return this.getViewport()?.parent
   }
 
   public getViewport(g = this.parent) {
@@ -4911,6 +4913,7 @@ export class PixiPolygon extends PixiCommon{
       ['touchstart', 'mousedown'].forEach(clickEvt => {
         this.on(clickEvt , (evt: PIXI.interaction.InteractionEvent)=>{
           this.getMasterComponent().arcsLocationTree.building = {code : this.arcsBuildingCode  , name : this.arcsBuildingName }
+          this.getMasterComponent().arcsLocationTreeChange.emit( this.getMasterComponent().arcsLocationTree)
           this.getMasterComponent().onBuildingSelected.emit(this.arcsBuildingCode)          
         })
       })

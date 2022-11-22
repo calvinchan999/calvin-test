@@ -143,13 +143,13 @@ export class HeaderComponent {
 
     public updateUnreadCount(){
         this.dataSrv.unreadSyncMsgCount.next(0)
-        this.dataSrv.setlocalStorage('unreadSyncMsgCount' ,JSON.stringify(0))
+        this.dataSrv.setLocalStorage('unreadSyncMsgCount' ,JSON.stringify(0))
     }
 
     public updateUnreadLog(){
         let processingLogs = (this.dataSrv.signalRSubj.arcsSyncLog.value ? this.dataSrv.signalRSubj.arcsSyncLog.value : []).filter(l=>l.dataSyncStatus == 'TRANSFERRING')
         this.dataSrv.signalRSubj.arcsSyncLog.next( processingLogs)
-        this.dataSrv.setlocalStorage('syncDoneLog' , JSON.stringify([]))
+        this.dataSrv.setLocalStorage('syncDoneLog' , JSON.stringify([]))
     }
 
     public closeSyncMenu(){

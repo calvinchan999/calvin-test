@@ -41,7 +41,7 @@ export class ArcsDashboardRobotDetailComponent implements OnInit {
     let robot = robotList.filter(r=>r.robotCode == this.robotId)[0]
     this.robotType = robot?.robotType
     this.robotSubType = robot?.robotSubType
-    this.tabs = this.tabs.concat(this.topModuleTabs[this.robotType ] ? this.topModuleTabs[this.robotType ] : [])
+    this.tabs = this.tabs.concat(this.topModuleTabs[this.robotType ] && !(this.robotType == 'DELIVERY' && this.robotSubType == 'NA') ? this.topModuleTabs[this.robotType ] : [])
     this.dataSrv.subscribeSignalRs(this.topics, this.robotId)
     this.initDataSource()
     this.refreshRobotStatus()

@@ -5,7 +5,7 @@
     <span class="building-name" *ngIf = "locationTree?.site?.code && locationTree.currentLevel == 'floorplan'"> {{locationTree.building.name}}</span>
   </div>
   <span class="floorplan" *ngIf = "locationTree.currentLevel == 'floorplan' && floorPlanDataset"> 
-    <uc-dropdown   [options]="floorPlanOptions"   [(value)] = "floorPlanDataset.floorPlanCode"  
+    <uc-dropdown   [options]="floorPlanOptions"   [value] = "floorPlanDataset.floorPlanCode"  
                    [allowClear] = "false"  [customDropItemTemplate] = "true"
                    (valueChange)="parent? parent.loadFloorPlan($event) : null"
                    (open)="parent? parent.setFloorplanRobotCount(floorPlanOptions) : null ;" class = "arcs-floorplan-picker">
@@ -23,7 +23,7 @@
   <button kendoButton class="wall" [matTooltip]="'Show walls' | label : uiSrv.langPack" (click)="uiToggles.showWall = !uiToggles.showWall ; uiToggled('wall')" [ngClass]="{'btn-active':uiToggles.showWall}" >
     <span class="mdi mdi-wall"></span>
   </button>
-  <button kendoButton class="2d-switch" [matTooltip]="'2D Map' | label : uiSrv.langPack" (click)="to2D.emit({floorPlanCode : floorPlanDataset.floorPlanCode })">
+  <button kendoButton class="2d-switch" [matTooltip]="'2D Map' | label : uiSrv.langPack" (click)="dataSrv.setLocalStorage('dashboardMapType' , '2D');to2D.emit({floorPlanCode : floorPlanDataset.floorPlanCode })">
     <span class="mdi mdi-video-2d"></span>
   </button>
 </div>
@@ -40,10 +40,10 @@
     <!-- [scale]="selected ? [2, 2, 2] : [1, 1, 1]" -->
 
     <!-- <th-gridHelper [args]="[1000, 1000]"></th-gridHelper> -->
-    <th-pointLight [position]="[floorplan?.width / 2 ,  floorplan?.height  ,  floorplan?.height / 2]" [intensity]="0.5">
-      <!-- [intensity]="0.5" -->
-    </th-pointLight>
 
+    <th-pointLight [position]="[floorplan?.width / 2 ,  floorplan?.height  ,  floorplan?.height / 2]" [intensity]="0.4" [decay]="10">
+    </th-pointLight>
+    <!-- <th-directionalLight [castShadow]="false" [color]="16777215" [intensity]="0.4"></th-directionalLight> -->
     <th-perspectiveCamera #camera [args]="[45, 1, 0.1, 10000000]">
       <!-- [position]="[120, 700 , 900]" -->
       <!-- [lookAt]="[10, 10, 10]" -->

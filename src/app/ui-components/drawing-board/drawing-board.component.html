@@ -62,7 +62,7 @@
       </button>
       
       <button *ngIf="isDashboard && util.arcsApp && arcsLocationTree.currentLevel == 'floorplan'" kendoButton class="3d-switch" [matTooltip]="'3D Map' | label : uiSrv.langPack"  
-                (click)="to3D.emit()" >
+                (click)="dataSrv.setLocalStorage('dashboardMapType' , '3D');to3D.emit()" >
           <span [class]="'mdi mdi-video-3d'"></span>
       </button>
 

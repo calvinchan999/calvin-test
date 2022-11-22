@@ -1,4 +1,4 @@
-import { Component, ElementRef, Input, OnDestroy, OnInit, ViewChild, ViewEncapsulation , Output  ,EventEmitter , HostBinding} from '@angular/core';
+import { Component, ElementRef, Input, OnDestroy, OnInit, ViewChild, ViewEncapsulation , Output  ,EventEmitter , HostBinding , HostListener} from '@angular/core';
 import * as flvjs from 'flv.js/dist/flv.min.js';
 import { UiService } from 'src/app/services/ui.service';
 import { GeneralUtil } from 'src/app/utils/general/general.util';
@@ -27,6 +27,17 @@ export class VideoPlayerComponent implements OnInit, OnDestroy {
     // rtsp.RTSP_CONFIG['websocket.url'] = "ws://127.0.0.1:8090/ws";
   }
 
+  @HostListener('window:resize', ['$event'])
+  refreshWidthHeight(){
+    this.height = Math.floor(window.innerHeight * 0.575)
+    this.width = Math.floor(this.height * 16 / 9)
+    if(this.isAzure){
+      let player : amp.Player = this.player 
+      player.width(this.width + 'px')
+      player.height(this.height + 'px')
+    }
+  }
+
   ngOnInit() { }
   // Instantiate a Video.js player OnInit
   ngAfterViewInit() {
@@ -38,6 +49,7 @@ export class VideoPlayerComponent implements OnInit, OnDestroy {
       })      
     
       setTimeout(()=>{
+        this.refreshWidthHeight()
         player.autoplay(true);
         player.controls(true);
         player.src({

@@ -15,10 +15,10 @@
 
         
         <div class="bg-job topnav" *ngIf="util.arcsApp && (dataSrv.signalRSubj.arcsSyncLog.value.length > 0  || dataSrv.alertFloorPlans.length > 0) ">
-            <kendo-menu #syncMenu [items]="[{id:'jobStatus' , items: syncMenuItems}]" class="job-menu" (click)="syncMenuOpened ? null :  openSyncMenu(); " (close)="onSyncMenuClose()"> 
+            <kendo-menu #syncMenu [items]="[{id:'jobStatus' , items: syncMenuItems}]" class="job-menu" (mouseover)="syncMenuOpened ? null :  openSyncMenu(); " (close)="onSyncMenuClose()"> 
                  <!-- (open)="updateUnreadCount()" -->
                 <ng-template kendoMenuItemTemplate let-item="item">
-                    <a  *ngIf="item.id == 'jobStatus'" class="k-icon mdi mdi-cached" >
+                    <a *ngIf="item.id == 'jobStatus'" class="k-icon mdi mdi-cached" >
                         <kendo-badge *ngIf="dataSrv.unreadSyncMsgCount.value +  dataSrv.alertFloorPlans.length > 0" rounded="medium" themeColor="info" position="edge" 
                                             [align] = "{ vertical: 'bottom', horizontal: 'end' }">
                             {{dataSrv.unreadSyncMsgCount.value + dataSrv.alertFloorPlans.length }}
@@ -29,11 +29,11 @@
                         <span class="object-type">{{item.objectType | enum : true }}</span>
                         <span class="object-code">{{item.objectCode}}</span>
                         <span class="robot-code">{{item.robotCode}}</span>
-                        <span [class]="'status ' + item.status">{{item.dataSyncStatus}}</span>
+                        <span [class]="'status ' + (item.dataSyncStatus | cssClassName )">{{item.dataSyncStatus}}</span>
                     </button>
                     <button kendoButton *ngIf="item.type == 'SyncAlert'" (click)="router.navigate(['/setup', {selectedTab : 'floorplan'}])" class="alert">  
-                        <span class="mdi mdi-exclamation-thick"></span>
-                        <span>{{ 'Floor Plan [' + item.floorPlanCode + '] need to be updated' | label : uiSrv.langPack}}</span>
+                        <span class="mdi mdi-exclamation-thick alert"></span>
+                        <span class="text">{{ 'Floor Plan [' + item.floorPlanCode + '] need to be updated' | label : uiSrv.langPack}}</span>
                     </button>
                 </ng-template>
             </kendo-menu>
@@ -41,7 +41,7 @@
 
 
         <div class="profile topnav" *ngIf = "authSrv.username">
-            <kendo-menu [items]="[{id:'user' , items: util.standaloneApp ? [{id: 'lang'} , {id:'pw'} , {id:'wifi'}] :[{id: 'lang'} , {id:'pw'} ]}] " #settingMenu (close) = "langMenuOpened ? $event.preventDefault() : null">
+            <kendo-menu [items]="[{id:'user' , items: util.standaloneApp ? [{id: 'lang'} , {id:'pw'} , {id:'wifi'}] :[{id: 'lang'} , {id:'pw'} ]}] "  #settingMenu (close) = "langMenuOpened ? $event.preventDefault() : null">
                 <!-- langMenuOpened ? $event.preventDefault() : null  -->
                 <ng-template kendoMenuItemTemplate let-item="item">
                     <ng-container *ngIf="item.id == 'user'">

@@ -17,6 +17,7 @@ import { mixin } from "pixi-viewport";
 import { TooltipDirective } from "@progress/kendo-angular-tooltip";
 import { DatePipe } from '@angular/common'
 import { Template } from "@angular/compiler/src/render3/r3_ast";
+import { ArcsFailedTasksComponent } from "./arcs-failed-tasks/arcs-failed-tasks.component";
 
 const Utilization_Status_Types = ['charging' , 'idle' , 'executing' , 'hold']
 @Component({
@@ -155,6 +156,19 @@ export class ArcsChartsComponent implements OnInit {
   constructor(public datepipe: DatePipe ,  private util :GeneralUtil , public uiSrv : UiService , private dataSrv : DataService ) {
 
   }
+
+  showIncompeleteTasks(){
+    //Pending : check access right for tasks
+    let dialog : DialogRef = this.uiSrv.openKendoDialog({content: ArcsFailedTasksComponent , preventAction:()=>true});
+    const content = dialog.content.instance;
+    content.dialogRef = dialog
+    content.parent = this
+    // content.parentRow = evt?.row
+    // dialog.result.subscribe(()=>{
+
+    // })
+  }
+
 
   async ngOnInit() {
 
@@ -487,7 +501,7 @@ export class ArcsChartsComponent implements OnInit {
         this.usability.robotType.data.push({ category: category , value: this.getRoundedValue(r.value) })
       }
     })
-    this.usability.total = this.usability.completed + this.usability.incomplete + this.usability.canceled
+    this.usability.total = this.usability.completed + this.usability.incomplete //+ this.usability.canceled
     this.usability.robotType.centerText =  this.usability.total.toString() + ' \n ' + this.uiSrv.translate('Tasks')
   }
 

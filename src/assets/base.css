@@ -27543,11 +27543,14 @@ a {
 .header .profile, .header .settings, .header .logout {
   margin: 0 0.5rem;
 }
-.header .alert .k-badge-solid.k-badge-warning {
-  top: 8px;
-  right: 4px;
+.header .alert .k-badge-solid.k-badge-warning, .header .bg-job .k-badge-solid.k-badge-info {
+  top: 10px;
+  right: 2px;
   font-family: system-ui;
   font-size: 0.4em;
+}
+.header .bg-job .k-icon.k-menu-expand-arrow {
+  display: none;
 }
 .header .logout button {
   border: none;
@@ -27593,6 +27596,92 @@ a {
 }
 .k-menu-popup .form-group {
   margin-bottom: 0;
+}
+.k-menu-popup .k-menu-item .k-button.sync {
+  display: grid;
+  grid-template-columns: 3.1em 1fr 1fr;
+  grid-template-rows: 1em 1fr;
+  grid-template-areas:
+    "icon type ..."
+    "icon code robot";
+  width: 100%;
+  height: auto;
+  overflow: hidden;
+ 
+}
+.k-menu-popup .k-menu-item .k-button.alert {
+  display: flex;
+  width: 350px;
+  height: auto;
+  position: relative;
+}
+.k-menu-popup .k-menu-item .k-button.alert .mdi {
+  width: 40px;
+  font-size: 2em;
+  color: orange;
+  display: inline-flex;
+}
+.k-menu-popup .k-menu-item .k-button.alert .text {
+  width: calc(100% - 30px);
+  white-space: initial;
+}
+.k-menu-popup .k-menu-item .k-button.sync .k-icon {
+  grid-area: icon;
+  font-size: 2.5em;
+}
+.k-menu-popup .k-menu-item .k-button.sync .object-type {
+  grid-area: type;
+  font-size: 0.75em;
+  font-weight: 600;
+  color: #ccc;
+  align-self: baseline;
+}
+.k-menu-popup .k-menu-item .k-button.sync .object-code {
+  grid-area: code;
+  font-size: 1.1em;
+}
+.k-menu-popup .k-menu-item .k-button.sync .robot-code {
+  grid-area: robot;
+  font-size: 1.1em;
+}
+.k-menu-popup .k-menu-item .k-button.sync .status {
+  visibility: hidden;
+  position: absolute;
+  padding: 0;
+  height: 30px;
+  width: 30px;
+}
+.k-menu-popup .k-menu-item .k-button.sync .status:before {
+  visibility: visible;
+  font-family: "Material Design Icons";
+  font-size: 1.5em;
+  line-height: 1.05;
+  display: block;
+  position: absolute;
+  left: 34px;
+  top: 15px;
+  background: black;
+  width: 23px;
+  border-radius: 50%;
+  height: 23px;
+}
+
+.k-menu-popup .k-menu-item .k-button.sync .status.transferring:before {
+    content: "\F04E6";
+    color: darkturquoise;
+	    animation: rotate 3s linear infinite;
+}
+@keyframes rotate{
+  to{ transform: rotate(-360deg); }
+}
+.k-menu-popup .k-menu-item .k-button.sync .status.transferred:before {
+    content: "\F05E0";
+    color: limegreen;
+}
+
+.k-menu-popup .k-menu-item .k-button.sync .status.malfunction:before {
+    content: "\F0159";
+    color: orangered;
 }
 /* Menu */
 .sidebar {
@@ -29108,6 +29197,9 @@ app-sa-pages-task-overlay, app-sa-pages-task-overlay .task-overlay {
   font-size: 1.5em;
   position: relative;
 }
+.ts-robotlist .k-card-body .ts-alert .mdi-alert {
+  font-size: 1.4em;
+}
 .k-progressbar {
   background: rgba(255, 255, 255, 0.5);
   color: #fff;
@@ -29275,7 +29367,7 @@ app-sa-pages-task-overlay, app-sa-pages-task-overlay .task-overlay {
   margin-top: 3px;
 }
 .card-container.home .ts-robottotal .k-card-body .ts-header, .card-container.home .ts-robottotal .k-card-body .ts-row {
-  grid-template-columns: 50px 1fr 1fr 1fr 1fr 1fr 35px;
+  grid-template-columns: 50px 1fr 1fr 1fr 1fr 1fr 1fr;
 }
 .card-container.home .ts-resultbox .ts-row .ts-robot-id span {
   display: none;

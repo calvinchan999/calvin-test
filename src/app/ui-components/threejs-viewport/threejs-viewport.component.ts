@@ -62,7 +62,7 @@ export class ThreejsViewportComponent implements OnInit {
   effectFXAA 
   outlinePass : OutlinePass
   ROSmapScale = 1
-  mapCode = ''
+  mapCode
   focusedObj = null
   @Input() uiToggles = {
     showWall : true,
@@ -88,6 +88,7 @@ export class ThreejsViewportComponent implements OnInit {
   robotLists : DropListRobot[]
   constructor(public uiSrv: UiService , public ngZone : NgZone , public util : GeneralUtil , public dataSrv : DataService ,  public ngRenderer:Renderer2) {
     // this.loadingTicket = this.uiSrv.loadAsyncBegin()
+    this.loadLocalStorageToggleSettings()
   }
 
   mouse = new THREE.Vector2();
@@ -144,10 +145,14 @@ export class ThreejsViewportComponent implements OnInit {
     }
   }
 
+  loadLocalStorageToggleSettings(){
+    this.uiToggles = this.dataSrv.getLocalStorage('uitoggle') ?  JSON.parse(this.dataSrv.getLocalStorage('uitoggle')) :  this.uiToggles
+  }
+
   uiToggled(key : string){    
-    let storedToggle =this.dataSrv.getlocalStorage('uitoggle') ?  JSON.parse(this.dataSrv.getlocalStorage('uitoggle')) : {}
+    let storedToggle = this.dataSrv.getLocalStorage('uitoggle') ?  JSON.parse(this.dataSrv.getLocalStorage('uitoggle')) : {};
     Object.keys(this.uiToggles).forEach(k=> storedToggle[k] = this.uiToggles[k])
-    this.dataSrv.setlocalStorage('uitoggle' , JSON.stringify(storedToggle)) //SHARED BY 2D and 3D viewport
+    this.dataSrv.setLocalStorage('uitoggle' , JSON.stringify(storedToggle)) //SHARED BY 2D and 3D viewport
     if(key == 'wall'){
       this.blockMeshes.forEach(b=>b.visible = this.uiToggles.showWall)
     }else if(key == 'waypoint'){
@@ -234,7 +239,7 @@ export class ThreejsViewportComponent implements OnInit {
 
   async ngOnInit() {
     console.log('THREE JS VERSION : ' + THREE.REVISION )
-    let storedToggle =  JSON.parse(this.dataSrv.getlocalStorage('uitoggle')) //SHARED by 2D & 3D viewport
+    let storedToggle =  JSON.parse(this.dataSrv.getLocalStorage('uitoggle')) //SHARED by 2D & 3D viewport
     Object.keys(storedToggle).forEach(k=> {
       if(Object.keys(this.uiToggles).includes(k)){
         this.uiToggles[k] = storedToggle[k] 
@@ -263,8 +268,11 @@ export class ThreejsViewportComponent implements OnInit {
   }
 
   resetScene(){
-    this.scene.objRef.remove(this.floorplan)
-    this.mapMeshes.forEach(m=>this.scene.objRef.remove(m))
+    this.mapCode = null
+    this.scene?.objRef.remove(this.floorplan)
+    this.mapMeshes.forEach(m=>this.scene?.objRef.remove(m))
+    this.robotObjs.forEach(r=>r.hideToolTip())
+    this.waypointMeshes.forEach(w=>w.hideToolTip())
     // this.robotObjs.forEach(r=>this.scene.objRef.remove(r))
     this.unsubscribeRobotPoses()
   }
@@ -280,21 +288,13 @@ export class ThreejsViewportComponent implements OnInit {
     this.camera.objRef.lookAt(1, -0.9 , -0.5)
     this.orbitCtrl.update()
     this.camera.objRef.position.z += this.floorplan.height * 0.1
-    if(subscribePoses){
+    if(subscribePoses && this.mapCode){
       this.subscribeRobotPoses()
     }
-    //v TESTING v
-    // let robot = new RobotObject3D(this , "TEST-ROBOT" , "WC")
-    // robot.visible = true
-    // let map = this.getMapMesh(robot.robotBase)
-    // if(map){
-    //   map.add(robot)
-    //   var origin = this.getConvertedRobotVector(0 , 0 , map)
-    //   robot.position.set(origin.x , origin.y , origin.z)
-    // }
     if(this.mapCode == '5W_2022'){
-      this.initBlocks()
+      this.initBlocks();
     } 
+    ['waypoint' , 'waypointName' , 'wall'].forEach(k=> this.uiToggled(k))
     // this.orbitCtrl.target.set(1, -0.9 , -0.5)
     // var lookAtVector = new THREE.Vector3(0, 0, -1);
     // lookAtVector.applyQuaternion(this.camera.objRef.quaternion);
@@ -316,139 +316,21 @@ export class ThreejsViewportComponent implements OnInit {
     this.uiSrv.loadAsyncDone(ticket);
   }
 
-  // async ngAfterViewInit() {
-  //   renderer.render(scene, camera);
-  // }
-
-  testVolumetricLight(){    
-    const VolumetricSpotLightMaterial = function () {
-      // 
-      var vertexShader = [
-        'varying vec3 vNormal;',
-        'varying vec3 vWorldPosition;',
-        'void main(){',
-        '// compute intensity',
-        'vNormal        = normalize( normalMatrix * normal );',
-        'vec4 worldPosition = modelMatrix * vec4( position, 1.0 );',
-        'vWorldPosition     = worldPosition.xyz;',
-        '// set gl_Position',
-        'gl_Position    = projectionMatrix * modelViewMatrix * vec4( position, 1.0 );',
-        '}',
-      ].join('\n')
-      var fragmentShader = [
-        'varying vec3       vNormal;',
-        'varying vec3       vWorldPosition;',
-        'uniform vec3       lightColor;',
-        'uniform vec3       spotPosition;',
-        'uniform float      attenuation;',
-        'uniform float      anglePower;',
-        'void main(){',
-        'float intensity;',
-        //////////////////////////////////////////////////////////
-        // distance attenuation                 //
-        //////////////////////////////////////////////////////////
-        'intensity  = distance(vWorldPosition, spotPosition)/attenuation;',
-        'intensity  = 1.0 - clamp(intensity, 0.0, 1.0);',
-        //////////////////////////////////////////////////////////
-        // intensity on angle                   //
-        //////////////////////////////////////////////////////////
-        'vec3 normal    = vec3(vNormal.x, vNormal.y, abs(vNormal.z));',
-        'float angleIntensity   = pow( dot(normal, vec3(0.0, 0.0, 1.0)), anglePower );',
-        'intensity  = intensity * angleIntensity;',
-        // 'gl_FragColor    = vec4( lightColor, intensity );',
-        //////////////////////////////////////////////////////////
-        // final color                      //
-        //////////////////////////////////////////////////////////
-        // set the final color
-        'gl_FragColor   = vec4( lightColor, intensity);',
-        '}',
-      ].join('\n')
-      // create custom material from the shader code above
-      //   that is within specially labeled script tags
-      var material = new THREE.ShaderMaterial({
-        uniforms: {
-          attenuation: <any>{
-            type: "f",
-            value: 100000000000
-          },
-          anglePower: <any>{
-            type: "f",
-            value: -100000000000
-          },
-          spotPosition: <any>{
-            type: "v3",
-            value: new THREE.Vector3(0, 0, 0)
-          },
-          lightColor: <any>{
-            type: "c",
-            value: new THREE.Color('cyan')
-          },
-        },
-
-        vertexShader: vertexShader,
-        fragmentShader: fragmentShader,
-        side: THREE.BackSide,
-        blending: THREE.AdditiveBlending,
-        transparent: true,
-        depthWrite: false,
-      });
-      return material
-    }
-
-
-    // var renderer = new THREE.WebGLRenderer();
-    // renderer.setSize(1500, 500);
-    // document.body.appendChild(renderer.domElement);
-    // var scene = new THREE.Scene();
-    // var camera = new THREE.PerspectiveCamera(45, window.innerWidth / window.innerHeight, 0.3, 10);
-    // camera.position.set(0, 2, 5)
-    // camera.lookAt(scene.position)
-
-    //////////////////////////////////////////////////////////////////////////////////
-    //		create a scene							//
-    //////////////////////////////////////////////////////////////////////////////////
-
-    //////////////////////////////////////////////////////////////////////////////////
-    //		add a volumetric spotligth					//
-    //////////////////////////////////////////////////////////////////////////////////
-    // add spot light
-    var obj = new Object3D()
-    var scale = 1
-    var geometry = new THREE.CylinderGeometry(0.1 * scale, 1.5 *scale, 5 * scale, 32 * 2 * scale, 20 * scale, true);
-    // var geometry	= new THREE.CylinderGeometry( 0.1, 5*Math.cos(Math.PI/3)/1.5, 5, 32*2, 20, true);
-    geometry.applyMatrix4(new THREE.Matrix4().makeTranslation(0, -geometry.parameters.height / 2, 0));
-    geometry.applyMatrix4(new THREE.Matrix4().makeRotationX(-Math.PI / 2));
-    var material = VolumetricSpotLightMaterial();
-    var mesh = new THREE.Mesh(geometry, material);
-    mesh.position.set(0, 0, 0)
-    mesh.lookAt(new THREE.Vector3(0, 0, 0))
-    material.uniforms.lightColor.value.set('red')
-
-    material.uniforms.spotPosition.value = mesh.position
-    obj.add(mesh)
-    // mesh.position.set(0, 0, 0)
-    // material.uniforms.spotPosition.value = mesh.position
-    this.scene.objRef.add(obj);
-    obj.position.set(50,150,50)
-    obj.scale.set(100,100,100)
-  }
-
   async ngAfterViewInit() {
     this.renderer = this.canvas.engServ.renderer
     this.container =  this.canvas.rendererCanvas.nativeElement.parentElement
  
     await this.getRobotList()
     this.initLabelRenderer()
-    // //this.initShaders()  //TESTING
+    this.initShaders()  //TESTING
     this.orbitCtrl = new OrbitControls( this.camera.objRef, this.labelRenderer.domElement );
     this.orbitCtrl.addEventListener( 'change', (v)=> this.onOrbitControlChange(v) );
     document.addEventListener('pointermove', (e)=>this.onMouseMove(e), false);
     setTimeout(() => this.onResize())
     //this.testVolumetricLight()
     if(this.floorPlanDataset){
-     await this.loadFloorPlan(this.floorPlanDataset)
+     await this.loadFloorPlan(this.floorPlanDataset);
     }
-
     // this.floorplan = new FloorPlanMesh(this ,FP_BASE64 , fpWidth , fpHeight);
     // this.scene.objRef.add(this.floorplan );
     // this.initROSmaps(JSON.parse(MAP_LIST));
@@ -534,17 +416,19 @@ export class ThreejsViewportComponent implements OnInit {
         let robotData : DropListRobot = this.robotLists.filter(r=>r.robotCode == robotCode)[0]
         if(!robotData){
           console.log(`ERROR : Robot not found : [${robotCode}`)
+          return
+        }
+        let mapMesh = this.getMapMesh(robotData.robotBase)
+        if(!mapMesh){
+          console.log(`ERROR : Map not found : [${mapCode}] (ROBOT BASE [${robotData.robotBase}] , ROBOT [${robotCode}])`)
+          return
         }
         let robot = this.getRobot(robotCode) ?   this.getRobot(robotCode) : new RobotObject3D(this , robotCode , robotData.robotBase )
-        let mapMesh = this.getMapMesh(robot.robotBase)
         let oldMapMesh = this.mapMeshes.filter(m=>robot && m.robotBase!=robotData.robotBase && m.children.includes(robot))[0]
         if(oldMapMesh){
           oldMapMesh.remove(robot)
         }
-        if(!mapMesh){
-          console.log(`ERROR : Map not found : [${mapCode}] (ROBOT BASE [${robot.robotBase}] , ROBOT [${robotCode}])`)
-          return
-        }
+
         if(!mapMesh.children.includes(robot)){
           mapMesh.add(robot)
           this.refreshRobotColors()
@@ -599,7 +483,7 @@ class FloorPlanMesh extends Mesh{
   width 
   height
   constructor(public master: ThreejsViewportComponent , base64Image : string , width : number , height : number){
-    super(new THREE.PlaneGeometry(width, height), new THREE.MeshLambertMaterial({ map : THREE.ImageUtils.loadTexture(base64Image ) }))
+    super(new THREE.PlaneGeometry(width, height), new THREE.MeshPhongMaterial({ map : THREE.ImageUtils.loadTexture(base64Image ) , side : DoubleSide }))
     this.width = width;
     this.height = height;
     (<any>this).material.side = THREE.DoubleSide;
@@ -796,18 +680,6 @@ class Object3DCommon extends Object3D{
       this.clickListener = null
     }
   }
-
-
-  // reColor(color : number){
-  //   if(!this.gltf){
-  //     return
-  //   }
-  //   this.gltf.scene.traverse( (s : any)=> {      
-  //     if (s.isMesh === true && s.material?.originalColor){
-  //       s.material.color.set(color);
-  //     } 
-  //   } );
-  // }
 }
 
 class MarkerObject3D extends Object3DCommon {
@@ -864,7 +736,6 @@ class MarkerObject3D extends Object3DCommon {
        let materials = new Object3DCommon(this.master).getMaterials(gltf.scene);
        if (custom?.replaceMaterial) {
          materials.filter(m => Object.keys(custom.replaceMaterial).includes(m.name)).forEach(m => {
-          console.log(custom.replaceMaterial[m.name])
            m.map = THREE.ImageUtils.loadTexture(custom.replaceMaterial[m.name]);
            m.needsUpdate = true;
          })
@@ -894,16 +765,19 @@ export class RobotObject3D extends Object3DCommon{
     movingRef : any
     ticksRemaining : number
   }
+  readonly recolorMaterialName = 'mat16'
   _color : number = this.master.util.config.robot?.visuals?.[0].fillColor ?  Number(this.master.util.config.robot?.visuals?.[0].fillColor) : 0x00CED1
   get opacity(){
     return this._opacity
   } 
   set opacity(v){
-    new Object3DCommon(this.master).getMaterials(this.gltf.scene).forEach((m)=>{
-      m.transparent = true
-      m.opacity = v
-    })
-    this._opacity = v 
+    if(this.gltf){
+      new Object3DCommon(this.master).getMaterials(this.gltf.scene).forEach((m)=>{
+        m.transparent = true
+        m.opacity = v
+      })
+      this._opacity = v 
+    }
   }
   _opacity
   frontFacePointer : Mesh
@@ -940,8 +814,7 @@ export class RobotObject3D extends Object3DCommon{
   }
   // mesh : Mesh  
   readonly glbPath = "assets/3D/robot.glb" // Raptor Heavy Planetary Crawler by Aaron Clifford [CC-BY] via Poly Pizza
-  readonly alertIconPath = 'assets/3D/exclamation/scene.gltf' //This work is based on "Exclamation Mark 3D icon" (https://sketchfab.com/3d-models/exclamation-mark-3d-icon-35fcb8285f134554989f822ab90ee974) by summer57 (https://sketchfab.com/summer5717) licensed under CC-BY-4.0 (http://creativecommons.org/licenses/by/4.0/)
-  // Remote car by Nutpam [CC-BY] via Poly Pizza
+  readonly alertIconPath = 'assets/3D/exclamation.glb' //This work is based on "Exclamation Mark 3D icon" (https://sketchfab.com/3d-models/exclamation-mark-3d-icon-35fcb8285f134554989f822ab90ee974) by summer57 (https://sketchfab.com/summer5717) licensed under CC-BY-4.0 (http://creativecommons.org/licenses/by/4.0/)
   constructor( master: ThreejsViewportComponent , _robotCode : string , _robotBase : string){
     super(master)
     this.robotCode = _robotCode;
@@ -966,7 +839,7 @@ export class RobotObject3D extends Object3DCommon{
         this.gltf.scene.scale.set(this.size ,this.size ,this.size)
         this.gltf.scene.rotateX(- NORMAL_ANGLE_ADJUSTMENT)
         
-        this.initOutline(gltf)
+        //this.initOutline(gltf)
         this.gltf.scene.add(this.outlineMesh);
         // const edges = new THREE.EdgesGeometry(this.outlineMesh.geometry);
         // const line = new THREE.LineSegments(edges, new THREE.LineBasicMaterial({ color: 0x00ff00 }));
@@ -974,11 +847,11 @@ export class RobotObject3D extends Object3DCommon{
         this.add(this.gltf.scene)
         // let scale =  this.size * this.master.ROSmapScale * this.master.util.config.METER_TO_PIXEL_RATIO
         this.storeOriginalMaterialData()
-        //this.addFrontFacePointer()
+        this.addFrontFacePointer()
         this.changeMainColor(this.color)
         let robotInfo = this.master.parent.robotInfos.filter(r=>r.robotCode == this.robotCode)[0]
         this.offline = robotInfo?.robotStatus == 'UNKNOWN'
-        this.alert = this.robotCode == robotInfo?.alert!=null && robotInfo.alert.length > 0 
+        this.alert = robotInfo?.alert!= null && robotInfo.alert.length > 0 
         this.master.uiSrv.loadAsyncDone(ticket)
       })
     })
@@ -1041,139 +914,150 @@ export class RobotObject3D extends Object3DCommon{
   }
 
   changeMainColor(color: number) {
-    var materials: MeshStandardMaterial[] = new Object3DCommon(this.master).getMaterials(this.gltf.scene)
-    // let pushMainColorMaterials = (c) => {
-    //   if (c instanceof Group) {
-    //     c.children.forEach(c2 => pushMainColorMaterials(c2))
-    //   } else if (c instanceof Mesh) {
-    //     c.updateMatrix()
-    //     if (c?.material?.name == 'mat16') { // TBR : DEPENDS ON GLTF
-    //       recolorMaterials.push( c.material)
-    //     }
-    //   }
-    // }
-    // pushMainColorMaterials(this.gltf.scene)
-    materials.filter(m=>m.name == 'mat16').forEach(m=>m.color.set(color));
-    (<THREE.MeshPhongMaterial>this.outlineMesh?.material).color.set(color)
+    let materials: MeshStandardMaterial[] = new Object3DCommon(this.master).getMaterials(this.gltf.scene)
+    // console.log(materials)
+    materials.filter(m=>m.name == this.recolorMaterialName).forEach(m=>m.color.set(color));
+    // console.log(  new Object3DCommon(this.master).getMaterials(this.frontFacePointer))
+    new Object3DCommon(this.master).getMaterials(this.frontFacePointer).forEach(m=>{
+      m.color.set(color)
+    })
+    // (<THREE.MeshPhongMaterial>this.outlineMesh?.material).color.set(color)
   }
 
 
-  initOutline(gltf: GLTF) {
-    let geometries = [];
-    let mergeDescendants = (c) => {
-      if (c instanceof Group) {
-        c.children.forEach(c2 => mergeDescendants(c2))
-      } else if (c instanceof Mesh) {
-        c.updateMatrix()
-        geometries.push(c.geometry)
-      }
-    }
-
-    gltf.scene.children.forEach(c => mergeDescendants(c));
-    let mergedGeo = BufferGeometryUtils.mergeBufferGeometries(geometries)
-    // var tmpMaterial = new THREE.MeshPhongMaterial({color: 0xFF0000});
-    let material = new THREE.MeshPhongMaterial({ color: this.color , side: THREE.BackSide});
-
-    this.outlineMesh = new THREE.Mesh(mergedGeo, material);
-
-    //this.outlineMesh.scale.set(this.size, this.size, this.size)
-    //this.outlineMesh.rotateX(- NORMAL_ANGLE_ADJUSTMENT)
-    //this.outlineSegments =  new Object3DCommon(this.master).createOutlineSegments(this.outlineMesh.geometry , 0x00FF00 ) ;
-    //this.outlineSegments.scale.set(this.size, this.size, this.size)
-    //this.outlineSegments.rotateX(- NORMAL_ANGLE_ADJUSTMENT)
-    //console.log(this.outlineSegments)
-    this.outlineMesh.scale.multiplyScalar(1.02);
-  }
 
   addFrontFacePointer() {
-    var scale = 1
-    var geometry = new THREE.CylinderGeometry(0.1 * scale, 1.5 * scale, 5 * scale, 32 * 2 * scale, 20 * scale, true);
-    geometry.applyMatrix4(new THREE.Matrix4().makeTranslation(0, -geometry.parameters.height / 2, 0));
-    geometry.applyMatrix4(new THREE.Matrix4().makeRotationX(-Math.PI / 2));
-    var getMaterial = ()=>{
-        // 
-        var vertexShader = [
-          'varying vec3 vNormal;',
-          'varying vec3 vWorldPosition;',
-          'void main(){',
-          '// compute intensity',
-          'vNormal        = normalize( normalMatrix * normal );',
-          'vec4 worldPosition = modelMatrix * vec4( position, 1.0 );',
-          'vWorldPosition     = worldPosition.xyz;',
-          '// set gl_Position',
-          'gl_Position    = projectionMatrix * modelViewMatrix * vec4( position, 1.0 );',
-          '}',
-      ].join('\n')
-      var fragmentShader = [
-          'varying vec3       vNormal;',
-          'varying vec3       vWorldPosition;',
-          'uniform vec3       lightColor;',
-          'uniform vec3       spotPosition;',
-          'uniform float      attenuation;',
-          'uniform float      anglePower;',
-          'void main(){',
-          'float intensity;',
-          //////////////////////////////////////////////////////////
-          // distance attenuation                 //
-          //////////////////////////////////////////////////////////
-          'intensity  = distance(vWorldPosition, spotPosition)/attenuation;',
-          'intensity  = 1.0 - clamp(intensity, 0.0, 1.0);',
-          //////////////////////////////////////////////////////////
-          // intensity on angle                   //
-          //////////////////////////////////////////////////////////
-          'vec3 normal    = vec3(vNormal.x, vNormal.y, abs(vNormal.z));',
-          'float angleIntensity   = pow( dot(normal, vec3(0.0, 0.0, 1.0)), anglePower );',
-          'intensity  = intensity * angleIntensity;',
-          // 'gl_FragColor    = vec4( lightColor, intensity );',
-          //////////////////////////////////////////////////////////
-          // final color                      //
-          //////////////////////////////////////////////////////////
-          // set the final color
-          'gl_FragColor   = vec4( lightColor, intensity);',
-          '}',
-      ].join('\n')
-      // create custom material from the shader code above
-      //   that is within specially labeled script tags
-      var material = new THREE.ShaderMaterial({
-        uniforms: {
-          attenuation: <any>{
-            type: "f",
-            value: 100000000000
-          },
-          anglePower: <any>{
-            type: "f",
-            value: -100000000000
-          },
-          spotPosition: <any>{
-            type: "v3",
-            value: new THREE.Vector3(0, 0, 0)
-          },
-          lightColor: <any>{
-            type: "c",
-            value: new THREE.Color('cyan')
-          },
-        },
-
-        vertexShader: vertexShader,
-        fragmentShader: fragmentShader,
-        side: THREE.BackSide,
-        blending: THREE.AdditiveBlending,
-        transparent: true,
-        depthWrite: false,
-      });
-      return material
-    }
-    //let material = new SpotLightMaterial()//getMaterial()
-    let material = getMaterial()
+    //this.frontFacePointer = new Mesh(new THREE.PlaneGeometry(2.5, 2.5), new THREE.MeshPhongMaterial({ map: THREE.ImageUtils.loadTexture('assets/3D/pointer.png'), opacity: 0.5, transparent: true }))
+    const geometry = new THREE.RingGeometry(0.2, 1, 32 , 1 , 35 /radRatio , 110 /radRatio);
+    const material = new THREE.MeshBasicMaterial({ color: 0xffff00, side: THREE.FrontSide , transparent : true , opacity : 0.4});
     this.frontFacePointer = new THREE.Mesh(geometry, material);
-    
-    // this.frontFacePointer.position.set(1.5, 2, 0)
-    // this.frontFacePointer.lookAt(new THREE.Vector3(0, 0, 0))
-    material.uniforms.lightColor.value.set(this.color)
-    material.uniforms.spotPosition.value = this.frontFacePointer.position
-    this.gltf.scene.add(this.frontFacePointer)
-    this.master.renderer.render(this.master.scene.objRef,this.master.camera.objRef)
+    // this.frontFacePointer.rotateX(NORMAL_ANGLE_ADJUSTMENT);
+    //this.frontFacePointer.rotateZ(180 / radRatio);
+    this.frontFacePointer.position.set(0, 12.5, -12.5)
+    this.frontFacePointer.scale.set(this.size, this.size, this.size)
+    this.add(this.frontFacePointer)
   }
+
+  // initOutline(gltf: GLTF) {
+  //   let geometries = [];
+  //   let mergeDescendants = (c) => {
+  //     if (c instanceof Group) {
+  //       c.children.forEach(c2 => mergeDescendants(c2))
+  //     } else if (c instanceof Mesh) {
+  //       c.updateMatrix()
+  //       geometries.push(c.geometry)
+  //     }
+  //   }
+
+  //   gltf.scene.children.forEach(c => mergeDescendants(c));
+  //   let mergedGeo = BufferGeometryUtils.mergeBufferGeometries(geometries)
+  //   let material = new THREE.MeshPhongMaterial({ color: this.color , side: THREE.BackSide});
+
+  //   this.outlineMesh = new THREE.Mesh(mergedGeo, material);
+  //   this.outlineMesh.scale.multiplyScalar(1.02);
+  // }
+
+//   addFrontFacePointer() {
+//     var scale = 0.5
+//     var geometry = new THREE.CylinderGeometry(0.1 * scale, 1.5 * scale, 5 * scale, 32 * 2 * scale, 20 * scale, true);
+//     geometry.applyMatrix4(new THREE.Matrix4().makeTranslation(0, -geometry.parameters.height / 2, 0));
+//     geometry.applyMatrix4(new THREE.Matrix4().makeRotationX(Math.PI / 2));
+//     var getMaterial = ()=>{
+//         // 
+//         var vertexShader = [
+//           'varying vec3 vNormal;',
+//           'varying vec3 vWorldPosition;',
+//           'void main(){',
+//           '// compute intensity',
+//           'vNormal        = normalize( normalMatrix * normal );',
+//           'vec4 worldPosition = modelMatrix * vec4( position, 1.0 );',
+//           'vWorldPosition     = worldPosition.xyz;',
+//           '// set gl_Position',
+//           'gl_Position    = projectionMatrix * modelViewMatrix * vec4( position, 1.0 );',
+//           '}',
+//       ].join('\n')
+//       var fragmentShader = [
+//           'varying vec3       vNormal;',
+//           'varying vec3       vWorldPosition;',
+//           'uniform vec3       lightColor;',
+//           'uniform vec3       spotPosition;',
+//           'uniform float      attenuation;',
+//           'uniform float      anglePower;',
+//           'void main(){',
+//           'float intensity;',
+//           //////////////////////////////////////////////////////////
+//           // distance attenuation                 //
+//           //////////////////////////////////////////////////////////
+//           'intensity  = distance(vWorldPosition, spotPosition)/attenuation;',
+//           'intensity  = 1.0 - clamp(intensity, 0.0, 1.0);',
+//           //////////////////////////////////////////////////////////
+//           // intensity on angle                   //
+//           //////////////////////////////////////////////////////////
+//           'vec3 normal    = vec3(vNormal.x, vNormal.y, abs(vNormal.z));',
+//           'float angleIntensity   = pow( dot(normal, vec3(0.0, 0.0, 1.0)), anglePower );',
+//           'intensity  = intensity * angleIntensity;',
+//           // 'gl_FragColor    = vec4( lightColor, intensity );',
+//           //////////////////////////////////////////////////////////
+//           // final color                      //
+//           //////////////////////////////////////////////////////////
+//           // set the final color
+//           'gl_FragColor   = vec4( lightColor, intensity);',
+//           '}',
+//       ].join('\n')
+//       // create custom material from the shader code above
+//       //   that is within specially labeled script tags
+//       var material = new THREE.ShaderMaterial({
+//         uniforms: {
+//           attenuation: <any>{
+//             type: "f",
+//             value: 10000
+//           },
+//           anglePower: <any>{
+//             type: "f",
+//             value: -10000
+//           },
+//           spotPosition: <any>{
+//             type: "v3",
+//             value: new THREE.Vector3(0, 0, 0)
+//           },
+//           lightColor: <any>{
+//             type: "c",
+//             value: new THREE.Color('cyan')
+//           },
+//         },
+
+//         vertexShader: vertexShader,
+//         fragmentShader: fragmentShader,
+//         side: THREE.BackSide,
+//         blending: THREE.AdditiveBlending,
+//         transparent: true,
+//         depthWrite: false,
+//       });
+//       return material
+//     }
+//     //let material = new SpotLightMaterial()//getMaterial()
+//     let material = getMaterial()
+//     this.frontFacePointer = new THREE.Mesh(geometry, material);
+    
+//     // this.frontFacePointer.position.set(1.5, 2, 0)
+//     // this.frontFacePointer.lookAt(new THREE.Vector3(0, 0, 0))
+//     material.uniforms.lightColor.value.set(this.color)
+//     material.uniforms.spotPosition.value = this.frontFacePointer.position
+//     this.gltf.scene.add(this.frontFacePointer)
+    
+//     const spotlightTargetGeo = new THREE.SphereGeometry(0.1, 32, 16);
+//     const spotlightTargetMaterial = new THREE.MeshBasicMaterial({ color: 0xffff00 });
+//     const target = new THREE.Mesh(spotlightTargetGeo, spotlightTargetMaterial);
+//     target.visible = false
+//     target.position.set( 0 , - 1 , - 1.5)
+//     // var target = new Object3D()
+//     this.gltf.scene.add(target)
+//     var light = new THREE.SpotLight(this.color, 10, 100, Math.PI / 6, 25);
+//     light.position.set(0, 0, -1) 
+//     light.target = target;
+    
+//     this.gltf.scene.add(light)
+//   }
 
 }
 
@@ -1239,82 +1123,6 @@ class Extruded2DMesh extends Mesh{
     this.materials.forEach(o=>{
       o.depthWrite = opacity >= this.defaultOpacity
       o.opacity = opacity
-    })
-  }
-
-}
-
-export class SpotLightMaterial extends THREE.ShaderMaterial {
-  constructor() {
-    super({
-      uniforms: {
-        depth: { value: null },
-        attenuation: { value: 2.5 },
-        anglePower: { value: 12 },
-        spotPosition: { value:  new THREE.Vector3(0, 0, 0) },
-        lightColor: { value: new THREE.Color('white') },
-        cameraNear: { value: 0 },
-        cameraFar: { value: 1 },
-        resolution: { value: new THREE.Vector2(0, 0) },
-      },
-      transparent: true,
-      depthWrite: false,
-      vertexShader: /* glsl */ `
-      varying vec3 vNormal;
-      varying vec3 vWorldPosition;
-      varying float vViewZ;
-      varying float vIntensity;
-      uniform vec3 spotPosition;
-      uniform float attenuation;
-      void main() {
-        // compute intensity
-        vNormal = normalize( normalMatrix * normal );
-        vec4 worldPosition	= modelMatrix * vec4( position, 1.0 );
-        vWorldPosition = worldPosition.xyz;
-        vec4 viewPosition = viewMatrix * worldPosition;
-        vViewZ = viewPosition.z;
-        float intensity	= distance(worldPosition.xyz, spotPosition) / attenuation;
-        intensity	= 1.0 - clamp(intensity, 0.0, 1.0);
-        vIntensity = intensity;        
-        // set gl_Position
-        gl_Position	= projectionMatrix * viewPosition;
-      }`,
-      fragmentShader: /* glsl */ `
-      #include <packing>
-      varying vec3 vNormal;
-      varying vec3 vWorldPosition;
-      uniform vec3 lightColor;
-      uniform vec3 spotPosition;
-      uniform float attenuation;
-      uniform float anglePower;
-      uniform sampler2D depth;
-      uniform vec2 resolution;
-      uniform float cameraNear;
-      uniform float cameraFar;
-      varying float vViewZ;
-      varying float vIntensity;
-      float readDepth( sampler2D depthSampler, vec2 coord ) {
-        float fragCoordZ = texture2D( depthSampler, coord ).x;
-        float viewZ = perspectiveDepthToViewZ(fragCoordZ, cameraNear, cameraFar);
-        return viewZ;
-      }
-      void main() {
-        float d = 1.0;
-        bool isSoft = resolution[0] > 0.0 && resolution[1] > 0.0;
-        if (isSoft) {
-          vec2 sUv = gl_FragCoord.xy / resolution;
-          d = readDepth(depth, sUv);
-        }
-        float intensity = vIntensity;
-        vec3 normal	= vec3(vNormal.x, vNormal.y, abs(vNormal.z));
-        float angleIntensity	= pow( dot(normal, vec3(0.0, 0.0, 1.0)), anglePower );
-        intensity	*= angleIntensity;
-        // fades when z is close to sampled depth, meaning the cone is intersecting existing geometry
-        if (isSoft) {
-          intensity	*= smoothstep(0., 1., vViewZ - d);
-        }
-        gl_FragColor = vec4(lightColor, intensity);
-      }`,
     })
   }
 }
@@ -1620,4 +1428,118 @@ const BLOCK4_VERTICES = `[{"x" : 105 , "y": 782} , {"x" : 410 , "y": 782} , {"x"
 //   g.setAttribute('collapse', new THREE.Float32BufferAttribute(collapse, 1));
 //   console.log(g);
 //   return g;
+// }
+
+
+// testVolumetricLight(){    
+//   const VolumetricSpotLightMaterial = function () {
+//     // 
+//     var vertexShader = [
+//       'varying vec3 vNormal;',
+//       'varying vec3 vWorldPosition;',
+//       'void main(){',
+//       '// compute intensity',
+//       'vNormal        = normalize( normalMatrix * normal );',
+//       'vec4 worldPosition = modelMatrix * vec4( position, 1.0 );',
+//       'vWorldPosition     = worldPosition.xyz;',
+//       '// set gl_Position',
+//       'gl_Position    = projectionMatrix * modelViewMatrix * vec4( position, 1.0 );',
+//       '}',
+//     ].join('\n')
+//     var fragmentShader = [
+//       'varying vec3       vNormal;',
+//       'varying vec3       vWorldPosition;',
+//       'uniform vec3       lightColor;',
+//       'uniform vec3       spotPosition;',
+//       'uniform float      attenuation;',
+//       'uniform float      anglePower;',
+//       'void main(){',
+//       'float intensity;',
+//       //////////////////////////////////////////////////////////
+//       // distance attenuation                 //
+//       //////////////////////////////////////////////////////////
+//       'intensity  = distance(vWorldPosition, spotPosition)/attenuation;',
+//       'intensity  = 1.0 - clamp(intensity, 0.0, 1.0);',
+//       //////////////////////////////////////////////////////////
+//       // intensity on angle                   //
+//       //////////////////////////////////////////////////////////
+//       'vec3 normal    = vec3(vNormal.x, vNormal.y, abs(vNormal.z));',
+//       'float angleIntensity   = pow( dot(normal, vec3(0.0, 0.0, 1.0)), anglePower );',
+//       'intensity  = intensity * angleIntensity;',
+//       // 'gl_FragColor    = vec4( lightColor, intensity );',
+//       //////////////////////////////////////////////////////////
+//       // final color                      //
+//       //////////////////////////////////////////////////////////
+//       // set the final color
+//       'gl_FragColor   = vec4( lightColor, intensity);',
+//       '}',
+//     ].join('\n')
+//     // create custom material from the shader code above
+//     //   that is within specially labeled script tags
+//     var material = new THREE.ShaderMaterial({
+//       uniforms: {
+//         attenuation: <any>{
+//           type: "f",
+//           value: 100000000000
+//         },
+//         anglePower: <any>{
+//           type: "f",
+//           value: -100000000000
+//         },
+//         spotPosition: <any>{
+//           type: "v3",
+//           value: new THREE.Vector3(0, 0, 0)
+//         },
+//         lightColor: <any>{
+//           type: "c",
+//           value: new THREE.Color('cyan')
+//         },
+//       },
+
+//       vertexShader: vertexShader,
+//       fragmentShader: fragmentShader,
+//       side: THREE.BackSide,
+//       blending: THREE.AdditiveBlending,
+//       transparent: true,
+//       depthWrite: false,
+//     });
+//     return material
+//   }
+
+
+//   // var renderer = new THREE.WebGLRenderer();
+//   // renderer.setSize(1500, 500);
+//   // document.body.appendChild(renderer.domElement);
+//   // var scene = new THREE.Scene();
+//   // var camera = new THREE.PerspectiveCamera(45, window.innerWidth / window.innerHeight, 0.3, 10);
+//   // camera.position.set(0, 2, 5)
+//   // camera.lookAt(scene.position)
+
+//   //////////////////////////////////////////////////////////////////////////////////
+//   //		create a scene							//
+//   //////////////////////////////////////////////////////////////////////////////////
+
+//   //////////////////////////////////////////////////////////////////////////////////
+//   //		add a volumetric spotligth					//
+//   //////////////////////////////////////////////////////////////////////////////////
+//   // add spot light
+//   var obj = new Object3D()
+//   var scale = 1
+//   var geometry = new THREE.CylinderGeometry(0.1 * scale, 1.5 *scale, 5 * scale, 32 * 2 * scale, 20 * scale, true);
+//   // var geometry	= new THREE.CylinderGeometry( 0.1, 5*Math.cos(Math.PI/3)/1.5, 5, 32*2, 20, true);
+//   geometry.applyMatrix4(new THREE.Matrix4().makeTranslation(0, -geometry.parameters.height / 2, 0));
+//   geometry.applyMatrix4(new THREE.Matrix4().makeRotationX(-Math.PI / 2));
+//   var material = VolumetricSpotLightMaterial();
+//   var mesh = new THREE.Mesh(geometry, material);
+//   mesh.position.set(0, 0, 0)
+//   mesh.lookAt(new THREE.Vector3(0, 0, 0))
+//   material.uniforms.lightColor.value.set('red')
+
+//   material.uniforms.spotPosition.value = mesh.position
+//   obj.add(mesh)
+//   // mesh.position.set(0, 0, 0)
+//   // material.uniforms.spotPosition.value = mesh.position
+//   this.scene.objRef.add(obj);
+//   obj.position.set(50,150,50)
+//   obj.scale.set(100,100,100)
 // }

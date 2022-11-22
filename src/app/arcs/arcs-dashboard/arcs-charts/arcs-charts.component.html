@@ -27,7 +27,7 @@
     <kendo-tilelayout-item class = "tile incomplete-jobs" [title]="'Incomplete Tasks'| label: uiSrv.langPack"  [col]="7" [row]="1" [colSpan] = "3">
         <kendo-tilelayout-item-body>
             <div class="job-no">
-                <label class="ts-value">{{usability.incomplete}}</label>
+                <a class="ts-value" (click)="showIncompeleteTasks()">{{usability.incomplete}}</a>
                 <label class="ts-total">/ {{usability.total}}</label>
             </div>
             <label class="ts-percent">{{usability.incomplete * 100 / usability.total | number: '1.0-2'}}%</label>
@@ -36,10 +36,11 @@
     <kendo-tilelayout-item class ="tile canceled-jobs"  [title]="'Cancelled Tasks'| label: uiSrv.langPack"  [col]="10" [row]="1" [colSpan] = "3">
         <kendo-tilelayout-item-body>
             <div class="job-no">
-                <label class="ts-value">{{usability.canceled}}</label>
-                <label class="ts-total">/ {{usability.total}}</label>
+                <!-- <label class="ts-value">{{usability.canceled}}</label> -->
+                <!-- <label class="ts-total">/ {{usability.total}}</label> -->
             </div>
-            <label class="ts-percent">{{usability.canceled * 100 / usability.total | number: '1.0-2'}}%</label>
+            <label class="ts-percent">{{usability.canceled}}</label> 
+            <!-- <label class="ts-percent">{{usability.canceled * 100 / usability.total | number: '1.0-2'}}%</label> -->
         </kendo-tilelayout-item-body>
     </kendo-tilelayout-item>
     <!-- <kendo-tilelayout-item class = "tile" [col]="5" [row]="1" [rowSpan] = "6">

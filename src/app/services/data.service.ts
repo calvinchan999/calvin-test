@@ -14,9 +14,9 @@ import { AzurePubsubService } from './azure-pubsub.service';
 import { DatePipe } from '@angular/common'
 export type syncStatus = 'TRANSFERRED' | 'TRANSFERRING' | 'MALFUNCTION'
 export type syncLog =  {dataSyncId? : string , dataSyncType? : string , objectType? : string , dataSyncStatus?: syncStatus , objectCode?: string , robotCode?: string , progress? : any , startDateTime? : Date , endDateTime : Date  }
-export type dropListType =  'floorplans' | 'buildings' | 'sites' | 'maps' | 'actions' | 'types' | 'locations' | 'userGroups' | 'subTypes' | 'robots' | 'missions' 
-export type localStorageKey = 'lang' | 'uitoggle' | 'lastLoadedFloorplanCode' | 'eventLog' | 'unreadNotificationCount' | 'unreadSyncMsgCount' | 'syncDoneLog' 
-export type sessionStorageKey = 'arcsLocationTree' | 'dashboardFloorPlanCode'| 'isGuestMode' | 'userAccess' | 'arcsDefaultBuilding' | 'userId' | 'currentUser'
+export type dropListType =  'floorplans' | 'buildings' | 'sites' | 'maps' | 'actions' | 'types' | 'locations' | 'userGroups' | 'subTypes' | 'robots' | 'missions' | 'taskFailReason' | 'taskCancelReason'
+export type localStorageKey = 'lang' | 'uitoggle' | 'lastLoadedFloorplanCode' | 'eventLog' | 'unreadNotificationCount' | 'unreadSyncMsgCount' | 'syncDoneLog' | 'dashboardMapType'
+export type sessionStorageKey = 'arcsLocationTree' | 'dashboardFloorPlanCode'| 'isGuestMode' | 'userAccess' | 'arcsDefaultBuilding' | 'userId' | 'currentUser' 
 export type eventLog = {datetime? : string , type? : string , message : string  , robotCode?: string }
 export type signalRType = 'activeMap' | 'occupancyGridMap' | 'navigationMove' | 'chargingResult' | 'chargingFeedback' | 'state' | 'battery' | 'pose' | 'speed'|
                     'obstacleDetection' | 'estop' | 'brake' | 'tilt' | 'departure' | 'arrival' | 'completion' | 'timeout' | 'exception' | 'followMePair' |
@@ -57,6 +57,8 @@ export class DataService {
   public robotMaster : RobotMaster
   private allDropListTypes = ['floorplans' , 'buildings' , 'sites' , 'maps' , 'actions', 'types' , 'subTypes' , 'userGroups' , 'missions']
   private dropListApiMap = {
+    taskCancelReason: { url: 'task/v1/userCancelReason', valFld: 'enumName', descFld: 'enumName', fromRV: true , enumPipe : true},
+    taskFailReason: { url: 'task/v1/reasonList', valFld: 'enumName', descFld: 'enumName', fromRV: true , enumPipe : true},
     locations: { url: 'api/map/plan/point/droplist/v1', valFld: 'pointCode', descFld: 'pointCode' , fromRV : false },
     subTypes:{ url: 'robot/v1/robotSubTypeList', descFld: 'description', valFld: 'enumName', fromRV : true },
     types: { url: 'robot/v1/robotTypeList', descFld: 'description', valFld: 'enumName' , fromRV : true},
@@ -375,10 +377,10 @@ export class DataService {
                         var ret :syncLog[] = this.signalRSubj.arcsSyncLog.value ? JSON.parse(JSON.stringify(this.signalRSubj.arcsSyncLog.value))  : [] 
                         if(ret.filter(l=>l.dataSyncId != d.dataSyncId || l.dataSyncStatus != d.dataSyncStatus).length > 0 ){
                           this.unreadSyncMsgCount.next(this.unreadSyncMsgCount.value + 1)
-                          this.setlocalStorage('unreadSyncMsgCount', JSON.stringify( this.unreadSyncMsgCount.value))
+                          this.setLocalStorage('unreadSyncMsgCount', JSON.stringify( this.unreadSyncMsgCount.value))
                         }
                         ret = [JSON.parse(JSON.stringify(d))].concat(ret.filter(l=>l.dataSyncId != d.dataSyncId)) 
-                        this.setlocalStorage('syncDoneLog', JSON.stringify(ret.filter(l=>l.dataSyncStatus != 'TRANSFERRING')))    
+                        this.setLocalStorage('syncDoneLog', JSON.stringify(ret.filter(l=>l.dataSyncStatus != 'TRANSFERRING')))    
                         if(d.dataSyncStatus == "TRANSFERRED"){
                           this.updateFloorPlansAlert_ARCS()
                         }
@@ -398,7 +400,7 @@ export class DataService {
   constructor(public httpSrv : RvHttpService , private uiSrv : UiService, private util: GeneralUtil , public signalRSrv : SignalRService, private router : Router , public pubsubSrv : AzurePubsubService , private datePipe : DatePipe) {     
     this.uiSrv.dataSrv = this
     this.unreadNotificationCount.pipe(skip(1)).subscribe(v=>{
-      this.setlocalStorage('unreadNotificationCount' , v.toString())
+      this.setLocalStorage('unreadNotificationCount' , v.toString())
     })
     this.loadDataFromLocalStorage()
     if(this.util.$initDone.value == true){
@@ -427,14 +429,14 @@ export class DataService {
         alertFloorPlanObj.robotBases.push(m.robotBase)
       }
     })
-    this.setlocalStorage('unreadSyncMsgCount', this.unreadSyncMsgCount.value.toString())
+    this.setLocalStorage('unreadSyncMsgCount', this.unreadSyncMsgCount.value.toString())
   }
 
   loadDataFromLocalStorage(){
-    let notiCount = this.getlocalStorage('unreadNotificationCount')
-    let syncCount = this.getlocalStorage('unreadSyncMsgCount')
-    let syncDoneLog = this.getlocalStorage('syncDoneLog')
-    let log = this.getlocalStorage('eventLog')
+    let notiCount = this.getLocalStorage('unreadNotificationCount')
+    let syncCount = this.getLocalStorage('unreadSyncMsgCount')
+    let syncDoneLog = this.getLocalStorage('syncDoneLog')
+    let log = this.getLocalStorage('eventLog')
     if(notiCount != null){
       this.unreadNotificationCount.next(Number(notiCount))
     }
@@ -472,19 +474,19 @@ export class DataService {
 
   addEventLogToLocalStorage(message : string , robotCode : string  = undefined , type : 'success' | 'none' | 'warning' | 'info' | 'error' = 'info' ){
     //TBR : EVENT LOG TO BE RETRIEVED FROM DB INSTEAD OF LOCALSTORAGE
-    let data =  this.getlocalStorage('eventLog') ? JSON.parse(this.getlocalStorage('eventLog')) : []
+    let data =  this.getLocalStorage('eventLog') ? JSON.parse(this.getLocalStorage('eventLog')) : []
     let evtlog : eventLog = {message : message  , robotCode: robotCode, type : `${type.toUpperCase()} MESSAGE` , datetime : this.datePipe.transform(new Date() , 'dd/MM/yyyy hh:mm:ss aa')}
     data = [evtlog].concat(data)
     this.loghouseKeep(data)
     this.eventLog.next(data)
-    this.setlocalStorage('eventLog', JSON.stringify(data))
+    this.setLocalStorage('eventLog', JSON.stringify(data))
   }
 
-  setlocalStorage(key : localStorageKey , value : string){ //Manage All LocalStorage Keys here!!!
+  setLocalStorage(key : localStorageKey , value : string){ //Manage All LocalStorage Keys here!!!
     localStorage.setItem(key, value)
   }
 
-  getlocalStorage(key : localStorageKey ){ 
+  getLocalStorage(key : localStorageKey ){ 
     return localStorage.getItem(key)
   }
 
@@ -503,8 +505,8 @@ export class DataService {
       Object.keys(this.util.config.LANGUAGES).forEach(k=> options.push({value : k , text : this.util.config.LANGUAGES[k]}))
       this.uiSrv.langOptions = options
     }
-    if(this.getlocalStorage("lang")){
-      this.uiSrv.changeLang(this.getlocalStorage("lang"))
+    if(this.getLocalStorage("lang")){
+      this.uiSrv.changeLang(this.getLocalStorage("lang"))
     }
     // this.codeRegex = this.util.config.
     if(!this.util.getCurrentUser()){
@@ -629,7 +631,7 @@ export class DataService {
               }else if( ['arcsSyncLog'].includes(type)){
                 let ticket = this.uiSrv.loadAsyncBegin()
                 let resp = await this.httpSrv.get(this.signalRMaster[type]['api']);
-                this.signalRSubj.arcsSyncLog.next((this.getlocalStorage('syncDoneLog') ? JSON.parse(this.getlocalStorage('syncDoneLog')) : []).concat(resp))
+                this.signalRSubj.arcsSyncLog.next((this.getLocalStorage('syncDoneLog') ? JSON.parse(this.getLocalStorage('syncDoneLog')) : []).concat(resp))
                 this.uiSrv.loadAsyncDone(ticket)
               }  
             } 
@@ -697,17 +699,18 @@ export class DataService {
   public getDropListOptions(type: dropListType, dropListData: any[], filterBy: object = null) {
     let apiMap = this.dropListApiMap
     return dropListData.filter(r => filterBy == null || Object.keys(filterBy).every(k => r[k] == filterBy[k])).map(d => {
-      let value =  d[apiMap[type]['valFld'] ? apiMap[type]['valFld'] : 'id']
+      let value =  d[apiMap[type].valFld ? apiMap[type].valFld : 'id']
+      let desc =  (d[apiMap[type].descFld? apiMap[type].descFld : 'displayName'] )
       return {
         value: value,
-        text:  (d[apiMap[type]['descFld']? apiMap[type]['descFld'] : 'displayName'] )
+        text: apiMap[type]['enumPipe'] ? this.enumPipe.transform(desc) : desc
       }
     })
   }
 
   public getDropListDesc(list : object[] , value ,  type : dropListType = null ){
     if(type){
-      return list.filter(itm=>itm[this.dropListApiMap[type]?.['valFld'] ? this.dropListApiMap[type]?.['valFld'] : 'id'] == value)[0]?.[this.dropListApiMap[type].descFld]
+      return list.filter(itm=>itm[this.dropListApiMap[type]?.valFld ? this.dropListApiMap[type]?.valFld : 'id'] == value)[0]?.[this.dropListApiMap[type].descFld]
     }else{
       return list.filter(itm=>itm['value'] == value)[0]?.['text']
     }
@@ -716,7 +719,7 @@ export class DataService {
   public async getDropList(type : dropListType) : Promise<{data:object[] , options:object[]}>{
     let ret= {data: null ,options: null}
     let apiMap = this.dropListApiMap
-    var resp = apiMap[type].fromRV? await this.httpSrv.rvRequest("GET", apiMap[type]['url'] , undefined, false) :  await this.httpSrv.get(apiMap[type]['url'])
+    var resp = apiMap[type].fromRV? await this.httpSrv.rvRequest("GET", apiMap[type].url , undefined, false) :  await this.httpSrv.get(apiMap[type].url)
     if(this.util.arcsApp && type == 'floorplans'){
       await this.getSite()
     }

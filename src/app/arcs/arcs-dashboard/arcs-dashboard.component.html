@@ -134,7 +134,7 @@
         <div *ngIf="!use3DMap" class = "viewport-container" (wheel)="$event.preventDefault()">
             <uc-drawing-board #pixi [arcsParent] = "me" [isDashboard] = "true" [hideButton] = "{ all : true}" [readonly] = "true" (robotClicked)="showRobotDetailDialog($event?.id)" 
                                     [arcsRobotType] = "robotTypeFilter"  [(selectedFloorPlanCode)]="selectedFloorPlanCode" 
-                                    [arcsRobotColors]="robotIconColorMap"
+                                    [arcsRobotColors]="robotIconColorMap" [arcsLocationTree] = "locationTree"
                                     (onBuildingSelected) = "onPixiBuildingSelected($event)" (onSiteSelected) = "loadSite()" 
                                     (to3D)="dropdownOptions.floorplans = pixiElRef.dropdownOptions.floorplans ; locationTree = pixiElRef.arcsLocationTree ; use3DMap = true">
             </uc-drawing-board> 
