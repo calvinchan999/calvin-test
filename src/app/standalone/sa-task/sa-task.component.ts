@@ -128,7 +128,7 @@ export class SaTaskComponent implements OnInit {
     content.isTemplate = this.selectedTab == 'template' 
     content.isExecuteTemplate = evt?.column == 'execute'
     content.parent = this
-    content.parentRow = evt.row
+    content.parentRow = evt?.row
     content.id = evt ? (evt.row[this.primaryKey]) : null
     content.readonly = this.selectedTab == 'jobs' && content.id != null;
     dialog.result.subscribe(()=>{

@@ -3514,7 +3514,7 @@ export class PixiCommon extends PIXI.Graphics{
   }
 
   public getViewport(g = this) : Viewport {
-    return g instanceof Viewport? g : (g.parent ? this.getViewport(<any>g.parent) : null)
+    return g instanceof Viewport? g : (g?.parent ? this.getViewport(<any>g.parent) : null)
   }
 
   // public addTooltipObj(gr : PixiCommonGeometry | PIXI.Graphics = this){
@@ -3587,7 +3587,7 @@ export class PixiToolTip extends PIXI.Graphics{
   }
 
   show(content : string , mouseEvt ,position : PIXI.Point ){
-    if(!this.stage.children.includes(this)){
+    if(!this.stage?.children.includes(this)){
       this.stage.addChild(this)
     }
     this.clear()

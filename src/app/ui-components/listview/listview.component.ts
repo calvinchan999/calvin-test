@@ -267,15 +267,10 @@ export class ListviewComponent implements OnInit {
 
   onColumnResize(event, id) {
     let colDef = this.getColDefById(id)
-    // let lastColDef = this.columnDef[this.columnDef.length - 1]
     let startX = event.clientX
     let orgWidth = colDef['width']
-    // let vpWidth = this.virtualScrollViewport.elementRef.nativeElement.offsetWidth
     let mouseMoveListener = this.renderer.listen('document' , 'mousemove', (evt)=>{
       colDef['width'] = Math.max((orgWidth + (evt.clientX - startX) ) , this.minColumnWidth)
-      // if(this.getColumnTotalWidth() < vpWidth){
-      //   lastColDef['width'] += (vpWidth - this.getColumnTotalWidth())
-      // }
     })
     let mouseUpListener = this.renderer.listen('document' , 'mouseup', (evt)=>{
       if(mouseMoveListener){

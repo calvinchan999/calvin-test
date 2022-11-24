@@ -100,6 +100,10 @@ export class GeneralUtil {
 		return dataStrArray || dataStrArray.length > 0 ? dataStrArray.join('&') : '';
 	}
 
+	public getSQLFmtDateStr(date: Date): string {
+		return `${date.getFullYear()}-${(date.getMonth() + 1).toString().padStart(2, '0')}-${(date.getDate()).toString().padStart(2, '0')}`
+	}
+
 	public compareTimestamp(time1, time2) {
 		if(time1 > time2) return 1;
 		if(time2 > time1) return -1;

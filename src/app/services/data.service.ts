@@ -76,7 +76,7 @@ export class DataService {
   private allDropListTypes = ['floorplans' , 'buildings' , 'sites' , 'maps' , 'actions', 'types' , 'subTypes' , 'userGroups' , 'missions']
   private dropListApiMap = {
     taskCancelReason: { url: 'task/v1/userCancelReason', valFld: 'enumName', descFld: 'enumName', fromRV: true , enumPipe : true},
-    taskFailReason: { url: 'task/v1/reasonList', valFld: 'enumName', descFld: 'enumName', fromRV: true , enumPipe : true},
+    taskFailReason: { url: 'task/v1/failedReason', valFld: 'enumName', descFld: 'enumName', fromRV: true , enumPipe : true},
     locations: { url: 'api/map/plan/point/droplist/v1', valFld: 'pointCode', descFld: 'pointCode' , fromRV : false },
     subTypes:{ url: 'robot/v1/robotSubTypeList', descFld: 'description', valFld: 'enumName', fromRV : true },
     types: { url: 'robot/v1/robotTypeList', descFld: 'description', valFld: 'enumName' , fromRV : true},
@@ -521,7 +521,9 @@ export class DataService {
     if(this.util.config.DISABLED_FUNCTIONS){
       let keys : string[]= this.util.config.DISABLED_FUNCTIONS.filter(f=>Object.keys(this.disabledModule_SA).includes(f))
       keys.forEach(k=> this.disabledModule_SA[k] = true)
-      console.log(`DISABLED FUNCTION (from UI config.json) : ${keys}`)
+      if(keys.length > 0){
+        console.log(`DISABLED FUNCTION (from UI config.json) : ${keys}`)
+      }
     }
     this.disabledModule_SA.pairing = this.disabledModule_SA.followMe // binded
     if(this.util.config.LANGUAGES){

@@ -96,7 +96,7 @@ export class CmTaskJobComponent implements OnInit {
     { id: 'floorPlanCode', title: 'Floor Plan', width: 30 , type : 'dropdown' },
     { id: 'pointCode', title: 'Location', width: 15 , type : 'dropdown'},
     { id: 'actionAlias', title: 'Action', width: 20 , type : 'dropdown', notNull: true , translateOption : true},
-    { id: 'navigationMode', title: 'Navigation Mode', width: 20 , type : 'dropdown',  notNull: true  , translateOption : true , hidden : this.dataSrv.disabledModule_SA.pathFollowing},
+    { id: 'navigationMode', title: 'Navigation Mode', width: 20 , type : 'dropdown',  notNull: true  , translateOption : true , hidden : this.util.standaloneApp &&  this.dataSrv.disabledModule_SA.pathFollowing},
     { id: 'orientation', title: 'Orientation', width: 10 , type : 'checkbox' },
     { id: this.actionRowCfg.parentRowKey , type: 'button', title: 'Parameters', width: 10, class: 'k-icon mdi mdi-text-box-search-outline',
       newRow: {id: ''}

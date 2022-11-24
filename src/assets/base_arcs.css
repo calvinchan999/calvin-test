@@ -29173,7 +29173,7 @@ app-sa-pages-task-overlay, app-sa-pages-task-overlay .task-overlay {
 }
 .ts-robotlist .k-card-body .ts-header, .ts-robotlist .k-card-body .ts-row {
   display: grid;
-  grid-template-columns: 95px 50px 95px 1fr 1fr;
+  grid-template-columns: 40% 50px 1fr 1fr 40px;
   align-items: center;
   position: relative;
   width: 100%;

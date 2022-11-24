@@ -1,0 +1,106 @@
+<kendo-dialog-titlebar (close)="dialogRef.close()">
+    <div>{{(taskState == 'failed' ? 'Incomplete Tasks' : 'Cancelled Tasks') | label : uiSrv.langPack}}</div>
+</kendo-dialog-titlebar>
+<div class="card-header-wrapper" >
+    <!-- title -->
+    <h3 class="card-title"></h3>
+    <!-- tab buttons -->
+    <div class="card-buttons">
+        
+        <kendo-buttongroup #buttonGroup selection="single" class = "btn-grp-main" >
+            <button *ngFor="let tab of tabs" kendoButton [toggleable]="true"   [selected]="selectedTab == tab.id"  
+                    (click)=" tab.id == selectedTab ? null : (selectedTab = tab.id) ; selectedTab == 'summary' ? refreshSummary(): null">
+                {{ tab.label | label : uiSrv.langPack }}
+            </button>
+        </kendo-buttongroup>
+
+    </div>
+    <span></span>
+</div>
+
+<ng-container *ngIf="selectedTab == 'summary'">
+    <kendo-tilelayout  class="chart" [columns]="2"  [resizable]="false" [reorderable]="false">
+        <kendo-tilelayout-item class = "tile reason" [title]="((taskState == 'failed' ? 'Aborted ' : 'Cancelled ') + 'Task Count by Reason') | label : uiSrv.langPack" [col]="1" [row]="1" >
+            <kendo-chart [seriesColors] = "summary.style.seriesColors" class="summary-chart">
+                <kendo-chart-area background="transparent"></kendo-chart-area>
+                <!-- <kendo-chart-title [align]="'left'" [text]="'Job Order by Type' | label: uiSrv.langPack"  [color]="style.textColor" ></kendo-chart-title>     -->
+                <ng-template kendoChartDonutCenterTemplate>
+                    <div [style.color]="summary.style.textColor">{{ total + ' ' + ('Tasks' | label : uiSrv.langPack )}}</div>
+                </ng-template>
+                <kendo-chart-legend [visible]="false" ></kendo-chart-legend>
+                <kendo-chart-series>
+                  <kendo-chart-tooltip>
+                        <ng-template kendoChartSeriesTooltipTemplate  let-value="value" let-category="category" let-series="series" >
+                          {{ category }} : {{ value}}
+                        </ng-template>
+                  </kendo-chart-tooltip>
+                  <kendo-chart-series-item type="donut" [data]="summary.data.reason" field="value" categoryField="category" [holeSize] = "30" [padding] = "25"
+                        [labels]="{ visible: true, visual: summary.labelVisual, position : 'outsideEnd' , distance:25 , color: summary.style.textColor }"  
+                  >
+                  </kendo-chart-series-item>
+                </kendo-chart-series>
+              </kendo-chart>
+        </kendo-tilelayout-item>
+
+        <kendo-tilelayout-item class = "tile robot-type" [title]="((taskState == 'failed' ? 'Aborted ' : 'Cancelled ') + 'Task Count by Robot Type') | label : uiSrv.langPack"  [col]="2" [row]="1" >
+            <kendo-chart [seriesColors] = "summary.style.seriesColors" class="summary-chart">
+                <kendo-chart-area background="transparent"></kendo-chart-area>
+                <!-- <kendo-chart-title [align]="'left'" [text]="'Job Order by Type' | label: uiSrv.langPack"  [color]="style.textColor" ></kendo-chart-title>     -->
+                <ng-template kendoChartDonutCenterTemplate>
+                    <div [style.color]="summary.style.textColor">{{ total + ' ' + ('Tasks' | label : uiSrv.langPack )}}</div>
+                </ng-template>
+                <kendo-chart-legend [visible]="false" ></kendo-chart-legend>
+                <kendo-chart-series>
+                  <kendo-chart-tooltip>
+                        <ng-template kendoChartSeriesTooltipTemplate  let-value="value" let-category="category" let-series="series" >
+                          {{ category }} : {{ value}}
+                        </ng-template>
+                  </kendo-chart-tooltip>
+                  <kendo-chart-series-item type="donut" [data]="summary.data.robot_type" field="value" categoryField="category" [holeSize] = "30" [padding] = "25"
+                        [labels]="{ visible: true, visual: summary.labelVisual, position : 'outsideEnd' , distance:25 , color: summary.style.textColor }"  
+                  >
+                  </kendo-chart-series-item>
+                </kendo-chart-series>
+              </kendo-chart>
+        </kendo-tilelayout-item>
+
+        <kendo-tilelayout-item class = "tile daily" [title]="((taskState == 'failed' ? 'Aborted ' : 'Cancelled ') + ' Count per Day') | label : uiSrv.langPack"  [col]="1" [row]="2" [colSpan] = "2">
+            <kendo-chart [seriesColors]="summary.style.seriesColors">   
+                <kendo-chart-area background="transparent"></kendo-chart-area>  
+                <kendo-chart-tooltip format="{0}"></kendo-chart-tooltip>
+                <!-- <kendo-chart-title  [align]="'left'" [text]="'Average Job Order By Hour' | label: uiSrv.langPack" [color]="style.textColor" ></kendo-chart-title>                    -->
+                <kendo-chart-series>
+                  <kendo-chart-series-item type="line" [data]="summary.data.daily"  [markers]="{ visible: false }">
+                  </kendo-chart-series-item>
+                </kendo-chart-series>
+                <kendo-chart-category-axis>
+                    <kendo-chart-category-axis-item  [categories]="summary.categories.daily" [labels] = "{ format:'d/M'}" [baseUnitStep] = "1" [maxDivisions] = "24"
+                                                     [majorGridLines]="{ visible : false}" [color]="summary.style.textColor" >
+                    </kendo-chart-category-axis-item>         
+                </kendo-chart-category-axis>   
+                <kendo-chart-value-axis>
+                    <kendo-chart-value-axis-item [color]="summary.style.textColor">
+                    </kendo-chart-value-axis-item>
+                </kendo-chart-value-axis>
+            </kendo-chart>
+        </kendo-tilelayout-item>
+    </kendo-tilelayout>
+</ng-container>
+
+<ng-container *ngIf="selectedTab == 'detail'">
+    <div class="table-container">
+        <uc-table #table [toolbarButtons]="[]" [columnDefs]="gridSettings[taskState]['columns']" [(data)]="data"
+            [functionId]="gridSettings[taskState]['functionId']" [serverSidePagination]="true"
+            [dataSourceApiEndpoint]="gridSettings[taskState]['apiUrl']" [useColumnFilter]='true'
+            [defaultState]="gridSettings[taskState]['defaultState'] ? gridSettings[taskState]['defaultState'] : null">
+        </uc-table>
+    </div>    
+</ng-container>
+
+<!-- (actionClick) = "$event.actionId == 'delete' ? delete(): null " [serverSidePagination] = "true"
+(cellClick) = "selectedTab == 'group' && $event.column == 'edit' ? 
+                  showGroupDialog($event) : 
+                  ($event.column == 'edit' || $event.column ==  'execute' ?
+                       showTaskDetail($event) : 
+                       ($event.column ==  'cancel' ? cancelTask($event) : null))"
+(createClick) = "selectedTab == 'group'? showGroupDialog() : showTaskDetail()"  -->

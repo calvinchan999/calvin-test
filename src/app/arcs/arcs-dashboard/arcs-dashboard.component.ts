@@ -97,7 +97,7 @@ export class ArcsDashboardComponent implements OnInit {
         ).concat(<any>[
           { title: "Completion Date", id: "endDateTime",  type: "date" , width: 50 },
           { title: "Created Date", id: "createdDateTime",  type: "date" , width: 50 },
-          { title: "", type: "button", id: "cancel", width: 20, icon: 'cancel-butoon mdi mdi-close-thick iconButton' , fixed : true , ngIf: true },
+          { title: "", type: "button", id: "cancel", width: 20, icon: 'cancel-butoon mdi mdi-close-thick iconButton' , fixed : true  }, //, ngIf: true 
         ]),
       },
       template:{

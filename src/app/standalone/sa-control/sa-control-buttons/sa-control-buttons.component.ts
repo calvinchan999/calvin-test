@@ -51,6 +51,7 @@ export class SaControlButtonsComponent implements OnInit {
       this.layout.forEach(l => l.buttons =(<any>l.buttons).filter(b => b.id != k))
     })
   }
+  
   layout = [
     {
       title: 'Power',  icon : 'mdi mdi-power-plug', buttons: [

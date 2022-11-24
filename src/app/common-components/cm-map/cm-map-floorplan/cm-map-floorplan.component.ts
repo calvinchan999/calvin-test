@@ -156,11 +156,11 @@ export class CmMapFloorplanComponent implements OnInit {
     // } 
     this.util.loadToFrmgrp(this.frmGrp ,  data);
     (<any>this.pixiElRef.allPixiPoints).concat((<any>this.pixiElRef.allPixiArrows)).forEach(gr=>gr.visible = this.selectedTab == 'locations');
-    //(<any>this.pixiElRef.allPixiPoints).concat((<any>this.pixiElRef.allPixiArrows)).forEach(gr=>this.pixiElRef.removeGraphics(gr))
-    this.uiSrv.loadAsyncDone(ticket);
+    // (<any>this.pixiElRef.allPixiPoints).concat((<any>this.pixiElRef.allPixiArrows)).forEach(gr=>this.pixiElRef.removeGraphics(gr))
     // JSON.parse(RNR_1110).forEach(w => {
     //   this.add_UserTrainingWaypoint(w['name'].toUpperCase(), w['x'], w['y'] , w['angle'])
     // })
+    this.uiSrv.loadAsyncDone(ticket);
   }
   
   async tabletClose(planId){

@@ -225,7 +225,7 @@ import { ThreejsViewportComponent } from './ui-components/threejs-viewport/three
 import { ArcsSetupImportFloorplanComponent } from './arcs/arcs-setup/arcs-setup-import/arcs-setup-import-floorplan/arcs-setup-import-floorplan.component';
 import { ArcsSetupExportFloorplanComponent } from './arcs/arcs-setup/arcs-setup-export/arcs-setup-export-floorplan/arcs-setup-export-floorplan.component';
 import { ArcsRobotGroupComponent } from './arcs/arcs-dashboard/arcs-robot-group/arcs-robot-group.component';
-import { ArcsFailedTasksComponent } from './arcs/arcs-dashboard/arcs-charts/arcs-failed-tasks/arcs-failed-tasks.component';
+import { ArcsAbnormalTasksComponent } from './arcs/arcs-dashboard/arcs-charts/arcs-abnormal-tasks/arcs-abnormal-tasks.component';
 
 @NgModule({
     declarations: [
@@ -316,7 +316,7 @@ import { ArcsFailedTasksComponent } from './arcs/arcs-dashboard/arcs-charts/arcs
         ArcsSetupImportFloorplanComponent,
         ArcsSetupExportFloorplanComponent,
         ArcsRobotGroupComponent,
-        ArcsFailedTasksComponent,
+        ArcsAbnormalTasksComponent,
         
     ],
     imports: [

@@ -24,6 +24,7 @@ import { Geometry } from 'pixi.js';
 import * as OUTLINE from 'three-line-outline'
 import { ArcsDashboardComponent } from 'src/app/arcs/arcs-dashboard/arcs-dashboard.component';
 const NORMAL_ANGLE_ADJUSTMENT =  - 90 / radRatio
+
 @Component({
   selector: 'uc-3d-viewport',
   templateUrl: './threejs-viewport.component.html',
@@ -283,7 +284,6 @@ export class ThreejsViewportComponent implements OnInit {
     this.initFloorPlan(floorplan , dimension.width , dimension.height);
     this.initROSmaps(floorplan.mapList)
     this.initWaypoints(floorplan.pointList)
-    // this.initBlocks() // TBR
     this.camera.objRef.position.set(0, this.floorplan.height  , this.floorplan.height * 0.7 )
     this.camera.objRef.lookAt(1, -0.9 , -0.5)
     this.orbitCtrl.update()
@@ -291,9 +291,7 @@ export class ThreejsViewportComponent implements OnInit {
     if(subscribePoses && this.mapCode){
       this.subscribeRobotPoses()
     }
-    if(this.mapCode == '5W_2022'){
-      this.initBlocks();
-    } 
+    this.initBlocks(); // TBR
     ['waypoint' , 'waypointName' , 'wall'].forEach(k=> this.uiToggled(k))
     // this.orbitCtrl.target.set(1, -0.9 , -0.5)
     // var lookAtVector = new THREE.Vector3(0, 0, -1);
@@ -402,7 +400,8 @@ export class ThreejsViewportComponent implements OnInit {
   }
 
   initBlocks(){
-    [BLOCK1_VERTICES , BLOCK2_VERTICES , BLOCK3_VERTICES , BLOCK4_VERTICES].forEach(vertices=>{
+    //TBR
+    (this.mapCode == '5W_2022' ? [BLOCK1_VERTICES , BLOCK2_VERTICES , BLOCK3_VERTICES , BLOCK4_VERTICES] : (this.floorPlanDataset.floorPlanCode == 'MICROSOFT_INDUSTRY_DAY'? [MS_BLOCK1_VERTICES] : [])).forEach(vertices=>{
       let block = new Extruded2DMesh(this , JSON.parse(vertices))
       this.floorplan.add(block)
       block.position.set(-this.floorplan.width/2 , - this.floorplan.height/2 , this.floorplan.position.z + 1);
@@ -765,7 +764,18 @@ export class RobotObject3D extends Object3DCommon{
     movingRef : any
     ticksRemaining : number
   }
-  readonly recolorMaterialName = 'mat16'
+  robotImportSetting : Import3DModelSettings = {
+    path : "assets/3D/robot.glb",
+    scale : 3,
+    position : {x : 4 , y: 0 , z : -20},
+    rotate : 180/radRatio,
+    recolorMaterials : ['Material33']
+  }
+  pointerSetting : Import3DModelSettings = {
+    path : null ,
+    scale : 20,
+    position : {x : 0 , y: 8 , z : -13 }
+  }
   _color : number = this.master.util.config.robot?.visuals?.[0].fillColor ?  Number(this.master.util.config.robot?.visuals?.[0].fillColor) : 0x00CED1
   get opacity(){
     return this._opacity
@@ -801,22 +811,27 @@ export class RobotObject3D extends Object3DCommon{
   }
   set alert(v){
     this._alert = v
-    this.alertIcon.visible = v
+    if(this.alertIcon){
+      this.alertIcon.visible = v
+    }
   }
   get alert(){
     return this._alert
   }
   _alert = false
-  readonly size = 20
+  readonly size = 4
+  readonly frontIndicatorSize = 20
   readonly alertIconSetting = {
     size : 0.15 ,
     positionY : 0.6
   }
   // mesh : Mesh  
-  readonly glbPath = "assets/3D/robot.glb" // Raptor Heavy Planetary Crawler by Aaron Clifford [CC-BY] via Poly Pizza
+  // readonly glbPath = "assets/3D/robot.glb" // Raptor Heavy Planetary Crawler by Aaron Clifford [CC-BY] via Poly Pizza
   readonly alertIconPath = 'assets/3D/exclamation.glb' //This work is based on "Exclamation Mark 3D icon" (https://sketchfab.com/3d-models/exclamation-mark-3d-icon-35fcb8285f134554989f822ab90ee974) by summer57 (https://sketchfab.com/summer5717) licensed under CC-BY-4.0 (http://creativecommons.org/licenses/by/4.0/)
   constructor( master: ThreejsViewportComponent , _robotCode : string , _robotBase : string){
     super(master)
+    this.robotImportSetting = this.master.util.config.MAP_3D?.ROBOT ? this.master.util.config.MAP_3D.ROBOT : this.robotImportSetting
+    this.pointerSetting = this.master.util.config.MAP_3D?.POINTER ? this.master.util.config.MAP_3D.POINTER : this.pointerSetting
     this.robotCode = _robotCode;
     this.robotBase = _robotBase
     this.master = master
@@ -824,26 +839,24 @@ export class RobotObject3D extends Object3DCommon{
     this.loader = new GLTFLoader();
     //
     let ticket = this.master.uiSrv.loadAsyncBegin()
-     this.loader.load(this.glbPath ,(gltf : GLTF)=> {
+    let setting = this.robotImportSetting
+     this.loader.load(setting.path ,(gltf : GLTF)=> {
       new GLTFLoader().load(this.alertIconPath, (alertGltf : GLTF)=>{
         this.gltf = gltf       
 
         this.alertIcon = alertGltf.scene
         new Object3DCommon(this.master).getMaterials(  this.alertIcon ).forEach(m=>m.color.set(0xFF0000))
-        // let alertMaterial = new MeshBasicMaterial({color : 0xFF0000})
-        // this.alertIcon.children[0]['material'] = alertMaterial
         this.alertIcon.scale.set(this.alertIconSetting.size , this.alertIconSetting.size , this.alertIconSetting.size)
         this.alertIcon.position.y = this.alertIconSetting.positionY
         this.gltf.scene.add(this.alertIcon)
 
-        this.gltf.scene.scale.set(this.size ,this.size ,this.size)
+        this.gltf.scene.scale.set(setting.scale, setting.scale, setting.scale)
+        this.gltf.scene.position.set(setting.position.x , setting.position.y , setting.position.z)
+        this.gltf.scene.rotateZ(setting.rotate)
         this.gltf.scene.rotateX(- NORMAL_ANGLE_ADJUSTMENT)
         
         //this.initOutline(gltf)
         this.gltf.scene.add(this.outlineMesh);
-        // const edges = new THREE.EdgesGeometry(this.outlineMesh.geometry);
-        // const line = new THREE.LineSegments(edges, new THREE.LineBasicMaterial({ color: 0x00ff00 }));
-        // this.add(line);
         this.add(this.gltf.scene)
         // let scale =  this.size * this.master.ROSmapScale * this.master.util.config.METER_TO_PIXEL_RATIO
         this.storeOriginalMaterialData()
@@ -915,13 +928,10 @@ export class RobotObject3D extends Object3DCommon{
 
   changeMainColor(color: number) {
     let materials: MeshStandardMaterial[] = new Object3DCommon(this.master).getMaterials(this.gltf.scene)
-    // console.log(materials)
-    materials.filter(m=>m.name == this.recolorMaterialName).forEach(m=>m.color.set(color));
-    // console.log(  new Object3DCommon(this.master).getMaterials(this.frontFacePointer))
+    materials.filter(m => this.robotImportSetting.recolorMaterials?.includes(m.name)).forEach(m => m.color.set(color));
     new Object3DCommon(this.master).getMaterials(this.frontFacePointer).forEach(m=>{
       m.color.set(color)
     })
-    // (<THREE.MeshPhongMaterial>this.outlineMesh?.material).color.set(color)
   }
 
 
@@ -931,12 +941,14 @@ export class RobotObject3D extends Object3DCommon{
     const geometry = new THREE.RingGeometry(0.2, 1, 32 , 1 , 35 /radRatio , 110 /radRatio);
     const material = new THREE.MeshBasicMaterial({ color: 0xffff00, side: THREE.FrontSide , transparent : true , opacity : 0.4});
     this.frontFacePointer = new THREE.Mesh(geometry, material);
+    let setting = this.pointerSetting
     // this.frontFacePointer.rotateX(NORMAL_ANGLE_ADJUSTMENT);
     //this.frontFacePointer.rotateZ(180 / radRatio);
-    this.frontFacePointer.position.set(0, 12.5, -12.5)
-    this.frontFacePointer.scale.set(this.size, this.size, this.size)
+    this.frontFacePointer.position.set(setting.position.x , setting.position.y , setting.position.z)
+    this.frontFacePointer.scale.set(setting.scale , setting.scale  , setting.scale )
     this.add(this.frontFacePointer)
   }
+  
 
   // initOutline(gltf: GLTF) {
   //   let geometries = [];
@@ -1127,6 +1139,20 @@ class Extruded2DMesh extends Mesh{
   }
 }
 
+class Import3DModelSettings {
+  type? : string = "GLB"
+  path : string
+  scale? : number = 1
+  rotate ? : number = 0
+  position? : {
+    x : number 
+    y : number 
+    z : number
+  }
+  recolorMaterials?: string[]
+  replaceMaterial? : Object //key : material name  , values : image path
+}
+
        // initLights(scene) {
   //   // const light = new THREE.DirectionalLight(0xFFFFFF);
   //   // light.intensity = 1;
@@ -1192,6 +1218,7 @@ const BLOCK2_VERTICES = `[{"x" : 665 , "y": 782} , {"x" : 665 , "y": 948} , {"x"
 const BLOCK3_VERTICES = `[{"x" : 415 , "y": 782} , {"x" : 660 , "y": 782} , {"x" : 660 , "y": 945} , {"x" : 415 , "y": 945} ]`
 const BLOCK4_VERTICES = `[{"x" : 105 , "y": 782} , {"x" : 410 , "y": 782} , {"x" : 410 , "y": 945} , {"x" : 105 , "y": 945} ]`
 
+const MS_BLOCK1_VERTICES = `[{"x": 135 ,"y" : 20 } , {"x": 2200 ,"y" : 20 } , {"x": 2200 ,"y" : 495 } ,{"x": 1600 ,"y" : 495 },{"x": 1600 ,"y" : 1335 } ,{"x": 690 ,"y" : 1335 },{"x": 690 ,"y" : 495 } ,{"x": 135 ,"y" : 495 }]`
 // const VERTEX_SHADER = `
 // attribute vec3 control0;
 // attribute vec3 control1;

@@ -17,7 +17,7 @@ import { mixin } from "pixi-viewport";
 import { TooltipDirective } from "@progress/kendo-angular-tooltip";
 import { DatePipe } from '@angular/common'
 import { Template } from "@angular/compiler/src/render3/r3_ast";
-import { ArcsFailedTasksComponent } from "./arcs-failed-tasks/arcs-failed-tasks.component";
+import { ArcsAbnormalTasksComponent } from "./arcs-abnormal-tasks/arcs-abnormal-tasks.component";
 
 const Utilization_Status_Types = ['charging' , 'idle' , 'executing' , 'hold']
 @Component({
@@ -157,12 +157,16 @@ export class ArcsChartsComponent implements OnInit {
 
   }
 
-  showIncompeleteTasks(){
+  showAbnormalTasks(id : 'failed' | 'canceled'){
     //Pending : check access right for tasks
-    let dialog : DialogRef = this.uiSrv.openKendoDialog({content: ArcsFailedTasksComponent , preventAction:()=>true});
-    const content = dialog.content.instance;
+    let dialog : DialogRef = this.uiSrv.openKendoDialog({content: ArcsAbnormalTasksComponent , preventAction:()=>true});
+    const content :ArcsAbnormalTasksComponent = dialog.content.instance;
     content.dialogRef = dialog
+    content.fromDate = this.getSelectedDateRange().fromDate
+    content.toDate = this.getSelectedDateRange().toDate
+    content.total = id == 'failed' ? this.usability.incomplete : this.usability.canceled
     content.parent = this
+    content.taskState = id
     // content.parentRow = evt?.row
     // dialog.result.subscribe(()=>{
 
@@ -283,8 +287,8 @@ export class ArcsChartsComponent implements OnInit {
     toDate = new Date(toDate.getTime() - 86400000)
     // toDate.setDate(toDate.getDate() - 1)
     let ticket = this.uiSrv.loadAsyncBegin()
-    let frDateStr = `${fromDate.getFullYear()}-${(fromDate.getMonth() + 1).toString().padStart(2, '0')}-${(fromDate.getDate()).toString().padStart(2, '0')}`
-    let toDateStr = `${toDate.getFullYear()}-${(toDate.getMonth() + 1).toString().padStart(2, '0')}-${(toDate.getDate()).toString().padStart(2, '0')}`
+    let frDateStr = this.util.getSQLFmtDateStr(fromDate)
+    let toDateStr = this.util.getSQLFmtDateStr(toDate)
     let data = []
     if(this._chartType == 'usability'){
       data = await this.dataSrv.httpSrv.get(`api/analytics/usability/v1?fromDate=${frDateStr}&toDate=${toDateStr}`)
@@ -509,7 +513,7 @@ export class ArcsChartsComponent implements OnInit {
     return Number(this.util.trimNum(value , decimalPlace))
   }
   
-  daysIntoYear(date) {
+  daysIntoYear(date : Date) {
     return (Date.UTC(date.getFullYear(), date.getMonth(), date.getDate()) - Date.UTC(date.getFullYear(), 0, 0)) / 24 / 60 / 60 / 1000;
   }
 }
