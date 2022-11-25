@@ -16,6 +16,7 @@ import { ArcsTaskScheduleComponent } from './arcs-task-schedule/arcs-task-schedu
 import { RobotObject3D, ThreejsViewportComponent } from 'src/app/ui-components/threejs-viewport/threejs-viewport.component';
 import { ArcsRobotGroupComponent } from './arcs-robot-group/arcs-robot-group.component';
 import { truncateSync } from 'fs';
+import { CmTaskCancelComponent } from 'src/app/common-components/cm-task/cm-task-cancel/cm-task-cancel.component';
 
 type robotTypeInfo = { //A group can be an individual robot (when filtered by robot type) OR robot type (no filter applied) 
   robotType: string
@@ -91,13 +92,13 @@ export class ArcsDashboardComponent implements OnInit {
           { title: "#", type: "button", id: "edit", width: 30, icon: 'k-icon k-i-edit iconButton' , fixed : true  },
           // { title: "Order No.", id: "taskId", width: 50 },
           { title: "Description", id: "name", width: 100 },
-          { title: "Status", id: "state", width: 40 , dropdownOptions:[{text : "Pending" , value : "WAITING"} , {text : "Executing" , value : "EXECUTING"},{text : "Completed" , value : "SUCCEEDED"} , {text : "Canceled" , value : "CANCELED"} , {text : "Failed" , value : "FAILED"},] },
+          { title: "Status", id: "state", width: 40 , dropdownOptions:[{text : "Pending" , value : "WAITING"} , {text : "Executing" , value : "EXECUTING"},{text : "Completed" , value : "SUCCEEDED"} , {text : "Canceled" , value : "CANCELED"} , {text : "Failed" , value : "FAILED"}, {text : "Busy" , value : "BUSY"}] },
         ].concat(
           this.util.arcsApp? <any>[{ title: "Assigned To", id: "robotCode", width: 50 }] : []
         ).concat(<any>[
           { title: "Completion Date", id: "endDateTime",  type: "date" , width: 50 },
           { title: "Created Date", id: "createdDateTime",  type: "date" , width: 50 },
-          { title: "", type: "button", id: "cancel", width: 20, icon: 'cancel-butoon mdi mdi-close-thick iconButton' , fixed : true  }, //, ngIf: true 
+          { title: "", type: "button", id: "cancel", width: 20, icon: 'cancel-butoon mdi mdi-close-thick iconButton' , fixed : true ,  ngIf: true   }, 
         ]),
       },
       template:{
@@ -262,10 +263,8 @@ export class ArcsDashboardComponent implements OnInit {
   }
 
   async refreshFloorPlanOptions(){
-    if (this.locationTree?.building?.code) {
-      var data = (await this.dataSrv.getDropList('floorplans')).data
-      this.dropdownOptions.floorplans = this.dataSrv.getDropListOptions('floorplans', data, { buildingCode: this.locationTree?.building?.code })
-    }
+    var data = (await this.dataSrv.getDropList('floorplans')).data
+    this.dropdownOptions.floorplans = this.dataSrv.getDropListOptions('floorplans', data, this.locationTree?.building?.code ? { buildingCode: this.locationTree?.building?.code } : undefined)
     if (this.pixiElRef) {
       this.pixiElRef.dropdownData.floorplans = data
       this.pixiElRef.dropdownOptions.floorplans = this.dropdownOptions.floorplans
@@ -492,9 +491,9 @@ export class ArcsDashboardComponent implements OnInit {
   showGroupDialog(evt = null){
     let dialog : DialogRef = this.uiSrv.openKendoDialog({content: ArcsRobotGroupComponent, preventAction:()=>true});
     const content = dialog.content.instance;
-    content.dialogRef = dialog
-    content.parent = this
-    content.parentRow = evt?.row
+    content.dialogRef = dialog;
+    content.parent = this;
+    content.parentRow = evt?.row;
     dialog.result.subscribe(()=>{
       this.tableRef.retrieveData()
     })
@@ -517,13 +516,21 @@ export class ArcsDashboardComponent implements OnInit {
   }
 
   async cancelTask(evt){
-    var taskId = evt?.['row']?.['taskId']
-    if(await this.uiSrv.showConfirmDialog(this.uiSrv.translate("Are you sure to cancel task") + ` ${evt?.['row']?.['name']} [${taskId}] ?` )){
-      let ticket = this.uiSrv.loadAsyncBegin()
-      await this.httpSrv.rvRequest('DELETE' , 'task/v1/task/' + taskId , undefined, true , this.uiSrv.translate("Cancel Task") + ` [${taskId}]`)
-      this.tableRef?.retrieveData()
-      this.uiSrv.loadAsyncDone(ticket)
-    }
+    let dialog : DialogRef = this.uiSrv.openKendoDialog({content: CmTaskCancelComponent , preventAction:()=>true});
+    const content : CmTaskCancelComponent = dialog.content.instance;
+    content.dialogRef = dialog
+    content.parent = this
+    content.taskId = evt?.['row']?.['taskId']
+    content.taskName = evt?.['row']?.['name']
+    dialog.result.subscribe(()=>{
+      this.tableRef.retrieveData()
+    })
+    // if(await this.uiSrv.showConfirmDialog(this.uiSrv.translate("Are you sure to cancel task") + ` ${evt?.['row']?.['name']} [${taskId}] ?` )){
+    //   let ticket = this.uiSrv.loadAsyncBegin()
+    //   await this.httpSrv.rvRequest('DELETE' , 'task/v1/task/' + taskId , undefined, true , this.uiSrv.translate("Cancel Task") + ` [${taskId}]`)
+    //   this.tableRef?.retrieveData()
+    //   this.uiSrv.loadAsyncDone(ticket)
+    // }
   }
 
   async delete(){

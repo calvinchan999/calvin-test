@@ -226,6 +226,7 @@ import { ArcsSetupImportFloorplanComponent } from './arcs/arcs-setup/arcs-setup-
 import { ArcsSetupExportFloorplanComponent } from './arcs/arcs-setup/arcs-setup-export/arcs-setup-export-floorplan/arcs-setup-export-floorplan.component';
 import { ArcsRobotGroupComponent } from './arcs/arcs-dashboard/arcs-robot-group/arcs-robot-group.component';
 import { ArcsAbnormalTasksComponent } from './arcs/arcs-dashboard/arcs-charts/arcs-abnormal-tasks/arcs-abnormal-tasks.component';
+import { CmTaskCancelComponent } from './common-components/cm-task/cm-task-cancel/cm-task-cancel.component';
 
 @NgModule({
     declarations: [
@@ -317,6 +318,7 @@ import { ArcsAbnormalTasksComponent } from './arcs/arcs-dashboard/arcs-charts/ar
         ArcsSetupExportFloorplanComponent,
         ArcsRobotGroupComponent,
         ArcsAbnormalTasksComponent,
+        CmTaskCancelComponent,
         
     ],
     imports: [

@@ -233,7 +233,6 @@ export class ThreejsViewportComponent implements OnInit {
     })
     
     this.blockMeshes.forEach((b) => {
-      // console.log(b)
       b.setOpactiy(transparentBlocks.includes(b) || b.blockedFocusedObject ? b.transparentOpacity : b.defaultOpacity)
     })
   }
@@ -292,7 +291,7 @@ export class ThreejsViewportComponent implements OnInit {
       this.subscribeRobotPoses()
     }
     this.initBlocks(); // TBR
-    ['waypoint' , 'waypointName' , 'wall'].forEach(k=> this.uiToggled(k))
+    ['waypoint', 'waypointName', 'wall'].forEach(k => this.uiToggled(k))
     // this.orbitCtrl.target.set(1, -0.9 , -0.5)
     // var lookAtVector = new THREE.Vector3(0, 0, -1);
     // lookAtVector.applyQuaternion(this.camera.objRef.quaternion);
@@ -401,11 +400,41 @@ export class ThreejsViewportComponent implements OnInit {
 
   initBlocks(){
     //TBR
-    (this.mapCode == '5W_2022' ? [BLOCK1_VERTICES , BLOCK2_VERTICES , BLOCK3_VERTICES , BLOCK4_VERTICES] : (this.floorPlanDataset.floorPlanCode == 'MICROSOFT_INDUSTRY_DAY'? [MS_BLOCK1_VERTICES] : [])).forEach(vertices=>{
-      let block = new Extruded2DMesh(this , JSON.parse(vertices))
-      this.floorplan.add(block)
-      block.position.set(-this.floorplan.width/2 , - this.floorplan.height/2 , this.floorplan.position.z + 1);
-    });
+    var testBlocks = {
+      "150": {
+        "MICROSOFT_INDUSTRY_DAY": [MS_BLOCK2_VERTICES],
+      },
+      "100": {
+        "5W_2022": [BLOCK1_VERTICES, BLOCK2_VERTICES, BLOCK3_VERTICES, BLOCK4_VERTICES],
+      },
+      "50": {
+        "MICROSOFT_INDUSTRY_DAY": []
+      }
+    }
+    var testBlockWithCeiling = {
+      "150": {
+        "MICROSOFT_INDUSTRY_DAY": [MS_BLOCK1_VERTICES],
+      }
+    };
+    [testBlocks, testBlockWithCeiling].forEach(b => {
+      Object.keys(b).forEach(h => {
+        if (b[h][this.floorPlanDataset.floorPlanCode]) {
+          b[h][this.floorPlanDataset.floorPlanCode].forEach((vertices) => {
+            let block = new Extruded2DMesh(this, JSON.parse(vertices), Number(h), b == testBlockWithCeiling ? 0x777777 : undefined ,  b == testBlockWithCeiling ? 0x777777 : undefined , b == testBlockWithCeiling , b == testBlockWithCeiling ? 0.95 : undefined )
+            this.floorplan.add(block)
+            block.position.set(-this.floorplan.width / 2, - this.floorplan.height / 2, this.floorplan.position.z + 1);
+          })
+        }
+      })
+    })
+
+    
+
+    // (this.mapCode == '5W_2022' ? [BLOCK1_VERTICES , BLOCK2_VERTICES , BLOCK3_VERTICES , BLOCK4_VERTICES] : (this.floorPlanDataset.floorPlanCode == 'MICROSOFT_INDUSTRY_DAY'? [MS_BLOCK1_VERTICES] : [])).forEach(vertices=>{
+    //   let block = new Extruded2DMesh(this , JSON.parse(vertices) , this.floorPlanDataset.floorPlanCode == 'MICROSOFT_INDUSTRY_DAY'?  200 : 100 )
+    //   this.floorplan.add(block)
+    //   block.position.set(-this.floorplan.width/2 , - this.floorplan.height/2 , this.floorplan.position.z + 1);
+    // });
   }
 
   public subscribeRobotPoses(mapCode = this.mapCode){ //Assume 1 Map per robot per floor plan
@@ -422,7 +451,7 @@ export class ThreejsViewportComponent implements OnInit {
           console.log(`ERROR : Map not found : [${mapCode}] (ROBOT BASE [${robotData.robotBase}] , ROBOT [${robotCode}])`)
           return
         }
-        let robot = this.getRobot(robotCode) ?   this.getRobot(robotCode) : new RobotObject3D(this , robotCode , robotData.robotBase )
+        let robot = this.getRobot(robotCode) ?   this.getRobot(robotCode) : new RobotObject3D(this , robotCode , robotData.robotBase , robotData.robotType )
         let oldMapMesh = this.mapMeshes.filter(m=>robot && m.robotBase!=robotData.robotBase && m.children.includes(robot))[0]
         if(oldMapMesh){
           oldMapMesh.remove(robot)
@@ -548,6 +577,7 @@ class Object3DCommon extends Object3D{
     fontSize : '14px',
     background : 'rgba( 0, 0, 0, 0.6 )'
   }
+  defaultOpacity = 1
 
   set toolTipText(v){
     this.toolTip.element.textContent = v
@@ -679,6 +709,13 @@ class Object3DCommon extends Object3D{
       this.clickListener = null
     }
   }
+
+  setOpactiy(opacity : number){
+    this.getMaterials(this).forEach(o=>{
+      o.depthWrite = opacity >= this.defaultOpacity
+      o.opacity = opacity
+    })
+  }
 }
 
 class MarkerObject3D extends Object3DCommon {
@@ -753,6 +790,7 @@ export class RobotObject3D extends Object3DCommon{
   alertIcon : Group
   robotCode : string
   robotBase : string
+  robotType : string
   master : ThreejsViewportComponent
   outlineMesh : Mesh
   outlineSegments : LineSegments
@@ -764,17 +802,42 @@ export class RobotObject3D extends Object3DCommon{
     movingRef : any
     ticksRemaining : number
   }
-  robotImportSetting : Import3DModelSettings = {
-    path : "assets/3D/robot.glb",
-    scale : 3,
-    position : {x : 4 , y: 0 , z : -20},
-    rotate : 180/radRatio,
-    recolorMaterials : ['Material33']
+  get importSetting(){
+    return this.robotImportSetting[this.robotType] ? this.robotImportSetting[this.robotType] : this.robotImportSetting.BASE
   }
+  robotImportSetting = {
+    BASE : {
+      path : "assets/3D/robot.glb",
+      scale : 3,
+      position : {x : 4 , y: 0 , z : -20},
+      rotate : {x : NORMAL_ANGLE_ADJUSTMENT , y : 0,  z : 180/radRatio } ,
+      recolorMaterials : ['Material33'],
+    },
+    PATROL : {
+      path : "assets/3D/robot_patrol.glb",
+      scale : 35,
+      position: { x: 0, y: 0, z: -12.5 },
+      rotate: { x: 0, y: 0, z: 180 / radRatio },
+      alertPositionZ : 45
+      // recolorMaterials : ['0.019608_0.000000_0.000000_0.000000_0.000000']
+      // replaceColors:[{r: 0 , g : 0 , b : 0 , tolerance : 0.1}], 
+    },
+    DELIVERY : {
+      path : "assets/3D/robot_delivery.glb",
+      scale : 0.8,
+      position: { x: 0, y: 0, z: -12.5 },
+      rotate: {x : NORMAL_ANGLE_ADJUSTMENT, y: 0, z: 180 / radRatio },
+      alertPositionZ : 40
+      // recolorMaterials : ['Material #26'],
+      // replaceColors:[{r: 0 , g : 0 , b : 0 , tolerance : 0.1}],
+      // recolorMaterials : []
+    },
+  }
+
   pointerSetting : Import3DModelSettings = {
     path : null ,
     scale : 20,
-    position : {x : 0 , y: 8 , z : -13 }
+    position : {x : 0 , y: 5 , z : -13 }
   }
   _color : number = this.master.util.config.robot?.visuals?.[0].fillColor ?  Number(this.master.util.config.robot?.visuals?.[0].fillColor) : 0x00CED1
   get opacity(){
@@ -822,43 +885,50 @@ export class RobotObject3D extends Object3DCommon{
   readonly size = 4
   readonly frontIndicatorSize = 20
   readonly alertIconSetting = {
-    size : 0.15 ,
-    positionY : 0.6
+    size : 3 ,
+    positionZ : 5
   }
+  // spotLight : THREE.SpotLight
   // mesh : Mesh  
   // readonly glbPath = "assets/3D/robot.glb" // Raptor Heavy Planetary Crawler by Aaron Clifford [CC-BY] via Poly Pizza
   readonly alertIconPath = 'assets/3D/exclamation.glb' //This work is based on "Exclamation Mark 3D icon" (https://sketchfab.com/3d-models/exclamation-mark-3d-icon-35fcb8285f134554989f822ab90ee974) by summer57 (https://sketchfab.com/summer5717) licensed under CC-BY-4.0 (http://creativecommons.org/licenses/by/4.0/)
-  constructor( master: ThreejsViewportComponent , _robotCode : string , _robotBase : string){
+  constructor( master: ThreejsViewportComponent , _robotCode : string , _robotBase : string , _robotType : string){
     super(master)
     this.robotImportSetting = this.master.util.config.MAP_3D?.ROBOT ? this.master.util.config.MAP_3D.ROBOT : this.robotImportSetting
     this.pointerSetting = this.master.util.config.MAP_3D?.POINTER ? this.master.util.config.MAP_3D.POINTER : this.pointerSetting
     this.robotCode = _robotCode;
-    this.robotBase = _robotBase
-    this.master = master
+    this.robotBase = _robotBase;
+    this.robotType = _robotType;
+    this.master = master;
     // this.master.robots = this.master.robots.filter(r=>r != this).concat(this)
     this.loader = new GLTFLoader();
     //
     let ticket = this.master.uiSrv.loadAsyncBegin()
-    let setting = this.robotImportSetting
+    let setting = this.importSetting
      this.loader.load(setting.path ,(gltf : GLTF)=> {
       new GLTFLoader().load(this.alertIconPath, (alertGltf : GLTF)=>{
         this.gltf = gltf       
 
         this.alertIcon = alertGltf.scene
         new Object3DCommon(this.master).getMaterials(  this.alertIcon ).forEach(m=>m.color.set(0xFF0000))
+        this.alertIcon.rotateX(-NORMAL_ANGLE_ADJUSTMENT)
         this.alertIcon.scale.set(this.alertIconSetting.size , this.alertIconSetting.size , this.alertIconSetting.size)
-        this.alertIcon.position.y = this.alertIconSetting.positionY
-        this.gltf.scene.add(this.alertIcon)
+        this.alertIcon.position.z = setting.alertPositionZ ? setting.alertPositionZ : this.alertIconSetting.positionZ
+        this.add(this.alertIcon)
 
         this.gltf.scene.scale.set(setting.scale, setting.scale, setting.scale)
         this.gltf.scene.position.set(setting.position.x , setting.position.y , setting.position.z)
-        this.gltf.scene.rotateZ(setting.rotate)
-        this.gltf.scene.rotateX(- NORMAL_ANGLE_ADJUSTMENT)
+        this.gltf.scene.rotateX(setting.rotate?.x? setting.rotate?.x : 0 )
+        this.gltf.scene.rotateY(setting.rotate?.y? setting.rotate?.y : 0 )
+        this.gltf.scene.rotateZ(setting.rotate?.z? setting.rotate?.z : 0 )
         
-        //this.initOutline(gltf)
-        this.gltf.scene.add(this.outlineMesh);
-        this.add(this.gltf.scene)
+        // this.initOutline(gltf)
+        // this.gltf.scene.add(this.outlineMesh);
+ 
         // let scale =  this.size * this.master.ROSmapScale * this.master.util.config.METER_TO_PIXEL_RATIO
+               
+        this.add(this.gltf.scene)
+        // this.addSpotLight()
         this.storeOriginalMaterialData()
         this.addFrontFacePointer()
         this.changeMainColor(this.color)
@@ -927,14 +997,29 @@ export class RobotObject3D extends Object3DCommon{
   }
 
   changeMainColor(color: number) {
+    // this.spotLight?.color.set(color)
     let materials: MeshStandardMaterial[] = new Object3DCommon(this.master).getMaterials(this.gltf.scene)
-    materials.filter(m => this.robotImportSetting.recolorMaterials?.includes(m.name)).forEach(m => m.color.set(color));
+    materials.filter(m => this.importSetting.recolorMaterials?.includes(m.name) || 
+                          (this.importSetting.replaceColors && 
+                           this.importSetting.replaceColors.some(c=>
+                            c.r - c.tolerance <= m.color.r && c.r + c.tolerance >= m.color.r &&
+                            c.g - c.tolerance <= m.color.g && c.g + c.tolerance >= m.color.g &&
+                            c.b - c.tolerance <= m.color.b && c.b + c.tolerance >= m.color.b )
+                          )
+                    ).forEach(m => {
+                      m.color.set(color)
+                    });
     new Object3DCommon(this.master).getMaterials(this.frontFacePointer).forEach(m=>{
       m.color.set(color)
     })
   }
 
-
+  // addSpotLight(){
+  //   this.spotLight = new THREE.SpotLight(this.color, 10, 30000, Math.PI / 10, 1);
+  //   this.spotLight.position.set(0, 0, 50)
+  //   this.spotLight.target = this.gltf.scene;
+  //   this.add( this.spotLight)
+  // }
 
   addFrontFacePointer() {
     //this.frontFacePointer = new Mesh(new THREE.PlaneGeometry(2.5, 2.5), new THREE.MeshPhongMaterial({ map: THREE.ImageUtils.loadTexture('assets/3D/pointer.png'), opacity: 0.5, transparent: true }))
@@ -951,22 +1036,27 @@ export class RobotObject3D extends Object3DCommon{
   
 
   // initOutline(gltf: GLTF) {
-  //   let geometries = [];
+  //   let geometries : THREE.BufferGeometry[] = [];
   //   let mergeDescendants = (c) => {
-  //     if (c instanceof Group) {
-  //       c.children.forEach(c2 => mergeDescendants(c2))
-  //     } else if (c instanceof Mesh) {
+  //     if (c instanceof Mesh) {
   //       c.updateMatrix()
   //       geometries.push(c.geometry)
-  //     }
+  //     }else  if (c instanceof Group || c instanceof Object3D) {
+  //       c.children.forEach(c2 => mergeDescendants(c2))
+  //     } 
   //   }
+  //   // // All geometries must have compatible attributes; make sure "uv" attribute exists among all geometries, or in none of them.
+  //   // let allAttributes = []
+  //   // geometries.map(g=>Object.keys(g.attributes).forEach(k=> allAttributes.push(k)))
+  //   // allAttributes = [... new Set(allAttributes)]
+  //   // allAttributes.filter(a=> geometries.some(g=>!g.hasAttribute(a))).forEach(a=>geometries.forEach(g=>delete g.attributes[a]))
 
   //   gltf.scene.children.forEach(c => mergeDescendants(c));
   //   let mergedGeo = BufferGeometryUtils.mergeBufferGeometries(geometries)
   //   let material = new THREE.MeshPhongMaterial({ color: this.color , side: THREE.BackSide});
 
   //   this.outlineMesh = new THREE.Mesh(mergedGeo, material);
-  //   this.outlineMesh.scale.multiplyScalar(1.02);
+  //   this.outlineMesh.scale.multiplyScalar(1.05);
   // }
 
 //   addFrontFacePointer() {
@@ -1077,16 +1167,17 @@ export class RobotObject3D extends Object3DCommon{
 class Extruded2DMesh extends Mesh{
   shapeGeom : THREE.ExtrudeGeometry
   blockedFocusedObject = false
+  defaultOpacity = 0.8
   readonly wallThickness = 0.3
-  readonly defaultOpacity = 0.8
   readonly transparentOpacity = 0.15
   materials : THREE.MeshPhongMaterial[] = []
-  constructor(public master : ThreejsViewportComponent , private vertices : {x : number ,y:number}[]){
+  constructor(public master : ThreejsViewportComponent , private vertices : {x : number ,y:number}[] , private depth : number = 100 ,  private wallColor =  0xEAE6EA , private ceilingColor = 0x777777 , private withCeiling = false , defaultOpacity = 0.8 ){
     super();
+    this.defaultOpacity = defaultOpacity
     const shape = new THREE.Shape(); 
     const extrudeSettings = {
       steps: 1,
-      depth: 100,
+      depth: this.depth,
       bevelEnabled: false,
     };
     // const hole = new THREE.Path();
@@ -1101,25 +1192,28 @@ class Extruded2DMesh extends Mesh{
     })
     shape.lineTo(vertices[0].x, this.master.floorplan.height - vertices[0].y)
 
-    const hole = new THREE.Shape()
-    let holeVertices = getBorderVertices(vertices , - this.wallThickness * this.master?.ROSmapScale * this.master.util.config.METER_TO_PIXEL_RATIO)
-    holeVertices.forEach(v=>{
-      if(holeVertices.indexOf(v) == 0){
-        hole.moveTo(v.x , this.master.floorplan.height -  v.y)
+    if (!withCeiling) {
+      const hole = new THREE.Shape()
+      let holeVertices = getBorderVertices(vertices, - this.wallThickness * this.master?.ROSmapScale * this.master.util.config.METER_TO_PIXEL_RATIO)
+      holeVertices.forEach(v => {
+        if (holeVertices.indexOf(v) == 0) {
+          hole.moveTo(v.x, this.master.floorplan.height - v.y)
 
-      }else{
-        hole.lineTo(v.x , this.master.floorplan.height - v.y)
-      }
-    })
+        } else {
+          hole.lineTo(v.x, this.master.floorplan.height - v.y)
+        }
+      })
 
-    hole.lineTo(holeVertices[0].x, this.master.floorplan.height - holeVertices[0].y)    
+      hole.lineTo(holeVertices[0].x, this.master.floorplan.height - holeVertices[0].y)
 
-    shape.holes.push(hole);
+      shape.holes.push(hole);
+    }
+
 
     this.shapeGeom = new THREE.ExtrudeGeometry(shape, extrudeSettings);
     this.materials = [
-      new THREE.MeshPhongMaterial({ color: 0x777777, opacity: this.defaultOpacity, transparent: true }),
-      new THREE.MeshPhongMaterial({ color: 0xEAE6EA, opacity: this.defaultOpacity, transparent: true , side : THREE.DoubleSide  }) //0xEAE6EA
+      new THREE.MeshPhongMaterial({ name: 'ceiling', color: ceilingColor, opacity: this.defaultOpacity , transparent: true }),
+      new THREE.MeshPhongMaterial({ name: 'wall' , color: wallColor, opacity: this.defaultOpacity, transparent: true , side : THREE.DoubleSide  }) //0xEAE6EA
     ]
 
     super(this.shapeGeom, this.materials);
@@ -1151,6 +1245,8 @@ class Import3DModelSettings {
   }
   recolorMaterials?: string[]
   replaceMaterial? : Object //key : material name  , values : image path
+  replaceColors?: {r:number , g: number , b : number , tolerance : number}[]
+  alertPositionZ ? : number
 }
 
        // initLights(scene) {
@@ -1218,7 +1314,8 @@ const BLOCK2_VERTICES = `[{"x" : 665 , "y": 782} , {"x" : 665 , "y": 948} , {"x"
 const BLOCK3_VERTICES = `[{"x" : 415 , "y": 782} , {"x" : 660 , "y": 782} , {"x" : 660 , "y": 945} , {"x" : 415 , "y": 945} ]`
 const BLOCK4_VERTICES = `[{"x" : 105 , "y": 782} , {"x" : 410 , "y": 782} , {"x" : 410 , "y": 945} , {"x" : 105 , "y": 945} ]`
 
-const MS_BLOCK1_VERTICES = `[{"x": 135 ,"y" : 20 } , {"x": 2200 ,"y" : 20 } , {"x": 2200 ,"y" : 495 } ,{"x": 1600 ,"y" : 495 },{"x": 1600 ,"y" : 1335 } ,{"x": 690 ,"y" : 1335 },{"x": 690 ,"y" : 495 } ,{"x": 135 ,"y" : 495 }]`
+const MS_BLOCK1_VERTICES = `[{"x": 135 ,"y" : 20 } , {"x": 2200 ,"y" : 20 } , {"x": 2200 ,"y" : 510 } ,{"x": 1600 ,"y" : 510 },{"x": 1600 ,"y" : 1335 } ,{"x": 690 ,"y" : 1335 },{"x": 690 ,"y" : 510 } ,{"x": 135 ,"y" : 510 }]`
+const MS_BLOCK2_VERTICES = `[{"x": 135 ,"y" : 515 } , {"x" : 690 , "y" : 515 } , {"x" : 690 , "y" : 1340} , {"x"  : 1600 , "y" : 1340 } , {"x" : 1600 , "y" : 515} , {"x" : 2200 , "y" : 515} , {"x" : 2200 , "y" : 1550} , {"x" : 1930 , "y" : 1550 } , {"x" : 1930 , "y": 1875} , {"x" : 1685, "y" : 1875} , {"x" : 1685 , "y" : 1955} , {"x" : 385 , "y" : 1955} , {"x" : 385 , "y" : 1820}, {"x" : 335 , "y" : 1820} , {"x" : 335 , "y" : 1555} , {"x" : 135 , "y" : 1555}]`
 // const VERTEX_SHADER = `
 // attribute vec3 control0;
 // attribute vec3 control1;

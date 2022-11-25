@@ -121,7 +121,8 @@ export class ArcsChartsComponent implements OnInit {
       charging: number,
       idle: number,
       executing: number,
-      hold: number
+      hold: number,
+      total:number
     }[],
     total: {
       type1: {
@@ -374,10 +375,6 @@ export class ArcsChartsComponent implements OnInit {
       newDate.setTime(date.getTime() + 86400000)
       date = newDate
     }
-    // let lastMonthSameDay = new Date(new Date().getFullYear(), new Date().getMonth() - 1 , new Date().getDate())
-    // this.utilization.daily.min =  this.utilization.daily.categories[fromDate ? this.daysIntoYear(fromDate) - 1: 0]
-    // let tmpMax = this.utilization.daily.categories[toDate ? this.daysIntoYear(toDate) - 1 : this.utilization.daily.categories.length - 1]
-    // this.utilization.daily.max =  tmpMax ? tmpMax : this.utilization.daily.categories[this.utilization.daily.categories.length - 1]
     this.utilization.daily.min =  fromDate ? fromDate : this.utilization.daily.categories[0]
     this.utilization.daily.max =  toDate ? toDate : this.utilization.daily.categories[ this.utilization.daily.categories.length - 1]
     this.utilization.daily.categories.pop()
@@ -453,8 +450,10 @@ export class ArcsChartsComponent implements OnInit {
   }
   
   fetchUtilization(fromDate: Date = null, toDate: Date = null) {    
-    this.initUtilization(fromDate , toDate)
-    this.utilizationData = this.utilizationData.filter(r=>r.type != 'DAILY').concat(this.fullYearDataset.utilization[this.year.toString()].filter(r=>r.type == 'DAILY'))
+    this.initUtilization(fromDate, toDate)
+    this.utilizationData = this.utilizationData.filter(r => r.type != 'DAILY').concat(this.fullYearDataset.utilization[this.year.toString()].filter(r => r.type == 'DAILY'))
+    this.utilizationData = this.utilizationData.filter(r => r.type != 'ROBOT_TYPE').concat(this.utilizationData.filter(r => r.type == 'ROBOT_TYPE').sort((a, b) => b.executing / b.total - a.executing / a.total))
+    this.utilizationData = this.utilizationData.filter(r => r.type != 'ROBOT').concat(this.utilizationData.filter(r => r.type == 'ROBOT').sort((a, b) => b.executing / b.total - a.executing / a.total))
     this.utilizationData.forEach(r => {
       if (r.type == 'DAILY') {
         let splitedDateString = r.category.split("-")
@@ -465,20 +464,18 @@ export class ArcsChartsComponent implements OnInit {
         this.utilization.robot.push(r)
         this.utilization.totalExecutingHours += r.executing
         this.utilization.totalRobotHours += r.total
-      }else if(r.type == 'ROBOT_TYPE'){
+      }else if(r.type == 'ROBOT_TYPE'){     
         let category = this.uiSrv.translate(<DropListType[]>this.dropdownData.types.filter(t => t.enumName == r.category)[0]?.description)
         this.utilization.robotType.categories.push(category)
         Utilization_Status_Types.forEach(t=> this.utilization.robotType.data[t][this.utilization.robotType.categories.length - 1] = this.getRoundedValue(r[t] * 100 / r.total))       
       }
     });
     let sortedUtilByTypes = this.utilizationData.filter(r=>r.type == 'ROBOT_TYPE').sort((a,b) => b.executing / b.total -  a.executing / a.total)
-    // sortedUtilByTypes = [] //sortedUtilByTypes.slice(0 , 1 )
     for (let i = 0; i < Math.min(3, sortedUtilByTypes.length); i++) {
       let r = sortedUtilByTypes[i]
       let category = this.uiSrv.translate(<DropListType[]>this.dropdownData.types.filter(t => t.enumName == r.category)[0]?.description)
       this.utilization.total['type' + (i + 1)] = { robotType: category, executing: r.executing, total: r.total }
     }
-    // this.utilization.totalExecutingHours = this.utilizationData.filter(r=>r.type == 'ROBOT').reduce((acc , inc) => acc + inc.executing , 0)
   }
 
   fetchUsability(fromDate: Date = null, toDate: Date = null) {    

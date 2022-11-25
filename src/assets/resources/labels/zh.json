@@ -1,4 +1,5 @@
 {
+    "Cameras":"即時實況",
     "Robots":"機械人",
     "Password Policy":"密碼規則",
     "Minimum length":"最少長度",
@@ -74,7 +75,7 @@
     "Site Name":"場地名稱",
     "User Group Code":"用戶組編號",
     "Robot Code":"機械人編號",
-    "Robot Utilization Hours by Robot Code" : "機械人使用時數",
+    "Robot Utilization Hours by Robot" : "機械人使用時數",
     "Average Robot Utilization by Robot Type" : "平均機械人使用率 (按種類)",
     "Average Robot Utilization":"平均機械人使用率",
     "Utilization (hours. %)":"使用率 (小時 %)",

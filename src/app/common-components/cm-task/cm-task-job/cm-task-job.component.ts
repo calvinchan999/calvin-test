@@ -594,6 +594,7 @@ export class CmTaskJobComponent implements OnInit {
       setTimeout(async ()=>{
           // this.pixiElRef.reset()
           if(this.pixiElRef){
+            this.selectedFloorPlanCode = this.jobListData.filter(r=>r.floorPlanCode)[0]?.floorPlanCode ?  this.jobListData.filter(r=>r.floorPlanCode)[0]?.floorPlanCode  : this.selectedFloorPlanCode
             this.pixiElRef.initDone$.subscribe(async () => {
               this.refreshMapView()
            })     
@@ -630,7 +631,7 @@ export class CmTaskJobComponent implements OnInit {
       // this.pixiObjs.arrowsData = fpDs.shapes.filter(s => s.lineType == 'path_allow')
       // this.pixiObjs.points = loadedGrs.filter(gr=> new PixiCommon().pointTypes.includes(gr.type))
       // this.showPathOnMouseover()
-      this.refreshMapDrawings()   
+      // this.refreshMapDrawings()   
     } 
   }
 

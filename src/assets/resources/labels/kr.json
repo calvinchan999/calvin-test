@@ -51,7 +51,7 @@
     "Site Name": "사이트 이름",
     "User Group Code": "사용자 그룹 코드",
     "Robot Code": "로봇 코드",
-    "Robot Utilization Hours by Robot Code": "로봇 코드 별 로봇 사용 시간",
+    "Robot Utilization Hours by Robot": "로봇 코드 별 로봇 사용 시간",
     "Average Robot Utilization by Robot Type": "로봇 유형별 평균 로봇 사용",
     "Average Robot Utilization": "평균 로봇 활용",
     "Utilization (hours. %)": "활용 (시간. %)",

@@ -1,0 +1,22 @@
+<kendo-dialog-titlebar (close) = "dialogRef.close()">
+    <div>{{ 'Cancel Task ' | label : uiSrv.langPack}}</div>
+</kendo-dialog-titlebar>
+
+    <form [formGroup]="frmGrp" class="content">
+        <div class="form-row">
+            <uc-txtbox [frmGrp] = "frmGrp" frmCtrl="taskId"  lab="Task ID" [disabled]="true" ></uc-txtbox>
+        </div>
+        <div class="form-row">
+            <uc-txtbox [frmGrp] = "frmGrp" frmCtrl="taskName" lab="Task Name" [disabled]="true" ></uc-txtbox>
+        </div>
+        <div class="form-row">
+            <uc-dropdown lab = "Reason" [frmGrp] = "frmGrp" frmCtrl="reasonCode"  [options] = "dropdown.reasonCode.options" [allowClear] = 'false'></uc-dropdown>
+        </div>
+        <div class="form-row">       
+            <uc-txtbox   lab = "Remarks"  [frmGrp] = "frmGrp" frmCtrl="reasonMessage"  [textArea] = "true"></uc-txtbox>
+        </div>
+    </form>
+    <div class="button-container">      
+        <button kendoButton (click)="cancelTask()"> {{ 'Confirm' | label : uiSrv.langPack}}</button>
+    </div>
+

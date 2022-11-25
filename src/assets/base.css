@@ -27798,6 +27798,15 @@ a {
 .k-window .dialog-content.building .form-container .content .col {
   flex-grow: initial;
 }
+.k-window .dialog-content.failed-tasks, .k-window .dialog-content.canceled-tasks {
+  height: 81vh;
+  width: 80vw;
+  padding: 0px;
+  display: block;
+}
+.k-window .dialog-content.failed-tasks .table-container, .k-window .dialog-content.canceled-tasks .table-container {
+  height: calc(100% - 40px);
+}
 .card-header-wrapper + .k-tilelayout, .k-dialog-content .card-header-wrapper + .card-container.module .k-tilelayout {
   height: calc(100% - 55px);
 }
@@ -29098,7 +29107,7 @@ app-sa-pages-task-overlay, app-sa-pages-task-overlay .task-overlay {
 .card-container .k-tilelayout-item-header {
   padding: 5px;
 }
-.card-container .k-tilelayout-item-header .k-card-title {
+.card-container .k-tilelayout-item-header .k-card-title, .k-dialog-content .k-tilelayout-item-header .k-card-title {
   font-size: 0.9em;
   font-weight: 500;
 }
@@ -29782,7 +29791,7 @@ app-sa-pages-task-overlay, app-sa-pages-task-overlay .task-overlay {
   .card-container.home .ts-task .no-task {
     margin-top: 18%;
   }
-  .card-container app-arcs-charts .k-tilelayout {
+  .card-container app-arcs-charts .k-tilelayout, .k-dialog-content app-arcs-abnormal-tasks .k-tilelayout {
     zoom: 0.85;
   }
 }
@@ -29793,7 +29802,7 @@ app-sa-pages-task-overlay, app-sa-pages-task-overlay .task-overlay {
   .card-container.home .ts-task .no-task {
     margin-top: 15%;
   }
-  .card-container app-arcs-charts .k-tilelayout {
+  .card-container app-arcs-charts .k-tilelayout, .k-dialog-content app-arcs-abnormal-tasks .k-tilelayout {
     zoom: 0.75;
   }
 }
