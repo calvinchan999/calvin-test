@@ -19,7 +19,7 @@ import { DatePipe } from '@angular/common'
 import { Template } from "@angular/compiler/src/render3/r3_ast";
 import { ArcsAbnormalTasksComponent } from "./arcs-abnormal-tasks/arcs-abnormal-tasks.component";
 
-const Utilization_Status_Types = ['charging' , 'idle' , 'executing' , 'hold']
+const Utilization_Status_Types = ['charging' , 'idle' , 'executing' , 'hold' , 'unknown']
 @Component({
   selector: 'app-arcs-charts',
   templateUrl: './arcs-charts.component.html',
@@ -89,7 +89,7 @@ export class ArcsChartsComponent implements OnInit {
   }
 
   usabilityData : {type : 'COMPLETED'|'CANCELED'|'INCOMPLETE'|'DAILY'|'HOURLY_AVG'|'WEEKLY_AVG'|'ROBOT_TYPE' , category? : string , value? : number}[] = []
-  utilizationData: { type: 'ROBOT' | 'DAILY' | 'ROBOT_TYPE' , category? : string , charging : number , idle : number , executing : number , hold : number , total: number}[] = []
+  utilizationData: { type: 'ROBOT' | 'DAILY' | 'ROBOT_TYPE' , category? : string , charging : number , idle : number , executing : number , hold : number , unknown : number , total: number}[] = []
 
   utilization : {
     totalRobotHours : number,
@@ -103,6 +103,7 @@ export class ArcsChartsComponent implements OnInit {
         idle:any[],
         executing:any[],
         hold: any[],
+        unknown: any[],
       }
       min: any,
       max: any,
@@ -114,7 +115,8 @@ export class ArcsChartsComponent implements OnInit {
         charging: any[],
         idle: any[],
         executing:any[],
-        hold:any[]
+        hold:any[],
+        unknown: any[],
       }
     },
     robot: {
@@ -122,6 +124,7 @@ export class ArcsChartsComponent implements OnInit {
       idle: number,
       executing: number,
       hold: number,
+      unknown: number,
       total:number
     }[],
     total: {
@@ -329,6 +332,7 @@ export class ArcsChartsComponent implements OnInit {
           idle: [],
           executing: [],
           hold: [],
+          unknown:[]
         },
         min: null,
         max: null
@@ -341,7 +345,8 @@ export class ArcsChartsComponent implements OnInit {
           charging: [],
           idle: [],
           executing: [],
-          hold: []
+          hold: [],
+          unknown:[]
         }
       },
       total: {
