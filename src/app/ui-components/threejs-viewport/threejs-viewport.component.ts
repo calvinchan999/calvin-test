@@ -42,6 +42,7 @@ export class ThreejsViewportComponent implements OnInit {
   @Input() floorPlanDataset : JFloorPlan= null;
   @Input() floorPlanOptions : any[]
   @Input() parent : ArcsDashboardComponent
+  @Input() arcsRobotType : string
   @Input() set robotColorMapping(v){
     this._robotColorMapping = v
     this.refreshRobotColors() 
@@ -444,6 +445,9 @@ export class ThreejsViewportComponent implements OnInit {
         let robotData : DropListRobot = this.robotLists.filter(r=>r.robotCode == robotCode)[0]
         if(!robotData){
           console.log(`ERROR : Robot not found : [${robotCode}`)
+          return
+        }
+        if (this.arcsRobotType && robotData.robotType.toUpperCase() != this.arcsRobotType.toUpperCase()) {
           return
         }
         let mapMesh = this.getMapMesh(robotData.robotBase)

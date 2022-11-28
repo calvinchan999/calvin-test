@@ -463,9 +463,10 @@ export class ArcsChartsComponent implements OnInit {
       if (r.type == 'DAILY') {
         let splitedDateString = r.category.split("-")
         let index = this.daysIntoYear(new Date(Number(splitedDateString[0]), Number(splitedDateString[1]) - 1, Number(splitedDateString[2]) - 1))
-        Utilization_Status_Types.forEach(t=> this.utilization.daily.data[t][index] = this.getRoundedValue(r[t]))       
+        Utilization_Status_Types.forEach(t=> this.utilization.daily.data[t][index] = this.getRoundedValue(r[t] , 1))       
       }else if(r.type == 'ROBOT'){
         r['utilPercent'] = this.util.trimNum(r.executing * 100 / r.total , 2) + '%'
+        Utilization_Status_Types.forEach(t => r[t] = this.getRoundedValue(r[t] , 0))
         this.utilization.robot.push(r)
         this.utilization.totalExecutingHours += r.executing
         this.utilization.totalRobotHours += r.total

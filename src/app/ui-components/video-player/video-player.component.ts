@@ -104,7 +104,6 @@ export class VideoPlayerComponent implements OnInit, OnDestroy {
   }  
 
   ngOnDestroy() {
-    console.log('onDestroy')
     this.unload()
   }
 

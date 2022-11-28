@@ -140,7 +140,7 @@
             </uc-drawing-board> 
         </div>
         <div *ngIf="use3DMap" class="three-d-container">
-            <uc-3d-viewport #threeJs [parent] = "me" (robotClicked)="showRobotDetailDialog($event?.id)" 
+            <uc-3d-viewport #threeJs [parent] = "me" (robotClicked)="showRobotDetailDialog($event?.id)" [arcsRobotType] = "robotTypeFilter"
                             (to2D)="use3DMap = false ; initPixi($event.floorPlanCode , $event.showSite )" 
                             [floorPlanOptions] = "dropdownOptions.floorplans" [robotColorMapping] = "robotIconColorMap"
                             [floorPlanDataset] = "currentFloorPlan" [locationTree] = "locationTree">

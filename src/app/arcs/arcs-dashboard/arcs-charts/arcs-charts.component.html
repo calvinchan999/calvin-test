@@ -181,10 +181,10 @@
                 </div>
             </div>
         </kendo-tilelayout-item>
-        <kendo-tilelayout-item class = "tile total-util" [title]="'Total Utilization (hours. %)'| label: uiSrv.langPack" [col]="2" [row]="1" [colSpan] = "4 - (!utilization.total.type1.robotType ? 0 : (!utilization.total.type2.robotType ? 1 : (!utilization.total.type3.robotType ? 2 : 3 )))">
+        <kendo-tilelayout-item class = "tile total-util" [title]="'Total Utilization'| label: uiSrv.langPack" [col]="2" [row]="1" [colSpan] = "4 - (!utilization.total.type1.robotType ? 0 : (!utilization.total.type2.robotType ? 1 : (!utilization.total.type3.robotType ? 2 : 3 )))">
             <kendo-tilelayout-item-body>
                 <div class="util">
-                    <label class="ts-value">{{utilization.totalExecutingHours}}</label>
+                    <!-- <label class="ts-value">{{utilization.totalExecutingHours}}</label> -->
                     <!-- <label class="ts-total">/ {{usability.total}}</label> -->
                 </div>
                 <label class="ts-percent">{{utilization.totalExecutingHours * 100 / utilization.totalRobotHours | number: '1.0-2'}}%</label>
