@@ -146,25 +146,35 @@ export class SaTopModuleComponent implements OnInit {
       let refreshIeq = (ieq)=>{
         let ret = null
         let levels = ['Inadequate', 'Poor', 'Fair', 'Good', 'Excellent']
-        let range = {
-          p: [[15, 24], [16, 23], [17, 22], [18, 21]],
+        let range = this.util.config.IEQ_STANDARD ? this.util.config.IEQ_STANDARD : {
+          t: [[15, 24], [16, 23], [17, 22], [18, 21]],
           rh: [[10, 90], [20, 80], [30, 70], [40, 60]],
           co2: [[null, 2500], [null, 2000], [null, 1500], [null, 650]],
           pm2_5: [[null, 150.5], [null, 55.4], [null, 35.4], [null, 12]],
           tvoc_pid: [[null, 75], [null, 51], [null, 26], [null, 16]]
         }
+        Object.keys(this.ds).filter(k2=>Object.keys(range).includes(this.ds[k2].signalRfld)).forEach(k2=>delete this.ds[k2].class)
+
         for (let i = 0; i < levels.length - 1; i++) {
           Object.keys(range).forEach(k => {
             let limits = range[k][i]
-            if (limits!=undefined && !isNaN(Number(ieq[k])) && ((limits[0] != null && Number(ieq[k]) < limits[0]) || (limits[1] != null && Number(ieq[k]) > limits[1]))) {
-              ret = levels[i]
-              return
+            if (limits!=undefined && !isNaN(Number(ieq[k])) && 
+                ((limits[0] != null && Number(ieq[k]) < limits[0]) || (limits[1] != null && Number(ieq[k]) > limits[1]))) {
+              if (ret == null) {
+                 ret = levels[i]
+              }
+              let dsObj = this.ds[Object.keys(this.ds).filter(k2=>this.ds[k2].signalRfld == k)[0]] 
+              if(dsObj && !dsObj.class){
+                dsObj.class = levels[i]
+              }
             }
           })
-          if (ret != null) {
-            break
-          }
+          // if (ret != null) {
+          //   break
+          // }
         }
+        Object.keys(this.ds).filter(k2 => Object.keys(range).includes(this.ds[k2].signalRfld) && !this.ds[k2].class).forEach(k2 => this.ds[k2].class = levels[levels.length - 1])
+
         this.airQualitySubj.next(ret == null ? levels[levels.length - 1] : ret)
 
       }
@@ -182,7 +192,7 @@ export class SaTopModuleComponent implements OnInit {
       pending_task : { title: 'Current Task',  suffix: '' , icon:'mdi-file-clock-outline', signalR: this.dataSrv.signalRSubj.currentTaskId},
       wifi_signal : { title: 'Wifi', suffix: '%' , icon : 'mdi-wifi'},
       cellular_bars : { title: 'Cellular', suffix: '/' , icon:'mdi-signal-cellular-3' , signalR : this.dataSrv.signalRSubj.cellularNumerator, suffixSignalR: this.dataSrv.signalRSubj.cellularDenominator},
-      tvoc_pid: { title: 'TVOC', suffix: 'ppm' , icon :'mdi-spray', signalR: this.dataSrv.signalRSubj.ieq , signalRfld : 'tvoc_pid'},
+      tvoc_pid: { title: 'TVOC', suffix: 'ppb' , icon :'mdi-spray', signalR: this.dataSrv.signalRSubj.ieq , signalRfld : 'tvoc_pid'},
       pm2_5: { title: 'PM 2.5', suffix: 'µg/m3', icon: 'mdi-chart-bubble', signalR: this.dataSrv.signalRSubj.ieq , signalRfld : 'pm2_5'},
       co2: { title: 'Carbon Dioxide', suffix: 'ppm', icon: 'mdi-molecule-co2', signalR: this.dataSrv.signalRSubj.ieq , signalRfld : 'co2'},
       air_quality: { title: 'Air Quality',  suffix: '' , icon: 'mdi-blur' , signalR : this.airQualitySubj},
@@ -194,10 +204,13 @@ export class SaTopModuleComponent implements OnInit {
       temperature: { title: 'Temperature', suffix: '°C' , icon:'mdi-thermometer-lines', signalR: this.dataSrv.signalRSubj.ieq , signalRfld : 't'},
       pressure: { title: 'Pressure',  suffix: 'hPa' , icon: 'mdi-gauge-low' , signalR: this.dataSrv.signalRSubj.ieq , signalRfld : 'p'},
       humidity: { title: 'Humidity', suffix: '%' , icon : 'mdi-water-outline' , signalR: this.dataSrv.signalRSubj.ieq , signalRfld : 'rh'},
-      formaldehyde: { title: 'Formaldehyde',  suffix: 'ppb', icon: 'mdi-molecule', signalR: this.dataSrv.signalRSubj.ieq , signalRfld : 'hcho'},
+      formaldehyde: { title: 'Formaldehyde',  suffix: 'ppb', icon: 'mdi-molecule', signalR: this.dataSrv.signalRSubj.ieq , signalRfld : 'hcho' },
       light: { title: 'Light', suffix: 'lux', icon: 'mdi-white-balance-sunny', signalR: this.dataSrv.signalRSubj.ieq , signalRfld : 'light'},
       noise: { title: 'Noise', suffix: 'dB SPL', icon: 'mdi-volume-high', signalR: this.dataSrv.signalRSubj.ieq , signalRfld : 'noise_moy'},
     };
+    Object.keys(this.ds).filter(k=>(this.util.config.IEQ_DISABLED ? this.util.config.IEQ_DISABLED : []).includes(k)).forEach(k=>{
+      this.ds[k].disabled = true
+    })
   }
 
   

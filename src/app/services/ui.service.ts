@@ -46,7 +46,7 @@ export class UiService {
   public drawingBoardComponents : DrawingBoardComponent[]  = []
   public dataSrv 
   public commonAlertMessages = {
-    eStopped : "Emergency Stop Switched On",
+    estopped : "Emergency Stop Switched On",
     obstacleDetected : "Obstacle Detected",
     tiltDetected : "Excess Tilt Detected"
   }

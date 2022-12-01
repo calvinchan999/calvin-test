@@ -28,7 +28,7 @@
   </button>
 </div>
 
-<th-canvas #canvas (onRender)="animate()">
+<th-canvas #canvas (onRender)="animate()" >
   <th-scene #scene>
     <th-ambientLight [intensity]="0.7"> </th-ambientLight>
      <!-- [intensity]="0.7" -->
@@ -44,7 +44,7 @@
     <th-pointLight [position]="[floorplan?.width / 2 ,  floorplan?.height  ,  floorplan?.height / 2]" [intensity]="0.4" [decay]="10">
     </th-pointLight>
     <!-- <th-directionalLight [castShadow]="false" [color]="16777215" [intensity]="0.4"></th-directionalLight> -->
-    <th-perspectiveCamera #camera [args]="[45, 1, 0.1, 10000000]">
+    <th-perspectiveCamera #camera [args]="[45, 1, 1 , 10000000]">
       <!-- [position]="[120, 700 , 900]" -->
       <!-- [lookAt]="[10, 10, 10]" -->
       <!-- <th-orbitControls #orbitControl></th-orbitControls>  -->

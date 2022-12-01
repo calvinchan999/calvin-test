@@ -16,7 +16,7 @@ export class SaPagesAlertOverlayComponent implements OnInit {
   }
   subscriptions = []
   alertMap = {
-    estop: { dialogRef: null, message: this.uiSrv.commonAlertMessages.eStopped },
+    estop: { dialogRef: null, message: this.uiSrv.commonAlertMessages.estopped },
     obstacleDetected: { dialogRef: null, message: this.uiSrv.commonAlertMessages.obstacleDetected },
     tiltActive: { dialogRef: null, message: this.uiSrv.commonAlertMessages.tiltDetected}
   }

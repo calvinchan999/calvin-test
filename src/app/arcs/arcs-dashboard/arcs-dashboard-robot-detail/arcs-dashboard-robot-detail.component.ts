@@ -10,7 +10,9 @@ import { UiService } from 'src/app/services/ui.service';
 })
 export class ArcsDashboardRobotDetailComponent implements OnInit {
   @HostBinding('class') customClass = 'dialog-content robot-detail'
-  constructor(public uiSrv: UiService , public dataSrv : DataService) { }
+  constructor(public uiSrv: UiService , public dataSrv : DataService) { 
+    this.initDataSource()
+  }
   dialogRef
   selectedTab = 'info'
   tabs = [
@@ -43,7 +45,6 @@ export class ArcsDashboardRobotDetailComponent implements OnInit {
     this.robotSubType = robot?.robotSubType
     this.tabs = this.tabs.concat(this.topModuleTabs[this.robotType ] && !(this.robotType == 'DELIVERY' && this.robotSubType == 'NA') ? this.topModuleTabs[this.robotType ] : [])
     this.dataSrv.subscribeSignalRs(this.topics, this.robotId)
-    this.initDataSource()
     this.refreshRobotStatus()
   }
 
@@ -61,18 +62,23 @@ export class ArcsDashboardRobotDetailComponent implements OnInit {
     };
   }
 
-  async refreshRobotStatus(){
-    let ticket = this.uiSrv.loadAsyncBegin()
-    let robotDetail : RobotDetailARCS = await this.dataSrv.httpSrv.rvRequest("GET","robot/v1/robotDetail/" + this.robotId , undefined, false)
+  async refreshRobotStatus(blockUI = true) {
+    let ticket
+    if (blockUI) {
+      ticket = this.uiSrv.loadAsyncBegin()
+    }
+    let robotDetail: RobotDetailARCS = await this.dataSrv.httpSrv.rvRequest("GET", "robot/v1/robotDetail/" + this.robotId, undefined, false)
     //let robotDetail = { robotCode: this.robotId, robotStatus: "IDLE", modeState: "NAVIGATION", batteryPercentage: 0.46965376, speed: 0.023951124 }
     this.ds.status['robotStatus'] = robotDetail.robotStatus
     this.ds.status['content'] = ARCS_STATUS_MAP[robotDetail.robotStatus]
-    this.ds.status['cssClass'] =  this.ds.status['content']
-    this.ds.battery['signalR'].next(this.dataSrv.signalRMaster.battery.mapping.batteryRounded({percentage : robotDetail.batteryPercentage}))
-    this.ds.mode['signalR'].next(this.dataSrv.signalRMaster.state.mapping.state({state : robotDetail.modeState}))
-    this.ds.speed['signalR'].next(this.dataSrv.signalRMaster.speed.mapping.speed({speed : robotDetail.speed}))
-    this.alertMsg = (robotDetail.eStopped ? [this.uiSrv.commonAlertMessages.eStopped] :[]).concat(robotDetail.obstacleDetected ? [this.uiSrv.commonAlertMessages.obstacleDetected] :[]).concat(robotDetail.tiltDetected ? [this.uiSrv.commonAlertMessages.tiltDetected] :[]).join(" ,\n")
-    this.uiSrv.loadAsyncDone(ticket)
+    this.ds.status['cssClass'] = this.ds.status['content']
+    this.ds.battery['signalR'].next(this.dataSrv.signalRMaster.battery.mapping.batteryRounded({ percentage: robotDetail.batteryPercentage }))
+    this.ds.mode['signalR'].next(this.dataSrv.signalRMaster.state.mapping.state({ state: robotDetail.modeState }))
+    this.ds.speed['signalR'].next(this.dataSrv.signalRMaster.speed.mapping.speed({ speed: robotDetail.speed }))
+    this.alertMsg = (robotDetail.estopped ? [this.uiSrv.commonAlertMessages.estopped] : []).concat(robotDetail.obstacleDetected ? [this.uiSrv.commonAlertMessages.obstacleDetected] : []).concat(robotDetail.tiltDetected ? [this.uiSrv.commonAlertMessages.tiltDetected] : []).join(" ,\n")
+    if (blockUI) {
+      this.uiSrv.loadAsyncDone(ticket)
+    }
   }
 
   async reserveRobot() {

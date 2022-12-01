@@ -2,8 +2,9 @@ import { Component, OnInit, ViewChild , NgZone, HostListener, EventEmitter, Rend
 import { ThCamera, ThCanvas, ThDragControls, ThObject3D , ThOrbitControls, ThScene } from 'ngx-three';
 import { UiService } from 'src/app/services/ui.service';
 import * as THREE from 'three';
-import { ThGLTFLoader } from 'ngx-three';
 import { GLTF, GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader';
+import { MTLLoader } from 'three/examples/jsm/loaders/MTLLoader';
+import { OBJLoader } from 'three/examples/jsm/loaders/OBJLoader';
 import { DragControls } from 'three/examples/jsm/controls/DragControls';
 import { AmbientLight, DirectionalLight, DoubleSide, Group, Mesh, Object3D, ShapeGeometry, WebGLRenderer ,BufferGeometry, LineSegments, MeshStandardMaterial, Vector3, MeshBasicMaterial, ShaderMaterial, Material } from 'three';
 import { GeneralUtil } from 'src/app/utils/general/general.util';
@@ -278,7 +279,7 @@ export class ThreejsViewportComponent implements OnInit {
     this.unsubscribeRobotPoses()
   }
 
-  async loadFloorPlan(floorplan : JFloorPlan , subscribePoses = true){
+  async loadFloorPlan(floorplan: JFloorPlan, subscribePoses = true) {
     this.resetScene()
     let dimension =  await this.getImageDimension(floorplan.base64Image)
     this.initFloorPlan(floorplan , dimension.width , dimension.height);
@@ -316,6 +317,7 @@ export class ThreejsViewportComponent implements OnInit {
 
   async ngAfterViewInit() {
     this.renderer = this.canvas.engServ.renderer
+    // this.renderer.logarithmicDepthBuffer
     this.container =  this.canvas.rendererCanvas.nativeElement.parentElement
  
     await this.getRobotList()
@@ -504,6 +506,8 @@ export class ThreejsViewportComponent implements OnInit {
   }
 
   getConvertedRobotVector(rosX: number, rosY: number, map: MapMesh ): THREE.Vector3 {
+    //THREE JS DEFAULT . x : + right / - left , y : + up / - down , z : + forward / - backward
+    //floorplan rotatedX - 90 deg
     let retX = (rosX - map.originX) * map.meterToPixelRatio - map.width / 2
     let retY = (map.originY - rosY) * map.meterToPixelRatio + map.height / 2
     return new THREE.Vector3(retX, -retY, 15)
@@ -874,7 +878,7 @@ export class RobotObject3D extends Object3DCommon{
   }
   set offline(v){
     this._offline = v
-    this.opacity =  v ? 0.5 : 1
+    this.opacity =  v ? 0.3 : 1
   }
   set alert(v){
     this._alert = v
@@ -1039,29 +1043,58 @@ export class RobotObject3D extends Object3DCommon{
   }
   
 
-  // initOutline(gltf: GLTF) {
-  //   let geometries : THREE.BufferGeometry[] = [];
-  //   let mergeDescendants = (c) => {
-  //     if (c instanceof Mesh) {
-  //       c.updateMatrix()
-  //       geometries.push(c.geometry)
-  //     }else  if (c instanceof Group || c instanceof Object3D) {
-  //       c.children.forEach(c2 => mergeDescendants(c2))
-  //     } 
-  //   }
-  //   // // All geometries must have compatible attributes; make sure "uv" attribute exists among all geometries, or in none of them.
-  //   // let allAttributes = []
-  //   // geometries.map(g=>Object.keys(g.attributes).forEach(k=> allAttributes.push(k)))
-  //   // allAttributes = [... new Set(allAttributes)]
-  //   // allAttributes.filter(a=> geometries.some(g=>!g.hasAttribute(a))).forEach(a=>geometries.forEach(g=>delete g.attributes[a]))
+  initOutline(gltf: GLTF) {
+    let geometries : THREE.BufferGeometry[] = [];
+    let mergeDescendants = (c) => {
+      if (c instanceof Mesh) {
+        c.updateMatrix()
+        geometries.push(c.geometry)
+      } else if (c instanceof Group || c instanceof Object3D) {
+        c.children.forEach(c2 => mergeDescendants(c2))
+      } 
+    }
+    mergeDescendants(gltf.scene)
+    let mergeGeometry = (geo1, geo2) => {
+      console.log(geo1)
+      var attributes = ["normal", "position", "skinIndex", "skinWeight"];
+      var dataLengths = [3, 3, 4, 4];
+      var geo = new THREE.BufferGeometry();
+      for (var attIndex = 0; attIndex < attributes.length; attIndex++) {
+        var currentAttribute = attributes[attIndex];
+        var geo1Att = geo1.getAttribute(currentAttribute);
+        var geo2Att = geo2.getAttribute(currentAttribute);
+        var currentArray = null;
+        if (currentAttribute == "skinIndex") currentArray = new Uint16Array(geo1Att.array.length + geo2Att.array.length)
+        else currentArray = new Float32Array(geo1Att.array.length + geo2Att.array.length)
+        var innerCount = 0;
+        geo1Att.array.map((item) => {
+          currentArray[innerCount] = item;
+          innerCount++;
+        });
+        geo2Att.array.map((item) => {
+          currentArray[innerCount] = item;
+          innerCount++;
+        });
+        geo1Att.array = currentArray;
+        geo1Att.count = currentArray.length / dataLengths[attIndex];
+        geo.setAttribute(currentAttribute, geo1Att);
+      }
+      return geo;
+    }
+    // let mergedGeo = geometries[0]
+    // geometries.filter(g=>g!=geometries[0]).forEach(g=>mergedGeo = mergeGeometry(mergedGeo , g))
+    // All geometries must have compatible attributes; make sure "uv" attribute exists among all geometries, or in none of them.
+    // let allAttributes = []
+    // geometries.map(g => Object.keys(g.attributes).forEach(k => allAttributes.push(k)))
+    // allAttributes = [... new Set(allAttributes)]
+    // allAttributes.filter(a=> geometries.some(g=>!g.hasAttribute(a))).forEach(a=>geometries.forEach(g=>g.deleteAttribute(a)))
 
-  //   gltf.scene.children.forEach(c => mergeDescendants(c));
-  //   let mergedGeo = BufferGeometryUtils.mergeBufferGeometries(geometries)
-  //   let material = new THREE.MeshPhongMaterial({ color: this.color , side: THREE.BackSide});
+    let mergedGeo = BufferGeometryUtils.mergeBufferGeometries(geometries)
+    let material = new THREE.MeshPhongMaterial({ color: this.color , side: THREE.BackSide});
 
-  //   this.outlineMesh = new THREE.Mesh(mergedGeo, material);
-  //   this.outlineMesh.scale.multiplyScalar(1.05);
-  // }
+    this.outlineMesh = new THREE.Mesh(mergedGeo, material);
+    this.outlineMesh.scale.multiplyScalar(1.05);
+  }
 
 //   addFrontFacePointer() {
 //     var scale = 0.5
@@ -1252,6 +1285,31 @@ class Import3DModelSettings {
   replaceColors?: {r:number , g: number , b : number , tolerance : number}[]
   alertPositionZ ? : number
 }
+
+// test16WIphoneScanned(){
+//   this.resetScene()
+//   var mtlLoader = new MTLLoader();
+//   mtlLoader.load('assets/3D/16W/ReprocessedMesh.mtl', (materials) => {
+//     materials.preload();
+//     var objLoader = new OBJLoader();
+//     objLoader.setMaterials(materials);
+//     // objLoader.setPath( 'obj/male02/' );
+//     objLoader.load('assets/3D/16W/ReprocessedMesh.obj', (object) => {
+//       var testRobot = new RobotObject3D(this, 'RV-ROBOT-100' , "PATROL" , "PATROL")
+//       object.add(testRobot)
+//       testRobot.scale.multiplyScalar(0.1)
+//       testRobot.visible = true
+//       // object.position.y = - 95;
+//       this.scene.objRef.add(object);
+//     });
+//   });
+//   this.camera.objRef.position.set(0, 10, 20)
+//   this.camera.objRef.lookAt(1, -0.9, -0.5)
+//   this.orbitCtrl.update()
+
+//   return
+// }
+
 
        // initLights(scene) {
   //   // const light = new THREE.DirectionalLight(0xFFFFFF);

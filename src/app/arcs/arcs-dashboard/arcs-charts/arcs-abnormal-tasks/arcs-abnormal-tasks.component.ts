@@ -84,6 +84,7 @@ export class ArcsAbnormalTasksComponent implements OnInit {
 
   constructor(public uiSrv : UiService , public dataSrv : DataService , public util : GeneralUtil) { }
   async ngOnInit() {
+    let ticket = this.uiSrv.loadAsyncBegin()
     this.cssClass += this.taskState + '-tasks'
     Object.keys(this.gridSettings).forEach(k=>{
       this.gridSettings[k].defaultState['filter'] = {
@@ -97,6 +98,7 @@ export class ArcsAbnormalTasksComponent implements OnInit {
     this.gridSettings = JSON.parse(JSON.stringify(this.gridSettings))
     this.initSummaryCategories()
     this.refreshSummary()
+    this.uiSrv.loadAsyncDone(ticket)
   }
 
   initSummaryCategories(){

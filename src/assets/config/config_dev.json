@@ -1,15 +1,15 @@
 {
-	"CLIENT_ID":"11B7ED76-B978-411B-8ECB-36B21220DE3E",
+	"CLIENT_ID": "11B7ED76-B978-411B-8ECB-36B21220DE3E",
 	"USE_SIGNALR": true,
-	"DEBUG_SIGNALR":false,
+	"DEBUG_SIGNALR": false,
 	"DEBUG_SIGNALR_TYPE": "",
-	"ROBOT_BASE":"WC",
-	"SIGNALR_URL":"http://localhost:5001/signalR",
-	"SIGNALR_URLx":"https://rv-dev.eastasia.cloudapp.azure.com:5001/signalR",
-	"IP_CAMERA_URLxx" : "http://localhost/live?port=1935&app=live&stream=stream",
-	"IP_CAMERA_URLx" : "http://localhost:81/live?port=1935&app=live&stream=10240",
-	"PROTOCOL"    : "https",
-	"SIGNALR_URLxx":"https://rv-dev.eastasia.cloudapp.azure.com:5001/signalR",
+	"ROBOT_BASE": "WC",
+	"SIGNALR_URL": "http://localhost:5001/signalR",
+	"SIGNALR_URLx": "https://rv-dev.eastasia.cloudapp.azure.com:5001/signalR",
+	"IP_CAMERA_URLxx": "http://localhost/live?port=1935&app=live&stream=stream",
+	"IP_CAMERA_URLx": "http://localhost:81/live?port=1935&app=live&stream=10240",
+	"PROTOCOL": "https",
+	"SIGNALR_URLxx": "https://rv-dev.eastasia.cloudapp.azure.com:5001/signalR",
 	"SERVER_URLx": "rv-arcs-api.azurewebsites.net",
 	"SERVER_URLxx": "rv-hkaa.eastasia.cloudapp.azure.com",
 	"PORT_NO": "44329",
@@ -17,54 +17,162 @@
 	"APPLICATIONx": "/arcs_dotnet_api_dev",
 	"APPLICATIONxx": "/arcs_api",
 	"APPLICATION": "",
-	"DISABLED_FUNCTIONS" : [ ],
-	"JOYSTICK_REMOTE":{
-		"MAX_LINEAR" :0.2,
-		"MAX_ANGULAR":1,
-		"MAX_DISTANCE":75,
-		"PUBLISH_INTERVAL":50
+	"DISABLED_FUNCTIONS": [],
+	"JOYSTICK_REMOTE": {
+		"MAX_LINEAR": 0.2,
+		"MAX_ANGULAR": 1,
+		"MAX_DISTANCE": 75,
+		"PUBLISH_INTERVAL": 50
 	},
-	"MOVE_USING_TRANSITION" : true,
+	"MOVE_USING_TRANSITION": true,
 	"METER_TO_PIXEL_RATIO": 20,
-	"UPLOAD_IMAGE_MAX_SIZE_KB" : 5120,
-	"LANGUAGES":{
-		"EN" : "English",
-		"ZH" : "繁體中文",
-		"KR" : "한국인"
+	"UPLOAD_IMAGE_MAX_SIZE_KB": 5120,
+	"LANGUAGES": {
+		"EN": "English",
+		"ZH": "繁體中文",
+		"KR": "한국인"
 	},
-	"ROBOT_TYPE":["MOBILE_CHAIR" , "DISINFECTION" , "FLOOR_SCRUB" , "DELIVERY" , "PATROL" , "BEVERAGE" ,  "FORKLIFT" , "STOCKTAKING"],
-	"robot": {
-        "radius": 0.4, 
-        "resolution": 0.05,
-		"visuals" :  [
-			{ "fillColor": "0x00CED1", "highlightColor": "0x00CED1" }, 
-			{ "fillColor": "0xFF66B9", "highlightColor": "0xFF66B9" }, 
-			{ "fillColor": "0xFFD700", "highlightColor": "0xFFD700" }, 
-			{ "fillColor": "0x87CEFA", "highlightColor": "0x87CEFA" }, 
-			{ "fillColor": "0x9ACD32", "highlightColor": "0x9ACD32" }, 
-			{ "fillColor": "0xFF8C00", "highlightColor": "0xFF8C00" },
-			{ "fillColor": "0xB3B3FF", "highlightColor": "0xB3B3FF" }
+	"IEQ_DISABLED": [
+		"formaldehyde",
+		"o3",
+		"pressure"
+	],
+	"IEQ_STANDARD": {
+		"rh": [
+			[
+				10,
+				90
+			],
+			[
+				20,
+				80
+			],
+			[
+				30,
+				70
+			],
+			[
+				40,
+				60
+			]
 		],
-		"DEFAULT":{
-			"fillColor": "0x00CED1", 
+		"co2": [
+			[
+				null,
+				2500
+			],
+			[
+				null,
+				2000
+			],
+			[
+				null,
+				1500
+			],
+			[
+				null,
+				650
+			]
+		],
+		"pm2_5": [
+			[
+				null,
+				150.5
+			],
+			[
+				null,
+				55.4
+			],
+			[
+				null,
+				35.4
+			],
+			[
+				null,
+				12
+			]
+		],
+		"tvoc_pid": [
+			[
+				null,
+				75
+			],
+			[
+				null,
+				51
+			],
+			[
+				null,
+				26
+			],
+			[
+				null,
+				16
+			]
+		]
+	},
+	"ROBOT_TYPE": [
+		"MOBILE_CHAIR",
+		"DISINFECTION",
+		"FLOOR_SCRUB",
+		"DELIVERY",
+		"PATROL",
+		"BEVERAGE",
+		"FORKLIFT",
+		"STOCKTAKING"
+	],
+	"robot": {
+		"radius": 0.4,
+		"resolution": 0.05,
+		"visuals": [
+			{
+				"fillColor": "0x00CED1",
+				"highlightColor": "0x00CED1"
+			},
+			{
+				"fillColor": "0xFF66B9",
+				"highlightColor": "0xFF66B9"
+			},
+			{
+				"fillColor": "0xFFD700",
+				"highlightColor": "0xFFD700"
+			},
+			{
+				"fillColor": "0x87CEFA",
+				"highlightColor": "0x87CEFA"
+			},
+			{
+				"fillColor": "0x9ACD32",
+				"highlightColor": "0x9ACD32"
+			},
+			{
+				"fillColor": "0xFF8C00",
+				"highlightColor": "0xFF8C00"
+			},
+			{
+				"fillColor": "0xB3B3FF",
+				"highlightColor": "0xB3B3FF"
+			}
+		],
+		"DEFAULT": {
+			"fillColor": "0x00CED1",
 			"highlightColor": "0x00CED1"
 		},
-		"PATROL":{
-			"fillColor": "0x00CED1", 
+		"PATROL": {
+			"fillColor": "0x00CED1",
 			"highlightColor": "0x00CED1"
 		},
-		"DELIVERY":	{ 
-			"fillColor": "0xFF66B9", 
-			"highlightColor": "0xFF66B9" 
+		"DELIVERY": {
+			"fillColor": "0xFF66B9",
+			"highlightColor": "0xFF66B9"
 		},
-		"BEVERAGE":{
-			"fillColor": "0xFFD700", 
+		"BEVERAGE": {
+			"fillColor": "0xFFD700",
 			"highlightColor": "0xFFD700"
 		},
-		"AA":{
-			"fillColor": "0xFF6358", 
+		"AA": {
+			"fillColor": "0xFF6358",
 			"highlightColor": "0xFF6358"
 		}
-    }
+	}
 }
-

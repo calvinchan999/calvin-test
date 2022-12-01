@@ -10,6 +10,7 @@ import { CmTaskJobComponent } from 'src/app/common-components/cm-task/cm-task-jo
 import { TableComponent } from 'src/app/ui-components/table/table.component';
 import { skip, takeUntil } from 'rxjs/operators';
 import { BehaviorSubject, combineLatest, Observable, Subject } from 'rxjs';
+import { take , filter } from 'rxjs/operators';
 import { AuthService } from 'src/app/services/auth.service';
 import { ArcsDashboardRobotDetailComponent } from './arcs-dashboard-robot-detail/arcs-dashboard-robot-detail.component';
 import { ArcsTaskScheduleComponent } from './arcs-task-schedule/arcs-task-schedule.component';
@@ -128,31 +129,32 @@ export class ArcsDashboardComponent implements OnInit {
         ],
       },
       group: {
-        functionId: "TASK_TEMPLATE", //!!!TBR
-        apiUrl: "api/task/mission/page/v1" + (this.robotTypeFilter ? `/${this.robotTypeFilter}` : ''),//!!!TBR
+        functionId: "ROBOT_GROUP",
+        apiUrl: "api/robot/robotGroup/page/v1",
         columns: [
-          { title: "", type: "checkbox", id: "select", width: 30, fixed: true },//!!!TBR
-          { title: "#", type: "button", id: "edit", width: 30, icon: 'k-icon k-i-edit iconButton', fixed: true },
-          { title: "Template Code", id: "missionId", width: 50 },//!!!TBR
+          { title: "", type: "checkbox", id: "select", width: 30, fixed: true },
+          //{ title: "#", type: "button", id: "edit", width: 30, icon: 'k-icon k-i-edit iconButton', fixed: true },
+          { title: "Group Name", id: "name", width: 50 },
+          { title: "Robots", id: "robotCodes", width: 150 },
         ],
       },
     }
   }
   
   getTabs(){
-    return this.robotTypeFilter ? [
+    return (this.robotTypeFilter ? [
       { id: 'dashboard', label: 'Dashboard' , authorized : false},
       { id: 'task', label: 'Task' , functionId :  this.gridSettings.task.functionId},
       { id: 'template', label: 'Task Template' ,  functionId :  this.gridSettings.template.functionId},
       { id: 'schedule' , label : 'Schedule', functionId :  this.gridSettings.schedule.functionId},
-    ].filter(t=> t.authorized === false || this.authSrv.userAccessList.includes(t.functionId.toUpperCase())) : 
+    ] : 
     [
       { id: 'dashboard', label: 'Dashboard', authorized: false } , 
       { id: 'usability', label: 'Usability', authorized: false },
       { id: 'utilization', label: 'Utilization', authorized: false },
-      // { id: 'group', label: 'Group' },
-    ]
-
+      // { id: 'group', label: 'Group' , functionId :  this.gridSettings.group.functionId},
+    ]).
+    filter(t=> t.authorized === false || this.authSrv.userAccessList.includes(t.functionId.toUpperCase()))
   }
   tabs: { id: string, label: string, authorized?: boolean, functionId?: string }[] = []
 
@@ -194,8 +196,8 @@ export class ArcsDashboardComponent implements OnInit {
       floorplan : null,
     }
   }
-
   me
+
   constructor(  private util :GeneralUtil , private authSrv : AuthService , private httpSrv : RvHttpService, public uiSrv : UiService , private dataSrv : DataService, private router : Router , private ngZone : NgZone ) {
     // this.chartTesting()
     this.me = this
@@ -208,7 +210,7 @@ export class ArcsDashboardComponent implements OnInit {
         this.refreshRobotStatus()
       }
       if(this.robotDetailCompRef){
-        this.robotDetailCompRef.refreshRobotStatus()
+        this.robotDetailCompRef.refreshRobotStatus(false)
       }
     })
 
@@ -217,7 +219,7 @@ export class ArcsDashboardComponent implements OnInit {
         this.refreshRobotStatus()
       }
       if(this.robotDetailCompRef && this.robotDetailId == c){
-        this.robotDetailCompRef.refreshRobotStatus()
+        this.robotDetailCompRef.refreshRobotStatus(false)
       }
     })
 
@@ -248,18 +250,20 @@ export class ArcsDashboardComponent implements OnInit {
   }
 
   async ngAfterViewInit() {
+    let ticket = this.uiSrv.loadAsyncBegin()
     this.site = await this.dataSrv.getSite()
     let ddl = await this.dataSrv.getDropList('types')
     this.dropdownData.types = ddl.data;
     this.locationTree = this.dataSrv.getSessionStorage('arcsLocationTree') ? JSON.parse(this.dataSrv.getSessionStorage('arcsLocationTree')) : this.locationTree 
     if(this.dataSrv.getLocalStorage('dashboardMapType') != '3D' || this.locationTree?.currentLevel != 'floorplan'){
-      this.initPixi()
+      await this.initPixi()
     }else{
       this.use3DMap = true
       this.currentFloorPlan = null
       await this.refreshFloorPlanOptions()
       await this.loadFloorPlan()
     }
+    this.uiSrv.loadAsyncDone(ticket)
   }
 
   async refreshFloorPlanOptions(){
@@ -273,16 +277,19 @@ export class ArcsDashboardComponent implements OnInit {
 
   async initPixi(floorPlanCode = null , showSite = false) {
     // let ticket = this.uiSrv.loadAsyncBegin()
+    let ret = new Subject()
     setTimeout(async () => {
       this.pixiElRef?.initDone$.subscribe(async () => {
         if(this.site &&  (!this.dataSrv.getSessionStorage('dashboardFloorPlanCode') || showSite)){
-          this.loadSite()
+          await this.loadSite()
         }else{
-          this.loadFloorPlan(floorPlanCode)
+          await this.loadFloorPlan(floorPlanCode)
         }
-        this.uiSrv.loadAsyncDone(this.loadingTicket)
+        ret.next(true)
+        // this.uiSrv.loadAsyncDone(this.loadingTicket)
       })
     })
+    return  <any> ret.pipe(filter(v => ![null,undefined].includes(v)), take(1)).toPromise()
   }
 
   async loadSite(){
@@ -451,10 +458,10 @@ export class ArcsDashboardComponent implements OnInit {
       i.robotStatus = robot?.robotStatus
       i.floorPlanCode = robot?.floorPlanCode
       i.robotStatusCssClass =  robotStatusCssClassMap[robot?.robotStatus]
-      i.alert = (robot.eStopped ? [this.uiSrv.commonAlertMessages.eStopped] :[]).concat(robot.obstacleDetected ? [this.uiSrv.commonAlertMessages.obstacleDetected] :[]).concat(robot.tiltDetected ? [this.uiSrv.commonAlertMessages.tiltDetected] :[]).join(" ,\n")
+      i.alert = (robot.estopped ? [this.uiSrv.commonAlertMessages.estopped] :[]).concat(robot.obstacleDetected ? [this.uiSrv.commonAlertMessages.obstacleDetected] :[]).concat(robot.tiltDetected ? [this.uiSrv.commonAlertMessages.tiltDetected] :[]).join(" ,\n")
     })    
 
-    let alerted = (s : RobotStatus)=> s.obstacleDetected || s.eStopped || s.tiltDetected
+    let alerted = (s : RobotStatus)=> s.obstacleDetected || s.estopped || s.tiltDetected
     this.robotTypeInfos.forEach(i => {
       i.idleCount = data.filter(s => !alerted(s) && s.robotType == i.robotType && s.robotStatus == 'IDLE').length
       i.processCount = data.filter(s => !alerted(s) && s.robotType == i.robotType && s.robotStatus == 'EXECUTING').length

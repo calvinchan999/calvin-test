@@ -103,6 +103,85 @@
 			"highlightColor": "0xFFD700"
 		}
     },
-	"UPLOAD_IMAGE_MAX_SIZE_KB" : 5120
+	"UPLOAD_IMAGE_MAX_SIZE_KB" : 5120,
+	"IEQ_DISABLED": [
+		"formaldehyde",
+		"o3",
+		"pressure"
+	],
+	"IEQ_STANDARD": {
+		"rh": [
+			[
+				10,
+				90
+			],
+			[
+				20,
+				80
+			],
+			[
+				30,
+				70
+			],
+			[
+				40,
+				60
+			]
+		],
+		"co2": [
+			[
+				null,
+				2500
+			],
+			[
+				null,
+				2000
+			],
+			[
+				null,
+				1500
+			],
+			[
+				null,
+				650
+			]
+		],
+		"pm2_5": [
+			[
+				null,
+				150.5
+			],
+			[
+				null,
+				55.4
+			],
+			[
+				null,
+				35.4
+			],
+			[
+				null,
+				12
+			]
+		],
+		"tvoc_pid": [
+			[
+				null,
+				75
+			],
+			[
+				null,
+				51
+			],
+			[
+				null,
+				26
+			],
+			[
+				null,
+				16
+			]
+		]
+	}
 
 }

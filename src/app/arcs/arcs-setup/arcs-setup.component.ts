@@ -52,7 +52,7 @@ export class ArcsSetupComponent implements OnInit {
     { id: 'floorplan', label: 'Floor Plan' },
     { id: 'map', label: 'Map' },
     { id: 'pointType', label: 'Waypoint Type'},
-    { id: 'synclog', label: 'Data Exchange Log' },
+    { id: 'synclog', label: 'Data Sync Log' },
     { id: 'log', label: 'Event Log' , authorized : false},
   ]
   selectedTab = 'floorplan' 

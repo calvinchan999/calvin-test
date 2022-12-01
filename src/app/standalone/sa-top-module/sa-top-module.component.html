@@ -38,16 +38,16 @@
 </ng-template>
 
 <ng-template #dashboarodItem let-item ="item">
-    <div class='bl-item' [class]="(item['id'] | cssClassName) + (item['type'] == 'button' ? ' bl-button' : '') + ( item['id'] == 'air_quality' ? (' ' + (airQualitySubj.value | cssClassName) ): '')">
+    <div class='bl-item' [class]="(item['id'] | cssClassName) + (item['type'] == 'button' ? ' bl-button' : '') + ( item['id'] == 'air_quality' ? (' ' + (airQualitySubj.value | cssClassName) ): '') + ' ' + (ds[item['id']]?.class ? ( ds[item['id']]?.class | cssClassName) : '')">
         <ng-container  *ngIf="item['type']!='button' && item['type']!='textbox'">
             <div class="bl-icon"><i class="k-icon mdi" [ngClass]="ds[item['id']] && ds[item['id']].icon? ds[item['id']].icon : (item.id | cssClassName : 'ts-')"></i></div>
             <div class="bl-text">
                 <label class="bl-label">{{ds[item['id']]?.title | label : uiSrv.langPack}}</label>
-                <span class="bl-result">{{(ds[item['id']]?.content ? ds[item['id']].content :  
+                <span class="bl-result">{{ds[item['id']]?.disabled ? ' - ' : (ds[item['id']]?.content ? ds[item['id']].content :  
                                            ( ds[item['id']]?.signalRfld!=null &&  ds[item['id']]?.signalRfld!=undefined && ds[item['id']].signalR?.value? 
                                              ds[item['id']].signalR?.value[ds[item['id']].signalRfld] : 
                                              ds[item['id']]?.signalR?.value ) 
-                                          ) | label : uiSrv.langPack }}</span>
+                                          )  }}</span>
                 <span class="bl-unit">{{ (ds[item['id']]?.suffixSignalR && ds[item['id']]?.suffixSignalR.value ?  ds[item['id']]?.suffixSignalR.value : ds[item['id']]?.suffix ) | label : uiSrv.langPack }}</span>
             </div>   
         </ng-container>

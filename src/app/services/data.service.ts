@@ -178,7 +178,9 @@ export class DataService {
     followMeAoa: { topic: "rvautotech/fobo/followme/aoa", mapping: { followMeAoaState: 'aoaState' } , api: 'followMe/v1/pairing/aoa' },
     digitalOutput: { topic: "rvautotech/fobo/digital/output" },
     fan : {topic: "rvautotech/fobo/fan" ,  mapping :{fan: (d)=> d['fanOn']}, api:'fan/v1' },
-    ieq: { topic: "rvautotech/fobo/ieq" , mapping: { ieq : (d)=> {Object.keys(d['ieq']).forEach(k=>d['ieq'][k] = this.util.trimNum(d['ieq'][k], 0)); return d['ieq'] ;} } , api:'ieqSensor/v1/read' },
+    //!!! TEMPERATURE -3 FOR 20221130 MICROSOFT EVENT DEMO ONLY
+    ieq: { topic: "rvautotech/fobo/ieq" , mapping: { ieq : (d)=> {Object.keys(d['ieq']).forEach(k=>d['ieq'][k] = this.util.trimNum(k == 't'? Number(d['ieq']['t']) - 3 : d['ieq'][k], 0)); return d['ieq'] ;} } , api:'ieqSensor/v1/read' },
+    //!!! TEMPERATURE -3 FOR 20221130 MICROSOFT EVENT DEMO ONLY
     rfid: { topic: "rvautotech/fobo/rfid" },
     rotaryHead: { topic: "rvautotech/fobo/rotaryHead" },
     nirCamera: { topic: "rvautotech/fobo/nirCamera" },
@@ -650,7 +652,7 @@ export class DataService {
         } else if(this.util.arcsApp){       
             if(this.getSubscribedCount(type, paramString) == 0){      
               if(['ieq'].includes(type)){
-                let resp = await this.httpSrv.rvRequest('GET' , this.signalRMaster[type]['api'] + '/' + paramString)
+                let resp = await this.httpSrv.rvRequest('GET' , this.signalRMaster[type]['api'] + paramString)
                 if(resp && resp.status == 200){
                   this.updateSignalRBehaviorSubject(type, JSON.parse(resp.body), paramString)
                 }
@@ -1366,7 +1368,7 @@ export class RobotStatusARCS {
   robotStatus: string
   obstacleDetected : boolean
   tiltDetected : boolean
-  eStopped : boolean
+  estopped : boolean
 }
 
 export class RobotDetailARCS{
@@ -1377,7 +1379,7 @@ export class RobotDetailARCS{
   speed : number
   obstacleDetected : boolean
   tiltDetected : boolean
-  eStopped : boolean
+  estopped : boolean
 }
 
 

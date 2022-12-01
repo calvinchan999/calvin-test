@@ -1,4 +1,4 @@
-<div class="dialog-content robot-group">
+<div class="dialog-content robot-group flex-container">
     <kendo-dialog-titlebar (close)="onClose()">
         <div>{{'Robot Group' | label: uiSrv.langPack}}</div>
     </kendo-dialog-titlebar>
@@ -12,10 +12,14 @@
                     </uc-dropdown>
                 </div>     
             </form>  
-            <div class="list-container">
-                <uc-listview #editableGrid [columnDef]="listDef" [(data)]="clientList" [(newRow)] = "newClientRow" [editable] = "!readonly">
-                </uc-listview>
-            </div>   
         </div>
+        <div class="list-container">
+            <uc-listview #editableGrid [columnDef]="listDef" [(data)]="clientList" [(newRow)] = "newClientRow" [editable] = "!readonly">
+            </uc-listview>
+        </div>   
+    </div>
+    <div class="button-container">
+        <button kendoButton (click) = "onClose()" > {{'Cancel' | label : uiSrv.langPack}}</button>
+        <button *ngIf="!readonly" kendoButton (click) = "saveToDB()" [disabled] = "true"> {{'Save' | label : uiSrv.langPack}}</button>
     </div>
 </div>

@@ -1,5 +1,6 @@
-@import url("wc to md icons.css");
-@import url("materialdesignicons.css");
+@import url('wc to md icons.css');
+@import url('materialdesignicons.css');
+
 body, html {
   font-family: Roboto, Microsoft JhengHei, STXihei, "Helvetica Neue", Arial, sans-serif;
   color: white;
@@ -516,7 +517,7 @@ app-cm-login .login-bg {
 }
 
 .ts-robotlist .k-card-body .ts-alert .mdi-alert {
-  background-color: #ff6358;
+  color: #ff6358;
 }
 
 /* Control Page */
@@ -664,11 +665,15 @@ app-cm-login .login-bg {
   color: yellow;
 }
 
-.air-quality.poor .bl-result, .air-quality.poor .bl-icon i {
+.air-quality.poor .bl-result, .air-quality.poor .bl-icon i, 
+.k-tilelayout .k-card .bl-item.poor .bl-text .bl-result, 
+.k-tilelayout .k-card .bl-item.poor .bl-text .bl-unit {
   color: orange;
 }
 
-.air-quality.inadequate .bl-result, .air-quality.inadequate .bl-icon i {
+.air-quality.inadequate .bl-result, .air-quality.inadequate .bl-icon i, 
+.k-tilelayout .k-card .bl-item.inadequate .bl-text .bl-result, 
+.k-tilelayout .k-card .bl-item.inadequate .bl-text .bl-unit {
   color: orangered;
 }
 

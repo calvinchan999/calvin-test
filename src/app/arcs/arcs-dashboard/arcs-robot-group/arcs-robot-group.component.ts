@@ -79,9 +79,25 @@ export class ArcsRobotGroupComponent implements OnInit {
   }
 
   async onClose(){
-    this.validate()
-    // if( this.readonly ||await this.uiSrv.showConfirmDialog('Do you want to quit without saving ?')){
-    //   this.dialogRef.close()
-    // }
+    // this.validate()
+    if( this.readonly ||await this.uiSrv.showConfirmDialog('Do you want to quit without saving ?')){
+      this.dialogRef.close()
+    }
+  }
+
+  getSubmitDataset() {
+    let ret = {}
+    Object.keys(this.frmGrp.controls).forEach(k => ret[k] = this.frmGrp.controls[k].value)
+    return ret
+  }
+
+  async saveToDB() {
+    if (!this.util.validateFrmGrp(this.frmGrp) || !await this.validate()) {
+      return
+    }
+    let ds = this.getSubmitDataset()
+    if ((await this.dataSrv.saveRecord("", ds,  this.frmGrp , true)).result == true) { // ONLY have POST method for schedule
+      this.dialogRef.close()
+    }
   }
 }

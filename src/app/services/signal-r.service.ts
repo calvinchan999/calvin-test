@@ -104,7 +104,7 @@ export class SignalRService {
         // if(!this.reconnectLoadingTicket){
         //   this.reconnectLoadingTicket = this.uiSrv.loadAsyncBegin()
         // }
-        this.uiSrv.showNotificationBar('Error : Disconnected from robot messaging system.','error')
+        this.uiSrv.showNotificationBar('Network Error : Disconnected','error')
         if(autoReconnect && this.generalUtil.getUserAccessToken()){
           if(!document.hidden){
             console.log('SignalR will retry to connect in ' + reconnectDelayMs + ' ms ...')
@@ -112,7 +112,7 @@ export class SignalRService {
           setTimeout(() =>{
             if(connection.state != HubConnectionState.Connected){
               this.connect(connection)
-              this.uiSrv.showNotificationBar('Retrying to connect with server ...', 'info')
+              this.uiSrv.showNotificationBar('Trying to reconnect ...', 'info')
               if(!document.hidden){
                 console.log('SignalR retrying to connect ... ')
               }
