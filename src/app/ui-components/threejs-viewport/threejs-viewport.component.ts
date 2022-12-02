@@ -1,4 +1,4 @@
-import { Component, OnInit, ViewChild , NgZone, HostListener, EventEmitter, Renderer2, Output , Input , HostBinding} from '@angular/core';
+import { Component, OnInit, ViewChild , NgZone, HostListener, EventEmitter, Renderer2, Output , Input , HostBinding, ElementRef} from '@angular/core';
 import { ThCamera, ThCanvas, ThDragControls, ThObject3D , ThOrbitControls, ThScene } from 'ngx-three';
 import { UiService } from 'src/app/services/ui.service';
 import * as THREE from 'three';
@@ -21,9 +21,9 @@ import {  ShaderPass  } from  'three/examples/jsm/postprocessing/ShaderPass' ;
 import {  OutlinePass  } from  'three/examples/jsm/postprocessing/OutlinePass' ;
 import {  FXAAShader  } from  'three/examples/jsm/shaders/FXAAShader' ;
 import { getBorderVertices } from 'src/app/utils/math/functions';
-import { Geometry } from 'pixi.js';
-import * as OUTLINE from 'three-line-outline'
 import { ArcsDashboardComponent } from 'src/app/arcs/arcs-dashboard/arcs-dashboard.component';
+import { Color } from '@progress/kendo-drawing';
+
 const NORMAL_ANGLE_ADJUSTMENT =  - 90 / radRatio
 
 @Component({
@@ -35,9 +35,13 @@ export class ThreejsViewportComponent implements OnInit {
   public selected = false;
   public readonly glbPath = `assets/3D/DamagedHelmet.glb`;
   public loadingTicket = null
-  @ViewChild('scene') scene : ThScene
-  @ViewChild('canvas') canvas 
-  @ViewChild('camera') camera : ThCamera
+  scene : THREE.Scene
+  camera : THREE.PerspectiveCamera
+  ambientLight : THREE.AmbientLight
+  pointLight : THREE.PointLight
+  composer : EffectComposer
+  shaderPass : ShaderPass 
+  @ViewChild('canvas') canvas : ElementRef
   @Output() robotClicked = new EventEmitter<any>();
   @Output() to2D =  new EventEmitter<{floorPlanCode? : string, showSite? : boolean}>();
   @Input() floorPlanDataset : JFloorPlan= null;
@@ -61,9 +65,6 @@ export class ThreejsViewportComponent implements OnInit {
   renderer : WebGLRenderer
   labelRenderer : CSS2DRenderer
   suspended = false
-  composer : EffectComposer
-  effectFXAA 
-  outlinePass : OutlinePass
   ROSmapScale = 1
   mapCode
   focusedObj = null
@@ -89,7 +90,7 @@ export class ThreejsViewportComponent implements OnInit {
   } = null
   subscribedPoseMapCode = null
   robotLists : DropListRobot[]
-  constructor(public uiSrv: UiService , public ngZone : NgZone , public util : GeneralUtil , public dataSrv : DataService ,  public ngRenderer:Renderer2) {
+  constructor(public uiSrv: UiService , public ngZone : NgZone , public util : GeneralUtil , public dataSrv : DataService ,  public ngRenderer:Renderer2 , public elRef : ElementRef) {
     // this.loadingTicket = this.uiSrv.loadAsyncBegin()
     this.loadLocalStorageToggleSettings()
   }
@@ -104,7 +105,7 @@ export class ThreejsViewportComponent implements OnInit {
     return this.floorplan?  <any>this.floorplan?.children.filter(c=>c instanceof MarkerObject3D) :[]
   }
   get mapMeshes() : MapMesh[]{
-    return this.scene?.objRef ? <any>this.scene?.objRef.children.filter(c=> c instanceof MapMesh) : []
+    return this.scene ? <any>this.scene.children.filter(c=> c instanceof MapMesh) : []
   }
   get robotObjs():RobotObject3D[]{
     let ret = []
@@ -117,24 +118,38 @@ export class ThreejsViewportComponent implements OnInit {
     return this.floorplan? <any>this.floorplan?.children.filter(b=>b instanceof Extruded2DMesh) : []
   }
 
+  get width() {
+    return  this.elRef?.nativeElement?.parentElement?.clientWidth
+  }
+  get height() {
+    return  this.elRef?.nativeElement?.parentElement?.clientHeight
+  }
+
   @HostBinding('class') customClass = 'drawing-board'
   
   @HostListener('window:resize', ['$event'])
   onResize() {
-    const width  = this.container.clientWidth
-    const height =  this.container.clientHeight
-    this.labelRenderer.setSize( width, height )
-    this.outlinePass?.setSize( width, height )
-    this.effectFXAA?.uniforms.resolution.value.set(1 /width, 1 / height);
+    const width  = this.width
+    const height =  this.height
+    this.renderer?.setSize( width, height )
+    this.labelRenderer?.setSize( width, height )
+    this.robotObjs.forEach(r=>r.outlinePass?.setSize(width, height))
+    this.shaderPass?.uniforms.resolution.value.set(1 /width, 1 / height);
     this.composer?.setSize( width, height );
+    if(this.camera){
+      this.camera.aspect = width / height;
+      this.camera.updateProjectionMatrix();
+    }
   }
 
   animate() {
+    requestAnimationFrame(this.animate.bind(this))
     if(!this.suspended){
-      this.labelRenderer.render( this.scene.objRef, this.camera.objRef );
+      //this.renderer.render(this.scene, this.camera )
+      this.labelRenderer?.render( this.scene, this.camera );
       this.computeRayCaster()
       this.composer?.render()
-      // this.renderer?.render(this.scene.objRef, this.camera.objRef);
+      // console.log(this.outlinePass.selectedObjects)
     }
   }
 
@@ -167,14 +182,14 @@ export class ThreejsViewportComponent implements OnInit {
   }
 
   onMouseMove(event : MouseEvent) {
-    if(!this.canvas?._rendererCanvas || this.suspended){
+    if(!this.renderer || this.suspended){
       return
     }
-    const rect = this.canvas.rendererCanvas.nativeElement.getBoundingClientRect();
+    const rect = this.renderer.domElement.getBoundingClientRect();
     this.mouse.x = ((event.clientX - rect.left) / (rect.right - rect.left)) * 2 - 1;
     this.mouse.y = - ((event.clientY - rect.top) / (rect.bottom - rect.top)) * 2 + 1;
-    this.mouseRaycaster.setFromCamera(this.mouse, this.camera.objRef);
-    const mouseIntersects = this.mouseRaycaster.intersectObjects(this.scene.objRef.children, true);
+    this.mouseRaycaster.setFromCamera(this.mouse, this.camera);
+    const mouseIntersects = this.mouseRaycaster.intersectObjects(this.scene.children, true);
 
     let firstObj = mouseIntersects.map(i=>this.getParentObj(i.object)).filter(o=>o && o.visible)[0]
     if(firstObj){
@@ -194,7 +209,7 @@ export class ThreejsViewportComponent implements OnInit {
       b.blockedFocusedObject = blocks.includes(b)
     })
 
-    this.scene.objRef.traverse((object: any) => {
+    this.scene.traverse((object: any) => {
       if (object instanceof Object3DCommon && object!=firstObj) {
         object.removeMouseOverEffect()
         if(object instanceof RobotObject3D || object instanceof MarkerObject3D){
@@ -209,14 +224,14 @@ export class ThreejsViewportComponent implements OnInit {
 
   }
 
-  getIntersectedBlocks(caster : THREE.Raycaster, toObject : Object3D , frObject : Object3D = this.camera.objRef) : Extruded2DMesh[]{   
+  getIntersectedBlocks(caster : THREE.Raycaster, toObject : Object3D , frObject : Object3D = this.camera) : Extruded2DMesh[]{   
     let frObjPos = new THREE.Vector3();
     let toObjPos = new THREE.Vector3();
     frObject.getWorldPosition(frObjPos);
     toObject.getWorldPosition(toObjPos)
     let direction = new THREE.Vector3().subVectors( toObjPos , frObjPos).normalize()
     caster.set(frObjPos, direction);
-    const camIntersects =  caster.intersectObjects(this.scene.objRef.children, true)
+    const camIntersects =  caster.intersectObjects(this.scene.children, true)
     const objectIntersection = camIntersects.filter(i=> this.getParentObj(i.object , Object3DCommon) == toObject)[0]
     const blocks =[ ... new Set(camIntersects.filter(i=> this.getParentObj(i.object , Extruded2DMesh) && camIntersects.indexOf(i) < camIntersects.indexOf(objectIntersection)).
                                               map(i=> this.getParentObj(i.object , Extruded2DMesh))
@@ -228,12 +243,11 @@ export class ThreejsViewportComponent implements OnInit {
 
   computeRayCaster(){
     let cameraPostion = new THREE.Vector3();
-    this.camera.objRef.getWorldPosition(cameraPostion);
+    this.camera.getWorldPosition(cameraPostion);
     let transparentBlocks = []
     this.robotObjs.forEach(r => {
       transparentBlocks = transparentBlocks.concat(this.getIntersectedBlocks(this.cameraRayCaster, r))
     })
-    
     this.blockMeshes.forEach((b) => {
       b.setOpactiy(transparentBlocks.includes(b) || b.blockedFocusedObject ? b.transparentOpacity : b.defaultOpacity)
     })
@@ -262,20 +276,20 @@ export class ThreejsViewportComponent implements OnInit {
   }
 
   initLabelRenderer(){
-    const canvasHTML : HTMLElement =  this.canvas.rendererCanvas.nativeElement
     this.labelRenderer = new CSS2DRenderer();
-    this.labelRenderer.setSize( canvasHTML.clientWidth  , canvasHTML.clientHeight );
+    this.onResize()
     this.labelRenderer.domElement.style.position = 'absolute';
     this.container.appendChild( this.labelRenderer.domElement );
   }
 
   resetScene(){
     this.mapCode = null
-    this.scene?.objRef.remove(this.floorplan)
-    this.mapMeshes.forEach(m=>this.scene?.objRef.remove(m))
+    this.robotObjs.forEach(r=>this.composer?.removePass(r?.outlinePass))
+    this.scene.remove(this.floorplan)
+    this.mapMeshes.forEach(m=>this.scene.remove(m))
     this.robotObjs.forEach(r=>r.hideToolTip())
     this.waypointMeshes.forEach(w=>w.hideToolTip())
-    // this.robotObjs.forEach(r=>this.scene.objRef.remove(r))
+    // this.robotObjs.forEach(r=>this.scene.remove(r))
     this.unsubscribeRobotPoses()
   }
 
@@ -285,18 +299,22 @@ export class ThreejsViewportComponent implements OnInit {
     this.initFloorPlan(floorplan , dimension.width , dimension.height);
     this.initROSmaps(floorplan.mapList)
     this.initWaypoints(floorplan.pointList)
-    this.camera.objRef.position.set(0, this.floorplan.height  , this.floorplan.height * 0.7 )
-    this.camera.objRef.lookAt(1, -0.9 , -0.5)
+    this.camera.position.set(0, this.floorplan.height  , this.floorplan.height * 0.7 )
+    this.camera.lookAt(1, -0.9 , -0.5)
     this.orbitCtrl.update()
-    this.camera.objRef.position.z += this.floorplan.height * 0.1
+    this.camera.position.z += this.floorplan.height * 0.1
+    this.pointLight.position.set(dimension.width / 2 ,  dimension.height  ,  dimension.height / 2)
     if(subscribePoses && this.mapCode){
       this.subscribeRobotPoses()
     }
+
+    //this.testOutline()
+
     this.initBlocks(); // TBR
     ['waypoint', 'waypointName', 'wall'].forEach(k => this.uiToggled(k))
     // this.orbitCtrl.target.set(1, -0.9 , -0.5)
     // var lookAtVector = new THREE.Vector3(0, 0, -1);
-    // lookAtVector.applyQuaternion(this.camera.objRef.quaternion);
+    // lookAtVector.applyQuaternion(this.camera.quaternion);
     // this.orbitCtrl.target.set(1, -0.9 , -0.5)
     //this.orbitCtrl.update()
 
@@ -315,58 +333,46 @@ export class ThreejsViewportComponent implements OnInit {
     this.uiSrv.loadAsyncDone(ticket);
   }
 
-  async ngAfterViewInit() {
-    this.renderer = this.canvas.engServ.renderer
-    // this.renderer.logarithmicDepthBuffer
-    this.container =  this.canvas.rendererCanvas.nativeElement.parentElement
- 
-    await this.getRobotList()
+  async ngAfterViewInit() {    
+    this.container = this.canvas.nativeElement
+    this.scene = new THREE.Scene();
+    this.camera = new THREE.PerspectiveCamera(45, this.width / this.height , 1 , 100000);
+    this.pointLight = new THREE.PointLight(0xFFFFFF , 0.4)
+    this.ambientLight = new THREE.AmbientLight(0xFFFFFF , 0.7)
+    this.scene.add(this.pointLight)
+    this.scene.add(this.ambientLight)
+    this.renderer = new THREE.WebGLRenderer({ alpha: true , antialias : true , logarithmicDepthBuffer: true}); //this.canvas.engServ.renderer
+    this.renderer.setPixelRatio( window.devicePixelRatio );
+    this.renderer.setClearColor(0x222222,.0);
+    this.renderer.domElement.style.position = 'absolute'
+    this.container.appendChild(this.renderer.domElement)
     this.initLabelRenderer()
-    this.initShaders()  //TESTING
-    this.orbitCtrl = new OrbitControls( this.camera.objRef, this.labelRenderer.domElement );
+    this.initPasses()
+    this.animate()
+
+    await this.getRobotList()
+
+    this.orbitCtrl = new OrbitControls( this.camera, this.labelRenderer.domElement );
     this.orbitCtrl.addEventListener( 'change', (v)=> this.onOrbitControlChange(v) );
     document.addEventListener('pointermove', (e)=>this.onMouseMove(e), false);
     setTimeout(() => this.onResize())
-    //this.testVolumetricLight()
+
     if(this.floorPlanDataset){
      await this.loadFloorPlan(this.floorPlanDataset);
     }
-    // this.floorplan = new FloorPlanMesh(this ,FP_BASE64 , fpWidth , fpHeight);
-    // this.scene.objRef.add(this.floorplan );
-    // this.initROSmaps(JSON.parse(MAP_LIST));
-    // await this.loadFloorPlan(JSON.parse(FP_DATASET))
-    // this.subscribeRobotPoses();
 
   }
 
-  initShaders() {
-    this.renderer.setClearColor(0x222222,.0);
+  initPasses() {
+    this.renderer.setClearColor(0xcccccc,.0);
     this.renderer.shadowMap.enabled = true;
-    this.composer = new EffectComposer(this.renderer);
-    this.composer.setSize( this.container.clientWidth, this.container.clientHeight );
-    const renderPass = new RenderPass(this.scene.objRef, this.camera.objRef);
-    this.composer.addPass(renderPass);
-
-    this.outlinePass = new OutlinePass(new THREE.Vector2(this.container.clientWidth, this.container.clientHeight), this.scene.objRef, this.camera.objRef);
-    this.outlinePass.edgeStrength = 3;
-    this.outlinePass.edgeGlow = 1;
-    this.outlinePass.edgeThickness = 10;
-    this.outlinePass.pulsePeriod = 0;
-    this.outlinePass.visibleEdgeColor.set(0xFFFFFF);
-    this.outlinePass.hiddenEdgeColor.set(0xFF00FF);
-    this.outlinePass.renderToScreen = true;
-    this.composer.addPass(this.outlinePass);
-    // let outlinePass = this.outlinePass
-    // const textureLoader = new THREE.TextureLoader();
-    // textureLoader.load('assets/3D/tri_pattern.jpg', function (texture) {
-    //   outlinePass.patternTexture = texture;
-    //   texture.wrapS = THREE.RepeatWrapping;
-    //   texture.wrapT = THREE.RepeatWrapping;
-    // });
-
-    // this.effectFXAA = new ShaderPass(FXAAShader);
-    // this.effectFXAA.uniforms.resolution.value.set(1 / this.container.clientWidth, 1 / this.container.clientHeight);
-    // this.composer.addPass(this.effectFXAA);
+    this.composer = new EffectComposer(this.renderer );
+    this.onResize()
+    this.shaderPass = new ShaderPass(FXAAShader);
+    this.onResize()
+    this.composer.addPass(new RenderPass(this.scene , this.camera));
+    // this.composer.addPass(this.outlinePass);
+    this.composer.addPass(this.shaderPass);   
   }
       
 
@@ -383,7 +389,7 @@ export class ThreejsViewportComponent implements OnInit {
     let base64 = (fp.base64Image.startsWith(prefix) ? '': prefix) + fp.base64Image
     
     this.floorplan = new FloorPlanMesh(this ,base64 , fpWidth , fpHeight);
-    this.scene.objRef.add(this.floorplan );
+    this.scene.add(this.floorplan );
   }
 
   initROSmaps(mapList : JMap[] ){
@@ -394,7 +400,7 @@ export class ThreejsViewportComponent implements OnInit {
       let prefix = 'data:image/png;base64,'
       let base64 = (m.base64Image.startsWith(prefix) ? '': prefix) + m.base64Image
       const mapPlane = new MapMesh(this, m.mapCode, m.robotBase , base64 , m.transformedScale, m.transformedAngle , m.transformedPositionX ,  m.transformedPositionY , m.imageWidth , m.imageHeight , m.originX , m.originY );
-      this.scene.objRef.add(mapPlane)
+      this.scene.add(mapPlane)
     })
 
     // let robot = new RobotObject3D(this , "RV-ROBOT-103");
@@ -444,6 +450,7 @@ export class ThreejsViewportComponent implements OnInit {
     this.dataSrv.subscribeSignalR('arcsPoses' , mapCode)
     this.dataSrv.signalRSubj.arcsPoses.pipe(filter(v => v) , takeUntil(this.$mapCodeChanged)).subscribe(async (poseObj) => { //{mapCode : robotId : pose}
       Object.keys(poseObj[mapCode]).forEach((robotCode)=>{
+        let isNewRobot = !this.getRobot(robotCode) 
         let robotData : DropListRobot = this.robotLists.filter(r=>r.robotCode == robotCode)[0]
         if(!robotData){
           console.log(`ERROR : Robot not found : [${robotCode}`)
@@ -467,10 +474,13 @@ export class ThreejsViewportComponent implements OnInit {
           mapMesh.add(robot)
           this.refreshRobotColors()
         }
+
         let pose : {x : number , y : number , angle : number , interval : number} = poseObj[mapCode][robotCode]
         if(robot && mapMesh){
-          robot.visible = true
           robot.updatePositionAndRotation(pose)
+          if(isNewRobot){
+            robot.visible = true
+          }
         }
      })
 
@@ -499,9 +509,9 @@ export class ThreejsViewportComponent implements OnInit {
   
   public onOrbitControlChange(evt) {
     // console.log(this.orbitCtrl.object.position)
-    // console.log(this.camera.objRef.position)
+    // console.log(this.camera.position)
     // var lookAtVector = new THREE.Vector3(0,0, -1);
-    // lookAtVector.applyQuaternion(this.camera.objRef.quaternion);
+    // lookAtVector.applyQuaternion(this.camera.quaternion);
     // console.log(lookAtVector)
   }
 
@@ -561,16 +571,11 @@ class MapMesh extends Mesh {
     // this.position.set( x  , y , 0.1 )
     this.scale.set(scale , scale , scale )
   }
-
-  // addRobot(robot : RobotObject3D){
-  //   // robot.rotateY(1.57)
-  //   this.add(robot)
-  //   this.robots = this.robots.filter(r=>r!=robot).concat(robot)
-  // }
-
 }
 
 class Object3DCommon extends Object3D{
+  scene : THREE.Scene = new THREE.Scene()
+  outlinePass : OutlinePass
   master : ThreejsViewportComponent
   mouseOverChangeColor = true
   gltf : GLTF
@@ -586,6 +591,7 @@ class Object3DCommon extends Object3D{
     background : 'rgba( 0, 0, 0, 0.6 )'
   }
   defaultOpacity = 1
+  _color : number
 
   set toolTipText(v){
     this.toolTip.element.textContent = v
@@ -595,28 +601,41 @@ class Object3DCommon extends Object3D{
   }
   constructor(master : ThreejsViewportComponent){
     super()
+    this.add(this.scene)
     this.master = master
+    this._color = this.master.util.config.robot?.visuals?.[0].fillColor ?  Number(this.master.util.config.robot?.visuals?.[0].fillColor) : 0x00CED1
     this.initToolTip()
   }
 
 
   setTooltipText(){
-    // if(this.toolTip){
-    //   this.toolTip.
-    // }
+
   }
+
+  
+  initOutline(gltf: GLTF) {
+    this.outlinePass = new OutlinePass(new THREE.Vector2(this.master.width, this.master.height), this.scene, this.master.camera);
+    this.outlinePass.overlayMaterial.blending = THREE.CustomBlending
+    this.outlinePass.edgeStrength = 3;
+    this.outlinePass.edgeThickness = 1;
+    this.outlinePass.edgeGlow = 0;
+    this.outlinePass.renderToScreen = true;
+    this.master.composer.removePass(this.master.shaderPass)
+    this.master.composer.addPass(this.outlinePass)
+    this.master.composer.addPass(this.master.shaderPass)
+    if (!this.outlinePass.selectedObjects.includes(gltf.scene)) {
+      this.outlinePass.selectedObjects.push(gltf.scene)
+    }
+  }
+
 
   getMaterials(obj : Object3D | Group) : MeshStandardMaterial[]{
     let ret = []
-    let pushMainColorMaterials = (c) => {
-      if (c instanceof Mesh) {
+    obj.traverse(c=>{
+      if(c instanceof Mesh){
         ret.push(c.material)
-        c.children.forEach(c2 => pushMainColorMaterials(c2))
-      }else if (c instanceof Group || c instanceof Object3D) {
-        c.children.forEach(c2 => pushMainColorMaterials(c2))
       }
-    }
-    pushMainColorMaterials(obj)
+    })
     return ret
   }
 
@@ -682,16 +701,25 @@ class Object3DCommon extends Object3D{
       return
     }
     this.mouseOvered = true
-    this.gltf.scene.traverse( (s : any)=> {      
-      if (s.isMesh === true && s.material?.originalHex!= null){
-        s.material.emissive.setHex(color)
-      } 
-    } );
+    if( this.outlinePass){
+      this.outlinePass.edgeGlow = 1
+      this.outlinePass.edgeStrength = 4.5
+    }else{
+      this.gltf.scene.traverse( (s : any)=> {      
+        if (s.isMesh === true && s.material?.originalHex!= null){
+          s.material.emissive.setHex(color)
+        } 
+      } );
+    }
   }
 
   removeMouseOverEffect(){
     if(!this.gltf || !this.mouseOvered ){
       return
+    }
+    if( this.outlinePass){
+      this.outlinePass.edgeGlow = 0
+      this.outlinePass.edgeStrength = 3
     }
     this.gltf.scene.traverse( (s : any)=> {      
       if (s.isMesh === true && s.material?.originalHex!=null){
@@ -773,6 +801,7 @@ class MarkerObject3D extends Object3DCommon {
     let ticket = this.master.uiSrv.loadAsyncBegin()
      this.loader.load(custom ?  custom.path : this.glbSettings.path ,(gltf : GLTF)=> {
        this.gltf = gltf
+      //  this.initOutline(gltf)
        gltf.scene.rotateX(- NORMAL_ANGLE_ADJUSTMENT)
        gltf.scene.scale.set(scale, scale, scale)
        let position =  (<Vector3>(custom ? custom.position : this.glbSettings.position)).multiplyScalar(this.master.ROSmapScale  * this.master.util.config.METER_TO_PIXEL_RATIO )
@@ -786,10 +815,13 @@ class MarkerObject3D extends Object3DCommon {
        }
        materials.filter(m=> (custom ? custom.recolorMaterials : this.glbSettings.recolorMaterials).includes(m.name)).forEach(m=>m.color.set(this.color))
        this.add(gltf.scene)
+      //  this.initOutline(gltf)
        this.storeOriginalMaterialData()
+      //  console.log(this.outlineMesh)
+      //  this.master.outlinePass.selectedObjects.push(this.outlineMesh)
        this.master.uiSrv.loadAsyncDone(ticket)
-    })
-    this.toolTip.position.set(0, (this.glbSettings.size * 20) * this.master.ROSmapScale , 0)
+     })
+    this.toolTip.position.set(0, (this.glbSettings.size * 20) * this.master.ROSmapScale, 0)
   }
 }
 
@@ -800,8 +832,8 @@ export class RobotObject3D extends Object3DCommon{
   robotBase : string
   robotType : string
   master : ThreejsViewportComponent
-  outlineMesh : Mesh
   outlineSegments : LineSegments
+  scene : THREE.Scene = new THREE.Scene()
   targetPose : {
     vector :  Vector3
     rotation : number
@@ -814,14 +846,14 @@ export class RobotObject3D extends Object3DCommon{
     return this.robotImportSetting[this.robotType] ? this.robotImportSetting[this.robotType] : this.robotImportSetting.BASE
   }
   robotImportSetting = {
-    BASE : {
+    BASE: {
       path : "assets/3D/robot.glb",
       scale : 3,
       position : {x : 4 , y: 0 , z : -20},
       rotate : {x : NORMAL_ANGLE_ADJUSTMENT , y : 0,  z : 180/radRatio } ,
       recolorMaterials : ['Material33'],
     },
-    PATROL : {
+    PATROL: {
       path : "assets/3D/robot_patrol.glb",
       scale : 35,
       position: { x: 0, y: 0, z: -12.5 },
@@ -830,7 +862,7 @@ export class RobotObject3D extends Object3DCommon{
       // recolorMaterials : ['0.019608_0.000000_0.000000_0.000000_0.000000']
       // replaceColors:[{r: 0 , g : 0 , b : 0 , tolerance : 0.1}], 
     },
-    DELIVERY : {
+    DELIVERY: {
       path : "assets/3D/robot_delivery.glb",
       scale : 0.8,
       position: { x: 0, y: 0, z: -12.5 },
@@ -847,7 +879,6 @@ export class RobotObject3D extends Object3DCommon{
     scale : 20,
     position : {x : 0 , y: 5 , z : -13 }
   }
-  _color : number = this.master.util.config.robot?.visuals?.[0].fillColor ?  Number(this.master.util.config.robot?.visuals?.[0].fillColor) : 0x00CED1
   get opacity(){
     return this._opacity
   } 
@@ -902,6 +933,7 @@ export class RobotObject3D extends Object3DCommon{
   readonly alertIconPath = 'assets/3D/exclamation.glb' //This work is based on "Exclamation Mark 3D icon" (https://sketchfab.com/3d-models/exclamation-mark-3d-icon-35fcb8285f134554989f822ab90ee974) by summer57 (https://sketchfab.com/summer5717) licensed under CC-BY-4.0 (http://creativecommons.org/licenses/by/4.0/)
   constructor( master: ThreejsViewportComponent , _robotCode : string , _robotBase : string , _robotType : string){
     super(master)
+    this.add(this.scene)
     this.robotImportSetting = this.master.util.config.MAP_3D?.ROBOT ? this.master.util.config.MAP_3D.ROBOT : this.robotImportSetting
     this.pointerSetting = this.master.util.config.MAP_3D?.POINTER ? this.master.util.config.MAP_3D.POINTER : this.pointerSetting
     this.robotCode = _robotCode;
@@ -924,18 +956,20 @@ export class RobotObject3D extends Object3DCommon{
         this.alertIcon.position.z = setting.alertPositionZ ? setting.alertPositionZ : this.alertIconSetting.positionZ
         this.add(this.alertIcon)
 
+        //this.initOutline(gltf)
         this.gltf.scene.scale.set(setting.scale, setting.scale, setting.scale)
         this.gltf.scene.position.set(setting.position.x , setting.position.y , setting.position.z)
         this.gltf.scene.rotateX(setting.rotate?.x? setting.rotate?.x : 0 )
         this.gltf.scene.rotateY(setting.rotate?.y? setting.rotate?.y : 0 )
         this.gltf.scene.rotateZ(setting.rotate?.z? setting.rotate?.z : 0 )
-        
-        // this.initOutline(gltf)
+
         // this.gltf.scene.add(this.outlineMesh);
  
         // let scale =  this.size * this.master.ROSmapScale * this.master.util.config.METER_TO_PIXEL_RATIO
                
-        this.add(this.gltf.scene)
+        this.scene.add(this.gltf.scene)
+        this.initOutline(gltf)
+        //this.initOutline(gltf)
         // this.addSpotLight()
         this.storeOriginalMaterialData()
         this.addFrontFacePointer()
@@ -952,11 +986,13 @@ export class RobotObject3D extends Object3DCommon{
     this.onClick.subscribe(()=>{
       this.master.robotClicked.emit({id:this.robotCode , object : this})
     })
-    // this.master.robots = this.master.robots.filter(r=>r!= this).concat(this)
-    if( this.master.outlinePass){
-      this.master.outlinePass.enabled = true
-      this.master.outlinePass.selectedObjects = (this.master.outlinePass.selectedObjects ? this.master.outlinePass.selectedObjects : []).concat(this)
-    }
+    // var testColors = [0xFF66B9 , 0xFFD700 , 0x87CEFA, 0x9ACD32, 0xFF8C00 , 0xB3B3FF]
+    // setTimeout(() => this.changeMainColor(testColors[this.master.robotObjs.indexOf(this)]), 5000)
+
+    // if( this.master.outlinePass){
+    //   this.master.outlinePass.enabled = true
+    //   this.master.outlinePass.selectedObjects = (this.master.outlinePass.selectedObjects ? this.master.outlinePass.selectedObjects : []).concat(this)
+    // }
   }
 
   updatePositionAndRotation(pose : {x : number  , y : number , angle : number , interval : number}){
@@ -1005,7 +1041,17 @@ export class RobotObject3D extends Object3DCommon{
   }
 
   changeMainColor(color: number) {
-    // this.spotLight?.color.set(color)
+    // let colorStr = this._color.toString(16).padStart(6,'0')
+    // let colorDelta =  -40
+    // let adjustedColor = parseInt ((
+    //                         Math.max(0, parseInt(colorStr.substring(0, 2), 16) + colorDelta).toString(16).padStart(2,'0') + 
+    //                         Math.max(0, parseInt(colorStr.substring(2, 4), 16) + colorDelta).toString(16).padStart(2,'0') + 
+    //                         Math.max(0, parseInt(colorStr.substring(4, 6), 16) + colorDelta).toString(16).padStart(2,'0')) , 
+    //                     16)
+    // console.log(adjustedColor)
+    this.outlinePass?.visibleEdgeColor.set(color)
+    this.outlinePass?.hiddenEdgeColor.set(color)
+
     let materials: MeshStandardMaterial[] = new Object3DCommon(this.master).getMaterials(this.gltf.scene)
     materials.filter(m => this.importSetting.recolorMaterials?.includes(m.name) || 
                           (this.importSetting.replaceColors && 
@@ -1022,12 +1068,6 @@ export class RobotObject3D extends Object3DCommon{
     })
   }
 
-  // addSpotLight(){
-  //   this.spotLight = new THREE.SpotLight(this.color, 10, 30000, Math.PI / 10, 1);
-  //   this.spotLight.position.set(0, 0, 50)
-  //   this.spotLight.target = this.gltf.scene;
-  //   this.add( this.spotLight)
-  // }
 
   addFrontFacePointer() {
     //this.frontFacePointer = new Mesh(new THREE.PlaneGeometry(2.5, 2.5), new THREE.MeshPhongMaterial({ map: THREE.ImageUtils.loadTexture('assets/3D/pointer.png'), opacity: 0.5, transparent: true }))
@@ -1041,163 +1081,6 @@ export class RobotObject3D extends Object3DCommon{
     this.frontFacePointer.scale.set(setting.scale , setting.scale  , setting.scale )
     this.add(this.frontFacePointer)
   }
-  
-
-  initOutline(gltf: GLTF) {
-    let geometries : THREE.BufferGeometry[] = [];
-    let mergeDescendants = (c) => {
-      if (c instanceof Mesh) {
-        c.updateMatrix()
-        geometries.push(c.geometry)
-      } else if (c instanceof Group || c instanceof Object3D) {
-        c.children.forEach(c2 => mergeDescendants(c2))
-      } 
-    }
-    mergeDescendants(gltf.scene)
-    let mergeGeometry = (geo1, geo2) => {
-      console.log(geo1)
-      var attributes = ["normal", "position", "skinIndex", "skinWeight"];
-      var dataLengths = [3, 3, 4, 4];
-      var geo = new THREE.BufferGeometry();
-      for (var attIndex = 0; attIndex < attributes.length; attIndex++) {
-        var currentAttribute = attributes[attIndex];
-        var geo1Att = geo1.getAttribute(currentAttribute);
-        var geo2Att = geo2.getAttribute(currentAttribute);
-        var currentArray = null;
-        if (currentAttribute == "skinIndex") currentArray = new Uint16Array(geo1Att.array.length + geo2Att.array.length)
-        else currentArray = new Float32Array(geo1Att.array.length + geo2Att.array.length)
-        var innerCount = 0;
-        geo1Att.array.map((item) => {
-          currentArray[innerCount] = item;
-          innerCount++;
-        });
-        geo2Att.array.map((item) => {
-          currentArray[innerCount] = item;
-          innerCount++;
-        });
-        geo1Att.array = currentArray;
-        geo1Att.count = currentArray.length / dataLengths[attIndex];
-        geo.setAttribute(currentAttribute, geo1Att);
-      }
-      return geo;
-    }
-    // let mergedGeo = geometries[0]
-    // geometries.filter(g=>g!=geometries[0]).forEach(g=>mergedGeo = mergeGeometry(mergedGeo , g))
-    // All geometries must have compatible attributes; make sure "uv" attribute exists among all geometries, or in none of them.
-    // let allAttributes = []
-    // geometries.map(g => Object.keys(g.attributes).forEach(k => allAttributes.push(k)))
-    // allAttributes = [... new Set(allAttributes)]
-    // allAttributes.filter(a=> geometries.some(g=>!g.hasAttribute(a))).forEach(a=>geometries.forEach(g=>g.deleteAttribute(a)))
-
-    let mergedGeo = BufferGeometryUtils.mergeBufferGeometries(geometries)
-    let material = new THREE.MeshPhongMaterial({ color: this.color , side: THREE.BackSide});
-
-    this.outlineMesh = new THREE.Mesh(mergedGeo, material);
-    this.outlineMesh.scale.multiplyScalar(1.05);
-  }
-
-//   addFrontFacePointer() {
-//     var scale = 0.5
-//     var geometry = new THREE.CylinderGeometry(0.1 * scale, 1.5 * scale, 5 * scale, 32 * 2 * scale, 20 * scale, true);
-//     geometry.applyMatrix4(new THREE.Matrix4().makeTranslation(0, -geometry.parameters.height / 2, 0));
-//     geometry.applyMatrix4(new THREE.Matrix4().makeRotationX(Math.PI / 2));
-//     var getMaterial = ()=>{
-//         // 
-//         var vertexShader = [
-//           'varying vec3 vNormal;',
-//           'varying vec3 vWorldPosition;',
-//           'void main(){',
-//           '// compute intensity',
-//           'vNormal        = normalize( normalMatrix * normal );',
-//           'vec4 worldPosition = modelMatrix * vec4( position, 1.0 );',
-//           'vWorldPosition     = worldPosition.xyz;',
-//           '// set gl_Position',
-//           'gl_Position    = projectionMatrix * modelViewMatrix * vec4( position, 1.0 );',
-//           '}',
-//       ].join('\n')
-//       var fragmentShader = [
-//           'varying vec3       vNormal;',
-//           'varying vec3       vWorldPosition;',
-//           'uniform vec3       lightColor;',
-//           'uniform vec3       spotPosition;',
-//           'uniform float      attenuation;',
-//           'uniform float      anglePower;',
-//           'void main(){',
-//           'float intensity;',
-//           //////////////////////////////////////////////////////////
-//           // distance attenuation                 //
-//           //////////////////////////////////////////////////////////
-//           'intensity  = distance(vWorldPosition, spotPosition)/attenuation;',
-//           'intensity  = 1.0 - clamp(intensity, 0.0, 1.0);',
-//           //////////////////////////////////////////////////////////
-//           // intensity on angle                   //
-//           //////////////////////////////////////////////////////////
-//           'vec3 normal    = vec3(vNormal.x, vNormal.y, abs(vNormal.z));',
-//           'float angleIntensity   = pow( dot(normal, vec3(0.0, 0.0, 1.0)), anglePower );',
-//           'intensity  = intensity * angleIntensity;',
-//           // 'gl_FragColor    = vec4( lightColor, intensity );',
-//           //////////////////////////////////////////////////////////
-//           // final color                      //
-//           //////////////////////////////////////////////////////////
-//           // set the final color
-//           'gl_FragColor   = vec4( lightColor, intensity);',
-//           '}',
-//       ].join('\n')
-//       // create custom material from the shader code above
-//       //   that is within specially labeled script tags
-//       var material = new THREE.ShaderMaterial({
-//         uniforms: {
-//           attenuation: <any>{
-//             type: "f",
-//             value: 10000
-//           },
-//           anglePower: <any>{
-//             type: "f",
-//             value: -10000
-//           },
-//           spotPosition: <any>{
-//             type: "v3",
-//             value: new THREE.Vector3(0, 0, 0)
-//           },
-//           lightColor: <any>{
-//             type: "c",
-//             value: new THREE.Color('cyan')
-//           },
-//         },
-
-//         vertexShader: vertexShader,
-//         fragmentShader: fragmentShader,
-//         side: THREE.BackSide,
-//         blending: THREE.AdditiveBlending,
-//         transparent: true,
-//         depthWrite: false,
-//       });
-//       return material
-//     }
-//     //let material = new SpotLightMaterial()//getMaterial()
-//     let material = getMaterial()
-//     this.frontFacePointer = new THREE.Mesh(geometry, material);
-    
-//     // this.frontFacePointer.position.set(1.5, 2, 0)
-//     // this.frontFacePointer.lookAt(new THREE.Vector3(0, 0, 0))
-//     material.uniforms.lightColor.value.set(this.color)
-//     material.uniforms.spotPosition.value = this.frontFacePointer.position
-//     this.gltf.scene.add(this.frontFacePointer)
-    
-//     const spotlightTargetGeo = new THREE.SphereGeometry(0.1, 32, 16);
-//     const spotlightTargetMaterial = new THREE.MeshBasicMaterial({ color: 0xffff00 });
-//     const target = new THREE.Mesh(spotlightTargetGeo, spotlightTargetMaterial);
-//     target.visible = false
-//     target.position.set( 0 , - 1 , - 1.5)
-//     // var target = new Object3D()
-//     this.gltf.scene.add(target)
-//     var light = new THREE.SpotLight(this.color, 10, 100, Math.PI / 6, 25);
-//     light.position.set(0, 0, -1) 
-//     light.target = target;
-    
-//     this.gltf.scene.add(light)
-//   }
-
 }
 
 
@@ -1300,11 +1183,11 @@ class Import3DModelSettings {
 //       testRobot.scale.multiplyScalar(0.1)
 //       testRobot.visible = true
 //       // object.position.y = - 95;
-//       this.scene.objRef.add(object);
+//       this.scene.add(object);
 //     });
 //   });
-//   this.camera.objRef.position.set(0, 10, 20)
-//   this.camera.objRef.lookAt(1, -0.9, -0.5)
+//   this.camera.position.set(0, 10, 20)
+//   this.camera.lookAt(1, -0.9, -0.5)
 //   this.orbitCtrl.update()
 
 //   return
@@ -1522,7 +1405,7 @@ const MS_BLOCK2_VERTICES = `[{"x": 135 ,"y" : 515 } , {"x" : 690 , "y" : 515 } ,
 //   for (let s = 0; s < sourceVertices.array.length; s++) {
 //     sv.push(new THREE.Vector3(sourceVertices.array[s * 3 + 0], sourceVertices.array[s * 3 + 1], sourceVertices.array[s * 3 + 2]))
 //   }
-//   this.master.scene.objRef.updateMatrixWorld()
+//   this.master.scene.updateMatrixWorld()
 
 //   var index = geometry2.index;
 //   var facess = index.count / 3;
@@ -1725,7 +1608,53 @@ const MS_BLOCK2_VERTICES = `[{"x": 135 ,"y" : 515 } , {"x" : 690 , "y" : 515 } ,
 //   obj.add(mesh)
 //   // mesh.position.set(0, 0, 0)
 //   // material.uniforms.spotPosition.value = mesh.position
-//   this.scene.objRef.add(obj);
+//   this.scene.add(obj);
 //   obj.position.set(50,150,50)
 //   obj.scale.set(100,100,100)
 // }
+
+//  new ShaderMaterial( {
+
+//   uniforms: {
+//     'maskTexture': { value: null },
+//     'edgeTexture1': { value: null },
+//     'edgeTexture2': { value: null },
+//     'patternTexture': { value: null },
+//     'edgeStrength': { value: 1.0 },
+//     'edgeGlow': { value: 1.0 },
+//     'usePatternTexture': { value: 0.0 }
+//   },
+
+//   vertexShader:
+//     'varying vec2 vUv;\n\
+//     void main() {\n\
+//       vUv = uv;\n\
+//       gl_Position = projectionMatrix * modelViewMatrix * vec4( position, 1.0 );\n\
+//     }',
+
+//   fragmentShader:
+//     'varying vec2 vUv;\
+//     uniform sampler2D maskTexture;\
+//     uniform sampler2D edgeTexture1;\
+//     uniform sampler2D edgeTexture2;\
+//     uniform sampler2D patternTexture;\
+//     uniform float edgeStrength;\
+//     uniform float edgeGlow;\
+//     uniform bool usePatternTexture;\
+//     \
+//     void main() {\
+//       vec4 edgeValue1 = texture2D(edgeTexture1, vUv);\
+//       vec4 edgeValue2 = texture2D(edgeTexture2, vUv);\
+//       vec4 maskColor = texture2D(maskTexture, vUv);\
+//       vec4 patternColor = texture2D(patternTexture, 6.0 * vUv);\
+//       float visibilityFactor = 1.0 - maskColor.g > 0.0 ? 1.0 : 0.5;\
+//       vec4 edgeValue = edgeValue1 + edgeValue2 * edgeGlow;\
+//       vec4 finalColor = edgeStrength * maskColor.r * edgeValue;\
+//       if(usePatternTexture)\
+//         finalColor += + visibilityFactor * (1.0 - maskColor.r) * (1.0 - patternColor.r);\
+//       gl_FragColor = finalColor;\
+//     }',
+//   blending: AdditiveBlending,
+//   depthTest: false,
+//   depthWrite: false,
+//   transparent: true

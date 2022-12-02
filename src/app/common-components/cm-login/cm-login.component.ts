@@ -55,7 +55,7 @@ export class CmLoginComponent implements OnInit {
     }else if(!this.authSrv.username && !this.util.arcsApp){
       this.router.navigate(['/login'])
     }
-    if(this.util.arcsApp){
+    if(this.util.arcsApp && !this.util.config.DISABLE_RECAPTCHA){
       this.recaptchaV3Service = <ReCaptchaV3Service>this.injector.get(ReCaptchaV3Service);
     }
   }
@@ -134,7 +134,7 @@ export class CmLoginComponent implements OnInit {
       }
 
     }
-    if (this.util.standaloneApp) {
+    if (this.util.standaloneApp || this.util.config.DISABLE_RECAPTCHA) {
       sendRequest(null)
     } else {
       this.recaptchaV3Service.execute('login').subscribe((token) => sendRequest(token))

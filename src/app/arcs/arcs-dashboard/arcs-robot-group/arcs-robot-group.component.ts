@@ -1,4 +1,4 @@
-import { ChangeDetectorRef, Component, NgZone, OnInit, ViewChild } from '@angular/core';
+import { ChangeDetectorRef, Component, NgZone, OnInit, ViewChild , HostBinding } from '@angular/core';
 import { RvHttpService } from 'src/app/services/rv-http.service';
 import { UiService } from 'src/app/services/ui.service';
 import { DrawingBoardComponent, PixiCommon, Robot } from 'src/app/ui-components/drawing-board/drawing-board.component';
@@ -22,6 +22,7 @@ export class ArcsRobotGroupComponent implements OnInit {
   parentRow
   readonly
   @ViewChild('editableGrid') editableGrid : ListviewComponent
+  @HostBinding('class') cssClass : string = 'robot-group'
   frmGrp = new FormGroup({
     master : new FormControl(null, Validators.required),
     groupName : new FormControl(null , Validators.required)

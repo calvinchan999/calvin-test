@@ -101,7 +101,6 @@ import {OverlayModule} from '@angular/cdk/overlay';
 import {MsgDialogContent} from  './services/ui.service';
 import { PowerBIEmbedModule } from 'powerbi-client-angular';
 import { RECAPTCHA_V3_SITE_KEY, RecaptchaV3Module } from "ng-recaptcha";
-import { NgxThreeModule } from 'ngx-three';
 
 var routes = [];
 var standaloneApp = environment.app.toUpperCase() == 'STANDALONE'
@@ -322,7 +321,6 @@ import { CmTaskCancelComponent } from './common-components/cm-task/cm-task-cance
         
     ],
     imports: [
-        NgxThreeModule,
         PowerBIEmbedModule,
         ZXingScannerModule,
         A11yModule,

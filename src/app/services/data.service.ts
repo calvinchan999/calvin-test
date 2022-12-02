@@ -45,7 +45,8 @@ export class DataService {
     changeMap : false,
     localize  : false,
     maxSpeed : false,
-    safetyZone : false
+    safetyZone : false,
+    shutdown : false
   }
   public alertFloorPlans :{type : string ,floorPlanCode : string , mapCode : string , robotBases : string[]}[] = []
   public unreadNotificationCount = new BehaviorSubject<number>(0)
@@ -520,13 +521,6 @@ export class DataService {
 
 
   async init(){
-    if(this.util.config.DISABLED_FUNCTIONS){
-      let keys : string[]= this.util.config.DISABLED_FUNCTIONS.filter(f=>Object.keys(this.disabledModule_SA).includes(f))
-      keys.forEach(k=> this.disabledModule_SA[k] = true)
-      if(keys.length > 0){
-        console.log(`DISABLED FUNCTION (from UI config.json) : ${keys}`)
-      }
-    }
     this.disabledModule_SA.pairing = this.disabledModule_SA.followMe // binded
     if(this.util.config.LANGUAGES){
       let options = []
@@ -543,6 +537,18 @@ export class DataService {
     let ticket = this.uiSrv.loadAsyncBegin()
 
     if (this.util.standaloneApp) {
+      let profile : {serviceList : {name : string , enabled : boolean}[]} = await this.httpSrv.rvRequest('GET', 'baseControl/v1/profile' , undefined, false)
+      profile.serviceList.forEach(s=> this.disabledModule_SA[s.name] = !s.enabled)
+      // // APPLICABLE ONLY BEWTWEEN VERSION 20221122 - 20221201
+      // if(this.util.config.DISABLED_FUNCTIONS){
+      //   let keys : string[]= this.util.config.DISABLED_FUNCTIONS.filter(f=>Object.keys(this.disabledModule_SA).includes(f))
+      //   keys.forEach(k=> this.disabledModule_SA[k] = true)
+      //   if(keys.length > 0){
+      //     console.log(`DISABLED FUNCTION (from UI config.json) : ${keys}`)
+      //   }
+      // }
+      // // APPLICABLE ONLY BEWTWEEN VERSION 20221122 - 20221201
+
       this.getRobotInfo()
       let lidarStatusResp = await this.httpSrv.rvRequest('GET', this.signalRMaster.lidarStatus.api, undefined, false)
       if (lidarStatusResp?.SwitchOn) {
@@ -652,7 +658,7 @@ export class DataService {
         } else if(this.util.arcsApp){       
             if(this.getSubscribedCount(type, paramString) == 0){      
               if(['ieq'].includes(type)){
-                let resp = await this.httpSrv.rvRequest('GET' , this.signalRMaster[type]['api'] + paramString)
+                let resp = await this.httpSrv.rvRequest('GET' , this.signalRMaster[type]['api']  + '/' + paramString)
                 if(resp && resp.status == 200){
                   this.updateSignalRBehaviorSubject(type, JSON.parse(resp.body), paramString)
                 }

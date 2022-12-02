@@ -27,31 +27,13 @@
     <span class="mdi mdi-video-2d"></span>
   </button>
 </div>
-
-<th-canvas #canvas (onRender)="animate()" >
+<div #canvas class="canvas-container"></div>
+<!-- <th-canvas #canvas (onRender)="animate()" >
   <th-scene #scene>
-    <th-ambientLight [intensity]="0.7"> </th-ambientLight>
-     <!-- [intensity]="0.7" -->
-
-    <!-- <th-object3D #object 
-        (onClick)="selected = !selected"
-      >
-      </th-object3D> -->
-    <!-- [scale]="selected ? [2, 2, 2] : [1, 1, 1]" -->
-
-    <!-- <th-gridHelper [args]="[1000, 1000]"></th-gridHelper> -->
-
-    <th-pointLight [position]="[floorplan?.width / 2 ,  floorplan?.height  ,  floorplan?.height / 2]" [intensity]="0.4" [decay]="10">
+    <th-ambientLight [intensity]="0.1" intensity_x="0.7"> </th-ambientLight>
+    <th-pointLight [position]="[floorplan?.width / 2 ,  floorplan?.height  ,  floorplan?.height / 2]" [intensity]="0.1" intensity_x = "0.4" [decay]="10"> 
     </th-pointLight>
-    <!-- <th-directionalLight [castShadow]="false" [color]="16777215" [intensity]="0.4"></th-directionalLight> -->
     <th-perspectiveCamera #camera [args]="[45, 1, 1 , 10000000]">
-      <!-- [position]="[120, 700 , 900]" -->
-      <!-- [lookAt]="[10, 10, 10]" -->
-      <!-- <th-orbitControls #orbitControl></th-orbitControls>  -->
     </th-perspectiveCamera>
-
-    <!-- <th-effectComposer>
-      <th-renderPass></th-renderPass>
-    </th-effectComposer> -->
   </th-scene>
-</th-canvas>
+</th-canvas> -->

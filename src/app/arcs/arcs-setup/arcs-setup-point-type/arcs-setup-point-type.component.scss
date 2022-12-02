@@ -1,15 +1,13 @@
-.container{
+:host .container{
     display: flex;
     min-width: 40vw;
-    padding: 10px;
     margin-bottom: 10px;
 }
-.form-container{
-    padding: 10px;
+:host .form-container{
     min-width: 25vw;
 }
 
-.viewport-container{
+:host .viewport-container{
     flex-grow: 1;
     padding: 10px;
 }
