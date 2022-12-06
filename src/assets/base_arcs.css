@@ -27815,6 +27815,18 @@ a {
   width: 75vw;
   padding: 0 20px;
 }
+
+.k-window .k-window-content .robot-group .dialog-content {
+  height: 75vh;
+  width: 75vw;
+}
+
+.k-window .k-window-content .robot-group .dialog-content .flex-container {
+  height: calc(100% - 60px);
+}
+.k-window .k-window-content .robot-group .listview-footer-row-container .new-row .listview-row .listview-cell.robotCode {
+	width: calc(100% - 80px) !important;
+}
 .k-window .k-window-content .task-job .listview-container, .k-window .k-window-content .task-template .listview-container {
   width: max-content;
   border: none;
@@ -27830,6 +27842,10 @@ a {
 .listview-footer-row-container .new-row .listview-row .listview-cell.add {
   margin-left: auto;
   justify-content: center;
+  max-width: 80px;
+}
+.listview-footer-row-container .new-row .listview-row .listview-cell.add a:hover {
+  text-decoration: none;
 }
 .listview-footer-row-container .new-row .listview-row .listview-cell.orientation {
   margin-left: 10px;
@@ -27883,7 +27899,7 @@ a {
   padding: 0 5px;
 }
 .listview-cell.focused-cell uc-dropdown {
-  margin-left: -4px;
+  
 }
 .k-window .dialog-content.change-password {
   width: 350px;
@@ -27949,8 +27965,7 @@ a {
 }
 /* popup - Schedule */
 .k-window .dialog-content.task-schedule {
-  width: 60vw;
-  padding: 20px;
+  width: 50vw;
   padding-top: 0;
 }
 .k-window .dialog-content.task-schedule uc-cron-editor {
@@ -28045,13 +28060,14 @@ a {
 .dialog-content .list-container {
   height: 100%;
 }
-.k-window-content .task-job .list-container {
+.k-window-content .list-container {
   width: calc(100% - 2px);
   overflow: hidden;
   flex-grow: 1;
   border: 1px solid #aaa;
   border-radius: 5px;
 }
+
 .flex-container {
   height: 100%;
   display: flex;
@@ -28645,6 +28661,8 @@ uc-dropdown .dropdown-container {
 .k-window .k-datetimepicker {}
 .k-window .k-textarea .k-input {
   min-height: 80px;
+  font-size: 1.2em;
+  font-family: inherit;
 }
 .button-container {
   display: flex;
@@ -29650,6 +29668,9 @@ app-sa-pages-task-overlay, app-sa-pages-task-overlay .task-overlay {
 }
 .k-dialog .pin-list .item .value {
   font-size: 1.5em;
+}
+.k-window .dialog-content.task-cancel .col {
+  width: 400px;
 }
 /* Tab - Vertical */
 .k-tabstrip.vertical {

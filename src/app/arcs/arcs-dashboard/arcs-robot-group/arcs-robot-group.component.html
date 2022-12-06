@@ -1,25 +1,24 @@
-<div class="dialog-content robot-group flex-container">
+<div class="dialog-content">
     <kendo-dialog-titlebar (close)="onClose()">
         <div>{{'Robot Group' | label: uiSrv.langPack}}</div>
     </kendo-dialog-titlebar>
     <div class="flex-container">
-        <div class="form-container">
-            <form [formGroup]="frmGrp" class="content">
-                <div class="form-row">
-                    <uc-txtbox lab="Group Name" [frmGrp]="frmGrp" frmCtrl="groupName" [disabled] = "parentRow"></uc-txtbox>
-                    <uc-dropdown lab="Master Robot"  [frmGrp]="frmGrp" frmCtrl="master"  [disabled] = 'readonly'
-                                 [options] = "dropdown.options.robots" [allowClear] = "false">
-                    </uc-dropdown>
-                </div>     
-            </form>  
-        </div>
+        <form [formGroup]="frmGrp" class="content">
+            <div class="form-row">
+                <uc-txtbox lab="Group Name" [frmGrp]="frmGrp" frmCtrl="groupName" [disabled]="parentRow"></uc-txtbox>
+                <uc-dropdown lab="Master Robot" [frmGrp]="frmGrp" frmCtrl="masterRobotCode" [disabled]='readonly'
+                    [options]="dropdown.options.robots" [allowClear]="false">
+                </uc-dropdown>
+            </div>
+        </form>
         <div class="list-container">
-            <uc-listview #editableGrid [columnDef]="listDef" [(data)]="clientList" [(newRow)] = "newClientRow" [editable] = "!readonly">
+            <uc-listview #editableGrid [columnDef]="listDef" [(data)]="clientList" [(newRow)]="newClientRow"
+                [editable]="!readonly">
             </uc-listview>
-        </div>   
+        </div>
     </div>
     <div class="button-container">
         <button kendoButton (click) = "onClose()" > {{'Cancel' | label : uiSrv.langPack}}</button>
-        <button *ngIf="!readonly" kendoButton (click) = "saveToDB()" [disabled] = "true"> {{'Save' | label : uiSrv.langPack}}</button>
+        <button *ngIf="!readonly" kendoButton (click) = "saveToDB()" > {{'Save' | label : uiSrv.langPack}}</button>
     </div>
 </div>

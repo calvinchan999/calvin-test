@@ -133,7 +133,7 @@ export class ArcsDashboardComponent implements OnInit {
         apiUrl: "api/robot/robotGroup/page/v1",
         columns: [
           { title: "", type: "checkbox", id: "select", width: 30, fixed: true },
-          //{ title: "#", type: "button", id: "edit", width: 30, icon: 'k-icon k-i-edit iconButton', fixed: true },
+          { title: "#", type: "button", id: "edit", width: 30, icon: 'k-icon k-i-edit iconButton', fixed: true },
           { title: "Group Name", id: "name", width: 50 },
           { title: "Robots", id: "robotCodes", width: 150 },
         ],
@@ -547,9 +547,10 @@ export class ArcsDashboardComponent implements OnInit {
     let urlMapping = {
       template: 'api/task/mission/v1' ,
       schedule: 'api/task/schedule/v1' ,
+      group : 'api/robot/robotGroup/v1'
     }
    
-    let resp = await this.dataSrv.deleteRecordsV2(urlMapping[this.selectedTab] ,   this.data.filter(r => r['select'] == true))
+    let resp = await this.dataSrv.deleteRecordsV2(urlMapping[this.selectedTab], this.data.filter(r => r['select'] == true))
     if (resp == true) {
       this.loadData()
     }

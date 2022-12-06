@@ -65,7 +65,7 @@
     </kendo-tilelayout-item> -->
     <kendo-tilelayout-item kendoTooltip #tooltipFr="kendoTooltip" filter=".k-left-handle" showOn="none" class = "tile daily" [col]="1" [row]="2" [rowSpan] = "4" [colSpan] = "12" [title]="'Task Count per Day' | label: uiSrv.langPack"  >
         <kendo-chart  #navigatorChart (selectStart)="onSelectStart()" (select)="onSelect($event)" (selectEnd)="onSelectEnd($event);"   
-                                      [transitions]="usability.daily.transitions"  class="kendo-chart-time-series"
+                                      [transitions]="usability.daily.transitions"  class="kendo-chart-time-series" (seriesClick) = "onSeriesClick($event)"
                       [seriesColors]="[style.seriesColors[0], style.seriesColors[0]]"
                       [categoryAxis]="[
                       {
@@ -98,7 +98,7 @@
     </kendo-tilelayout-item>
 
     <kendo-tilelayout-item class="weekly" [col]="1" [row]="6" [colSpan] = "4" [rowSpan]="2" [title]="'Average Task Count per Weekday' | label: uiSrv.langPack" >
-                <kendo-chart [seriesColors]="style.seriesColors">  
+                <kendo-chart [seriesColors]="style.seriesColors"  (seriesClick) = "onSeriesClick($event)">  
                     <kendo-chart-area background="transparent"></kendo-chart-area>   
                     <kendo-chart-tooltip format="{0}"></kendo-chart-tooltip>
                     <!-- <kendo-chart-title  [align]="'left'" [text]="'Average Job Order per Weekday' | label: uiSrv.langPack" [color]="style.textColor" ></kendo-chart-title>                    -->
@@ -118,7 +118,7 @@
                 </kendo-chart>
     </kendo-tilelayout-item>
     <kendo-tilelayout-item  class="hourly" [col]="5" [row]="6" [colSpan] = "4" [rowSpan]="2" [title]="'Average Task Count By Hour' | label: uiSrv.langPack">
-                <kendo-chart [seriesColors]="style.seriesColors">   
+                <kendo-chart [seriesColors]="style.seriesColors"  (seriesClick) = "onSeriesClick($event)">   
                     <kendo-chart-area background="transparent"></kendo-chart-area>  
                     <kendo-chart-tooltip format="{0}"></kendo-chart-tooltip>
                     <!-- <kendo-chart-title  [align]="'left'" [text]="'Average Job Order By Hour' | label: uiSrv.langPack" [color]="style.textColor" ></kendo-chart-title>                    -->
@@ -138,7 +138,7 @@
                 </kendo-chart>
     </kendo-tilelayout-item>
     <kendo-tilelayout-item  class="type"  [col]="9" [row]="6" [colSpan] = "4"  [rowSpan]="2" [title]="'Task Count by Type' | label: uiSrv.langPack">
-                <kendo-chart [seriesColors] = "style.seriesColors">
+                <kendo-chart #robotTypeUsabilityDonut name="robotType" [seriesColors] = "style.seriesColors"  (seriesClick) = "onSeriesClick($event)" >
                     <kendo-chart-area background="transparent"></kendo-chart-area>
                     <!-- <kendo-chart-title [align]="'left'" [text]="'Job Order by Type' | label: uiSrv.langPack"  [color]="style.textColor" ></kendo-chart-title>     -->
                     <ng-template kendoChartDonutCenterTemplate>
@@ -152,7 +152,7 @@
                             </ng-template>
                       </kendo-chart-tooltip>
                       <kendo-chart-series-item type="donut" [data]="usability.robotType.data" field="value" categoryField="category" [holeSize] = "30" [padding] = "35"
-                            [labels]="{ visible: true, visual: usability.robotType.labelVisual, position : 'outsideEnd' , distance:10 , color:style.textColor }"  
+                                                            [labels]="{ visible: true, visual: usability.robotType.labelVisual, position : 'outsideEnd' , distance:10 , color:style.textColor }"  
                       >
                       </kendo-chart-series-item>
                     </kendo-chart-series>
@@ -218,7 +218,7 @@
             </kendo-tilelayout-item-body>
         </kendo-tilelayout-item>
         <kendo-tilelayout-item kendoTooltip #tooltipFr="kendoTooltip" filter=".k-left-handle" showOn="none" class = "tile daily" class="tile" [col]="1" [row]="2" [rowSpan]="3" [colSpan]="5" [title]="'Average Robot Utilization' | label: uiSrv.langPack">
-            <kendo-chart #navigatorChart (selectStart)="onSelectStart()" (select)="onSelect($event)"  (selectEnd)="onSelectEnd($event)"  [seriesColors]="style.seriesColors" [categoryAxis]="[
+            <kendo-chart #navigatorChart  (seriesClick) = "onSeriesClick($event)" (selectStart)="onSelectStart()" (select)="onSelect($event)"  (selectEnd)="onSelectEnd($event)"  [seriesColors]="style.seriesColors" [categoryAxis]="[
                         {
                           color : style.textColor,
                           categories: utilization.daily.categories,
@@ -276,7 +276,7 @@
             </kendo-chart>
         </kendo-tilelayout-item>
         <kendo-tilelayout-item class="tile" [col]="1" [row]="5" [rowSpan]="3" [colSpan]="3" [title]="'Average Robot Utilization by Robot Type' | label: uiSrv.langPack">
-            <kendo-chart [seriesColors]="style.seriesColors">     
+            <kendo-chart  (seriesClick) = "onSeriesClick($event)" [seriesColors]="style.seriesColors">     
                 <kendo-chart-area background="transparent"></kendo-chart-area>
                 <kendo-chart-legend position="bottom" orientation="horizontal" [markers]="{type:'circle'}" [labels] = "{color : '#FFFFFF'}">
                 </kendo-chart-legend>

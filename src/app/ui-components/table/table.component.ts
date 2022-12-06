@@ -9,7 +9,8 @@ import {distinct,filterBy,FilterDescriptor} from "@progress/kendo-data-query";
 import { FilterService } from "@progress/kendo-angular-grid";
 import { PopupSettings } from "@progress/kendo-angular-dateinputs";
 import { addDays } from "@progress/kendo-date-math";
-import { Subscription } from "rxjs";
+import { Subscription ,Subject} from "rxjs";
+import { takeUntil , filter } from "rxjs/operators";
 
 @Component({
   selector: 'uc-table',
@@ -92,6 +93,7 @@ export class TableComponent implements OnInit {
 
   actions = []
   fullData = []
+  $onDestroy = new Subject()
 
   public filter: CompositeFilterDescriptor = { logic: "and", filters: [] };
 
@@ -102,6 +104,10 @@ export class TableComponent implements OnInit {
   ngOnInit(): void {
     this.resetState()
     this.getAccessObj()
+    this.uiSrv.lang.pipe(filter(v => v != null), takeUntil(this.$onDestroy)).subscribe(l => {
+      this.actions.forEach(a => a.text = this.uiSrv.translate(this.allActions.filter(a2=>a2.actionId == a.actionId)[0]?.text))
+      this.actions = JSON.parse(JSON.stringify(this.actions))
+    })
   }  
 
   ngOnChanges(evt){  

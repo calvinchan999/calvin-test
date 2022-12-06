@@ -24,7 +24,7 @@ export class ArcsRobotGroupComponent implements OnInit {
   @ViewChild('editableGrid') editableGrid : ListviewComponent
   @HostBinding('class') cssClass : string = 'robot-group'
   frmGrp = new FormGroup({
-    master : new FormControl(null, Validators.required),
+    masterRobotCode : new FormControl(null, Validators.required),
     groupName : new FormControl(null , Validators.required)
   })
   dropdown = {
@@ -34,7 +34,7 @@ export class ArcsRobotGroupComponent implements OnInit {
   listDef = [
     { id: 'drag' , type: 'drag',title: '',  width: 5 },
     { id: 'seq',  type: 'seq' , title: '#', width: 5 },
-    { id: 'client', title: 'Client Robot', width: 30 , type : 'dropdown' },
+    { id: 'robotCode', title: 'Client Robot', width: 80 , type : 'dropdown' },
     { id: 'remove', type: 'button', action: 'remove', title: '', width: 5, class: 'k-icon mdi mdi-close-thick',
       newRow: {
         id: 'add', type: 'button', action: 'add', class: 'k-icon mdi mdi-check-bold'
@@ -44,12 +44,24 @@ export class ArcsRobotGroupComponent implements OnInit {
   clientList = []
   newClientRow = {}
   dialogRef
+  key = 'groupId' 
   constructor(public util: GeneralUtil, public uiSrv: UiService, public dialogService: DialogService, public ngZone: NgZone, public httpSrv: RvHttpService,
               public changeDetector: ChangeDetectorRef, private dataSrv: DataService, public dialogSrv: DialogService, public authSrv: AuthService) { 
               
   }
 
   async ngOnInit(){
+    if(this.parentRow){
+      this.readonly = true // no edit for this function
+      this.loadData()
+    }
+  }
+
+  async loadData(){
+    let data: RobotGroupDto = await this.dataSrv.httpSrv.rvRequest('GET', 'robotGroup/v1?groupId=' + this.parentRow[this.key], undefined, false)
+    this.frmGrp.controls['groupName'].setValue(data.groupName)
+    this.frmGrp.controls['masterRobotCode'].setValue(data.pairingRobotList.filter(r=>r.master)[0]?.robotCode)
+    this.clientList = data.pairingRobotList.filter(r=>!r.master).map(r => { return { robotCode: r.robotCode } })
   }
 
   async ngAfterViewInit() {
@@ -58,7 +70,7 @@ export class ArcsRobotGroupComponent implements OnInit {
     this.dropdown.data.robots = ddl.data
     this.dropdown.options.robots = ddl.options
     this.uiSrv.loadAsyncDone(ticket)
-    this.listDef.filter(d => d.id == 'client')[0]['options'] = JSON.parse(JSON.stringify(this.dropdown.options.robots))
+    this.listDef.filter(d => d.id == 'robotCode')[0]['options'] = JSON.parse(JSON.stringify(this.dropdown.options.robots))
     this.listDef = JSON.parse(JSON.stringify(this.listDef))
   }
 
@@ -67,13 +79,13 @@ export class ArcsRobotGroupComponent implements OnInit {
     if(!this.editableGrid.validate()){
       return false
     }
-    if(clientRobotCodeList.includes(this.frmGrp.controls['master'].value)){
-      this.editableGrid.setErrors(clientRobotCodeList.indexOf(this.frmGrp.controls['master'].value) , 'client', "Client robot should be different from master robot")
+    if(clientRobotCodeList.includes(this.frmGrp.controls['masterRobotCode'].value)){
+      this.editableGrid.setErrors(clientRobotCodeList.indexOf(this.frmGrp.controls['masterRobotCode'].value) , 'robotCode', "Client robot should be different from master robot")
       return false
     }
     var duplicateCode = clientRobotCodeList.filter(r=> clientRobotCodeList.filter(r2=> r2 == r).length > 1)[0]
     if(duplicateCode){
-      this.editableGrid.setErrors(clientRobotCodeList.indexOf(duplicateCode) , 'client', "Duplicated Robot")
+      this.editableGrid.setErrors(clientRobotCodeList.indexOf(duplicateCode) , 'robotCode', "Duplicated Robot")
       return false
     }
     return true
@@ -87,8 +99,20 @@ export class ArcsRobotGroupComponent implements OnInit {
   }
 
   getSubmitDataset() {
-    let ret = {}
-    Object.keys(this.frmGrp.controls).forEach(k => ret[k] = this.frmGrp.controls[k].value)
+    let ret : RobotGroupDto = {
+      groupName : this.frmGrp.controls['groupName'].value,
+      pairingRobotList : [{
+        robotCode: this.frmGrp.controls['masterRobotCode'].value ,
+        master: true,
+        sequence: 0
+      }].concat(this.clientList.map(c=>{
+        return {
+          robotCode: c.robotCode ,
+          master: false,
+          sequence: Number(c.seq)
+        }
+      }))
+    }
     return ret
   }
 
@@ -97,8 +121,18 @@ export class ArcsRobotGroupComponent implements OnInit {
       return
     }
     let ds = this.getSubmitDataset()
-    if ((await this.dataSrv.saveRecord("", ds,  this.frmGrp , true)).result == true) { // ONLY have POST method for schedule
+    if ((await this.dataSrv.saveRecord("api/robot/robotGroup/v1", ds,  this.frmGrp , true)).result == true) { // ONLY have POST method for schedule
       this.dialogRef.close()
     }
   }
+}
+
+class RobotGroupDto {
+  groupName: string
+  pairingRobotList:
+    {
+      robotCode: string
+      master: boolean,
+      sequence: number
+    }[]
 }

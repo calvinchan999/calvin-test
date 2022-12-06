@@ -703,7 +703,8 @@ class Object3DCommon extends Object3D{
     this.mouseOvered = true
     if( this.outlinePass){
       this.outlinePass.edgeGlow = 1
-      this.outlinePass.edgeStrength = 4.5
+      this.outlinePass.edgeThickness = 2
+      this.outlinePass.edgeStrength = 4
     }else{
       this.gltf.scene.traverse( (s : any)=> {      
         if (s.isMesh === true && s.material?.originalHex!= null){
@@ -719,6 +720,7 @@ class Object3DCommon extends Object3D{
     }
     if( this.outlinePass){
       this.outlinePass.edgeGlow = 0
+      this.outlinePass.edgeThickness = 1
       this.outlinePass.edgeStrength = 3
     }
     this.gltf.scene.traverse( (s : any)=> {      
@@ -851,7 +853,7 @@ export class RobotObject3D extends Object3DCommon{
       scale : 3,
       position : {x : 4 , y: 0 , z : -20},
       rotate : {x : NORMAL_ANGLE_ADJUSTMENT , y : 0,  z : 180/radRatio } ,
-      recolorMaterials : ['Material33'],
+      // recolorMaterials : ['Material33'],
     },
     PATROL: {
       path : "assets/3D/robot_patrol.glb",
@@ -877,7 +879,7 @@ export class RobotObject3D extends Object3DCommon{
   pointerSetting : Import3DModelSettings = {
     path : null ,
     scale : 20,
-    position : {x : 0 , y: 5 , z : -13 }
+    position : {x : 0 , y: 8 , z : -13 }
   }
   get opacity(){
     return this._opacity
@@ -922,7 +924,6 @@ export class RobotObject3D extends Object3DCommon{
   }
   _alert = false
   readonly size = 4
-  readonly frontIndicatorSize = 20
   readonly alertIconSetting = {
     size : 3 ,
     positionZ : 5

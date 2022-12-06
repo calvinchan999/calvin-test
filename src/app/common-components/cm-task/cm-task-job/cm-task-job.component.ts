@@ -681,7 +681,7 @@ export class CmTaskJobComponent implements OnInit {
       let floorPlanCodes = this.jobListData.filter(r => r.floorPlanCode != null && r.floorPlanCode != undefined).map(r => r.floorPlanCode)
       this.mapObj.steps = []
       floorPlanCodes.forEach(fid => {
-        if (this.mapObj.steps.length == 0 || this.mapObj.steps[this.mapObj.steps.length - 1].planCode != fid) {
+        if ((this.mapObj.steps.length == 0 || this.mapObj.steps[this.mapObj.steps.length - 1].planCode != fid) && this.dropdownData.floorplans.filter(r => r.floorPlanCode == fid).length > 0) {
           this.mapObj.steps.push({ planCode: fid, label: this.dropdownData.floorplans.filter(r => r.floorPlanCode == fid)[0].name})
         }
       })

@@ -1,5 +1,5 @@
 import { Text, Group} from "@progress/kendo-drawing";
-import { ChartComponent, LegendLabelsContentArgs, SeriesLabelsVisualArgs } from '@progress/kendo-angular-charts';
+import { ChartComponent, HighlightVisualArgs, LegendLabelsContentArgs, SeriesClickEvent, SeriesLabelsVisualArgs } from '@progress/kendo-angular-charts';
 import { ChangeDetectorRef, Component, NgZone, OnInit, Input , ViewChild , ElementRef , TemplateRef } from '@angular/core';
 import { RvHttpService } from 'src/app/services/rv-http.service';
 import { UiService } from 'src/app/services/ui.service';
@@ -32,6 +32,7 @@ export class ArcsChartsComponent implements OnInit {
   @ViewChild('tooltipTo') tooltipTo : TooltipDirective
   @ViewChild('frDateTpl') frDateTpl : TemplateRef<any>
   @ViewChild('toDateTpl') toDateTpl : TemplateRef<any>
+  @ViewChild('robotTypeUsabilityDonut') robotTypeUsabilityDonut : ChartComponent
   frDateTplView
   @Input() set chartType(t){
     let orginalType = this._chartType
@@ -157,8 +158,16 @@ export class ArcsChartsComponent implements OnInit {
     }
   }
 
+  robotTypeFilter = 'Mobile Chair'
+
   constructor(public datepipe: DatePipe ,  private util :GeneralUtil , public uiSrv : UiService , private dataSrv : DataService ) {
 
+  }
+
+  onSeriesClick(evt : SeriesClickEvent){
+    if(evt.sender == this.robotTypeUsabilityDonut){
+      console.log(evt.sender) 
+    }
   }
 
   showAbnormalTasks(id : 'failed' | 'canceled'){
@@ -252,6 +261,16 @@ export class ArcsChartsComponent implements OnInit {
   style = {
     textColor : '#FFFFFF',
     seriesColors: this.util.getConfigColors()
+  }
+
+  highlightVisual = (arg: HighlightVisualArgs)=>{
+    let ret = arg.createVisual();
+    let data = arg.sender.seriesComponents.first.data
+    this.robotTypeFilter
+    // console.log(ret)
+    //ret.options.set('color' , this.style.seriesColors[data.indexOf(data.filter(d=>d[arg.sender.seriesComponents.first.categoryField] == arg.category)[0])]) 
+    ret.options.set('opacity' , 1)
+    return ret;
   }
 
 
