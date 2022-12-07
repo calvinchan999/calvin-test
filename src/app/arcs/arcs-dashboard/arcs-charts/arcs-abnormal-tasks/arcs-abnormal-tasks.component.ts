@@ -1,5 +1,5 @@
 import { Component, OnInit , HostBinding } from '@angular/core';
-import { SeriesLabelsVisualArgs } from '@progress/kendo-angular-charts';
+import { HighlightVisualArgs, SeriesLabelsVisualArgs, SeriesVisualArgs } from '@progress/kendo-angular-charts';
 import { Group, Text } from '@progress/kendo-drawing';
 import { DataService } from 'src/app/services/data.service';
 import { EnumNamePipe, UiService } from 'src/app/services/ui.service';
@@ -22,6 +22,7 @@ export class ArcsAbnormalTasksComponent implements OnInit {
   taskState = 'failed'
   fromDate 
   toDate
+  robotType
   tabs=[
     { id: 'summary', label: 'Summary' },
     { id: 'detail', label: 'Detail' }
@@ -34,9 +35,10 @@ export class ArcsAbnormalTasksComponent implements OnInit {
       columns:[
         { title: "Description", id: "name", width: 100 },
         { title: "Assigned To", id: "robotCode", width: 50 },
+        { title: "Robot Type", id: "robotType", width: 50 },
         { title :"Aborted Reason" , id : "reasonCode" , width : 50},
         { title :"Reason Remarks" , id : "reasonMessage" , width : 100},
-        { title: "Created Date", id: "createdDateTime",  type: "date" , width: 50 },
+        { title: "Created Date", id: "createdDateTime",  type: "date" , width: 60 },
       ]
     },
     canceled: {
@@ -46,9 +48,10 @@ export class ArcsAbnormalTasksComponent implements OnInit {
       columns: [
         { title: "Description", id: "name", width: 100 },
         { title: "Assigned To", id: "robotCode", width: 50 },
+        { title: "Robot Type", id: "robotType", width: 50 },
         { title: "Cancel Reason", id: "reasonCode", width: 50 },
         { title: "Reason Remarks", id: "reasonMessage", width: 100 },
-        { title: "Created Date", id: "createdDateTime", type: "date", width: 50 },
+        { title: "Created Date", id: "createdDateTime", type: "date", width: 60 },
       ]
     }
   }
@@ -80,6 +83,14 @@ export class ArcsAbnormalTasksComponent implements OnInit {
     }
   }
 
+  highlightVisual = (arg: SeriesVisualArgs)=>{
+    let ret = arg.createVisual();
+    if(this.robotType && arg.dataItem.robotType!= this.robotType){
+      ret.options.set('opacity' , this.parent.style.dimOpacity)
+    }
+    return ret;
+  }
+
   @HostBinding('class') cssClass = 'dialog-content '
 
   constructor(public uiSrv : UiService , public dataSrv : DataService , public util : GeneralUtil) { }
@@ -103,7 +114,7 @@ export class ArcsAbnormalTasksComponent implements OnInit {
 
   initSummaryCategories(){
     let date = new Date(this.fromDate.getTime());
-    let to = new Date(this.toDate.getTime());
+    let to = new Date(this.toDate.getTime() + 86400000);
     let ticks = Math.ceil((to.getTime() - date.getTime()) / (1000 * 3600 * 24))
     for (let i = 0; i < ticks + 1 ; i++) {
       this.summary.categories.daily.push(date);
@@ -116,12 +127,12 @@ export class ArcsAbnormalTasksComponent implements OnInit {
   
   async refreshSummary() {
     let ticket = this.uiSrv.loadAsyncBegin()
-    var data : {type : string , category : string , value : number}[] =  await this.dataSrv.httpSrv.get(`api/analytics/task/v1?state=${this.taskState.toUpperCase()}&fromDate=${this.util.getSQLFmtDateStr(this.fromDate)}&toDate=${this.util.getSQLFmtDateStr(this.toDate)}`) 
+    var data : {type : string , category : string , value : number}[] =  await this.dataSrv.httpSrv.get(`api/analytics/task/v1?state=${this.taskState.toUpperCase()}&fromDate=${this.util.getSQLFmtDateStr(this.fromDate)}&toDate=${this.util.getSQLFmtDateStr(this.toDate)}${this.robotType ? `&robotType=${this.robotType}` : ''}`) 
     Object.keys(this.summary.data).forEach(k=>{
       if(k=="daily"){
         data.filter(d=>d.type == k.toUpperCase()).forEach(r=>{
           let splitedDateString = r.category.split("-")
-          let date = new Date(Number(splitedDateString[0]), Number(splitedDateString[1]) - 1, Number(splitedDateString[2]) - 1)
+          let date = new Date(Number(splitedDateString[0]), Number(splitedDateString[1]) - 1, Number(splitedDateString[2]) )
           let index = this.summary.categories.daily.filter(d=>d.getTime() == date.getTime()).map(d=>this.summary.categories.daily.indexOf(d))[0]
           this.summary.data.daily[index] = Number(this.util.trimNum(r.value, 0))
         })
@@ -129,6 +140,7 @@ export class ArcsAbnormalTasksComponent implements OnInit {
         this.summary.data[k] = data.filter(d => d.type == k.toUpperCase()).map(r => {
           return {
             type: r.type,
+            robotType : k == 'robot_type'?  r.category : undefined,
             category: this.uiSrv.translate(new EnumNamePipe().transform(r.category)),
             value: Number(this.util.trimNum(r.value, 0))
           }

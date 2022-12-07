@@ -6390,8 +6390,8 @@ a.k-badge:hover, .k-badge > a:hover {
   height: calc(1em + 6px);
 }
 .k-badge-circle.k-badge-md {
-  width: calc(1em + 10px);
-  height: calc(1em + 10px);
+  width: calc(1em + 5px);
+  height: calc(1em + 5px);
 }
 .k-badge-circle.k-badge-lg {
   width: calc(1em + 14px);
@@ -19005,6 +19005,7 @@ kendo-card, kendo-card-header, kendo-card-body, kendo-card-actions, kendo-card-f
   -webkit-tap-highlight-color: rgba(0, 0, 0, 0);
   padding: 0 !important;
   height: 100%;
+  width: 100%;
 }
 .k-tilelayout .k-ie11 {
   background-clip: border-box;
@@ -27497,6 +27498,13 @@ a {
 .header .profile, .header .settings, .header .logout {
   margin: 0 0.5rem;
 }
+
+.header .alert .k-badge-solid.k-badge-warning, .header .bg-job .k-badge-solid.k-badge-info {
+  top: 10px;
+  right: 2px;
+  font-family: system-ui;
+  font-size: 0.4em;
+}
 .header .logout button {
   border: none;
 }
@@ -28934,7 +28942,7 @@ app-sa-pages-task-overlay, app-sa-pages-task-overlay .task-overlay {
   padding: 0;
 }
 .card-container .bl-item {
-  width: 42%;
+  width: 80%;
   align-self: center;
   text-align: left;
 }
@@ -29062,7 +29070,7 @@ uc-drawing-board .bottom-sector .k-switch {
   height: 45%;
 }
 .card-container.module .ts-air-1 .bl-box:nth-of-type(2) .bl-item {
-  width: 45%;
+  width: 31%;
 }
 .k-scrollview-wrap .card-container.module .ts-air-1 .bl-box:first-of-type {
   justify-content: start;

@@ -3,6 +3,7 @@
     <kendo-tilelayout *ngIf="_chartType == 'usability' && usability"  kendoTooltip #tooltipTo="kendoTooltip" filter=".k-right-handle" showOn="none"  class="chart" [columns]="12"  [resizable]="false" [reorderable]="false">
     <kendo-tilelayout-item class = "tile select-year" [col]="1" [row]="1"  [colSpan] = "3">
         <div class="form-row">
+            <uc-dropdown  lab = "Robot Type" [(value)] = 'robotTypeFilter' (valueChange)="refreshChart()" [options] = "dropdownOptions.types" [allowClear]="false"></uc-dropdown>
             <uc-dropdown  lab = "Year" [(value)] = 'year' (valueChange)="refreshDateRange();refreshChart()" [options] = "dropdownOptions.years" [allowClear]="false"></uc-dropdown>
             <div class="date-range-label col form-group">
                 <div class="col-form-label">{{'Date Range' | label: uiSrv.langPack}}</div>
@@ -138,7 +139,7 @@
                 </kendo-chart>
     </kendo-tilelayout-item>
     <kendo-tilelayout-item  class="type"  [col]="9" [row]="6" [colSpan] = "4"  [rowSpan]="2" [title]="'Task Count by Type' | label: uiSrv.langPack">
-                <kendo-chart #robotTypeUsabilityDonut name="robotType" [seriesColors] = "style.seriesColors"  (seriesClick) = "onSeriesClick($event)" >
+                <kendo-chart #robotTypeUsabilityDonut name="robotType" [seriesColors] = "style.seriesColors"  (seriesClick) = "onSeriesClick($event)"   [transitions]="!robotTypeFilter" >
                     <kendo-chart-area background="transparent"></kendo-chart-area>
                     <!-- <kendo-chart-title [align]="'left'" [text]="'Job Order by Type' | label: uiSrv.langPack"  [color]="style.textColor" ></kendo-chart-title>     -->
                     <ng-template kendoChartDonutCenterTemplate>
@@ -152,7 +153,7 @@
                             </ng-template>
                       </kendo-chart-tooltip>
                       <kendo-chart-series-item type="donut" [data]="usability.robotType.data" field="value" categoryField="category" [holeSize] = "30" [padding] = "35"
-                                                            [labels]="{ visible: true, visual: usability.robotType.labelVisual, position : 'outsideEnd' , distance:10 , color:style.textColor }"  
+                                               [visual]="highlightVisual" [labels]="{ visible: true, visual: usability.robotType.labelVisual, position : 'outsideEnd' , distance:10 , color:style.textColor }"  
                       >
                       </kendo-chart-series-item>
                     </kendo-chart-series>
@@ -218,7 +219,7 @@
             </kendo-tilelayout-item-body>
         </kendo-tilelayout-item>
         <kendo-tilelayout-item kendoTooltip #tooltipFr="kendoTooltip" filter=".k-left-handle" showOn="none" class = "tile daily" class="tile" [col]="1" [row]="2" [rowSpan]="3" [colSpan]="5" [title]="'Average Robot Utilization' | label: uiSrv.langPack">
-            <kendo-chart #navigatorChart  (seriesClick) = "onSeriesClick($event)" (selectStart)="onSelectStart()" (select)="onSelect($event)"  (selectEnd)="onSelectEnd($event)"  [seriesColors]="style.seriesColors" [categoryAxis]="[
+            <kendo-chart #navigatorChart  (seriesClick) = "onSeriesClick($event)" (selectStart)="onSelectStart()" (select)="onSelect($event)"  (selectEnd)="onSelectEnd($event)"  [seriesColors]="style.seriesColors" [transitions]="false" [categoryAxis]="[
                         {
                           color : style.textColor,
                           categories: utilization.daily.categories,
@@ -276,7 +277,7 @@
             </kendo-chart>
         </kendo-tilelayout-item>
         <kendo-tilelayout-item class="tile" [col]="1" [row]="5" [rowSpan]="3" [colSpan]="3" [title]="'Average Robot Utilization by Robot Type' | label: uiSrv.langPack">
-            <kendo-chart  (seriesClick) = "onSeriesClick($event)" [seriesColors]="style.seriesColors">     
+            <kendo-chart  (seriesClick) = "onSeriesClick($event)" [seriesColors]="style.seriesColors" [transitions]="false">     
                 <kendo-chart-area background="transparent"></kendo-chart-area>
                 <kendo-chart-legend position="bottom" orientation="horizontal" [markers]="{type:'circle'}" [labels] = "{color : '#FFFFFF'}">
                 </kendo-chart-legend>

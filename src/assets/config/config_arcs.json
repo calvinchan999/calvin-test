@@ -12,16 +12,6 @@
 	"APPLICATION" : "/arcs_dotnet_api_dev",
 	"API_KEY"     : "f05914ea33124ba7a6cab301627c8adf",
 	"PAGE_SIZE"   : 10,
-  	"MQTT" : {
-  		"USER_NAME"          : "",
-  		"PASSWORD"           : "",
-  		"IP_ADDRESS"         : "158.132.102.161",
-		"PORT_NO"            : 61614,
-		"TOPIC_LIST"         : [
-			"polyu/ems/exception",
-			"polyu/ems/device/status"
-		]  
-	},
 	"PAGE_CONFIG" : {
 		"DASHBOARD_TOTAL_DEVICE" : 10,
 		"REFRESH_TIME_SECOND"    : 60 

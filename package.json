@@ -37,7 +37,7 @@
     "@pixi/filter-glow": "^4.1.5",
     "@pixi/filter-outline": "^4.1.5",
     "@progress/kendo-angular-buttons": "^6.0.0",
-    "@progress/kendo-angular-charts": "^5.1.0",
+    "@progress/kendo-angular-charts": "^6.0.1",
     "@progress/kendo-angular-common": "^2.0.0",
     "@progress/kendo-angular-dateinputs": "^5.1.0",
     "@progress/kendo-angular-dialog": "^5.2.1",

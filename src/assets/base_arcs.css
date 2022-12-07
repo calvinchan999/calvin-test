@@ -29459,10 +29459,14 @@ app-sa-pages-task-overlay, app-sa-pages-task-overlay .task-overlay {
   height: 45%;
 }
 .card-container.module .ts-air-1 .bl-box:nth-of-type(2) .bl-item {
-  width: 45%;
+  width: 31%;
 }
 .k-scrollview-wrap .card-container.module .ts-air-1 .bl-box:first-of-type {
   justify-content: start;
+}
+
+.card-container.module .ts-air-2 .bl-item {
+	width: 85%;
 }
 /* Dashboard - Controls */
 .card-container.home .ts-controls .controls-container {

@@ -1,5 +1,5 @@
 import { Text, Group} from "@progress/kendo-drawing";
-import { ChartComponent, HighlightVisualArgs, LegendLabelsContentArgs, SeriesClickEvent, SeriesLabelsVisualArgs } from '@progress/kendo-angular-charts';
+import { ChartComponent, HighlightVisualArgs, LegendLabelsContentArgs, SeriesClickEvent, SeriesLabelsVisualArgs, SeriesVisualArgs } from '@progress/kendo-angular-charts';
 import { ChangeDetectorRef, Component, NgZone, OnInit, Input , ViewChild , ElementRef , TemplateRef } from '@angular/core';
 import { RvHttpService } from 'src/app/services/rv-http.service';
 import { UiService } from 'src/app/services/ui.service';
@@ -54,10 +54,6 @@ export class ArcsChartsComponent implements OnInit {
     locations:[]
   }
 
-  fullYearDataset = {
-    usability : {},
-    utilization : {}
-  }
 
   usability : {
     total: number,
@@ -158,15 +154,16 @@ export class ArcsChartsComponent implements OnInit {
     }
   }
 
-  robotTypeFilter = 'Mobile Chair'
+  robotTypeFilter = null
 
   constructor(public datepipe: DatePipe ,  private util :GeneralUtil , public uiSrv : UiService , private dataSrv : DataService ) {
 
   }
 
   onSeriesClick(evt : SeriesClickEvent){
-    if(evt.sender == this.robotTypeUsabilityDonut){
-      console.log(evt.sender) 
+    if (evt.sender == this.robotTypeUsabilityDonut) {
+      this.robotTypeFilter = evt.dataItem.robotType ==  this.robotTypeFilter ? null : evt.dataItem.robotType
+      this.refreshChart(this.usability.daily.min , this.usability.daily.max)
     }
   }
 
@@ -178,6 +175,7 @@ export class ArcsChartsComponent implements OnInit {
     content.fromDate = this.getSelectedDateRange().fromDate
     content.toDate = this.getSelectedDateRange().toDate
     content.total = id == 'failed' ? this.usability.incomplete : this.usability.canceled
+    content.robotType = this.robotTypeFilter
     content.parent = this
     content.taskState = id
     // content.parentRow = evt?.row
@@ -224,6 +222,7 @@ export class ArcsChartsComponent implements OnInit {
       fr = this.utilization.daily.min
       to = this.utilization.daily.max
     }
+    to.setDate(to.getDate()-1)
     return {fromDate : fr , toDate : to}
   }
 
@@ -259,17 +258,16 @@ export class ArcsChartsComponent implements OnInit {
   }
 
   style = {
+    dimOpacity : 0.3 ,
     textColor : '#FFFFFF',
     seriesColors: this.util.getConfigColors()
   }
 
-  highlightVisual = (arg: HighlightVisualArgs)=>{
+  highlightVisual = (arg: SeriesVisualArgs)=>{
     let ret = arg.createVisual();
-    let data = arg.sender.seriesComponents.first.data
-    this.robotTypeFilter
-    // console.log(ret)
-    //ret.options.set('color' , this.style.seriesColors[data.indexOf(data.filter(d=>d[arg.sender.seriesComponents.first.categoryField] == arg.category)[0])]) 
-    ret.options.set('opacity' , 1)
+    if(this.robotTypeFilter && arg.dataItem.robotType!= this.robotTypeFilter){
+      ret.options.set('opacity' , this.style.dimOpacity)
+    }
     return ret;
   }
 
@@ -277,6 +275,7 @@ export class ArcsChartsComponent implements OnInit {
   async initDropDown(){
     let ddl = await this.dataSrv.getDropList('types')
     this.dropdownData.types = ddl.data;
+    this.dropdownOptions.types = [{ value: null, text: 'All' }].concat(this.dataSrv.getDropListOptions('types', ddl.data))
   }
 
   initYearDropDown(firstYear : number ){
@@ -314,23 +313,29 @@ export class ArcsChartsComponent implements OnInit {
     let toDateStr = this.util.getSQLFmtDateStr(toDate)
     let data = []
     if(this._chartType == 'usability'){
-      data = await this.dataSrv.httpSrv.get(`api/analytics/usability/v1?fromDate=${frDateStr}&toDate=${toDateStr}`)
+      data = await this.dataSrv.httpSrv.get(`api/analytics/usability/v1?fromDate=${frDateStr}&toDate=${toDateStr}${this.robotTypeFilter ? `&robotType=${this.robotTypeFilter}` : '' }`)
       this.usabilityData = JSON.parse(JSON.stringify(data))
     }else if(this._chartType == 'utilization'){
       data =  await this.dataSrv.httpSrv.get(`api/analytics/utilization/v1?fromDate=${frDateStr}&toDate=${toDateStr}`) 
       this.utilizationData = JSON.parse(JSON.stringify(data))
     }
-    if (fromDate.getFullYear() == toDate.getFullYear() && fromDate.getMonth() == 0 && fromDate.getDate() == 1 && ((
-        toDate.getMonth() == 11 && toDate.getDate() == 31) ||
-        (toDate.getFullYear() == new Date().getFullYear() && toDate.getMonth() == new Date().getMonth() && toDate.getDate() == new Date().getDate())
-      )) {
-      this.fullYearDataset[this._chartType][fromDate.getFullYear().toString()] = JSON.parse(JSON.stringify(data))
-      if(this.chartType == 'utilization' && isInit){
-        let tmpDate = toDate.getMonth() == 0 ?  new Date(toDate.getFullYear() , 0 , 1) : new Date(toDate.getFullYear() , toDate.getMonth() , toDate.getDate());
-        tmpDate.setMonth(tmpDate.getMonth()-1);
-        this.onSelectEnd({from : tmpDate , to : new Date(toDate.getTime() + 86400000)})
-      }
+    if (this.chartType == 'utilization' && isInit) {
+      let tmpDate = toDate.getMonth() == 0 ? new Date(toDate.getFullYear(), 0, 1) : new Date(toDate.getFullYear(), toDate.getMonth(), toDate.getDate());
+      tmpDate.setMonth(tmpDate.getMonth() - 1);
+      this.onSelectEnd({ from: tmpDate, to: new Date(toDate.getTime() + 86400000) })
     }
+
+    // if (fromDate.getFullYear() == toDate.getFullYear() && fromDate.getMonth() == 0 && fromDate.getDate() == 1 && ((
+    //     toDate.getMonth() == 11 && toDate.getDate() == 31) ||
+    //     (toDate.getFullYear() == new Date().getFullYear() && toDate.getMonth() == new Date().getMonth() && toDate.getDate() == new Date().getDate())
+    //   )) {
+    //   this.fullYearDataset[this._chartType][fromDate.getFullYear().toString()] = JSON.parse(JSON.stringify(data))
+    //   if(this.chartType == 'utilization' && isInit){
+    //     let tmpDate = toDate.getMonth() == 0 ?  new Date(toDate.getFullYear() , 0 , 1) : new Date(toDate.getFullYear() , toDate.getMonth() , toDate.getDate());
+    //     tmpDate.setMonth(tmpDate.getMonth()-1);
+    //     this.onSelectEnd({from : tmpDate , to : new Date(toDate.getTime() + 86400000)})
+    //   }
+    // }
     let firstYear = data.filter(r=>r.type == 'FIRST_YEAR')[0]?.category
     if(firstYear){
       this.initYearDropDown(Number(firstYear))
@@ -422,6 +427,7 @@ export class ArcsChartsComponent implements OnInit {
           (<Group>ret).remove((<Group>ret).children.filter(c => typeof c?.['Path'])[0])
           let subText = new Text((arg.percentage * 100).toFixed(2) + '%', [(<Text>mainText).position().x, (<Text>mainText).position().y + 15], { font: `10px Arial`, fill: { color: '#BBBBBB' } });
           (<Group>ret).append(subText)
+          ret.options.set('opacity', this.robotTypeFilter && this.robotTypeFilter!= arg.dataItem.robotType ? this.style.dimOpacity : 1)
           return ret;
         },
         data: [],
@@ -475,7 +481,7 @@ export class ArcsChartsComponent implements OnInit {
   
   fetchUtilization(fromDate: Date = null, toDate: Date = null) {    
     this.initUtilization(fromDate, toDate)
-    this.utilizationData = this.utilizationData.filter(r => r.type != 'DAILY').concat(this.fullYearDataset.utilization[this.year.toString()].filter(r => r.type == 'DAILY'))
+    // this.utilizationData = this.utilizationData.filter(r => r.type != 'DAILY').concat(this.fullYearDataset.utilization[this.year.toString()].filter(r => r.type == 'DAILY'))
     this.utilizationData = this.utilizationData.filter(r => r.type != 'ROBOT_TYPE').concat(this.utilizationData.filter(r => r.type == 'ROBOT_TYPE').sort((a, b) => b.executing / b.total - a.executing / a.total))
     this.utilizationData = this.utilizationData.filter(r => r.type != 'ROBOT').concat(this.utilizationData.filter(r => r.type == 'ROBOT').sort((a, b) => b.executing / b.total - a.executing / a.total))
     this.utilizationData.forEach(r => {
@@ -505,7 +511,7 @@ export class ArcsChartsComponent implements OnInit {
 
   fetchUsability(fromDate: Date = null, toDate: Date = null) {    
     this.initUsability(fromDate , toDate)
-    this.usabilityData = this.usabilityData.filter(r=>r.type != 'DAILY').concat(this.fullYearDataset.usability[this.year.toString()].filter(r=>r.type == 'DAILY'))
+    // this.usabilityData = this.usabilityData.filter(r=>r.type != 'DAILY').concat(this.fullYearDataset.usability[this.year.toString()].filter(r=>r.type == 'DAILY'))
     this.usabilityData.forEach(r => {
       if (r.type == 'COMPLETED') {
         this.usability.completed = this.getRoundedValue(r.value , 0)
@@ -523,12 +529,12 @@ export class ArcsChartsComponent implements OnInit {
         let index = Object.keys(this.usability.weeklyAvg.categoriesMap).indexOf(r.category?.toUpperCase())
         this.usability.weeklyAvg.data[index] = this.getRoundedValue(r.value)
       } else if (r.type == 'ROBOT_TYPE') {
-        let category = this.uiSrv.translate(<DropListType[]>this.dropdownData.types.filter(t => t.enumName == r.category)[0]?.description)
-        this.usability.robotType.data.push({ category: category , value: this.getRoundedValue(r.value) })
+        let robotTypeDesc = this.uiSrv.translate(<DropListType[]>this.dropdownData.types.filter(t => t.enumName == r.category)[0]?.description)
+        this.usability.robotType.data.push({robotType : r.category , category: robotTypeDesc , value: this.getRoundedValue(r.value) })
       }
     })
     this.usability.total = this.usability.completed + this.usability.incomplete //+ this.usability.canceled
-    this.usability.robotType.centerText =  this.usability.total.toString() + ' \n ' + this.uiSrv.translate('Tasks')
+    this.usability.robotType.centerText =  (this.usability.total + this.usability.canceled ).toString() + ' \n ' + this.uiSrv.translate('Tasks')
   }
 
   getRoundedValue(value : number , decimalPlace : number = 2){

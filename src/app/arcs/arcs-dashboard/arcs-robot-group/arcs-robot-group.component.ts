@@ -44,7 +44,7 @@ export class ArcsRobotGroupComponent implements OnInit {
   clientList = []
   newClientRow = {}
   dialogRef
-  key = 'groupId' 
+  key = 'groupId'
   constructor(public util: GeneralUtil, public uiSrv: UiService, public dialogService: DialogService, public ngZone: NgZone, public httpSrv: RvHttpService,
               public changeDetector: ChangeDetectorRef, private dataSrv: DataService, public dialogSrv: DialogService, public authSrv: AuthService) { 
               
@@ -58,10 +58,10 @@ export class ArcsRobotGroupComponent implements OnInit {
   }
 
   async loadData(){
-    let data: RobotGroupDto = await this.dataSrv.httpSrv.rvRequest('GET', 'robotGroup/v1?groupId=' + this.parentRow[this.key], undefined, false)
+    let data: RobotGroupDto = await this.dataSrv.httpSrv.rvRequest('GET', 'robotGroup/v1/' + this.parentRow[this.key], undefined, false)
     this.frmGrp.controls['groupName'].setValue(data.groupName)
     this.frmGrp.controls['masterRobotCode'].setValue(data.pairingRobotList.filter(r=>r.master)[0]?.robotCode)
-    this.clientList = data.pairingRobotList.filter(r=>!r.master).map(r => { return { robotCode: r.robotCode } })
+    this.editableGrid.loadData(data.pairingRobotList.filter(r=>!r.master).map(r => { return { robotCode: r.robotCode } })) 
   }
 
   async ngAfterViewInit() {

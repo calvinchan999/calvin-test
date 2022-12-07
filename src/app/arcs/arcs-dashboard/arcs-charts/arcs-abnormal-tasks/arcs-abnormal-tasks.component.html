@@ -1,5 +1,9 @@
 <kendo-dialog-titlebar (close)="dialogRef.close()">
-    <div>{{(taskState == 'failed' ? 'Incomplete Tasks' : 'Cancelled Tasks') | label : uiSrv.langPack}}</div>
+    <div>
+        {{(taskState == 'failed' ? 'Incomplete Tasks' : 'Cancelled Tasks') | label : uiSrv.langPack}} 
+        {{selectedTab == 'summary' && robotType ?  (' - ' + (robotType | enum | label : uiSrv.langPack)) : ''}}
+        {{selectedTab == 'summary'? (' ( ' +  (fromDate | date : 'dd/MM')  +  ' - ' + ( toDate.getTime() - 86400000| date : 'dd/MM') + ' ) ')  : ''}}
+    </div>
 </kendo-dialog-titlebar>
 <div class="card-header-wrapper" >
     <!-- title -->
@@ -57,7 +61,7 @@
                         </ng-template>
                   </kendo-chart-tooltip>
                   <kendo-chart-series-item type="donut" [data]="summary.data.robot_type" field="value" categoryField="category" [holeSize] = "45" [padding] = "70"
-                        [labels]="{ visible: true, visual: summary.labelVisual, position : 'outsideEnd' , distance:30  , color: summary.style.textColor }"  
+                                           [visual]="highlightVisual"  [labels]="{ visible: true, visual: summary.labelVisual, position : 'outsideEnd' , distance:30  , color: summary.style.textColor }"  
                   >
                   </kendo-chart-series-item>
                 </kendo-chart-series>

@@ -42,24 +42,11 @@ export class SaTopModuleComponent implements OnInit {
   airQualitySubj = new BehaviorSubject<any>(null)
   topModule = {
     patrol: [
-      this.util.standaloneApp ? [{
-        id: 'ieq1', col: 3, colSpan: 2,
-        cells: [
-          { id: 'wifi_signal' },
-          { id: 'cellular_bars' },
-        ]
-      }, {
-        id: 'ieq2', col: 3, colSpan: 2, row:2,
-        cells: [
-          { id: 'light' },
-          { id: 'noise' },
-        ]
-      }] : [],
       [{
         id: 'air_1',
         row :  1,
         rowSpan: 5 ,
-        colSpan:  2 ,
+        colSpan:  3,
         cells: [
           {
             cells: [
@@ -70,27 +57,29 @@ export class SaTopModuleComponent implements OnInit {
             cells: [
               { id: 'temperature' },
               { id: 'humidity' },
-              { id: 'pressure'},
+              // { id: 'pressure'},
               { id: 'tvoc_pid'},
-              { id: 'pm2_5' },
               { id: 'co2'},
+              { id: 'co' },
+              { id: 'no2' },
             ]
           }
         ]
       }],
       [{
         id: 'air_2',
-        row: this.util.standaloneApp ? 3 : 1,
-        rowSpan: this.util.standaloneApp ? 3 : 5,
-        col:  3,
-        colSpan: 2 ,
+        row:  1,
+        rowSpan:  5,
+        col:  4,
+        colSpan: 1 ,
         cells: [
-          { id: 'formaldehyde' },
-          { id: 'co' },
+          // { id: 'formaldehyde' },
+          // { id: 'co' },
+          { id: 'pm2_5' },
           { id: 'pm1' },
           { id: 'pm10' },
-          { id: 'no2' },
-          { id: 'o3' },
+          // { id: 'no2' },
+          // { id: 'o3' },
         ]
       }]
     ],
@@ -145,14 +134,26 @@ export class SaTopModuleComponent implements OnInit {
       let ieqData = this.dataSrv.signalRMaster.ieq.mapping.ieq(ieqReq)
       let refreshIeq = (ieq)=>{
         let ret = null
-        let levels = ['Inadequate', 'Poor', 'Fair', 'Good', 'Excellent']
-        let range = this.util.config.IEQ_STANDARD ? this.util.config.IEQ_STANDARD : {
+        let levels = this.util.config.IEQ_LEVELS ? this.util.config.IEQ_LEVELS : ['Inadequate', 'Poor', 'Fair', 'Good', 'Excellent']
+        let range = this.util.config.IEQ_STANDARD ? this.util.config.IEQ_STANDARD :  {
           t: [[15, 24], [16, 23], [17, 22], [18, 21]],
           rh: [[10, 90], [20, 80], [30, 70], [40, 60]],
-          co2: [[null, 2500], [null, 2000], [null, 1500], [null, 650]],
-          pm2_5: [[null, 150.5], [null, 55.4], [null, 35.4], [null, 12]],
-          tvoc_pid: [[null, 75], [null, 51], [null, 26], [null, 16]]
+          co: [[null, 7000], [null, null], [null, 1000], [null, 0]],
+          no2: [[null, 400], [null, null], [null, 200], [null, null]],
+          co2: [[null, 1800], [null, 1500], [null , 800], [null, 600]],
+          tvoc_pid: [[null, 1000], [null, 500], [null, 300], [null, 100]]
         }
+        // {
+        //   t: [[15, 24], [16, 23], [17, 22], [18, 21]],
+        //   rh: [[10, 90], [20, 80], [30, 70], [40, 60]],
+        //   co2: [[null, 2500], [null, 2000], [null, 1500], [null, 650]],
+        //   pm2_5: [[null, 150.5], [null, 55.4], [null, 35.4], [null, 12]],
+        //   tvoc_pid: [[null, 75], [null, 51], [null, 26], [null, 16]]
+        // }
+
+
+
+
         Object.keys(this.ds).filter(k2=>Object.keys(range).includes(this.ds[k2].signalRfld)).forEach(k2=>delete this.ds[k2].class)
 
         for (let i = 0; i < levels.length - 1; i++) {
@@ -192,15 +193,15 @@ export class SaTopModuleComponent implements OnInit {
       pending_task : { title: 'Current Task',  suffix: '' , icon:'mdi-file-clock-outline', signalR: this.dataSrv.signalRSubj.currentTaskId},
       wifi_signal : { title: 'Wifi', suffix: '%' , icon : 'mdi-wifi'},
       cellular_bars : { title: 'Cellular', suffix: '/' , icon:'mdi-signal-cellular-3' , signalR : this.dataSrv.signalRSubj.cellularNumerator, suffixSignalR: this.dataSrv.signalRSubj.cellularDenominator},
-      tvoc_pid: { title: 'TVOC', suffix: 'ppb' , icon :'mdi-spray', signalR: this.dataSrv.signalRSubj.ieq , signalRfld : 'tvoc_pid'},
+      tvoc_pid: { title: 'TVOC', suffix: 'µg/m3' , icon :'mdi-spray', signalR: this.dataSrv.signalRSubj.ieq , signalRfld : 'tvoc_pid'},
       pm2_5: { title: 'PM 2.5', suffix: 'µg/m3', icon: 'mdi-chart-bubble', signalR: this.dataSrv.signalRSubj.ieq , signalRfld : 'pm2_5'},
       co2: { title: 'Carbon Dioxide', suffix: 'ppm', icon: 'mdi-molecule-co2', signalR: this.dataSrv.signalRSubj.ieq , signalRfld : 'co2'},
       air_quality: { title: 'Air Quality',  suffix: '' , icon: 'mdi-blur' , signalR : this.airQualitySubj},
-      co: { title: 'Carbon Monoxide',  suffix: 'ppb', icon: 'mdi-molecule-co', signalR: this.dataSrv.signalRSubj.ieq , signalRfld : 'co'},
+      co: { title: 'Carbon Monoxide',  suffix: 'µg/m3', icon: 'mdi-molecule-co', signalR: this.dataSrv.signalRSubj.ieq , signalRfld : 'co'},
       pm1: { title: 'PM 1',  suffix: 'µg/m3' , icon:'mdi-scatter-plot' , signalR: this.dataSrv.signalRSubj.ieq , signalRfld : 'pm1'},
       pm10: { title: 'PM 10',  suffix: 'µg/m3' , icon :'mdi-scatter-plot-outline' , signalR: this.dataSrv.signalRSubj.ieq , signalRfld : 'pm10'},
       o3: { title: 'Ozone' , suffix: 'ppb' , icon:'mdi-webhook', signalR: this.dataSrv.signalRSubj.ieq , signalRfld : 'o3'},
-      no2: { title: 'Nitrogen Dioxide', suffix: 'ppb' , icon: 'mdi-chemical-weapon', signalR: this.dataSrv.signalRSubj.ieq , signalRfld : 'no2'},
+      no2: { title: 'Nitrogen Dioxide', suffix: 'µg/m3' , icon: 'mdi-chemical-weapon', signalR: this.dataSrv.signalRSubj.ieq , signalRfld : 'no2'},
       temperature: { title: 'Temperature', suffix: '°C' , icon:'mdi-thermometer-lines', signalR: this.dataSrv.signalRSubj.ieq , signalRfld : 't'},
       pressure: { title: 'Pressure',  suffix: 'hPa' , icon: 'mdi-gauge-low' , signalR: this.dataSrv.signalRSubj.ieq , signalRfld : 'p'},
       humidity: { title: 'Humidity', suffix: '%' , icon : 'mdi-water-outline' , signalR: this.dataSrv.signalRSubj.ieq , signalRfld : 'rh'},
