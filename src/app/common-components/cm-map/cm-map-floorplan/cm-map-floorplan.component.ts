@@ -254,21 +254,21 @@ export class CmMapFloorplanComponent implements OnInit {
       }
     }
     // let outOfBoundShapes = this.pixiElRef.getSubmitDataset().outOfBoundShapes
-    let ds = this.pixiElRef.getSubmitDatasetV2()
-    let outOfBoundShapesV2 = {}
-    ds.mapList.forEach(m=>{
-      outOfBoundShapesV2[m.robotBase] = ds.pointList.filter(p=>!m.pointList.map(mp=>mp.pointCode).includes(p.pointCode))
-    })
-    var invalidRobotBase = Object.keys(outOfBoundShapesV2).filter(k=>(<any> outOfBoundShapesV2[k]).length > 0)[0] 
-    if(this.mapCode && invalidRobotBase){
-      this.uiSrv.showMsgDialog(
-        this.uiSrv.translate('Way point [point] out of bound for robot base [robotBase]')
-        .replace('[point]' , outOfBoundShapesV2[invalidRobotBase][0].pointCode)
-        .replace('[robotBase]',invalidRobotBase)
-      )
-      // this.changeTab('locations')
-    }
-    return !this.mapCode || !invalidRobotBase 
+    // let ds = this.pixiElRef.getSubmitDatasetV2()
+    // let outOfBoundShapesV2 = {}
+    // ds.mapList.forEach(m=>{
+    //   outOfBoundShapesV2[m.robotBase] = ds.pointList.filter(p=>!m.pointList.map(mp=>mp.pointCode).includes(p.pointCode))
+    // })
+    // var invalidRobotBase = Object.keys(outOfBoundShapesV2).filter(k=>(<any> outOfBoundShapesV2[k]).length > 0)[0] 
+    // if(this.mapCode && invalidRobotBase){
+    //   this.uiSrv.showMsgDialog(
+    //     this.uiSrv.translate('Way point [point] out of bound for robot base [robotBase]')
+    //     .replace('[point]' , outOfBoundShapesV2[invalidRobotBase][0].pointCode)
+    //     .replace('[robotBase]',invalidRobotBase)
+    //   )
+    //   // this.changeTab('locations')
+    // }
+    return true //|| !invalidRobotBase 
   }
 
   getSubmitDataset() {
@@ -319,6 +319,8 @@ export class CmMapFloorplanComponent implements OnInit {
     if(this.mapCode){
       await this.getMapsData(this.mapCode)
       await this.loadMapsToPixi()
+      this.pixiElRef.robotBasesOptions = this.mapsStore.get(this.mapCode).map(m=>{return {value : m.robotBase , text : m.robotBase}})
+      this.pixiElRef.allPixiPoints.forEach(p=>p.robotBases = this.mapsStore.get(this.mapCode).map(m=>m.robotBase))
     }   
     await this.changeTab(originalTab)
   }

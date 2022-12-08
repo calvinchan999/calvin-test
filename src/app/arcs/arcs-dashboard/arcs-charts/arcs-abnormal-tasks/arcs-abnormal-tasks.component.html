@@ -2,7 +2,7 @@
     <div>
         {{(taskState == 'failed' ? 'Incomplete Tasks' : 'Cancelled Tasks') | label : uiSrv.langPack}} 
         {{selectedTab == 'summary' && robotType ?  (' - ' + (robotType | enum | label : uiSrv.langPack)) : ''}}
-        {{selectedTab == 'summary'? (' ( ' +  (fromDate | date : 'dd/MM')  +  ' - ' + ( toDate.getTime() - 86400000| date : 'dd/MM') + ' ) ')  : ''}}
+        {{selectedTab == 'summary'? (' ( ' +  (fromDate | date : 'dd/MM')  +  ' - ' + ( toDate.getTime()| date : 'dd/MM') + ' ) ')  : ''}}
     </div>
 </kendo-dialog-titlebar>
 <div class="card-header-wrapper" >
@@ -47,7 +47,7 @@
         </kendo-tilelayout-item>
 
         <kendo-tilelayout-item class = "tile robot-type" [title]="((taskState == 'failed' ? 'Aborted ' : 'Cancelled ') + 'Task Count by Robot Type') | label : uiSrv.langPack"  [col]="2" [row]="1" >
-            <kendo-chart [seriesColors] = "summary.style.seriesColors" class="summary-chart">
+            <kendo-chart #robotTypeDonut [seriesColors] = "summary.style.seriesColors" class="summary-chart">
                 <kendo-chart-area background="transparent"></kendo-chart-area>
                 <!-- <kendo-chart-title [align]="'left'" [text]="'Job Order by Type' | label: uiSrv.langPack"  [color]="style.textColor" ></kendo-chart-title>     -->
                 <ng-template kendoChartDonutCenterTemplate>

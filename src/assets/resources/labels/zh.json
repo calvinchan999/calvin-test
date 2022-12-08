@@ -1,4 +1,5 @@
 {
+    "All":"全部",
     "Data Sync Log" : "數據同步日誌",
     "Record Code":"記錄編號",
     "Record Type":"記錄類型",
@@ -272,7 +273,7 @@
     "Execute Template": "執行工作範本",
     "Template": "工作範本",
     "Job": "工作",
-    "Detail": "細節",
+    "Detail": "明細",
     "Map Preview": "地圖預覽",
     "Map View": "地圖視圖",
     "Execute": "執行",

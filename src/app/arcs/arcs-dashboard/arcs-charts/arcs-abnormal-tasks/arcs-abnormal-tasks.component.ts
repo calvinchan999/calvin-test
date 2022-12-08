@@ -1,4 +1,4 @@
-import { Component, OnInit , HostBinding } from '@angular/core';
+import { Component, OnInit , HostBinding, ViewChild } from '@angular/core';
 import { HighlightVisualArgs, SeriesLabelsVisualArgs, SeriesVisualArgs } from '@progress/kendo-angular-charts';
 import { Group, Text } from '@progress/kendo-drawing';
 import { DataService } from 'src/app/services/data.service';
@@ -14,6 +14,7 @@ import { ArcsChartsComponent } from '../arcs-charts.component';
 })
 
 export class ArcsAbnormalTasksComponent implements OnInit {
+  @ViewChild('robotTypeDonut') robotTypeDonut
   dialogRef
   data = []
   total
@@ -35,7 +36,7 @@ export class ArcsAbnormalTasksComponent implements OnInit {
       columns:[
         { title: "Description", id: "name", width: 100 },
         { title: "Assigned To", id: "robotCode", width: 50 },
-        { title: "Robot Type", id: "robotType", width: 50 },
+        { title: "Robot Type", id: "robotTypeFilter", width: 50 },
         { title :"Aborted Reason" , id : "reasonCode" , width : 50},
         { title :"Reason Remarks" , id : "reasonMessage" , width : 100},
         { title: "Created Date", id: "createdDateTime",  type: "date" , width: 60 },
@@ -48,13 +49,15 @@ export class ArcsAbnormalTasksComponent implements OnInit {
       columns: [
         { title: "Description", id: "name", width: 100 },
         { title: "Assigned To", id: "robotCode", width: 50 },
-        { title: "Robot Type", id: "robotType", width: 50 },
+        { title: "Robot Type", id: "robotTypeFilter", width: 50 },
         { title: "Cancel Reason", id: "reasonCode", width: 50 },
         { title: "Reason Remarks", id: "reasonMessage", width: 100 },
         { title: "Created Date", id: "createdDateTime", type: "date", width: 60 },
       ]
     }
   }
+
+  dateRangeDesc = null
 
   summary = {
     data: {
@@ -79,6 +82,9 @@ export class ArcsAbnormalTasksComponent implements OnInit {
       (<Group>ret).remove((<Group>ret).children.filter(c => typeof c?.['Path'])[0])
       let subText = new Text((arg.percentage * 100).toFixed(2) + '%', [(<Text>mainText).position().x, (<Text>mainText).position().y + 25], { font: `10px Arial`, fill: { color: '#BBBBBB' } });
       (<Group>ret).append(subText)
+      if(arg.sender == this.robotTypeDonut){
+        ret.options.set('opacity', this.robotType && this.robotType!= arg.dataItem.robotType ? this.parent.style.dimOpacity : 1)
+      }
       return ret;
     }
   }
@@ -99,11 +105,14 @@ export class ArcsAbnormalTasksComponent implements OnInit {
     this.cssClass += this.taskState + '-tasks'
     Object.keys(this.gridSettings).forEach(k=>{
       this.gridSettings[k].defaultState['filter'] = {
-        filters : [{field : 'createdDateTime' , operator : 'gte' , value : this.fromDate} , {field : 'createdDateTime' , operator : 'lte' , value : this.toDate} ],
+        filters : [{field : 'createdDateTime' , operator : 'gte' , value : this.fromDate} , {field : 'createdDateTime' , operator : 'lte' , value : new Date(this.toDate.getTime() + 86400000)} ].
+                  concat(this.robotType? [{field : 'robotTypeFilter' , operator : 'eq' , value : this.robotType}]: []),
         logic : 'and'
       }
-    })
-    var ddl = await this.dataSrv.getDropLists(['taskFailReason' , 'taskCancelReason'])
+    });
+    var ddl = await this.dataSrv.getDropLists(['taskFailReason' , 'taskCancelReason' , 'types'])
+    this.gridSettings.failed.columns.filter(c=>c.id == 'robotTypeFilter')[0]['dropdownOptions'] = ddl.option['types']
+    this.gridSettings.canceled.columns.filter(c=>c.id == 'robotTypeFilter')[0]['dropdownOptions'] = ddl.option['types']
     this.gridSettings.failed.columns.filter(c => c.id == 'reasonCode')[0]['dropdownOptions'] =  ddl.option['taskFailReason']
     this.gridSettings.canceled.columns.filter(c => c.id == 'reasonCode')[0]['dropdownOptions'] =  ddl.option['taskCancelReason']
     this.gridSettings = JSON.parse(JSON.stringify(this.gridSettings))
@@ -114,7 +123,7 @@ export class ArcsAbnormalTasksComponent implements OnInit {
 
   initSummaryCategories(){
     let date = new Date(this.fromDate.getTime());
-    let to = new Date(this.toDate.getTime() + 86400000);
+    let to = new Date(this.toDate.getTime());
     let ticks = Math.ceil((to.getTime() - date.getTime()) / (1000 * 3600 * 24))
     for (let i = 0; i < ticks + 1 ; i++) {
       this.summary.categories.daily.push(date);

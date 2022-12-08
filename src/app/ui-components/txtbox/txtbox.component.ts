@@ -90,6 +90,7 @@ export class TxtboxComponent implements OnInit {
     this.textbox.valueChange.pipe(takeUntil(this.$onDestroy)).subscribe(v=>{
       // this.textbox.value = this.upper ? v?.toUpperCase() : v
       this.value = this.upper ? v?.toUpperCase() : v
+      this.valueChange.emit(this.value)
       // if(this.hasFrm){
       //   this.value = this.textbox.value
       // }

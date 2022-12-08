@@ -200,6 +200,7 @@ export class DrawingBoardComponent implements OnInit , AfterViewInit {
   get allPixiPolygon() : PixiPolygon[]{
     return this.mainContainer.children.filter(c=> c instanceof PixiPolygon).map(c=> <PixiPolygon>c)
   };
+  robotBasesOptions : {value : string , text : string}[] = []
   brushPaintings = []; //to implement undo easily , not included in drawingsCreated
   linesCreated = []; //to implement undo easily , not included in drawingsCreated
   mainContainerId
@@ -1806,6 +1807,9 @@ export class DrawingBoardComponent implements OnInit , AfterViewInit {
     this.mainContainer.addChild(ret);
     // ret.editable = true
     this.mapLayerStore[this.util.arcsApp ? mapData.robotBase : ret.mapCode] = ret
+    // console.log(Object.values(this.mapLayerStore))
+    // console.log(Object.values(this.mapContainerStore))
+    // this.robotBasesOptions = [... new Set(Object.values(this.mapLayerStore).concat(new Set(Object.values(this.mapContainerStore))).map((m:PixiMap)=>m.robotBase))].map(b=>{return {value : b , text : b}})
     ret.zIndex = 1
     this.uiSrv.loadAsyncDone(ticket)
     return ret
@@ -1837,6 +1841,7 @@ export class DrawingBoardComponent implements OnInit , AfterViewInit {
     this.ngZone.runOutsideAngular(async () => {
       ticket = this.uiSrv.loadAsyncBegin()
       this.reset()
+      this.robotBasesOptions = dataset.mapList.map(m=>{return {value : m.robotBase , text : m.robotBase}})
       await this.loadToMainContainer(dataset.base64Image, undefined, undefined, showFloorPlanName ? dataset.name : null , dataset.floorPlanCode)
       this.dijkstra = getDijkstraGraph(dataset.pathList)
       if (setCamera && dataset.viewX && dataset.viewY && dataset.viewZoom) {
@@ -1887,6 +1892,7 @@ export class DrawingBoardComponent implements OnInit , AfterViewInit {
 
     dataset.pointList.forEach((data: JPoint) => {
       let pixiPoint : PixiLocPoint = this.getPixiLocPoint(undefined , data.pointCode , 'waypoint' , null , data.userDefinedPointType);
+      pixiPoint.robotBases = dataset.mapList.filter(m=>m.pointList.map(p=>p.pointCode).includes(data.pointCode)).map(m=>m.robotBase)
       pixiPoint.waypointName =  data.pointCode; //TBDelete
       pixiPoint.readonly = readonly;
       pixiPoint.orientationAngle = data.guiAngle
@@ -1971,7 +1977,7 @@ export class DrawingBoardComponent implements OnInit , AfterViewInit {
     }
 
     let hasMap =  this.mainContainer.children.filter(c=> c instanceof PixiMapLayer).length > 0
-    let points: JPoint[] = this.allPixiPoints.map((point: PixiLocPoint) => {
+    let getJPoints = (robotBase : string = null)=> this.allPixiPoints.filter(p=> robotBase == null || p.robotBases.includes(robotBase)).map((point: PixiLocPoint) => {
       let pt : JPoint = copyOriginalData(point , new JPoint())
       pt.floorPlanCode = floorPlanCode
       pt.guiAngle = point.orientationAngle
@@ -2011,6 +2017,8 @@ export class DrawingBoardComponent implements OnInit , AfterViewInit {
       return pt
     })
 
+    let points: JPoint[] = getJPoints()
+
     let getJPath = (arrow : PixiArrow , reverseDirection = false, map : PixiMapLayer = null) =>{
       let path = copyOriginalData(arrow , new JPath())
       path.floorPlanCode = floorPlanCode
@@ -2045,7 +2053,7 @@ export class DrawingBoardComponent implements OnInit , AfterViewInit {
       m.imageHeight = this.util.trimNum(map.initialHeight, 0)
       m.imageWidth =this.util.trimNum(map.initialWidth , 0)
 
-      m.pointList = points.map(pt=> {
+      m.pointList = getJPoints(m.robotBase).map(pt=> {
         let p = new JPoint()
         let pos : PIXI.Point = map.toLocal(this.mainContainer.toGlobal(new PIXI.Point(pt.guiX, pt.guiY)))
         p.mapCode = m.mapCode
@@ -2075,8 +2083,8 @@ export class DrawingBoardComponent implements OnInit , AfterViewInit {
           return mapChildPt
         })))
       )
-      m.pathList = JSON.parse(JSON.stringify(getPaths(map)))
-      m.pathList.forEach(p=>{
+      m.pathList = JSON.parse(JSON.stringify(getPaths(map))).filter((p: JPath) => m.pointList.map(p => p.pointCode).includes(p.sourcePointCode) && m.pointList.map(p => p.pointCode).includes(p.destinationPointCode))
+      m.pathList.forEach(p => {
         p.mapCode = m.mapCode
         p.robotBase = m.robotBase
       })
@@ -3960,6 +3968,8 @@ export class PixiLocPoint extends PixiCommon {
   id
   uiSrv
   waypointName // full code
+  robotBases = [];
+  robotBasesOptions = [];
   set hasPointGroup(v){
     if(!this.pixiPointGroup && v){
       this.pixiPointGroup = new PixiPointGroup(this)
@@ -4086,7 +4096,13 @@ export class PixiLocPoint extends PixiCommon {
     })
   }
 
-  
+  // refreshRobotBasesOptions(){
+  //   let vp = this.getMasterComponent()
+  //   if(vp){
+  //     this.robotBasesOptions = [... new Set(Object.values(vp.mapContainerStore).concat(Object.values(vp.mapLayerStore)))].map((m:PixiMap)=>{return {value : m.robotBase , text : m.robotBase}})
+  //   }
+  // }
+
   refreshRosPositionValue(){
     let drawingBoard = this.getMasterComponent()
     let map : PixiMap =  <any>drawingBoard?.mainContainer.children.filter(c=> c instanceof PixiMapLayer)[0]

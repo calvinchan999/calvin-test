@@ -172,8 +172,8 @@ export class ArcsChartsComponent implements OnInit {
     let dialog : DialogRef = this.uiSrv.openKendoDialog({content: ArcsAbnormalTasksComponent , preventAction:()=>true});
     const content :ArcsAbnormalTasksComponent = dialog.content.instance;
     content.dialogRef = dialog
-    content.fromDate = this.getSelectedDateRange().fromDate
-    content.toDate = this.getSelectedDateRange().toDate
+    content.fromDate = new Date(this.getSelectedDateRange().fromDate.getTime())
+    content.toDate = new Date(this.getSelectedDateRange().toDate.getTime() - 86400000)
     content.total = id == 'failed' ? this.usability.incomplete : this.usability.canceled
     content.robotType = this.robotTypeFilter
     content.parent = this
@@ -222,7 +222,6 @@ export class ArcsChartsComponent implements OnInit {
       fr = this.utilization.daily.min
       to = this.utilization.daily.max
     }
-    to.setDate(to.getDate()-1)
     return {fromDate : fr , toDate : to}
   }
 
@@ -254,7 +253,7 @@ export class ArcsChartsComponent implements OnInit {
       this.utilization.daily.max = args.to;
       this.utilization.daily.transitions = false;
     }
-    this.refreshChart(args.from , args.to)
+    this.refreshChart(args.from, args.to)
   }
 
   style = {
@@ -307,7 +306,6 @@ export class ArcsChartsComponent implements OnInit {
     fromDate = fromDate ? fromDate : this.getSelectedDateRange().fromDate
     toDate = toDate ? toDate : this.getSelectedDateRange().toDate    
     toDate = new Date(toDate.getTime() - 86400000)
-    // toDate.setDate(toDate.getDate() - 1)
     let ticket = this.uiSrv.loadAsyncBegin()
     let frDateStr = this.util.getSQLFmtDateStr(fromDate)
     let toDateStr = this.util.getSQLFmtDateStr(toDate)
@@ -470,8 +468,9 @@ export class ArcsChartsComponent implements OnInit {
       date = newDate
     }
     // let lastMonthSameDay = new Date(new Date().getFullYear(), new Date().getMonth() - 1 , new Date().getDate())
+    to.setDate(to.getDate()+1)
     this.usability.daily.min =  fromDate ? fromDate : this.usability.daily.categories[0]
-    this.usability.daily.max =  toDate ? toDate : this.usability.daily.categories[ this.usability.daily.categories.length - 1]
+    this.usability.daily.max =  toDate ? toDate : to
     this.usability.daily.navigatorStep = Math.floor(this.usability.daily.categories.length / 12);
     this.usability.daily.categories.pop()
     for (let i = 0; i < 24; i++) {

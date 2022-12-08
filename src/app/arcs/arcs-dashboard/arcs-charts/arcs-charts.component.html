@@ -3,7 +3,7 @@
     <kendo-tilelayout *ngIf="_chartType == 'usability' && usability"  kendoTooltip #tooltipTo="kendoTooltip" filter=".k-right-handle" showOn="none"  class="chart" [columns]="12"  [resizable]="false" [reorderable]="false">
     <kendo-tilelayout-item class = "tile select-year" [col]="1" [row]="1"  [colSpan] = "3">
         <div class="form-row">
-            <uc-dropdown  lab = "Robot Type" [(value)] = 'robotTypeFilter' (valueChange)="refreshChart()" [options] = "dropdownOptions.types" [allowClear]="false"></uc-dropdown>
+            <uc-dropdown  lab = "Robot Type" [(value)] = 'robotTypeFilter' (valueChange)="refreshChart()" [options] = "dropdownOptions.types" [allowClear]="false"  [translateOption] = 'true'></uc-dropdown>
             <uc-dropdown  lab = "Year" [(value)] = 'year' (valueChange)="refreshDateRange();refreshChart()" [options] = "dropdownOptions.years" [allowClear]="false"></uc-dropdown>
             <div class="date-range-label col form-group">
                 <div class="col-form-label">{{'Date Range' | label: uiSrv.langPack}}</div>

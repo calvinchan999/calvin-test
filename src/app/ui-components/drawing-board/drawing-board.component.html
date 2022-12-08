@@ -383,7 +383,7 @@
       </div>
 
       <div  class="bottom-sector edit-map-floorplan"  *ngIf="util.arcsApp && selectedGraphics?.type == 'childPoint'">
-        <uc-txtbox lab="Waypoint Name" [value] = "selectedGraphics.pixiPointGroup.parentPoint.code" [disabled] = "true" > </uc-txtbox>
+        <uc-txtbox lab="Waypoint Name" [value] = "selectedGraphics.pixiPointGroup.parentPoint.code" [disabled] = "true"> </uc-txtbox>
         <uc-txtbox lab="Sequence" [value] = "selectedGraphics.seq" [disabled] = "true" > </uc-txtbox>
         <uc-txtbox lab="Angle" [(value)] = "selectedGraphics.robotAngle" [numDecimals]="5" [numeric] = 'true' [numMin] = '-180'  [numMax] = '360'></uc-txtbox>
         <div class='form-group'>
@@ -398,7 +398,7 @@
                                                            (selectedGraphics?.type == 'location' || selectedGraphics?.type ==  'waypoint' ))|| selectedGraphics?.type == 'mapLayer' )" >
         <ng-container *ngIf=" selectedGraphics?.type == 'location' || selectedGraphics?.type == 'waypoint' ">
             <uc-txtbox #ucPointTextBox [focusOnInit]="selectedGraphics.text == null || selectedGraphics.text == ''" customClass="txtbox-container numeric"
-                       lab="Waypoint Name" [(value)] = "selectedGraphics.text" [upper] = "true" > 
+                       lab="Waypoint Name" [(value)] = "selectedGraphics.text" [upper] = "true" class="col-2" > 
             </uc-txtbox>
           <div  *ngIf="uiSrv.isTablet" class="form-group">            
             <label class="col-form-label">{{'Orientation' | label : uiSrv.langPack}}</label>
@@ -411,18 +411,19 @@
             </div>
           </div>
           <uc-dropdown lab="Icon" [options]="dropdownOptions.iconTypes" [allowClear]="false" [(value)]="selectedGraphics.iconType" 
-                       (valueChange)="selectedGraphics.onIconTypeChange()" class="col-2" (open)="suspendViewportPlugin('wheel')" 
+                       (valueChange)="selectedGraphics.onIconTypeChange()" (open)="suspendViewportPlugin('wheel')" 
                        (close)="resumeViewportPlugin('wheel')">
           </uc-dropdown>
           <uc-dropdown *ngIf="showWaypointType" lab="Waypoint Type" [options]="dropdownOptions.pointTypes" [allowClear]="false" [(value)]="selectedGraphics.pointType"
-                        class="col-2" (open)="suspendViewportPlugin('wheel')" (close)="resumeViewportPlugin('wheel')">
+                        (open)="suspendViewportPlugin('wheel')" (close)="resumeViewportPlugin('wheel')" class="col-2">
           </uc-dropdown>
           <!-- <uc-txtbox  lab="Position X" [(value)] = "selectedGraphics.position.x" (valueChange) = "refreshArrows(selectedGraphics)"  [numeric] = 'true' [numDecimals] = '0' ></uc-txtbox>
           <uc-txtbox  lab="Position Y" [(value)] = "selectedGraphics.position.y" (valueChange) = "refreshArrows(selectedGraphics)"  [numeric] = 'true' [numDecimals] = '0'></uc-txtbox> -->
           <uc-txtbox *ngIf="util.standaloneApp && selectedGraphics.rosX !== undefined" lab="ROS Position X" [(value)] = "selectedGraphics.rosX" (valueChange)="selectedGraphics.refreshPositionByRosValue()"  [numeric] = 'true' [numDecimals] = '5' ></uc-txtbox>
           <uc-txtbox *ngIf="util.standaloneApp && selectedGraphics.rosY !== undefined"  lab="ROS Position Y" [(value)] = "selectedGraphics.rosY" (valueChange)="selectedGraphics.refreshPositionByRosValue()"   [numeric] = 'true' [numDecimals] = '5'></uc-txtbox>
-          <uc-txtbox *ngIf="selectedGraphics.angleIndicator" lab="Angle" [(value)] = "selectedGraphics.angleIndicator.angle"  [numeric] = 'true'  [numDecimals] = '3'></uc-txtbox>
-          <div  *ngIf="util.arcsApp && withMapLayer" class="checkbox group">
+          <uc-txtbox *ngIf="selectedGraphics.angleIndicator" lab="Angle" [(value)] = "selectedGraphics.angleIndicator.angle"  [numeric] = 'true'  [numDecimals] = '3' class="col-2" ></uc-txtbox>
+          <uc-multiselect *ngIf="util.arcsApp" lab="Robot Bases" [checkboxes]="true" [options]="robotBasesOptions" [(value)]="selectedGraphics.robotBases" ></uc-multiselect>
+          <div  *ngIf="util.arcsApp && withMapLayer" class="checkbox group" >
             <input class="checkbox"  type="checkbox" kendoCheckBox [disabled] = "readonly"  [(ngModel)]="selectedGraphics.hasPointGroup"/>
             <div  class="label" >{{ 'Parking Spot' | label : uiSrv.langPack}}</div>
           </div>
