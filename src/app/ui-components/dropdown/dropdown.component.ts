@@ -30,6 +30,7 @@ export class DropdownComponent implements OnInit {
   @Input() @HostBinding('class')  customClass = 'dropdown-container'
   @Input() clearValueOnOptionRemoved = true
   @Input() noDataMsg = null
+  @Input() nullValueDesc = null
   @Input() col = ''
   @Input() prefixIconClass 
   @Input() trackMouseoverOption = false

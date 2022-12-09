@@ -5,7 +5,7 @@ import { RvHttpService } from 'src/app/services/rv-http.service';
 import { UiService } from 'src/app/services/ui.service';
 import { DrawingBoardComponent, PixiCommon } from 'src/app/ui-components/drawing-board/drawing-board.component';
 import { GeneralUtil } from 'src/app/utils/general/general.util';
-import { DataService, DropListBuilding, DropListFloorplan, DropListType, FloorPlanDataset, RobotStatusARCS as RobotStatus, RobotTaskInfoARCS, ShapeJData } from 'src/app/services/data.service';
+import { DataService, DropListBuilding, DropListFloorplan, DropListRobot, DropListType, FloorPlanDataset, RobotStatusARCS as RobotStatus, RobotTaskInfoARCS, ShapeJData } from 'src/app/services/data.service';
 import { Router } from '@angular/router';
 import { DialogRef } from '@progress/kendo-angular-dialog';
 import { CmTaskJobComponent } from 'src/app/common-components/cm-task/cm-task-job/cm-task-job.component';
@@ -32,6 +32,7 @@ export class ArcsChartsComponent implements OnInit {
   @ViewChild('tooltipTo') tooltipTo : TooltipDirective
   @ViewChild('frDateTpl') frDateTpl : TemplateRef<any>
   @ViewChild('toDateTpl') toDateTpl : TemplateRef<any>
+  @ViewChild('robotUsabilityBar') robotUsabilityBar : ChartComponent
   @ViewChild('robotTypeUsabilityDonut') robotTypeUsabilityDonut : ChartComponent
   frDateTplView
   @Input() set chartType(t){
@@ -47,13 +48,13 @@ export class ArcsChartsComponent implements OnInit {
   }
   year = new Date().getFullYear()
   location
-  dropdownData = {types:[]}
+  dropdownData = {types:[] , robots : []}
   dropdownOptions = {
     types:[],
+    robots : [],
     years:[ {value : this.year , text : this.year.toString()}], 
     locations:[]
   }
-
 
   usability : {
     total: number,
@@ -61,9 +62,6 @@ export class ArcsChartsComponent implements OnInit {
     canceled: number,
     incomplete: number,
     robotType: {
-      //   return `${args.dataItem.category} \n ${(args.percentage * 100).toFixed(2)}%`;
-      // },
-      labelVisual : any
       data: any[],
       centerText: string
     },
@@ -82,10 +80,14 @@ export class ArcsChartsComponent implements OnInit {
       navigatorStep: number,
       min: any,
       max: any
+    },
+    robot : {
+      data: number[],
+      categories: any[],
     }
   }
 
-  usabilityData : {type : 'COMPLETED'|'CANCELED'|'INCOMPLETE'|'DAILY'|'HOURLY_AVG'|'WEEKLY_AVG'|'ROBOT_TYPE' , category? : string , value? : number}[] = []
+  usabilityData : {type : 'COMPLETED'|'CANCELED'|'INCOMPLETE'|'DAILY'|'HOURLY_AVG'|'WEEKLY_AVG'|'ROBOT_TYPE'|'ROBOT' , category? : string , value? : number}[] = []
   utilizationData: { type: 'ROBOT' | 'DAILY' | 'ROBOT_TYPE' , category? : string , charging : number , idle : number , executing : number , hold : number , unknown : number , total: number}[] = []
 
   utilization : {
@@ -155,6 +157,7 @@ export class ArcsChartsComponent implements OnInit {
   }
 
   robotTypeFilter = null
+  robotCodeFilter = null
 
   constructor(public datepipe: DatePipe ,  private util :GeneralUtil , public uiSrv : UiService , private dataSrv : DataService ) {
 
@@ -163,6 +166,12 @@ export class ArcsChartsComponent implements OnInit {
   onSeriesClick(evt : SeriesClickEvent){
     if (evt.sender == this.robotTypeUsabilityDonut) {
       this.robotTypeFilter = evt.dataItem.robotType ==  this.robotTypeFilter ? null : evt.dataItem.robotType
+      this.robotCodeFilter = null
+      this.refreshRobotOptions()
+      this.refreshChart(this.usability.daily.min , this.usability.daily.max)
+    }else if (evt.sender == this.robotUsabilityBar){
+      this.robotCodeFilter = evt.category ==  this.robotCodeFilter ? null : evt.category
+      this.refreshRobotTypeFilter()
       this.refreshChart(this.usability.daily.min , this.usability.daily.max)
     }
   }
@@ -176,6 +185,7 @@ export class ArcsChartsComponent implements OnInit {
     content.toDate = new Date(this.getSelectedDateRange().toDate.getTime() - 86400000)
     content.total = id == 'failed' ? this.usability.incomplete : this.usability.canceled
     content.robotType = this.robotTypeFilter
+    content.robotCode = this.robotCodeFilter
     content.parent = this
     content.taskState = id
     // content.parentRow = evt?.row
@@ -202,6 +212,15 @@ export class ArcsChartsComponent implements OnInit {
   init() {  
     this.initUsability()
     this.initUtilization()
+  }
+
+  refreshRobotTypeFilter(){
+    let robotType = (<DropListRobot>this.dropdownData.robots.filter((r:DropListRobot)=>r.robotCode == this.robotCodeFilter)[0])?.robotType
+    this.robotTypeFilter = robotType ? robotType : this.robotTypeFilter 
+  }
+
+  refreshRobotOptions(){
+    this.dropdownOptions.robots = this.dataSrv.getDropListOptions('robots' , this.dropdownData.robots , this.robotTypeFilter ? {robotType :this.robotTypeFilter} : undefined) 
   }
 
   fetchData( fromDate: Date = null, toDate: Date = null){
@@ -259,22 +278,47 @@ export class ArcsChartsComponent implements OnInit {
   style = {
     dimOpacity : 0.3 ,
     textColor : '#FFFFFF',
-    seriesColors: this.util.getConfigColors()
-  }
-
-  highlightVisual = (arg: SeriesVisualArgs)=>{
+    seriesColors: this.util.getConfigColors(),
+    labelVisual : (arg: SeriesLabelsVisualArgs) => {
+      let ret = arg.createVisual();
+      let mainText = (<Group>ret).children.filter(c => typeof c?.['chartElement'] === typeof new Text(undefined, undefined))[0];
+      if(arg.sender == this.robotTypeUsabilityDonut){
+        (<Text>mainText).content(arg.dataItem.category);
+        let hightlighted = arg.dataItem.robotType == this.robotTypeFilter
+        let subTextContent = `${(arg.percentage * 100).toFixed(2)}% ${hightlighted ? ` (${this.getRoundedValue(arg.dataItem.value).toString()})` : ''}`;
+        (<Group>ret).remove((<Group>ret).children.filter(c => typeof c?.['Path'])[0])
+        let subText = new Text(subTextContent, [(<Text>mainText).position().x, (<Text>mainText).position().y + 15], { font: `11px Arial`, fill: { color: '#BBBBBB' } });
+        (<Group>ret).append(subText)
+      }else {
+        (<Text>mainText).content(arg.value)
+      }
+      if(this.isDimmed(arg , (<Text>mainText).content())){
+        ret.options.set('opacity',  this.style.dimOpacity)
+      }
+      return ret;
+    },    
+    highlightVisual : (arg: SeriesVisualArgs) => {
     let ret = arg.createVisual();
-    if(this.robotTypeFilter && arg.dataItem.robotType!= this.robotTypeFilter){
-      ret.options.set('opacity' , this.style.dimOpacity)
+    if(this.isDimmed(arg)){
+      ret.options.set('opacity', this.style.dimOpacity)
     }
     return ret;
+  }
+  }
+
+  isDimmed(arg: SeriesVisualArgs | SeriesLabelsVisualArgs , checkValue = null) {
+    checkValue = checkValue ? checkValue : (arg.sender ==  this.robotTypeUsabilityDonut ? arg.dataItem.robotType : arg.category)
+    return (arg.sender == this.robotTypeUsabilityDonut && this.robotTypeFilter && arg.dataItem.robotType != this.robotTypeFilter) ||
+      (arg.sender == this.robotUsabilityBar && this.robotCodeFilter && checkValue != this.robotCodeFilter)
   }
 
 
   async initDropDown(){
-    let ddl = await this.dataSrv.getDropList('types')
-    this.dropdownData.types = ddl.data;
-    this.dropdownOptions.types = [{ value: null, text: 'All' }].concat(this.dataSrv.getDropListOptions('types', ddl.data))
+    let ddl = await this.dataSrv.getDropLists(['types' , 'robots']);
+    ['types' , 'robots'].forEach(k=>{
+      this.dropdownData[k] = ddl.data[k];
+      this.dropdownOptions[k] = this.dataSrv.getDropListOptions(<any>k, ddl.data[k])
+    })
   }
 
   initYearDropDown(firstYear : number ){
@@ -311,7 +355,7 @@ export class ArcsChartsComponent implements OnInit {
     let toDateStr = this.util.getSQLFmtDateStr(toDate)
     let data = []
     if(this._chartType == 'usability'){
-      data = await this.dataSrv.httpSrv.get(`api/analytics/usability/v1?fromDate=${frDateStr}&toDate=${toDateStr}${this.robotTypeFilter ? `&robotType=${this.robotTypeFilter}` : '' }`)
+      data = await this.dataSrv.httpSrv.get(`api/analytics/usability/v1?fromDate=${frDateStr}&toDate=${toDateStr}${this.robotTypeFilter ? `&robotType=${this.robotTypeFilter}` : '' }${this.robotCodeFilter ? `&robotCode=${this.robotCodeFilter}` : '' }`)
       this.usabilityData = JSON.parse(JSON.stringify(data))
     }else if(this._chartType == 'utilization'){
       data =  await this.dataSrv.httpSrv.get(`api/analytics/utilization/v1?fromDate=${frDateStr}&toDate=${toDateStr}`) 
@@ -415,19 +459,6 @@ export class ArcsChartsComponent implements OnInit {
       canceled: null,
       incomplete: null,
       robotType: {
-        // labelContent : (args: LegendLabelsContentArgs) => {
-        //   return `${args.dataItem.category} \n ${(args.percentage * 100).toFixed(2)}%`;
-        // },
-        labelVisual: (arg: SeriesLabelsVisualArgs) => {
-          let ret = arg.createVisual();
-          let mainText = (<Group>ret).children.filter(c => typeof c?.['chartElement'] === typeof new Text(undefined, undefined))[0]; //(c?.['chartElement']) instanceof Text
-          (<Text>mainText).content(arg.dataItem.category);
-          (<Group>ret).remove((<Group>ret).children.filter(c => typeof c?.['Path'])[0])
-          let subText = new Text((arg.percentage * 100).toFixed(2) + '%', [(<Text>mainText).position().x, (<Text>mainText).position().y + 15], { font: `10px Arial`, fill: { color: '#BBBBBB' } });
-          (<Group>ret).append(subText)
-          ret.options.set('opacity', this.robotTypeFilter && this.robotTypeFilter!= arg.dataItem.robotType ? this.style.dimOpacity : 1)
-          return ret;
-        },
         data: [],
         centerText: ''
       },
@@ -454,6 +485,10 @@ export class ArcsChartsComponent implements OnInit {
         navigatorStep: 365 / 12,
         min: 0,
         max: 0
+      },
+      robot:{
+        data: [],
+        categories: [],
       }
     }
     this.usability.weeklyAvg.categories = Object.values(this.usability.weeklyAvg.categoriesMap)
@@ -510,7 +545,8 @@ export class ArcsChartsComponent implements OnInit {
 
   fetchUsability(fromDate: Date = null, toDate: Date = null) {    
     this.initUsability(fromDate , toDate)
-    // this.usabilityData = this.usabilityData.filter(r=>r.type != 'DAILY').concat(this.fullYearDataset.usability[this.year.toString()].filter(r=>r.type == 'DAILY'))
+    let filteredRobotData = this.robotCodeFilter  && this.usabilityData.filter(r=> r.type == 'ROBOT' && r.category == this.robotCodeFilter).length == 0 ? [{type : 'ROBOT' , category : this.robotCodeFilter , value : 0}]:[]
+    this.usabilityData = this.usabilityData.filter(r=>r.type != 'ROBOT').concat((this.usabilityData.filter(r=>r.type == 'ROBOT').sort((a,b)=> b.value - a.value)).concat((<any>filteredRobotData)))
     this.usabilityData.forEach(r => {
       if (r.type == 'COMPLETED') {
         this.usability.completed = this.getRoundedValue(r.value , 0)
@@ -530,13 +566,16 @@ export class ArcsChartsComponent implements OnInit {
       } else if (r.type == 'ROBOT_TYPE') {
         let robotTypeDesc = this.uiSrv.translate(<DropListType[]>this.dropdownData.types.filter(t => t.enumName == r.category)[0]?.description)
         this.usability.robotType.data.push({robotType : r.category , category: robotTypeDesc , value: this.getRoundedValue(r.value) })
+      }else if(r.type == 'ROBOT'){
+        this.usability.robot.categories.push(r.category)
+        this.usability.robot.data.push( this.getRoundedValue(r.value))
       }
     })
     this.usability.total = this.usability.completed + this.usability.incomplete //+ this.usability.canceled
-    this.usability.robotType.centerText =  (this.usability.total + this.usability.canceled ).toString() + ' \n ' + this.uiSrv.translate('Tasks')
+    this.usability.robotType.centerText = (this.usability.robotType.data.map(d=>d.value).reduce((acc, i) => acc += i, 0)).toString() + ' \n ' + this.uiSrv.translate('Tasks')
   }
 
-  getRoundedValue(value : number , decimalPlace : number = 2){
+  getRoundedValue(value: number, decimalPlace: number = 2) {
     return Number(this.util.trimNum(value , decimalPlace))
   }
   

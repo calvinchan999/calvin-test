@@ -1,7 +1,8 @@
 <kendo-dialog-titlebar (close)="dialogRef.close()">
     <div>
         {{(taskState == 'failed' ? 'Incomplete Tasks' : 'Cancelled Tasks') | label : uiSrv.langPack}} 
-        {{selectedTab == 'summary' && robotType ?  (' - ' + (robotType | enum | label : uiSrv.langPack)) : ''}}
+        {{selectedTab == 'summary' && robotType && !robotCode ?  (' - ' + (robotType | enum | label : uiSrv.langPack)) : ''}}
+        {{selectedTab == 'summary' && robotCode ?  (' - ' + (robotCode | label : uiSrv.langPack)) : ''}}
         {{selectedTab == 'summary'? (' ( ' +  (fromDate | date : 'dd/MM')  +  ' - ' + ( toDate.getTime()| date : 'dd/MM') + ' ) ')  : ''}}
     </div>
 </kendo-dialog-titlebar>
@@ -23,9 +24,9 @@
 </div>
 
 <ng-container *ngIf="selectedTab == 'summary'">
-    <kendo-tilelayout  class="chart" [columns]="2"  [resizable]="false" [reorderable]="false">
-        <kendo-tilelayout-item class = "tile reason" [title]="((taskState == 'failed' ? 'Aborted ' : 'Cancelled ') + 'Task Count by Reason') | label : uiSrv.langPack" [col]="1" [row]="1" >
-            <kendo-chart [seriesColors] = "summary.style.seriesColors" class="summary-chart">
+    <kendo-tilelayout  class="chart" [columns]="6"  [resizable]="false" [reorderable]="false">
+        <kendo-tilelayout-item class = "tile reason" [title]="((taskState == 'failed' ? 'Aborted ' : 'Cancelled ') + 'Task Count by Reason') | label : uiSrv.langPack" [col]="1" [row]="1" [colSpan] = "robotType ? 2 : 3">
+            <kendo-chart #reasonDonut [seriesColors] = "summary.style.seriesColors" class="summary-chart">
                 <kendo-chart-area background="transparent"></kendo-chart-area>
                 <!-- <kendo-chart-title [align]="'left'" [text]="'Job Order by Type' | label: uiSrv.langPack"  [color]="style.textColor" ></kendo-chart-title>     -->
                 <ng-template kendoChartDonutCenterTemplate>
@@ -39,19 +40,19 @@
                         </ng-template>
                   </kendo-chart-tooltip>
                   <kendo-chart-series-item type="donut" [data]="summary.data.reason" field="value" categoryField="category" [holeSize] = "45" [padding] = "70"
-                        [labels]="{ visible: true, visual: summary.labelVisual, position : 'outsideEnd' , distance:30 , color: summary.style.textColor }"  
+                        [labels]="{ visible: true, visual: summary.style.labelVisual, position : 'outsideEnd' , distance:30 , color: summary.style.textColor }"  
                   >
                   </kendo-chart-series-item>
                 </kendo-chart-series>
               </kendo-chart>
         </kendo-tilelayout-item>
 
-        <kendo-tilelayout-item class = "tile robot-type" [title]="((taskState == 'failed' ? 'Aborted ' : 'Cancelled ') + 'Task Count by Robot Type') | label : uiSrv.langPack"  [col]="2" [row]="1" >
+        <kendo-tilelayout-item class = "tile robot-type" [title]="((taskState == 'failed' ? 'Aborted ' : 'Cancelled ') + 'Task Count by Robot Type') | label : uiSrv.langPack"  [col]="robotType ? 3 : 4 " [row]="1" [colSpan] = "robotType ? 2 : 3">
             <kendo-chart #robotTypeDonut [seriesColors] = "summary.style.seriesColors" class="summary-chart">
                 <kendo-chart-area background="transparent"></kendo-chart-area>
                 <!-- <kendo-chart-title [align]="'left'" [text]="'Job Order by Type' | label: uiSrv.langPack"  [color]="style.textColor" ></kendo-chart-title>     -->
                 <ng-template kendoChartDonutCenterTemplate>
-                    <div [style.color]="summary.style.textColor">{{ total + ' ' + ('Tasks' | label : uiSrv.langPack )}}</div>
+                    <div [style.color]="summary.style.textColor">{{ summary.total + ' ' + ('Tasks' | label : uiSrv.langPack )}}</div>
                 </ng-template>
                 <kendo-chart-legend [visible]="false" ></kendo-chart-legend>
                 <kendo-chart-series>
@@ -61,14 +62,34 @@
                         </ng-template>
                   </kendo-chart-tooltip>
                   <kendo-chart-series-item type="donut" [data]="summary.data.robot_type" field="value" categoryField="category" [holeSize] = "45" [padding] = "70"
-                                           [visual]="highlightVisual"  [labels]="{ visible: true, visual: summary.labelVisual, position : 'outsideEnd' , distance:30  , color: summary.style.textColor }"  
+                                           [visual]="summary.style.highlightVisual"  [labels]="{ visible: true, visual: summary.style.labelVisual, position : 'outsideEnd' , distance:30  , color: summary.style.textColor }"  
                   >
                   </kendo-chart-series-item>
                 </kendo-chart-series>
               </kendo-chart>
         </kendo-tilelayout-item>
 
-        <kendo-tilelayout-item class = "tile daily" [title]="((taskState == 'failed' ? 'Aborted ' : 'Cancelled ') + 'Task Count per Day') | label : uiSrv.langPack"  [col]="1" [row]="2" [colSpan] = "2">
+        <kendo-tilelayout-item *ngIf="robotType" class = "tile robot" [title]="((taskState == 'failed' ? 'Aborted ' : 'Cancelled ') + 'Task Count by Robot') | label : uiSrv.langPack"  [col]="5" [row]="1" [colSpan] = "2">
+            <kendo-chart #robotBar  [seriesColors]="summary.style.seriesColors" >
+                <kendo-chart-area background="transparent"></kendo-chart-area>
+                <kendo-chart-category-axis >
+                  <kendo-chart-category-axis-item  [categories]="summary.categories.robot" [labels]="{visual : summary.style.labelVisual}"
+                                                   [majorGridLines]="{ visible : false}"  [color]="summary.style.textColor">
+                  </kendo-chart-category-axis-item>         
+                </kendo-chart-category-axis>   
+                <kendo-chart-value-axis>
+                    <kendo-chart-value-axis-item  [majorGridLines]="{ visible : false}" [min]="0" [color]="'transparent'" >
+                    </kendo-chart-value-axis-item>
+                </kendo-chart-value-axis>
+                <kendo-chart-series>
+                  <kendo-chart-series-item type="bar" [data]="summary.data.robot"  [visual]="summary.style.highlightVisual"
+                                                      [labels]="{visible:true , visual : summary.style.highlightVisual , position:'outsideEnd' , color:'#FFFFFF' , background:'transparent'}">
+                  </kendo-chart-series-item>      
+                </kendo-chart-series>
+              </kendo-chart>
+        </kendo-tilelayout-item>
+
+        <kendo-tilelayout-item class = "tile daily" [title]="((taskState == 'failed' ? 'Aborted ' : 'Cancelled ') + 'Task Count per Day') | label : uiSrv.langPack"  [col]="1" [row]="2" [colSpan] = "6">
             <kendo-chart [seriesColors]="summary.style.seriesColors">   
                 <kendo-chart-area background="transparent"></kendo-chart-area>  
                 <kendo-chart-tooltip format="{0}"></kendo-chart-tooltip>

@@ -31,6 +31,7 @@ export class MultiselectComponent implements OnInit {
   @Input() filterable = false
   @Input() checkboxes = false
   @Input() disabled = false
+  @Input() useSummaryTag = false
   oldValue = null
   myValue
   subscriptions = []

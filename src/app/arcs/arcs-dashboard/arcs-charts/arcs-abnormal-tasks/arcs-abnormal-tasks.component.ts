@@ -15,6 +15,8 @@ import { ArcsChartsComponent } from '../arcs-charts.component';
 
 export class ArcsAbnormalTasksComponent implements OnInit {
   @ViewChild('robotTypeDonut') robotTypeDonut
+  @ViewChild('reasonDonut') reasonDonut
+  @ViewChild('robotBar') robotBar
   dialogRef
   data = []
   total
@@ -24,6 +26,7 @@ export class ArcsAbnormalTasksComponent implements OnInit {
   fromDate 
   toDate
   robotType
+  robotCode
   tabs=[
     { id: 'summary', label: 'Summary' },
     { id: 'detail', label: 'Detail' }
@@ -60,42 +63,48 @@ export class ArcsAbnormalTasksComponent implements OnInit {
   dateRangeDesc = null
 
   summary = {
+    total : 0,
     data: {
       reason: [],
       robot_type: [],
-      daily: []
+      daily: [],
+      robot:[]
     },
     categories: {
-      daily: []
+      daily: [],
+      robot:[]
     },
     style: {
       textColor: '#FFFFFF',
-      seriesColors: this.util.getConfigColors()
-    },
-
-    labelVisual: (arg: SeriesLabelsVisualArgs) => {
-      // arg.options.set("font" , "20px Airal")
-      let ret = arg.createVisual();
-      let mainText : Text = <any>(<Group>ret).children.filter(c => typeof c?.['chartElement'] === typeof new Text(undefined, undefined))[0]; //(c?.['chartElement']) instanceof Text
-      // (<Text>mainText).options.set("font" , "20px Arial");
-      (<Text>mainText).content(arg.dataItem.category);
-      (<Group>ret).remove((<Group>ret).children.filter(c => typeof c?.['Path'])[0])
-      let subText = new Text((arg.percentage * 100).toFixed(2) + '%', [(<Text>mainText).position().x, (<Text>mainText).position().y + 25], { font: `10px Arial`, fill: { color: '#BBBBBB' } });
-      (<Group>ret).append(subText)
-      if(arg.sender == this.robotTypeDonut){
-        ret.options.set('opacity', this.robotType && this.robotType!= arg.dataItem.robotType ? this.parent.style.dimOpacity : 1)
+      seriesColors: this.util.getConfigColors(),
+      labelVisual : (arg: SeriesLabelsVisualArgs) => {
+        let ret = arg.createVisual();
+        let mainText = (<Group>ret).children.filter(c => typeof c?.['chartElement'] === typeof new Text(undefined, undefined))[0];
+        if(arg.sender == this.robotTypeDonut || arg.sender == this.reasonDonut){
+          (<Text>mainText).content(arg.dataItem.category);
+          let hightlighted = arg.dataItem.robotType == this.parent.robotTypeFilter
+          let subTextContent = `${(arg.percentage * 100).toFixed(2)}% ${hightlighted ? ` (${this.parent.getRoundedValue(arg.dataItem.value).toString()})` : ''}`;
+          (<Group>ret).remove((<Group>ret).children.filter(c => typeof c?.['Path'])[0])
+          let subText = new Text(subTextContent, [(<Text>mainText).position().x, (<Text>mainText).position().y + 15], { font: `11px Arial`, fill: { color: '#BBBBBB' } });
+          (<Group>ret).append(subText)
+        }else{
+          (<Text>mainText).content(arg.value);
+        }
+        if ((arg.sender == this.robotTypeDonut && this.parent.isDimmed(arg, (<Text>mainText).content())) || (arg.sender == this.robotBar && this.robotCode && this.robotCode != arg.value)) {
+          ret.options.set('opacity', this.parent.style.dimOpacity)
+        }
+        return ret;
+      },    
+      highlightVisual : (arg: SeriesVisualArgs)=>{
+        let ret = arg.createVisual();
+        if((this.robotType && arg.sender == this.robotTypeDonut && arg.dataItem.robotType!= this.robotType) || (arg.sender == this.robotBar && this.robotCode && this.robotCode != arg.category) ){
+          ret.options.set('opacity' , this.parent.style.dimOpacity)
+        }
+        return ret;
       }
-      return ret;
     }
   }
 
-  highlightVisual = (arg: SeriesVisualArgs)=>{
-    let ret = arg.createVisual();
-    if(this.robotType && arg.dataItem.robotType!= this.robotType){
-      ret.options.set('opacity' , this.parent.style.dimOpacity)
-    }
-    return ret;
-  }
 
   @HostBinding('class') cssClass = 'dialog-content '
 
@@ -106,7 +115,8 @@ export class ArcsAbnormalTasksComponent implements OnInit {
     Object.keys(this.gridSettings).forEach(k=>{
       this.gridSettings[k].defaultState['filter'] = {
         filters : [{field : 'createdDateTime' , operator : 'gte' , value : this.fromDate} , {field : 'createdDateTime' , operator : 'lte' , value : new Date(this.toDate.getTime() + 86400000)} ].
-                  concat(this.robotType? [{field : 'robotTypeFilter' , operator : 'eq' , value : this.robotType}]: []),
+                  concat(this.robotType? [{field : 'robotTypeFilter' , operator : 'eq' , value : this.robotType}]: []).
+                  concat(this.robotCode? [{field : 'robotCode' , operator : 'eq' , value : this.robotCode}]: []) ,
         logic : 'and'
       }
     });
@@ -116,12 +126,21 @@ export class ArcsAbnormalTasksComponent implements OnInit {
     this.gridSettings.failed.columns.filter(c => c.id == 'reasonCode')[0]['dropdownOptions'] =  ddl.option['taskFailReason']
     this.gridSettings.canceled.columns.filter(c => c.id == 'reasonCode')[0]['dropdownOptions'] =  ddl.option['taskCancelReason']
     this.gridSettings = JSON.parse(JSON.stringify(this.gridSettings))
-    this.initSummaryCategories()
     this.refreshSummary()
     this.uiSrv.loadAsyncDone(ticket)
   }
 
   initSummaryCategories(){
+    this.summary.data = {
+      reason: [],
+      robot_type: [],
+      daily: [],
+      robot:[]
+    }
+    this.summary.categories = {
+      daily: [],
+      robot:[]
+    }
     let date = new Date(this.fromDate.getTime());
     let to = new Date(this.toDate.getTime());
     let ticks = Math.ceil((to.getTime() - date.getTime()) / (1000 * 3600 * 24))
@@ -131,31 +150,39 @@ export class ArcsAbnormalTasksComponent implements OnInit {
       let newDate = new Date()
       newDate.setTime(date.getTime() + 86400000)
       date = newDate
-    }
+    }    
   }
   
   async refreshSummary() {
+    this.initSummaryCategories()
     let ticket = this.uiSrv.loadAsyncBegin()
-    var data : {type : string , category : string , value : number}[] =  await this.dataSrv.httpSrv.get(`api/analytics/task/v1?state=${this.taskState.toUpperCase()}&fromDate=${this.util.getSQLFmtDateStr(this.fromDate)}&toDate=${this.util.getSQLFmtDateStr(this.toDate)}${this.robotType ? `&robotType=${this.robotType}` : ''}`) 
+    var data : {type : string , category : string , value : number}[] =  await this.dataSrv.httpSrv.get(`api/analytics/task/v1?state=${this.taskState.toUpperCase()}&fromDate=${this.util.getSQLFmtDateStr(this.fromDate)}&toDate=${this.util.getSQLFmtDateStr(this.toDate)}${this.robotType ? `&robotType=${this.robotType}` : ''}${this.robotCode ? `&robotCode=${this.robotCode}` : ''}`) 
+    let filteredRobotData = this.robotCode && data.filter(r => r.type == 'ROBOT' && r.category == this.robotCode).length == 0 ? [{ type: 'ROBOT', category: this.robotCode, value: 0 }] : []
+    data = data.filter(r => r.type != 'ROBOT').concat((data.filter(r => r.type == 'ROBOT').sort((a, b) => b.value - a.value)).concat((<any>filteredRobotData)))
     Object.keys(this.summary.data).forEach(k=>{
-      if(k=="daily"){
-        data.filter(d=>d.type == k.toUpperCase()).forEach(r=>{
-          let splitedDateString = r.category.split("-")
-          let date = new Date(Number(splitedDateString[0]), Number(splitedDateString[1]) - 1, Number(splitedDateString[2]) )
-          let index = this.summary.categories.daily.filter(d=>d.getTime() == date.getTime()).map(d=>this.summary.categories.daily.indexOf(d))[0]
-          this.summary.data.daily[index] = Number(this.util.trimNum(r.value, 0))
-        })
-      }else{
-        this.summary.data[k] = data.filter(d => d.type == k.toUpperCase()).map(r => {
-          return {
-            type: r.type,
-            robotType : k == 'robot_type'?  r.category : undefined,
-            category: this.uiSrv.translate(new EnumNamePipe().transform(r.category)),
-            value: Number(this.util.trimNum(r.value, 0))
-          }
-        })
-      }
+      data.filter(d=>d.type == k.toUpperCase()).forEach(r=>{
+        if(k=="daily"){
+            let splitedDateString = r.category.split("-")
+            let date = new Date(Number(splitedDateString[0]), Number(splitedDateString[1]) - 1, Number(splitedDateString[2]) )
+            let index = this.summary.categories.daily.filter(d=>d.getTime() == date.getTime()).map(d=>this.summary.categories.daily.indexOf(d))[0]
+            this.summary.data.daily[index] = Number(this.util.trimNum(r.value, 0))
+        }else if(k == "robot"){
+            this.summary.data.robot.push(Number(this.util.trimNum(r.value, 0)))
+            this.summary.categories.robot.push(r.category)
+        }else {
+          this.summary.data[k].push(
+            {
+              type: r.type,
+              robotType : k == 'robot_type'?  r.category : undefined,
+              category: this.uiSrv.translate(new EnumNamePipe().transform(r.category)),
+              value: Number(this.util.trimNum(r.value, 0))
+            }
+          )
+        }
+      })
+    
     })
+    this.summary.total = this.summary.data.robot_type.reduce((acc, i) => acc + i.value, 0)
     this.summary.data = JSON.parse(JSON.stringify(this.summary.data))
     this.uiSrv.loadAsyncDone(ticket)
   }

@@ -3,9 +3,11 @@
         <div class="form-group">
             <kendo-multiselect #multiselect [ngModel] = "myValue"  [data]="dispOptions"  [textField]="textFld" [valueField]="valueFld"  [filterable] = "true"   [disabled] = "disabled"
                               [autoClose]="false"  [checkboxes]="checkboxes ? { checkOnClick: true } : undefined "
+                              [class] = "useSummaryTag ? 'all-tags' : 'summary-tag'"
                               (ngModelChange) = "oldValue = value; value = $event; 
                                                  change.emit({currentValue : $event[valueFld] , previousValue: oldValue});
-                                                 valueChange.emit(value)">
+                                                 valueChange.emit(value)"
+                              [kendoMultiSelectSummaryTag]="!useSummaryTag ?  myValue.length : undefined" >
                 <ng-template kendoMultiSelectItemTemplate let-dataItem>
                     <span [innerHTML] = "dataItem[textFld] | highlight : filterVal"></span>
                 </ng-template>

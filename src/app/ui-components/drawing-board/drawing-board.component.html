@@ -422,7 +422,7 @@
           <uc-txtbox *ngIf="util.standaloneApp && selectedGraphics.rosX !== undefined" lab="ROS Position X" [(value)] = "selectedGraphics.rosX" (valueChange)="selectedGraphics.refreshPositionByRosValue()"  [numeric] = 'true' [numDecimals] = '5' ></uc-txtbox>
           <uc-txtbox *ngIf="util.standaloneApp && selectedGraphics.rosY !== undefined"  lab="ROS Position Y" [(value)] = "selectedGraphics.rosY" (valueChange)="selectedGraphics.refreshPositionByRosValue()"   [numeric] = 'true' [numDecimals] = '5'></uc-txtbox>
           <uc-txtbox *ngIf="selectedGraphics.angleIndicator" lab="Angle" [(value)] = "selectedGraphics.angleIndicator.angle"  [numeric] = 'true'  [numDecimals] = '3' class="col-2" ></uc-txtbox>
-          <uc-multiselect *ngIf="util.arcsApp" lab="Robot Bases" [checkboxes]="true" [options]="robotBasesOptions" [(value)]="selectedGraphics.robotBases" ></uc-multiselect>
+          <uc-multiselect *ngIf="util.arcsApp" lab="Robot Bases" [useSummaryTag]="true" [checkboxes]="true" [options]="robotBasesOptions" [(value)]="selectedGraphics.robotBases" ></uc-multiselect>
           <div  *ngIf="util.arcsApp && withMapLayer" class="checkbox group" >
             <input class="checkbox"  type="checkbox" kendoCheckBox [disabled] = "readonly"  [(ngModel)]="selectedGraphics.hasPointGroup"/>
             <div  class="label" >{{ 'Parking Spot' | label : uiSrv.langPack}}</div>

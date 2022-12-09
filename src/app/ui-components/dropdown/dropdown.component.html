@@ -8,12 +8,13 @@
         <ng-template kendoDropDownListNoDataTemplate *ngIf = "noDataMsg">
             {{noDataMsg}}
         </ng-template>
-        <ng-template kendoDropDownListValueTemplate let-dataItem *ngIf="showValue || translateOption || prefixIconClass || allowClear">
+        <ng-template kendoDropDownListValueTemplate let-dataItem *ngIf="showValue || translateOption || prefixIconClass || allowClear || nullValueDesc">
             <div class="dropdown-value">
                 <span class="item">
                     <span *ngIf = "prefixIconClass" [class]="prefixIconClass"></span>
                     <span *ngIf= "showValue && dataItem && dataItem[valueFld]" class="text code"> [{{dataItem[valueFld]}}] </span>
                     <span *ngIf= "dataItem"  class="text desc">  {{ translateOption ? (dataItem[textFld] | label : uiSrv.langPack) : dataItem[textFld] }}</span>
+                    <span *ngIf= "nullValueDesc && dataItem && dataItem[valueFld] === null"  class="text desc">  {{nullValueDesc| label : uiSrv.langPack }}</span>
                 </span>
                 <span *ngIf="dataNotFound" class="error">
                     {{ dataNotFoundMsg | label : uiSrv.langPack}}
