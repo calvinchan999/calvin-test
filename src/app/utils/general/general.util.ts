@@ -249,7 +249,13 @@ export class GeneralUtil {
 	}
 
 	public getUserAccess() {
-		return sessionStorage.getItem('userAccess') ? sessionStorage.getItem('userAccess'): null;
+		var token = this.getUserAccessToken();
+		if(token){
+			return JSON.stringify(JSON.parse(atob(token.split('.')[1]))?.['AuthorizedFunctions']?.split(";"))
+		}else{
+			return null
+		}
+		//return sessionStorage.getItem('userAccess') ? sessionStorage.getItem('userAccess'): null;
 	}
 
 	public loadToFrmgrp(frmGrp: FormGroup , data ){

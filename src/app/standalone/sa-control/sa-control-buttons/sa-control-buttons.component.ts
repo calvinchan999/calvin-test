@@ -1,4 +1,4 @@
-import { Component, Input, OnInit, ViewChild } from '@angular/core';
+import { Component, Input, OnDestroy, OnInit, ViewChild } from '@angular/core';
 import { DialogService } from '@progress/kendo-angular-dialog';
 import { Subject } from 'rxjs';
 import { skip, takeUntil } from 'rxjs/operators';
@@ -13,7 +13,7 @@ import { GeneralUtil } from 'src/app/utils/general/general.util';
   templateUrl: './sa-control-buttons.component.html',
   styleUrls: ['./sa-control-buttons.component.scss']
 })
-export class SaControlButtonsComponent implements OnInit {
+export class SaControlButtonsComponent implements OnInit ,  OnDestroy {
   signalRTopics : signalRType[] = ['battery','state','brake','followMePair','led','fan', 'pauseResume']
   signalRsubscribed = false
   @ViewChild('mapContainer') pixiElRef : DrawingBoardComponent

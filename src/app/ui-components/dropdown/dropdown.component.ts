@@ -1,4 +1,4 @@
-import { Component, EventEmitter, HostBinding, Input, OnInit, Output, ViewChild } from '@angular/core';
+import { Component, EventEmitter, HostBinding, Input, OnInit, Output, ViewChild , OnDestroy } from '@angular/core';
 import { FormGroup } from '@angular/forms';
 import { DropDownListComponent } from '@progress/kendo-angular-dropdowns';
 import { combineLatest, Observable, Subject } from 'rxjs';
@@ -10,7 +10,7 @@ import { dataNotFoundMessage  , UiService } from 'src/app/services/ui.service';
   templateUrl: './dropdown.component.html',
   styleUrls: ['./dropdown.component.scss']
 })
-export class DropdownComponent implements OnInit {
+export class DropdownComponent implements OnInit , OnDestroy {
   //*** For value change subscription , please use the event emitter of this UC for instead of form control --- formControl valueChange is suppressed ***/
   constructor(public uiSrv : UiService) { }
   @Input() showValue = false

@@ -1,4 +1,10 @@
 {
+    "Task Count By Robot" : "工作數量（按機械人）",
+    "Master Robot":"領隊機械人",
+    "Client Robot":"跟隨機械人",
+    "Robot Group":"機械人隊伍",
+    "Group":"隊伍",
+    "Group Name":"隊伍名稱",
     "All":"全部",
     "Data Sync Log" : "數據同步日誌",
     "Record Code":"記錄編號",

@@ -1,4 +1,4 @@
-import { Component, EventEmitter, HostBinding, Input, OnInit, Output, ViewChild } from '@angular/core';
+import { Component, EventEmitter, HostBinding, Input, OnInit, Output, ViewChild , OnDestroy} from '@angular/core';
 import { FormControl, FormGroup } from '@angular/forms';
 import { from } from 'rxjs';
 import { delay, map, switchMap, tap } from 'rxjs/operators';
@@ -10,7 +10,7 @@ import { UiService } from 'src/app/services/ui.service';
   templateUrl: './multiselect.component.html',
   styleUrls: ['./multiselect.component.scss']
 })
-export class MultiselectComponent implements OnInit {
+export class MultiselectComponent implements OnInit , OnDestroy{
 
   constructor(public uiSrv: UiService) { }
   @ViewChild("multiselect") multiselect;

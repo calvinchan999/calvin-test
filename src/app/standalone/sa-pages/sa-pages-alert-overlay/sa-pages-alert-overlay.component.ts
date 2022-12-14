@@ -1,4 +1,4 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnDestroy, OnInit } from '@angular/core';
 import { Subject } from 'rxjs';
 import { takeUntil } from 'rxjs/operators';
 import { DataService } from 'src/app/services/data.service';
@@ -9,7 +9,7 @@ import { MsgDialogContent, UiService } from 'src/app/services/ui.service';
   templateUrl: './sa-pages-alert-overlay.component.html',
   styleUrls: ['./sa-pages-alert-overlay.component.scss']
 })
-export class SaPagesAlertOverlayComponent implements OnInit {
+export class SaPagesAlertOverlayComponent implements OnInit , OnDestroy  {
   expanded = 'true'
   constructor(public uiSrv : UiService , public dataSrv : DataService) {
 

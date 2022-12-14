@@ -1,4 +1,4 @@
-import { Component, EventEmitter, HostBinding, HostListener, Input, OnInit, Output, Renderer2, ViewChild } from '@angular/core';
+import { Component, EventEmitter, HostBinding, HostListener, Input, OnInit, Output, Renderer2, ViewChild , OnDestroy } from '@angular/core';
 import { FormGroup } from '@angular/forms';
 import { toJSON } from '@progress/kendo-angular-grid/dist/es2015/filtering/operators/filter-operator.base';
 import { NumericTextBoxComponent, TextBoxComponent } from '@progress/kendo-angular-inputs';
@@ -13,7 +13,7 @@ import { DataService } from 'src/app/services/data.service';
   templateUrl: './txtbox.component.html',
   styleUrls: ['./txtbox.component.scss'],
 })
-export class TxtboxComponent implements OnInit {
+export class TxtboxComponent implements OnInit , OnDestroy{
   @ViewChild("textbox") public textbox: TextBoxComponent;
   @Input() lab
   @Input() col = ''

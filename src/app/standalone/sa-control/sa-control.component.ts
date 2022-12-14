@@ -1,4 +1,4 @@
-import { Component, OnInit, ViewChild } from '@angular/core';
+import { Component, OnDestroy, OnInit, ViewChild } from '@angular/core';
 import { FormControl, FormGroup, Validators } from '@angular/forms';
 import { ActivatedRoute, Router } from '@angular/router';
 import { DialogRef, DialogService, WindowRef } from '@progress/kendo-angular-dialog';
@@ -18,7 +18,7 @@ import { GeneralUtil } from 'src/app/utils/general/general.util';
   templateUrl: './sa-control.component.html',
   styleUrls: ['./sa-control.component.scss']
 })
-export class SaControlComponent implements OnInit {
+export class SaControlComponent implements OnInit , OnDestroy  {
   @ViewChild('table') actionTableRef : TableComponent
 
   readonly = {

@@ -79,7 +79,8 @@ export class AuthService {
 					Object.keys(this.sessionStorageCredentialsMap).forEach(k => sessionStorage.setItem(k, response.validationResults[this.sessionStorageCredentialsMap[k]]))
 					this.username = this.generalUtil.getCurrentUser()
 					this.userAccessList = response.validationResults?.accessFunctionList.map(f => f.functionCode)
-					this.dataSrv.setSessionStorage('userAccess', JSON.stringify(this.userAccessList))
+					// console.log(response.validationResults.access_token)
+					// this.dataSrv.setSessionStorage('userAccess', JSON.stringify(this.userAccessList))
 					this.dataSrv.setSessionStorage('isGuestMode', JSON.stringify(guestMode))
 					this.isGuestMode = guestMode
 					this.dataSrv.init()

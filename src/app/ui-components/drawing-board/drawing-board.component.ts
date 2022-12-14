@@ -1,4 +1,4 @@
-import { Component, AfterViewInit, Input, ViewChild, ElementRef, EventEmitter, Injectable, Inject, Output, ChangeDetectorRef, Renderer2, HostListener, NgZone, OnInit } from '@angular/core';
+import { Component, AfterViewInit, Input, ViewChild, ElementRef, EventEmitter, Injectable, Inject, Output, ChangeDetectorRef, Renderer2, HostListener, NgZone, OnInit , OnDestroy } from '@angular/core';
 import { NgPixiViewportComponent } from 'src/app/utils/ng-pixi/ng-pixi-viewport/ng-pixi-viewport.component';
 import { GeneralUtil } from 'src/app/utils/general/general.util';
 import * as PIXI from 'pixi.js';
@@ -44,7 +44,7 @@ const ROBOT_ACTUAL_LENGTH_METER = 1
   styleUrls: ['./drawing-board.component.scss']
 })
 
-export class DrawingBoardComponent implements OnInit , AfterViewInit {
+export class DrawingBoardComponent implements OnInit , AfterViewInit , OnDestroy{
   @ViewChild(NgPixiViewportComponent) public _ngPixi: NgPixiViewportComponent;
   @ViewChild('uploader') public uploader
   @ViewChild('angleSlider') public angleSlider : ElementRef
@@ -1976,7 +1976,7 @@ export class DrawingBoardComponent implements OnInit , AfterViewInit {
       return ret
     }
 
-    let hasMap =  this.mainContainer.children.filter(c=> c instanceof PixiMapLayer).length > 0
+    let hasMap = this.mainContainer.children.filter(c => c instanceof PixiMapLayer).length > 0
     let getJPoints = (robotBase : string = null)=> this.allPixiPoints.filter(p=> robotBase == null || p.robotBases.includes(robotBase)).map((point: PixiLocPoint) => {
       let pt : JPoint = copyOriginalData(point , new JPoint())
       pt.floorPlanCode = floorPlanCode
@@ -4290,7 +4290,7 @@ export class PixiLocPoint extends PixiCommon {
     this.input.text = this.text
     if(!useInput){
       this.input.visible = false
-      this.readOnlyPixiText.visible = true
+      this.readOnlyPixiText.visible = this.getMasterComponent()?.uitoggle.showWaypointName
       if(!this.children.includes(this.readOnlyPixiText)){
         this.readOnlyPixiText.anchor.set(0.5)
         //pivot.set(this.readOnlyPixiText.width/2 , this.readOnlyPixiText.height/2)

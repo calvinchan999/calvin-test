@@ -1,6 +1,6 @@
 import { Text, Group} from "@progress/kendo-drawing";
 import { ChartComponent, HighlightVisualArgs, LegendLabelsContentArgs, SeriesClickEvent, SeriesLabelsVisualArgs, SeriesVisualArgs } from '@progress/kendo-angular-charts';
-import { ChangeDetectorRef, Component, NgZone, OnInit, Input , ViewChild , ElementRef , TemplateRef } from '@angular/core';
+import { ChangeDetectorRef, Component, NgZone, OnInit, Input , ViewChild , ElementRef , TemplateRef, OnDestroy } from '@angular/core';
 import { RvHttpService } from 'src/app/services/rv-http.service';
 import { UiService } from 'src/app/services/ui.service';
 import { DrawingBoardComponent, PixiCommon } from 'src/app/ui-components/drawing-board/drawing-board.component';
@@ -10,7 +10,7 @@ import { Router } from '@angular/router';
 import { DialogRef } from '@progress/kendo-angular-dialog';
 import { CmTaskJobComponent } from 'src/app/common-components/cm-task/cm-task-job/cm-task-job.component';
 import { TableComponent } from 'src/app/ui-components/table/table.component';
-import { skip, takeUntil } from 'rxjs/operators';
+import { skip, takeUntil , filter } from 'rxjs/operators';
 import { BehaviorSubject, from, Subject } from 'rxjs';
 import { AuthService } from 'src/app/services/auth.service';
 import { mixin } from "pixi-viewport";
@@ -26,7 +26,7 @@ const Utilization_Status_Types = ['charging' , 'idle' , 'executing' , 'hold' , '
   styleUrls: ['./arcs-charts.component.scss']
 })
 
-export class ArcsChartsComponent implements OnInit {
+export class ArcsChartsComponent implements OnInit , OnDestroy {
   @ViewChild('navigatorChart') navigatorChart : ChartComponent
   @ViewChild('tooltipFr') tooltipFr : TooltipDirective
   @ViewChild('tooltipTo') tooltipTo : TooltipDirective
@@ -158,9 +158,21 @@ export class ArcsChartsComponent implements OnInit {
 
   robotTypeFilter = null
   robotCodeFilter = null
+  $onDestroy = new Subject()
 
   constructor(public datepipe: DatePipe ,  private util :GeneralUtil , public uiSrv : UiService , private dataSrv : DataService ) {
+    this.uiSrv.lang.pipe( filter(v=>v!=null) ,takeUntil(this.$onDestroy)).subscribe(l=>{
+      this.refreshTranslation()
+    })
+  }
 
+  refreshTranslation() {
+    if (this.usability?.robotType?.data) {
+      this.usability.robotType.data.forEach(d => {
+        d.category = this.uiSrv.translate(<DropListType[]>this.dropdownData.types.filter(t => t.enumName == d.robotType)[0]?.description)
+      })
+      this.usability.robotType.data = JSON.parse(JSON.stringify(this.usability.robotType.data))
+    }
   }
 
   onSeriesClick(evt : SeriesClickEvent){
@@ -196,8 +208,11 @@ export class ArcsChartsComponent implements OnInit {
 
 
   async ngOnInit() {
-
     // this.init()
+  }
+
+  ngOnDestroy(){
+    this.$onDestroy.next()
   }
 
   async ngAfterViewInit() {
@@ -292,7 +307,7 @@ export class ArcsChartsComponent implements OnInit {
       }else {
         (<Text>mainText).content(arg.value)
       }
-      if(this.isDimmed(arg , (<Text>mainText).content())){
+      if(this.isDimmed(arg , arg.sender == this.robotTypeUsabilityDonut ? undefined : (<Text>mainText).content())){
         ret.options.set('opacity',  this.style.dimOpacity)
       }
       return ret;
@@ -307,9 +322,9 @@ export class ArcsChartsComponent implements OnInit {
   }
 
   isDimmed(arg: SeriesVisualArgs | SeriesLabelsVisualArgs , checkValue = null) {
-    checkValue = checkValue ? checkValue : (arg.sender ==  this.robotTypeUsabilityDonut ? arg.dataItem.robotType : arg.category)
-    return (arg.sender == this.robotTypeUsabilityDonut && this.robotTypeFilter && arg.dataItem.robotType != this.robotTypeFilter) ||
-      (arg.sender == this.robotUsabilityBar && this.robotCodeFilter && checkValue != this.robotCodeFilter)
+    checkValue = checkValue ? checkValue : (arg.sender ==  this.robotTypeUsabilityDonut ? arg.dataItem.robotType : arg.category)       
+    return (arg.sender == this.robotTypeUsabilityDonut && this.robotTypeFilter && checkValue!= this.robotTypeFilter) ||
+           (arg.sender == this.robotUsabilityBar && this.robotCodeFilter && checkValue != this.robotCodeFilter)
   }
 
 

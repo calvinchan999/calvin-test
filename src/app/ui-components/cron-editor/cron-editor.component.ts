@@ -1,4 +1,4 @@
-import { Component, EventEmitter, Input, OnInit, Output } from '@angular/core';
+import { Component, EventEmitter, Input, OnInit, Output , OnDestroy } from '@angular/core';
 import { UiService } from 'src/app/services/ui.service';
 import { isValidCronExpression } from 'cron-expression-validator'
 import cronstrue from 'cronstrue'
@@ -12,7 +12,7 @@ import { takeUntil } from 'rxjs/operators';
   templateUrl: './cron-editor.component.html',
   styleUrls: ['./cron-editor.component.scss']
 })
-export class CronEditorComponent implements OnInit {
+export class CronEditorComponent implements OnInit , OnDestroy{
   _customCron
   @Input() set customCron(v){
     if(v){

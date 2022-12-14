@@ -1,4 +1,4 @@
-import { Component, EventEmitter, HostBinding, Input, OnInit, Output, ViewChild } from '@angular/core';
+import { Component, EventEmitter, HostBinding, Input, OnInit, Output, ViewChild , OnDestroy } from '@angular/core';
 import { FormControl, FormGroup } from '@angular/forms';
 import { DateInputComponent as KendoDate } from '@progress/kendo-angular-dateinputs';
 import { TextBoxComponent } from '@progress/kendo-angular-inputs';
@@ -12,7 +12,7 @@ import { GeneralUtil } from 'src/app/utils/general/general.util';
   templateUrl: './date-input.component.html',
   styleUrls: ['./date-input.component.scss']
 })
-export class DateInputComponent implements OnInit {
+export class DateInputComponent implements OnInit , OnDestroy{
   @Input() lab
   @Input() disabled
   @ViewChild('kendoDate') kendoDate : KendoDate

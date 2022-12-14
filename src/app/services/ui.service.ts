@@ -186,7 +186,7 @@ export class UiService {
     this.refreshDrawerItems.next(true)
     // this.loadAsyncDone(ticket)
   }
-
+  
   translate(value){
     return value && this.langPack[value] ? this.langPack[value] : value;
   }

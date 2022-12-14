@@ -1,7 +1,7 @@
 //import standard library
 import { NavigationStart, Router } from '@angular/router';
 import { FormGroup, FormControl, Validators } from '@angular/forms';
-import { Component, EventEmitter, HostBinding, Input, OnInit, Output, ViewChild, ViewEncapsulation  } from '@angular/core';
+import { Component, EventEmitter, HostBinding, Input, OnInit, Output, ViewChild, ViewEncapsulation  , OnDestroy } from '@angular/core';
 import { IntlService } from '@progress/kendo-angular-intl';
 import { MessageService } from '@progress/kendo-angular-l10n';
 import { NotificationService } from '@progress/kendo-angular-notification';
@@ -27,7 +27,7 @@ import { SignalRService } from 'src/app/services/signal-r.service';
   templateUrl: './sa-top-module.component.html',
   styleUrls: ['./sa-top-module.component.scss']
 })
-export class SaTopModuleComponent implements OnInit {
+export class SaTopModuleComponent implements OnInit , OnDestroy {
   @Input() @HostBinding('class') customClass = 'module card-container';
   @Input() showDeliveryOrderInput = false
   @Input() isTaskLayout = false

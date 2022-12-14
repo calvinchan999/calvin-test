@@ -1,5 +1,5 @@
 import { ChangeDetectionStrategy } from '@angular/compiler/src/compiler_facade_interface';
-import { ChangeDetectorRef, Component, OnInit } from '@angular/core';
+import { ChangeDetectorRef, Component, OnDestroy, OnInit } from '@angular/core';
 import { FormControl, FormGroup } from '@angular/forms';
 import { DialogRef } from '@progress/kendo-angular-dialog';
 import { BehaviorSubject, Subject } from 'rxjs';
@@ -13,7 +13,7 @@ import { UiService } from 'src/app/services/ui.service';
   templateUrl: './wifi.component.html',
   styleUrls: ['./wifi.component.scss']
 })
-export class WifiComponent implements OnInit {
+export class WifiComponent implements OnInit , OnDestroy {
   wifiSignalList = [ ]
 
   dialogRef : DialogRef

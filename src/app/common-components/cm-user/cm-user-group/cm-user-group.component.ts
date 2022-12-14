@@ -1,4 +1,4 @@
-import { ChangeDetectorRef, Component, NgZone, OnInit, ViewChild } from '@angular/core';
+import { ChangeDetectorRef, Component, NgZone, OnDestroy, OnInit, ViewChild } from '@angular/core';
 import { FormControl, FormGroup, Validators } from '@angular/forms';
 import { DialogService } from '@progress/kendo-angular-dialog';
 import { filter, take } from 'rxjs/operators';
@@ -15,7 +15,7 @@ import { AuthService } from 'src/app/services/auth.service';
   templateUrl: './cm-user-group.component.html',
   styleUrls: ['./cm-user-group.component.scss']
 })
-export class CmUserGroupComponent implements OnInit {
+export class CmUserGroupComponent implements OnInit , OnDestroy {
   readonly = false
   constructor(public util: GeneralUtil, public uiSrv: UiService, public dialogService: DialogService, public authSrv : AuthService,
               public ngZone: NgZone, public httpSrv: RvHttpService, public dataSrv:DataService) {

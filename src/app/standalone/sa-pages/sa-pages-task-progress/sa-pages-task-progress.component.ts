@@ -1,4 +1,4 @@
-import { Component, ComponentFactoryResolver, OnInit, ViewChild, ViewContainerRef } from '@angular/core';
+import { Component, ComponentFactoryResolver, OnInit, ViewChild, ViewContainerRef , OnDestroy} from '@angular/core';
 import { Subject } from 'rxjs';
 import { filter, skip, takeUntil } from 'rxjs/operators';
 import { DataService, DropListAction, signalRType } from 'src/app/services/data.service';
@@ -11,7 +11,7 @@ import { SaPagesDeliveryPickupComponent } from '../top-modules/delivery/sa-pages
   templateUrl: './sa-pages-task-progress.component.html',
   styleUrls: ['./sa-pages-task-progress.component.scss']
 })
-export class SaPagesTaskProgressComponent implements OnInit {
+export class SaPagesTaskProgressComponent implements OnInit , OnDestroy {
   @ViewChild('vc', {read: ViewContainerRef}) vcRef : ViewContainerRef
   scrollViewIndices = []
   constructor(public dataSrv: DataService , public uiSrv:UiService , private resolver : ComponentFactoryResolver) { }

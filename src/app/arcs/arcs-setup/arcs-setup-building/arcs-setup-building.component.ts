@@ -73,11 +73,12 @@ export class ArcsSetupBuildingComponent implements OnInit {
   }
   
   async loadSite(){
-    this.site  = await this.dataSrv.getSite()
+    this.site  = await this.dataSrv.getSite(true)
     if(!this.site){
       return
     }
     await this.pixiElRef.loadToMainContainer( this.site.base64Image )
+    this.setViewportCamera()
   }
   
   async initDropDown(){
@@ -107,6 +108,13 @@ export class ArcsSetupBuildingComponent implements OnInit {
       if(data.polygonCoordinates && data.polygonCoordinates.length > 0){
         this.pixiElRef.getBuildingPolygon(data.polygonCoordinates , {x : data.labelX , y: data.labelY} , false)
       }
+    }
+    this.setViewportCamera()
+    this.uiSrv.loadAsyncDone(ticket)
+  }
+
+  setViewportCamera(){
+    if(this.site ){
       this.pixiElRef.defaultPos = {
         x: this.site.viewX,
         y: this.site.viewY,
@@ -114,7 +122,6 @@ export class ArcsSetupBuildingComponent implements OnInit {
       }
       this.pixiElRef.setViewportCamera( this.pixiElRef.defaultPos.x ,  this.pixiElRef.defaultPos.y  , this.pixiElRef.defaultPos.zoom)
     }
-    this.uiSrv.loadAsyncDone(ticket)
   }
 
   refreshFloorPlanOptions() {

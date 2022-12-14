@@ -7,7 +7,7 @@ import { UiService } from 'src/app/services/ui.service';
   templateUrl: './sa-pages-scan-qr.component.html',
   styleUrls: ['./sa-pages-scan-qr.component.scss']
 })
-export class SaPagesScanQrComponent implements OnInit {
+export class SaPagesScanQrComponent implements OnInit  {
   isLoading = false
   scannerInitTicket 
   @ViewChild('scanner') scanner

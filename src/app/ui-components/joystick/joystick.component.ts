@@ -1,4 +1,4 @@
-import { Component, ElementRef, ViewChild, Input, Output, AfterViewInit , EventEmitter } from '@angular/core';
+import { Component, ElementRef, ViewChild, Input, Output, AfterViewInit , EventEmitter , OnDestroy} from '@angular/core';
 import * as nipplejs from 'nipplejs';
 import { Observable, fromEvent, BehaviorSubject, combineLatest, Subject } from 'rxjs';
 import { takeUntil, tap, switchMap, publishReplay, refCount, take, map, delay, repeat, mergeMap, debounceTime, debounce, filter } from 'rxjs/operators';
@@ -10,7 +10,7 @@ import { GeneralUtil } from 'src/app/utils/general/general.util';
   templateUrl: './joystick.component.html',
   styleUrls: ['./joystick.component.scss']
 })
-export class JoystickComponent implements AfterViewInit {
+export class JoystickComponent implements AfterViewInit , OnDestroy {
   @ViewChild('joystick') joystick: ElementRef;
   @Input() isRemoteController = false
   @Input() remoteControlTurboOn = false
@@ -47,7 +47,7 @@ export class JoystickComponent implements AfterViewInit {
     this.moveSubj.pipe(takeUntil(this.onDestroy), filter((v) => v) , debounceTime(20)).subscribe((data) => this.move.emit(data))
   }
 
-  ngOndestroy(){
+  ngOnDestroy(){
     this.onDestroy.next()
   }
 

@@ -1,4 +1,4 @@
-import { Component, OnInit, ViewChild , NgZone, HostListener, EventEmitter, Renderer2, Output , Input , HostBinding, ElementRef} from '@angular/core';
+import { Component, OnInit, ViewChild , NgZone, HostListener, EventEmitter, Renderer2, Output , Input , HostBinding, ElementRef , OnDestroy} from '@angular/core';
 import { ThCamera, ThCanvas, ThDragControls, ThObject3D , ThOrbitControls, ThScene } from 'ngx-three';
 import { UiService } from 'src/app/services/ui.service';
 import * as THREE from 'three';
@@ -31,7 +31,7 @@ const NORMAL_ANGLE_ADJUSTMENT =  - 90 / radRatio
   templateUrl: './threejs-viewport.component.html',
   styleUrls: ['./threejs-viewport.component.scss']
 })
-export class ThreejsViewportComponent implements OnInit {
+export class ThreejsViewportComponent implements OnInit , OnDestroy{
   public selected = false;
   public readonly glbPath = `assets/3D/DamagedHelmet.glb`;
   public loadingTicket = null
@@ -220,8 +220,6 @@ export class ThreejsViewportComponent implements OnInit {
         }
       }
     });
-
-
   }
 
   getIntersectedBlocks(caster : THREE.Raycaster, toObject : Object3D , frObject : Object3D = this.camera) : Extruded2DMesh[]{   
@@ -294,6 +292,8 @@ export class ThreejsViewportComponent implements OnInit {
   }
 
   async loadFloorPlan(floorplan: JFloorPlan, subscribePoses = true) {
+    // this.test16WIphoneScanned()
+    // return
     this.resetScene()
     let dimension =  await this.getImageDimension(floorplan.base64Image)
     this.initFloorPlan(floorplan , dimension.width , dimension.height);
@@ -384,11 +384,8 @@ export class ThreejsViewportComponent implements OnInit {
     })
   }
 
-  initFloorPlan(fp : JFloorPlan , fpWidth : number , fpHeight : number){
-    let prefix = 'data:image/png;base64,'
-    let base64 = (fp.base64Image.startsWith(prefix) ? '': prefix) + fp.base64Image
-    
-    this.floorplan = new FloorPlanMesh(this ,base64 , fpWidth , fpHeight);
+  initFloorPlan(fp : JFloorPlan , fpWidth : number , fpHeight : number){   
+    this.floorplan = new FloorPlanMesh(this ,fp.base64Image , fpWidth , fpHeight);
     this.scene.add(this.floorplan );
   }
 
@@ -522,6 +519,32 @@ export class ThreejsViewportComponent implements OnInit {
     let retY = (map.originY - rosY) * map.meterToPixelRatio + map.height / 2
     return new THREE.Vector3(retX, -retY, 15)
   }
+
+  // test16WIphoneScanned() {
+  //   this.resetScene()
+  //   var mtlLoader = new MTLLoader();
+  //   mtlLoader.load('assets/3D/16W/ReprocessedMesh.mtl', (materials) => {
+  //     materials.preload();
+  //     var objLoader = new OBJLoader();
+  //     objLoader.setMaterials(materials);
+  //     // objLoader.setPath( 'obj/male02/' );
+  //     objLoader.load('assets/3D/16W/ReprocessedMesh.obj', (object) => {
+  //       var testRobot = new RobotObject3D(this, 'RV-ROBOT-100', "PATROL", "PATROL")
+  //       object.add(testRobot)
+  //       testRobot.rotateX(NORMAL_ANGLE_ADJUSTMENT)
+  //       testRobot.scale.multiplyScalar(0.035)
+  //       testRobot.position.set(1.35 , 0.55 , -1.5)
+  //       testRobot.visible = true
+  //       // object.position.y = - 95;
+  //       this.scene.add(object);
+  //     });
+  //   });
+  //   this.camera.position.set(0, 10, 20)
+  //   this.camera.lookAt(1, -0.9, -0.5)
+  //   this.orbitCtrl.update()
+
+  //   return
+  // }
 }
 
 class FloorPlanMesh extends Mesh{
@@ -911,7 +934,7 @@ export class RobotObject3D extends Object3DCommon{
   }
   set offline(v){
     this._offline = v
-    this.opacity =  v ? 0.3 : 1
+    this.opacity =  v ? 0.5 : 1
   }
   set alert(v){
     this._alert = v
@@ -957,7 +980,6 @@ export class RobotObject3D extends Object3DCommon{
         this.alertIcon.position.z = setting.alertPositionZ ? setting.alertPositionZ : this.alertIconSetting.positionZ
         this.add(this.alertIcon)
 
-        //this.initOutline(gltf)
         this.gltf.scene.scale.set(setting.scale, setting.scale, setting.scale)
         this.gltf.scene.position.set(setting.position.x , setting.position.y , setting.position.z)
         this.gltf.scene.rotateX(setting.rotate?.x? setting.rotate?.x : 0 )
@@ -970,7 +992,6 @@ export class RobotObject3D extends Object3DCommon{
                
         this.scene.add(this.gltf.scene)
         this.initOutline(gltf)
-        //this.initOutline(gltf)
         // this.addSpotLight()
         this.storeOriginalMaterialData()
         this.addFrontFacePointer()
