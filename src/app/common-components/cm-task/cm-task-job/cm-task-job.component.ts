@@ -16,6 +16,7 @@ import {GraphBuilder, DijkstraStrategy} from "js-shortest-path"
 import { AuthService } from 'src/app/services/auth.service';
 import { TabStripComponent } from '@progress/kendo-angular-layout';
 import { DropdownComponent } from 'src/app/ui-components/dropdown/dropdown.component';
+import { ConfigService } from 'src/app/services/config.service';
 
 @Component({
   selector: 'app-cm-task-job',
@@ -28,7 +29,7 @@ export class CmTaskJobComponent implements OnInit {
   @ViewChild('listview') listview : ListviewComponent
   @ViewChild('mapContainer') pixiElRef : DrawingBoardComponent
   constructor(public util: GeneralUtil, public uiSrv: UiService, public dialogService: DialogService, public ngZone: NgZone, public httpSrv: RvHttpService,
-    public changeDetector: ChangeDetectorRef, private dataSrv: DataService, public dialogSrv: DialogService, public authSrv: AuthService) {
+    public changeDetector: ChangeDetectorRef, private dataSrv: DataService, public dialogSrv: DialogService, public authSrv: AuthService , public configSrv : ConfigService) {
     this.jobListDef = this.jobListDef.filter(d => d.id != 'floorPlanCode' || !this.util.standaloneApp)
     // this.loadingTicket = this.uiSrv.loadAsyncBegin()
   }
@@ -96,7 +97,7 @@ export class CmTaskJobComponent implements OnInit {
     { id: 'floorPlanCode', title: 'Floor Plan', width: 30 , type : 'dropdown' },
     { id: 'pointCode', title: 'Location', width: 15 , type : 'dropdown'},
     { id: 'actionAlias', title: 'Action', width: 20 , type : 'dropdown', notNull: true , translateOption : true},
-    { id: 'navigationMode', title: 'Navigation Mode', width: 20 , type : 'dropdown',  notNull: true  , translateOption : true , hidden : this.util.standaloneApp &&  this.dataSrv.disabledModule_SA.pathFollowing},
+    { id: 'navigationMode', title: 'Navigation Mode', width: 20 , type : 'dropdown',  notNull: true  , translateOption : true , hidden :  this.configSrv.dbConfig.DISABLE_PATH_FOLLOWING || this.configSrv.disabledModule_SA.pathFollowing},
     { id: 'orientation', title: 'Orientation', width: 10 , type : 'checkbox' },
     { id: this.actionRowCfg.parentRowKey , type: 'button', title: 'Parameters', width: 10, class: 'k-icon mdi mdi-text-box-search-outline',
       newRow: {id: ''}
@@ -471,7 +472,7 @@ export class CmTaskJobComponent implements OnInit {
             floorPlanCode : r.floorPlanCode,
             pointCode: r.pointCode,
             waypointName : r.pointCode,
-            navigationMode: this.dataSrv.disabledModule_SA.pathFollowing ?  "AUTONOMY" : r.navigationMode ,
+            navigationMode: this.configSrv.disabledModule_SA.pathFollowing || this.configSrv.dbConfig.DISABLE_PATH_FOLLOWING ?  "AUTONOMY" : r.navigationMode ,
             orientationIgnored: !r.orientation,
             fineTuneIgnored: true
           },
@@ -685,7 +686,7 @@ export class CmTaskJobComponent implements OnInit {
           this.mapObj.steps.push({ planCode: fid, label: this.dropdownData.floorplans.filter(r => r.floorPlanCode == fid)[0].name})
         }
       })
-      if(this.util.arcsApp){
+      if(this.util.arcsApp && !this.readonly){
         this.mapObj.steps.push({ label: this.uiSrv.translate('new'), icon: 'add' })
       }
       if ([null, undefined].includes(this.selectedFloorPlanCode)) {

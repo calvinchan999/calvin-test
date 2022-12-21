@@ -11,9 +11,30 @@ import { RvHttpService } from './rv-http.service';
 
 @Injectable()
 export class ConfigService {
-    
+    public disabledModule_SA = {
+        fan: false,
+        brake: false,
+        led: false,
+        followMe: false,
+        manual: false,
+        pathFollowing: false,
+        restart: false,
+        charge: false,
+        stop: false,
+        pause: false,
+        pairing: false,
+        auto: false,
+        changeMap: false,
+        localize: false,
+        maxSpeed: false,
+        safetyZone: false,
+        shutdown: false
+    }
 	private _config: Object
     private _env: string;
+    public dbConfig  = {
+        DISABLE_PATH_FOLLOWING : false
+    }
 
 
 	constructor(private http        : HttpClient,
@@ -22,23 +43,17 @@ export class ConfigService {
 
 	}
 
-    async loadDbConfig(getFrApi = false){
-        // let endpoint = "api/sysparas"
-        // try{
-        //     let dbCfg 
-        //     if(getFrApi || !sessionStorage.getItem("dbconfig")){
-        //         dbCfg = await this.httpSrv.get(endpoint,undefined,undefined,undefined,undefined,true)
-        //         sessionStorage.setItem("dbconfig",JSON.stringify(dbCfg))
-        //     }else{
-        //         dbCfg = JSON.parse(sessionStorage.getItem("dbconfig"))
-        //     }
-        //     this.generalUtil.setDbConfig(dbCfg)
-        // }catch(e){
-        //     console.log(e)
-        //     window.confirm("Fail to get DB config. Close the tab directly or the page will keep refreshing until DB config can be retrieved from API successfully... \n(url : " + 
-        //                     this.generalUtil.getAPIUrl() + '/' + endpoint + ")" )
-        //     window.location.reload()
-        // }
+    setDbConfig(dbConfig: { configKey: string, configValue: string }[]) {
+        dbConfig.forEach(c => {
+            const needDeserialize = Object.keys(this.dbConfig).includes(c.configKey) && !(c.configValue == null || this.dbConfig[c.configKey] == null || typeof this.dbConfig[c.configKey] === 'string' || this.dbConfig[c.configKey] instanceof String)
+            try{
+                this.dbConfig[c.configKey] = needDeserialize ? JSON.parse(c.configValue) : c.configValue
+            }catch(e){
+                let err = `INVALID CONFIG VALUE : ${JSON.stringify(dbConfig.filter(c2=>c.configKey == c2.configKey)[0])}`
+                console.log(err)
+                throw new Error(err);
+            }
+        })
     }
 	
     load() {

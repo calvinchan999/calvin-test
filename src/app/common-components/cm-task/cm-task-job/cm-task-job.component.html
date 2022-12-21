@@ -110,7 +110,7 @@
                         [linear]="false" [style.width.px]="100 * mapObj.steps.length" 
                         (currentStepChange) = "mapObj.steps[$event]['planCode'] ? selectedFloorPlanCode = mapObj.steps[$event]['planCode'] : null;
                                                mapObj.steps[$event]['planCode'] ? refreshMapView() : null"></kendo-stepper>
-        <uc-dropdown *ngIf="mapObj.steps.length < 2 || mapObj.currentStep ==  mapObj.steps.length - 1" lab="Floor Plan"  [(value)] = "selectedFloorPlanCode" 
+        <uc-dropdown *ngIf="mapObj.steps.length < 2 || mapObj.currentStep ==  mapObj.steps.length - 1" lab="Floor Plan"  [(value)] = "selectedFloorPlanCode"  [disabled]="readonly"
                       (change)="util.standaloneApp? onFloorplanChange_SA($event) : refreshMapView() " [options] = "dropdownOptions.floorplans" [allowClear] = "false"></uc-dropdown>
     </div>
 

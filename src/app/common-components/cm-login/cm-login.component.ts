@@ -80,16 +80,19 @@ export class CmLoginComponent implements OnInit {
   async login() {
     let sendRequest = async (token) => {
       let ticket = this.uiSrv.loadAsyncBegin(1000)
-      try{
-        let resp : loginResponse = await (this.authSrv.login(this.frmGrp.controls['username'].value,
-        this.frmGrp.controls['password'].value,
-        this.uiSrv.lang.value,
-        this.guestMode,
-        this.clientId,
-        this.auth2FASegment ? (this.frmGrp.controls['verificationCode'].value + this.auth2FASegment) : null,
-        token
-      ).toPromise());
-
+      let resp : loginResponse
+      try {
+        resp = await (this.authSrv.login(this.frmGrp.controls['username'].value,
+          this.frmGrp.controls['password'].value,
+          this.uiSrv.lang.value,
+          this.guestMode,
+          this.clientId,
+          this.auth2FASegment ? (this.frmGrp.controls['verificationCode'].value + this.auth2FASegment) : null,
+          token
+        ).toPromise());
+      } catch (e) {
+        this.uiSrv.showNotificationBar(e.message, 'error')
+      }
       this.uiSrv.loadAsyncDone(ticket, 999999)
       if(resp?.msgCode == "PASSWORD_EXPIRED" || resp?.msgCode == "PASSWORD_POLICY_CHANGED"){
         // this.clientId = resp?.validationResults?.tenant_id
@@ -128,9 +131,6 @@ export class CmLoginComponent implements OnInit {
         }
       } else {
         this.errMsg = this.uiSrv.translate(resp?.msg ? resp?.msg : 'An Error Has Occurred')
-      }
-      }catch(e){
-       this.uiSrv.showNotificationBar('HTTP Request Failed','error') 
       }
 
     }

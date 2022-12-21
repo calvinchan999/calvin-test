@@ -27,6 +27,7 @@ import { TxtboxComponent } from '../txtbox/txtbox.component';
 import { PositionService } from '@progress/kendo-angular-popup';
 import { toJSON } from '@progress/kendo-angular-grid/dist/es2015/filtering/operators/filter-operator.base';
 import { ArcsDashboardComponent } from 'src/app/arcs/arcs-dashboard/arcs-dashboard.component';
+import { ConfigService } from 'src/app/services/config.service';
 
 // adapted from
 // http://jsfiddle.net/eZQdE/43/
@@ -482,7 +483,7 @@ export class DrawingBoardComponent implements OnInit , AfterViewInit , OnDestroy
     this.arrowKeyStep = 1
   }
 
-  constructor(public util: GeneralUtil, public changeDetector: ChangeDetectorRef,private renderer: Renderer2 , public dataSrv : DataService,
+  constructor(public util: GeneralUtil, public changeDetector: ChangeDetectorRef,private renderer: Renderer2 , public dataSrv : DataService, public configSrv : ConfigService,
               public uiSrv : UiService,  public httpSrv : RvHttpService, public elRef : ElementRef, public ngZone : NgZone , public authSrv : AuthService) {
 
   }
@@ -561,7 +562,6 @@ export class DrawingBoardComponent implements OnInit , AfterViewInit , OnDestroy
 
   private async getSpriteFromUrl(url){
     let image: any = await this.getImage(url)
-    // if(this.uiSrv.isTablet){
     let maxPx = this.uiSrv.isTablet ? WebGLMaxMobileTextureSize : WebGLMaxPcTextureSize
     let dimiension = [image.width, image.height]
     if ((dimiension[0] >= maxPx || dimiension[1] > maxPx)) {
@@ -569,24 +569,12 @@ export class DrawingBoardComponent implements OnInit , AfterViewInit , OnDestroy
       let newRatio = maxPx / Math.max(dimiension[0], dimiension[1])
       let canvas = await this.getResizedCanvas(image, dimiension[0] * newRatio, dimiension[1] * newRatio)
       let texture = PIXI.Texture.from(canvas.toDataURL("image/png"))
-      // let canvas = document.createElement('canvas')
-      // canvas.width = dimiension[0] * newRatio
-      // canvas.height = dimiension[1] * newRatio
-      // let ctx = canvas.getContext('2d');
-      // ctx.drawImage(image, 0, 0, dimiension[0]* newRatio, dimiension[1]*newRatio);
-      // var texture = PIXI.Texture.from(canvas.toDataURL("image/png"))
-
       var ret = PIXI.Sprite.from(texture)
-      // ret.width =  dimiension[0]    
-      // ret.height =  dimiension[1]    
       ret.scale.set(1 / newRatio)
       return ret
     } else {
       return PIXI.Sprite.from(new PIXI.Texture(new PIXI.BaseTexture(image)))
     }
-    // }else{
-    //   return PIXI.Sprite.from( new PIXI.Texture(new PIXI.BaseTexture(image)))
-    // }
   }
 
   private async getResizedCanvas(image : any , newWidth : number , newHeight : number ){
@@ -827,6 +815,7 @@ export class DrawingBoardComponent implements OnInit , AfterViewInit , OnDestroy
   loadDemoWaypoint(waypointName: string, iconBase64: string) {
     this.allPixiPoints.forEach(p=> p.parent.removeChild(p));
     let wp = this.getPixiLocPoint(undefined, waypointName, undefined , iconBase64)
+    wp.readOnlyPixiText.visible = true
     wp.readonly = true
     this.mainContainer.addChild(wp)
     this.setViewportCamera(wp.position.x, wp.position.y)
@@ -3237,7 +3226,6 @@ export class PixiCommon extends PIXI.Graphics{
   imgEditHandleSize = 5
   floorplanShapeTypePrefix = 'fp_'
   autoScaleOnZoomed = true  //* * * TO BE CONFIGURED * * */
-  locationPrefixDelimiter = '%'
   toolTip? : PixiToolTip
   highlightColor? = 0xFE9802// 0xFF6358//0x30C5FF  // 0xff9800// 0xFC33FF
   secondaryHighlightColor? = 0xFF6358
@@ -3347,10 +3335,6 @@ export class PixiCommon extends PIXI.Graphics{
         new GlowFilter({color: fillColor , distance: 50, outerStrength: 1 })
       ]
     }
-  }
-
-  public getWayPointDispName(name){
-    return name.split(this.locationPrefixDelimiter)[name.split(this.locationPrefixDelimiter).length -1]
   }
 
   public getOriginMarker(p: PIXI.Point, option : GraphicOptions = new GraphicOptions()){
@@ -4046,6 +4030,7 @@ export class PixiLocPoint extends PixiCommon {
   readOnlyPixiText = new PIXI.Text("")
   rosX 
   rosY
+  iconDimension
 
   set color(v){
     this.option.fillColor = Number(v.replace("#","0x"))
@@ -4139,15 +4124,7 @@ export class PixiLocPoint extends PixiCommon {
     let zeroThreshold = 0.025
     let exceedsThreshold = this.getViewport() && this.getMasterComponent()?.mapTransformedScale && this.getViewport().scale.x < zoomThreshold / this.getMasterComponent()?.mapTransformedScale
     let scale = (Math.min(zoomThreshold, this.getViewport()?.scale.x) - zeroThreshold) / (zoomThreshold - zeroThreshold)
-    // if (this.getViewport() && this.getMasterComponent()?.mapTransformedScale && this.getViewport().scale.x  < zoomThreshold) {
-    //   this.input.visible = this._lastDrawIsSelected ? true : false
-    //   this.inputBg.visible = this._lastDrawIsSelected ? true : false
-    // } else {
-    //   this.input.visible = true
-    //   this.inputBg.visible = true
-    // }
     this.setScale(this._lastDrawIsSelected || !exceedsThreshold ? 1 : Math.min(1 , Math.sqrt(scale)))
-    // this.pointGroup?.refreshUi()
   }
 
   setScale(weight = 1) {
@@ -4190,14 +4167,14 @@ export class PixiLocPoint extends PixiCommon {
         this.iconContainer = new PIXI.Graphics()
         this.iconContainer.height = 50
         this.iconContainer.width = 50
-        this.iconContainer.position.set(-25 , -40)
-        let dimemsion = await this.getImageDimensionFromUrl(this.iconUrl) 
-        if(dimemsion[0] > 50 || dimemsion[1] > 50){
-          this.icon.scale.set(70/(Math.max(dimemsion[0], dimemsion[1])))
+        this.iconContainer.position.set(-25, -40)
+        this.iconDimension = this.iconDimension ? this.iconDimension : await this.getImageDimensionFromUrl(this.iconUrl)
+        if (this.iconDimension[0] > 50 || this.iconDimension[1] > 50) {
+          this.icon.scale.set(70/(Math.max( this.iconDimension[0],  this.iconDimension[1])))
         }
         this.iconContainer.addChild(this.icon)
         this.icon.filters = [<any>new ColorReplaceFilter(0x000000, opt.fillColor, 0)]
-        this.icon.position.set(dimemsion[0] > dimemsion[1] ? 0 : (50 - dimemsion[0] * this.icon.scale.x) / 2, dimemsion[1] > dimemsion[0] ? 0 : (50 - dimemsion[1] * this.icon.scale.y) / 2)
+        this.icon.position.set( this.iconDimension[0] >  this.iconDimension[1] ? 0 : (50 -  this.iconDimension[0] * this.icon.scale.x) / 2,  this.iconDimension[1] >  this.iconDimension[0] ? 0 : (50 -  this.iconDimension[1] * this.icon.scale.y) / 2)
         this.addChild( this.iconContainer)
       }else{
         this.iconContainer?.parent?.removeChild(this.iconContainer)
@@ -4221,9 +4198,6 @@ export class PixiLocPoint extends PixiCommon {
     }
     this.zIndex = selected? 20 : 1
     if(!isMouseOver && !selected){
-      // this.input.visible = selected && !this.readonly && this.getMasterComponent()?.waypointEditable
-      // this.inputBg.visible =  true
-      // this.readOnlyPixiText.visible = !this.input.visible
       this.onViewPortZoomed()
     }
     this.refreshRosPositionValue()

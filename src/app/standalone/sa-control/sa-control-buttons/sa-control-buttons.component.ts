@@ -2,6 +2,7 @@ import { Component, Input, OnDestroy, OnInit, ViewChild } from '@angular/core';
 import { DialogService } from '@progress/kendo-angular-dialog';
 import { Subject } from 'rxjs';
 import { skip, takeUntil } from 'rxjs/operators';
+import { ConfigService } from 'src/app/services/config.service';
 import { DataService, DropListMap, signalRType } from 'src/app/services/data.service';
 import { RvHttpService } from 'src/app/services/rv-http.service';
 import { UiService } from 'src/app/services/ui.service';
@@ -46,8 +47,8 @@ export class SaControlButtonsComponent implements OnInit ,  OnDestroy {
 
   @Input() buttonIds : string[] = null
 
-  constructor(public uiSrv : UiService, public windowSrv: DialogService, private util : GeneralUtil , private httpSrv : RvHttpService, public dataSrv:DataService) {
-    Object.keys(this.dataSrv.disabledModule_SA).filter(k=>this.dataSrv.disabledModule_SA[k] == true).forEach(k=>{
+  constructor(public uiSrv : UiService, public windowSrv: DialogService, private util : GeneralUtil , private httpSrv : RvHttpService, public dataSrv:DataService , public configSrv : ConfigService) {
+    Object.keys(this.configSrv.disabledModule_SA).filter(k=>this.configSrv.disabledModule_SA[k] == true).forEach(k=>{
       this.layout.forEach(l => l.buttons =(<any>l.buttons).filter(b => b.id != k))
     })
   }

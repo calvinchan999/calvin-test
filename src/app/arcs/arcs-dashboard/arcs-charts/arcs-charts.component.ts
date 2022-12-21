@@ -299,8 +299,7 @@ export class ArcsChartsComponent implements OnInit , OnDestroy {
       let mainText = (<Group>ret).children.filter(c => typeof c?.['chartElement'] === typeof new Text(undefined, undefined))[0];
       if(arg.sender == this.robotTypeUsabilityDonut){
         (<Text>mainText).content(arg.dataItem.category);
-        let hightlighted = arg.dataItem.robotType == this.robotTypeFilter
-        let subTextContent = `${(arg.percentage * 100).toFixed(2)}% ${hightlighted ? ` (${this.getRoundedValue(arg.dataItem.value).toString()})` : ''}`;
+        let subTextContent = `${(arg.percentage * 100).toFixed(2)}%`;
         (<Group>ret).remove((<Group>ret).children.filter(c => typeof c?.['Path'])[0])
         let subText = new Text(subTextContent, [(<Text>mainText).position().x, (<Text>mainText).position().y + 15], { font: `11px Arial`, fill: { color: '#BBBBBB' } });
         (<Group>ret).append(subText)
@@ -587,7 +586,7 @@ export class ArcsChartsComponent implements OnInit , OnDestroy {
       }
     })
     this.usability.total = this.usability.completed + this.usability.incomplete //+ this.usability.canceled
-    this.usability.robotType.centerText = (this.usability.robotType.data.map(d=>d.value).reduce((acc, i) => acc += i, 0)).toString() + ' \n ' + this.uiSrv.translate('Tasks')
+    this.usability.robotType.centerText = (this.usability.robotType.data.filter(d=>!this.robotTypeFilter || this.robotTypeFilter == d.robotType).map(d=>d.value).reduce((acc, i) => acc += i, 0)).toString() + ' \n ' + this.uiSrv.translate('Tasks')
   }
 
   getRoundedValue(value: number, decimalPlace: number = 2) {

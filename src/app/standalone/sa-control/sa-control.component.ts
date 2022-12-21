@@ -12,6 +12,7 @@ import { UiService } from 'src/app/services/ui.service';
 import { DrawingBoardComponent } from 'src/app/ui-components/drawing-board/drawing-board.component';
 import { TableComponent } from 'src/app/ui-components/table/table.component';
 import { GeneralUtil } from 'src/app/utils/general/general.util';
+import { ConfigService } from 'src/app/services/config.service';
 
 @Component({
   selector: 'app-sa-control',
@@ -45,7 +46,7 @@ export class SaControlComponent implements OnInit , OnDestroy  {
   ]
 
   constructor(public authSrv : AuthService, public uiSrv : UiService, public windowSrv: DialogService, private util : GeneralUtil , private router : Router,
-              private httpSrv : RvHttpService, public dataSrv:DataService , private route : ActivatedRoute) { 
+              private httpSrv : RvHttpService, public dataSrv:DataService , private route : ActivatedRoute , public configSrv : ConfigService) { 
     if(this.uiSrv.isTablet){
       this.tabs = [
         {id: 'controls' , label : 'Controls', functionId : 'CONTROLS'},

@@ -270,7 +270,14 @@ export class ThreejsViewportComponent implements OnInit , OnDestroy{
   }
 
   ngOnDestroy(){
+    this.$mapCodeChanged.next()
     this.unsubscribeRobotPoses()
+    this.resetScene()
+    this.renderer.renderLists.dispose();
+    this.renderer.dispose();
+    this.renderer = null
+    this.labelRenderer = null
+    this.composer = null
   }
 
   initLabelRenderer(){
@@ -873,11 +880,19 @@ export class RobotObject3D extends Object3DCommon{
   robotImportSetting = {
     BASE: {
       path : "assets/3D/robot.glb",
-      scale : 3,
-      position : {x : 4 , y: 0 , z : -20},
-      rotate : {x : NORMAL_ANGLE_ADJUSTMENT , y : 0,  z : 180/radRatio } ,
-      // recolorMaterials : ['Material33'],
+      scale : 35,
+      position: { x: 0, y: 0, z: -12.5 },
+      rotate: { x: 0, y: 0, z: 180 / radRatio },
+      alertPositionZ : 45
+      // replaceColors:[{r: 0 , g : 0 , b : 0 , tolerance : 0.1}], 
     },
+    // BASE: {
+    //   path : "assets/3D/robot.glb",
+    //   scale : 3,
+    //   position : {x : 4 , y: 0 , z : -20},
+    //   rotate : {x : NORMAL_ANGLE_ADJUSTMENT , y : 0,  z : 180/radRatio } ,
+    //   // recolorMaterials : ['Material33'],
+    // },
     PATROL: {
       path : "assets/3D/robot_patrol.glb",
       scale : 35,

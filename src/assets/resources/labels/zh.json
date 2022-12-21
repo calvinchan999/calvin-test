@@ -1,4 +1,9 @@
 {
+    "Busy":"忙碌",
+    "Others":"其他",
+    "Repeat Task":"重覆的工作",
+    "Robot Busy":"機械人忙碌",
+    "Wrong Task":"錯誤的工作",
     "Task Count By Robot" : "工作數量（按機械人）",
     "Master Robot":"領隊機械人",
     "Client Robot":"跟隨機械人",

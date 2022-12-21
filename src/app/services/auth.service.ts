@@ -84,6 +84,7 @@ export class AuthService {
 					this.dataSrv.setSessionStorage('isGuestMode', JSON.stringify(guestMode))
 					this.isGuestMode = guestMode
 					this.dataSrv.init()
+					this.configSrv.setDbConfig(response.validationResults.configurations)
 				}
 				return response;
 			}), catchError((e: any) => {

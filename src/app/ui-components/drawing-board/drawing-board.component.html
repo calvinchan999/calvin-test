@@ -55,7 +55,7 @@
           <span [class]="'mdi mdi-map-marker'"></span>
       </button>
 
-      <button *ngIf="isDashboard && util.arcsApp && arcsLocationTree.currentLevel == 'floorplan'" kendoButton class="show-path" [matTooltip]="(uitoggle.showPath? 'Hide Path' : 'Show Path') | label : uiSrv.langPack"  
+      <button *ngIf="isDashboard && util.arcsApp && arcsLocationTree.currentLevel == 'floorplan' && !configSrv.dbConfig.DISABLE_PATH_FOLLOWING" kendoButton class="show-path" [matTooltip]="(uitoggle.showPath? 'Hide Path' : 'Show Path') | label : uiSrv.langPack"  
                 [disabled]="disableButton['showPath']" matTooltipPosition="right" (click)="uitoggle.showPath = !uitoggle.showPath ; togglePath()"
                 [ngClass]="{'btn-active': uitoggle.showPath}">
           <span [class]="'mdi mdi-arrow-top-right-bottom-left'"></span>
@@ -87,25 +87,25 @@
         </button>
 
         <button kendoButton class="arrow" [matTooltip]="'Plot Path'| label : uiSrv.langPack" matTooltipPosition="right"  [disabled] = "disableButton['arrow']"
-          *ngIf="!hideButton['arrow'] && !(util.standaloneApp && dataSrv.disabledModule_SA.pathFollowing)" [ngClass]="{'btn-active': drawObj?.type == 'arrow'}"
+          *ngIf="!hideButton['arrow'] && !( configSrv.dbConfig.DISABLE_PATH_FOLLOWING || configSrv.disabledModule_SA.pathFollowing)" [ngClass]="{'btn-active': drawObj?.type == 'arrow'}"
           (click)="drawObj?.type == 'arrow' ? endDraw() : changeMode('draw' , 'arrow')">
           <span class="mdi mdi-arrow-top-right"></span>
         </button>
 
         <button kendoButton class="bi-arrow" [matTooltip]="'Plot Bidirectional Path' | label : uiSrv.langPack" matTooltipPosition="right" [disabled] = "disableButton['arrow']"
-          *ngIf="!hideButton['arrow'] && !(util.standaloneApp && dataSrv.disabledModule_SA.pathFollowing)" [ngClass]="{'btn-active': drawObj?.type == 'arrow_bi'}"
+          *ngIf="!hideButton['arrow'] && !( configSrv.dbConfig.DISABLE_PATH_FOLLOWING || configSrv.disabledModule_SA.pathFollowing)" [ngClass]="{'btn-active': drawObj?.type == 'arrow_bi'}"
           (click)="drawObj?.type == 'arrow_bi' ? endDraw() : changeMode('draw' , 'arrow_bi')">
           <span class="mdi mdi-arrow-top-right-bottom-left"></span>
         </button>
 
         <button kendoButton class="curved-arrow" [matTooltip]="'Plot Curved Path'| label : uiSrv.langPack" matTooltipPosition="right" [disabled] = "disableButton['arrow']"
-          *ngIf="!hideButton['arrow'] && !(util.standaloneApp && dataSrv.disabledModule_SA.pathFollowing)" [ngClass]="{'btn-active': drawObj?.type == 'arrow_curved'}"
+          *ngIf="!hideButton['arrow'] && !( configSrv.dbConfig.DISABLE_PATH_FOLLOWING || configSrv.disabledModule_SA.pathFollowing)" [ngClass]="{'btn-active': drawObj?.type == 'arrow_curved'}"
           (click)="drawObj?.type == 'arrow_curved' ? endDraw() : changeMode('draw' , 'arrow_curved')">
           <span class="mdi mdi-redo"></span>
         </button>
 
         <button kendoButton class="bi-curved-arrow" [matTooltip]="'Plot Curved Bidirectional Path'| label : uiSrv.langPack" [disabled] = "disableButton['arrow']"
-          matTooltipPosition="right" *ngIf="!hideButton['arrow'] && !(util.standaloneApp && dataSrv.disabledModule_SA.pathFollowing)"
+          matTooltipPosition="right" *ngIf="!hideButton['arrow'] && !( configSrv.dbConfig.DISABLE_PATH_FOLLOWING || configSrv.disabledModule_SA.pathFollowing)"
           [ngClass]="{'btn-active': drawObj?.type == 'arrow_bi_curved'}"
           (click)="drawObj?.type == 'arrow_bi_curved' ? endDraw() : changeMode('draw' , 'arrow_bi_curved')">
           <span class="mdi mdi-redo"></span>
@@ -170,7 +170,7 @@
                 <span class="mdi mdi-border-none"></span>
         </button>
       
-      <button *ngIf="isDashboard && !dataSrv.disabledModule_SA.pathFollowing" kendoButton class="show-path" [matTooltip]="'Show Path' | label : uiSrv.langPack"  
+      <button *ngIf="isDashboard && !configSrv.disabledModule_SA.pathFollowing && !configSrv.dbConfig.DISABLE_PATH_FOLLOWING " kendoButton class="show-path" [matTooltip]="'Show Path' | label : uiSrv.langPack"  
                 [disabled]="disableButton['showPath']" matTooltipPosition="right" (click)="uitoggle.showPath = !uitoggle.showPath ; togglePath()"
                 [ngClass]="{'btn-active': uitoggle.showPath}">
           <span [class]="'mdi mdi-arrow-top-right-bottom-left'"></span>

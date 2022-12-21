@@ -12,6 +12,7 @@ import { PixiCommon } from '../ui-components/drawing-board/drawing-board.compone
 import { Router } from '@angular/router';
 import { AzurePubsubService } from './azure-pubsub.service';
 import { DatePipe } from '@angular/common'
+import { ConfigService } from './config.service';
 export type syncStatus = 'TRANSFERRED' | 'TRANSFERRING' | 'MALFUNCTION'
 export type syncLog =  {dataSyncId? : string , dataSyncType? : string , objectType? : string , dataSyncStatus?: syncStatus , objectCode?: string , robotCode?: string , progress? : any , startDateTime? : Date , endDateTime : Date  }
 export type dropListType =  'floorplans' | 'buildings' | 'sites' | 'maps' | 'actions' | 'types' | 'locations' | 'userGroups' | 'subTypes' | 'robots' | 'missions' | 'taskFailReason' | 'taskCancelReason'
@@ -29,25 +30,6 @@ export type signalRType = 'activeMap' | 'occupancyGridMap' | 'navigationMove' | 
   providedIn: 'root'
 })
 export class DataService {
-  public disabledModule_SA = {
-    fan: false,
-    brake: false,
-    led: false,
-    followMe: false,
-    manual: false,
-    pathFollowing : false,
-    restart : false,
-    charge  : false,
-    stop : false,
-    pause : false,
-    pairing : false,
-    auto : false,
-    changeMap : false,
-    localize  : false,
-    maxSpeed : false,
-    safetyZone : false,
-    shutdown : false
-  }
   public alertFloorPlans :{type : string ,floorPlanCode : string , mapCode : string , robotBases : string[]}[] = []
   public unreadNotificationCount = new BehaviorSubject<number>(0)
   public unreadSyncMsgCount = new BehaviorSubject<number>(0)
@@ -179,9 +161,7 @@ export class DataService {
     followMeAoa: { topic: "rvautotech/fobo/followme/aoa", mapping: { followMeAoaState: 'aoaState' } , api: 'followMe/v1/pairing/aoa' },
     digitalOutput: { topic: "rvautotech/fobo/digital/output" },
     fan : {topic: "rvautotech/fobo/fan" ,  mapping :{fan: (d)=> d['fanOn']}, api:'fan/v1' },
-    //!!! TEMPERATURE -3 FOR 20221130 MICROSOFT EVENT DEMO ONLY
-    ieq: { topic: "rvautotech/fobo/ieq" , mapping: { ieq : (d)=> {Object.keys(d['ieq']).forEach(k=>d['ieq'][k] = this.util.trimNum(k == 't'? Number(d['ieq']['t']) - 3 : d['ieq'][k], 0)); return d['ieq'] ;} } , api:'ieqSensor/v1/read' },
-    //!!! TEMPERATURE -3 FOR 20221130 MICROSOFT EVENT DEMO ONLY
+    ieq: { topic: "rvautotech/fobo/ieq" , mapping: { ieq : (d)=> {Object.keys(d['ieq']).forEach(k=>d['ieq'][k] = this.util.trimNum(d['ieq'][k], 0)); return d['ieq'] ;} } , api:'ieqSensor/v1/read' },
     rfid: { topic: "rvautotech/fobo/rfid" },
     rotaryHead: { topic: "rvautotech/fobo/rotaryHead" },
     nirCamera: { topic: "rvautotech/fobo/nirCamera" },
@@ -418,7 +398,7 @@ export class DataService {
     return this.util.arcsApp && !this.util.config.USE_SIGNALR
   }
 
-  constructor(public httpSrv : RvHttpService , private uiSrv : UiService, private util: GeneralUtil , public signalRSrv : SignalRService, private router : Router , public pubsubSrv : AzurePubsubService , private datePipe : DatePipe) {     
+  constructor(public httpSrv : RvHttpService , private uiSrv : UiService, private util: GeneralUtil , public signalRSrv : SignalRService, private router : Router , public pubsubSrv : AzurePubsubService , private datePipe : DatePipe , public configSrv : ConfigService) {     
     this.uiSrv.dataSrv = this
     this.unreadNotificationCount.pipe(skip(1)).subscribe(v=>{
       this.setLocalStorage('unreadNotificationCount' , v.toString())
@@ -521,7 +501,7 @@ export class DataService {
 
 
   async init(){
-    this.disabledModule_SA.pairing = this.disabledModule_SA.followMe // binded
+    this.configSrv.disabledModule_SA.pairing = this.configSrv.disabledModule_SA.followMe // binded
     if(this.util.config.LANGUAGES){
       let options = []
       Object.keys(this.util.config.LANGUAGES).forEach(k=> options.push({value : k , text : this.util.config.LANGUAGES[k]}))
@@ -538,7 +518,7 @@ export class DataService {
 
     if (this.util.standaloneApp) {
       let profile : {serviceList : {name : string , enabled : boolean}[]} = await this.httpSrv.rvRequest('GET', 'baseControl/v1/profile' , undefined, false)
-      profile.serviceList.forEach(s=> this.disabledModule_SA[s.name] = !s.enabled)
+      profile.serviceList.forEach(s=> this.configSrv.disabledModule_SA[s.name] = !s.enabled)
       // // APPLICABLE ONLY BEWTWEEN VERSION 20221122 - 20221201
       // if(this.util.config.DISABLED_FUNCTIONS){
       //   let keys : string[]= this.util.config.DISABLED_FUNCTIONS.filter(f=>Object.keys(this.disabledModule_SA).includes(f))
@@ -1410,6 +1390,7 @@ export class loginResponse{
     tenant_id ? : string
     user_id ? : string
     user_name ? : string
+    configurations : {configKey : string , configValue: string}[]
   }
 }
 

@@ -82,8 +82,7 @@ export class ArcsAbnormalTasksComponent implements OnInit {
         let mainText = (<Group>ret).children.filter(c => typeof c?.['chartElement'] === typeof new Text(undefined, undefined))[0];
         if(arg.sender == this.robotTypeDonut || arg.sender == this.reasonDonut){
           (<Text>mainText).content(arg.dataItem.category);
-          let hightlighted = arg.dataItem.robotType == this.parent.robotTypeFilter
-          let subTextContent = `${(arg.percentage * 100).toFixed(2)}% ${hightlighted ? ` (${this.parent.getRoundedValue(arg.dataItem.value).toString()})` : ''}`;
+          let subTextContent = `${(arg.percentage * 100).toFixed(2)}%`;
           (<Group>ret).remove((<Group>ret).children.filter(c => typeof c?.['Path'])[0])
           let subText = new Text(subTextContent, [(<Text>mainText).position().x, (<Text>mainText).position().y + 15], { font: `11px Arial`, fill: { color: '#BBBBBB' } });
           (<Group>ret).append(subText)
@@ -182,7 +181,7 @@ export class ArcsAbnormalTasksComponent implements OnInit {
       })
     
     })
-    this.summary.total = this.summary.data.robot_type.reduce((acc, i) => acc + i.value, 0)
+    this.summary.total = this.summary.data.robot_type.filter(d=>!this.parent.robotTypeFilter || d.robotType == this.parent.robotTypeFilter ).reduce((acc, i) => acc + i.value, 0)
     this.summary.data = JSON.parse(JSON.stringify(this.summary.data))
     this.uiSrv.loadAsyncDone(ticket)
   }
