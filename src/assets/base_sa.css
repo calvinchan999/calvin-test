@@ -27915,9 +27915,9 @@ a {
 .col-form-label {
   margin-bottom: 2px;
 }
-.txtbox-container.numeric {
+/* .txtbox-container.numeric {
   width: 100%;
-}
+} */
 .txtbox-container.numeric .numeric-container {
   display: inline-flex;
   align-items: end;

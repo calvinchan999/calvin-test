@@ -977,6 +977,7 @@ export class DrawingBoardComponent implements OnInit , AfterViewInit , OnDestroy
     option.lineColor = option.fillColor
     option.opacity = this.selectedStyle.marker.opacity
     let ret: PixiLocPoint = new PixiLocPoint(type, text, option, !this.readonly, this.uiSrv ,iconUrl , pointType )
+    ret.robotBases = Object.keys(this.mapLayerStore)
     // if (!this.readonly) {
     //   ret.angleIndicator.on("mousedown", (evt: PIXI.interaction.InteractionEvent) => {
     //     evt.stopPropagation()
@@ -2057,7 +2058,7 @@ export class DrawingBoardComponent implements OnInit , AfterViewInit , OnDestroy
         p.angle = (90 - p.guiAngle) / radRatio
         return p
       }).filter(p=> p.guiY > 0 && p.guiY  <= map.height / map.scale.y &&  p.guiX  > 0 && p.guiX <= map.width / map.scale.x).concat(
-        Array.prototype.concat.apply([] , points.filter(pt=>pt.groupMemberPointList.length > 0).map(pt => pt.groupMemberPointList.map(c=> {
+        Array.prototype.concat.apply([] , getJPoints(m.robotBase).filter(pt=>pt.groupMemberPointList.length > 0).map(pt => pt.groupMemberPointList.map(c=> {
           let mapChildPt = new JPoint()
           let pos = this.calculateRosPosition(map.toLocal(new PIXI.Point(c.positionX , c.positionY)), map)
           mapChildPt.mapCode = m.mapCode

@@ -24,6 +24,8 @@ export class MultiselectComponent implements OnInit , OnDestroy{
   @Input() useTranslation = false
   @Output() change = new EventEmitter()
   @Output() valueChange = new EventEmitter()
+  @Output() open = new EventEmitter()
+  @Output() close = new EventEmitter()
   @Input() @HostBinding('class') customClass = 'multiselect-container'
   @Input() clearValueOnOptionRemoved = true
   @Input() noDataMsg = null

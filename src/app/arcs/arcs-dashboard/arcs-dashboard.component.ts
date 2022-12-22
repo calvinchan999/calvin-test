@@ -442,7 +442,7 @@ export class ArcsDashboardComponent implements OnInit {
   }
 
   async refreshRobotStatus(){
-    let data : RobotStatus[] = await this.dataSrv.httpSrv.rvRequest('GET','robot/v1/robotInfo' + this.getStatusListUrlParam(), undefined, false) //TBR : add query param : robot type & floorplan Code 
+    let data : RobotStatus[] = await this.dataSrv.httpSrv.rvRequest('GET','robot/v1/robotInfo' + this.getStatusListUrlParam(), undefined, false) 
     this.addAndRemoveRobotInfos(data)  
 
     let robotStatusCssClassMap = {

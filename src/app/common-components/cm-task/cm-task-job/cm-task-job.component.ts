@@ -180,14 +180,9 @@ export class CmTaskJobComponent implements OnInit {
 
 
   async loadData(missionId) {
-   // let testData = JSON.parse(`{"taskItemList":[{"actionListTimeout":0,"movement":{"floorPlanCode":"HKAA-L5","pointCode":"L5-1","navigationMode":"AUTONOMY","orientationIgnored":true,"fineTuneIgnored":true},"actionList":[{"alias":"LED_SWITCH","properties":{}}]},{"actionListTimeout":0,"movement":{"floorPlanCode":"HKAA-L5","pointCode":"L5-DOOR","navigationMode":"PATH_FOLLOWING","orientationIgnored":true,"fineTuneIgnored":true},"actionList":[{"alias":"NAVIGATION_MODE_CHANGE","properties":{"navigationMode":"PLATOON"}}]},{"actionListTimeout":0,"movement":{"floorPlanCode":null,"pointCode":null,"navigationMode":"AUTONOMY","orientationIgnored":true,"fineTuneIgnored":true},"actionList":[{"alias":"BATTERY_CHARGE","properties":{"duration":123456,"shutdownAfterCharging":true,"upperLimit":789}}]},{"actionListTimeout":0,"movement":{"floorPlanCode":"HKAA-L5","pointCode":"L5-2","navigationMode":"AUTONOMY","orientationIgnored":true,"fineTuneIgnored":true},"actionList":[{"alias":"FAN_SWITCH","properties":{}}]}],"missionId":"MISSION-1","robotCode":null,"robotType":"PATROL","robotSubtype":null,"description":"mission 1","cronExpress":null,"updatedDate":null,"createdDate":null}`)
-    let ticket = this.uiSrv.loadAsyncBegin()
+     let ticket = this.uiSrv.loadAsyncBegin()
     let data : JTask = await this.httpSrv.get((this.isTemplate ? "api/task/mission/v1/" : "api/task/v1/") + missionId.toString())
     this.util.loadToFrmgrp(this.frmGrp, data)
-    // if(this.util.standaloneApp){
-    //   this.selectedFloorPlanCode = this.initialDataset['taskActions'][0]?.['floorPlanCode']
-    // this.refreshGridLocationOptions_SA()
-    // }
     if(this.util.standaloneApp){
       this.frmGrp.controls['floorPlanCode'].setValue(data.taskItemList[0].movement.floorPlanCode)
       this.selectedFloorPlanCode =  this.frmGrp.controls['floorPlanCode'].value
@@ -422,19 +417,6 @@ export class CmTaskJobComponent implements OnInit {
     }
 
     for(let i = 1 ; i < data.length ;i++){
-      // let prevLoc = ds.taskItemList[i - 1].movement.pointCode
-      // let currLoc = ds.taskItemList[i].movement.pointCode
-      // let floorPlanCode = this.getFloorfloorPlanCodeBypointCode(prevLoc)
-      // if(!this.mapObj.dijkstra[floorPlanCode]){
-      //   let fpDs = await this.getFloorplanDs(floorPlanCode)
-      //   this.getGraph(floorPlanCode , fpDs)
-      // }
-      // if(ds.taskActions[i]['navigationMode'] == 'PATH_FOLLOWING' && prevLoc != currLoc  && !this.definedPathReachable(currLoc , prevLoc)){
-      //   let msg = this.uiSrv.translate("Defined location not reachable by path following mode")
-      //   await this.uiSrv.showMsgDialog(msg)
-      //   this.listview.setErrors(i,'navigationMode', msg)
-      //   return false
-      // }
       let row : FlattenedTaskItem = data[i]
       if(row.pointCode == null || row.pointCode == undefined){
         this.tabstrip.selectTab(0)
@@ -542,18 +524,7 @@ export class CmTaskJobComponent implements OnInit {
     return this.dropdownData.locations.filter(l => l.pointCode == ptCode)[0].floorPlanCode
   }
 
-  // getGraph(floorPlanCode , fpDs : FloorPlanDataset) {
-  //   const graphBuilder = GraphBuilder()
-  //   fpDs.shapes.filter(a => new PixiCommon().arrowTypes.includes(a.shapeType) &&  a.lineType == 'path_allow').forEach(a => {
-  //     let vertices = JSON.parse(a.vertices)
-  //     graphBuilder.edge(a.fromCode.toString(), a.toCode.toString(), new PixiCommon().getLength( new PixiCommon().curveTypes.includes(a.shapeType), vertices))
-  //     if (a.shapeType.startsWith("arrow_bi")) {
-  //       graphBuilder.edge(a.toCode.toString(), a.fromCode.toString(), new PixiCommon().getLength(new PixiCommon().curveTypes.includes(a.shapeType), vertices))
-  //     }
-  //   })
-  //   this.mapObj.dijkstra[floorPlanCode]= DijkstraStrategy(graphBuilder.build());
-  // }
-
+ 
   jobListDataMassage(fillupLocation = true , row : FlattenedTaskItem = null , rows : FlattenedTaskList = this.jobListData){
     let getReferenceRow = (r : FlattenedTaskItem )=>{
       let idx = Math.max.apply(null , rows.filter(r2=>rows.indexOf(r2) < rows.indexOf(r) && r2.floorPlanCode && r2.pointCode).map(r2=>rows.indexOf(r2)))
@@ -614,25 +585,11 @@ export class CmTaskJobComponent implements OnInit {
   }
 
   async refreshMapView() {
-    // if (!this.pixiElRef || (![null, undefined].includes(this.pixiElRef.mainContainerId) && this.pixiElRef.mainContainerId == this.selectedFloorfloorPlanCode)) {
-    //   return
-    // }
     if(this.validateFloorplan()){
-      //v testing v
       await this.getFloorplanDs(this.selectedFloorPlanCode)
       await this.pixiElRef.loadFloorPlanDatasetV2(this.floorplanStore[this.selectedFloorPlanCode], true, true)
       this.refreshMapDrawings()
       return
-      
-      //^ testing ^
-      // await this.getFloorplanDs(this.selectedFloorPlanCode)
-      // let fpDs : FloorPlanDataset =  this.floorplanStore[this.selectedFloorPlanCode] 
-      // let loadedGrs =  await this.pixiElRef.loadFloorPlanFullDataset(fpDs , true , true)
-      // this.getGraph(this.selectedFloorPlanCode , fpDs)
-      // this.pixiObjs.arrowsData = fpDs.shapes.filter(s => s.lineType == 'path_allow')
-      // this.pixiObjs.points = loadedGrs.filter(gr=> new PixiCommon().pointTypes.includes(gr.type))
-      // this.showPathOnMouseover()
-      // this.refreshMapDrawings()   
     } 
   }
 
@@ -664,11 +621,6 @@ export class CmTaskJobComponent implements OnInit {
                                                                (r.pointCode == pixiPt.code || ([null, undefined].includes(r.pointCode) && this.getPrevLocRow(r)?.pointCode == pixiPt.code)))
       actionComp.dropdownData = JSON.parse(JSON.stringify(this.dropdownData))
       actionComp.dropdownOptions = JSON.parse(JSON.stringify(this.dropdownOptions))
-      // if (!this.definedPathReachable(pixiPt.code, undefined, this.selectedFloorPlanCode)) {
-      //   actionComp.definedPathUnreachable = true
-      //   // actionComp.frmGrp.controls['navigationMode'].setValue('AUTONOMY')
-      //   // actionComp.frmGrp.controls['navigationMode'].disable()
-      // }
       dialog.result.subscribe(() => {
         this.jobListData = this.jobListDataMassage(false)
         this.pixiElRef._ngPixi.viewport.resumePlugin('wheel')
@@ -690,7 +642,6 @@ export class CmTaskJobComponent implements OnInit {
         this.mapObj.steps.push({ label: this.uiSrv.translate('new'), icon: 'add' })
       }
       if ([null, undefined].includes(this.selectedFloorPlanCode)) {
-        // let floorPlanCodes = this.jobListData.filter(j => j.floorPlanCode).map(j => j.floorPlanCode)
         this.selectedFloorPlanCode = floorPlanCodes.length > 0 ? floorPlanCodes[0] : this.dropdownData.floorplans[0]?.floorPlanCode
       }
     }

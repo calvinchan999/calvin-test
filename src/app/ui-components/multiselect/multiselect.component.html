@@ -7,7 +7,8 @@
                               (ngModelChange) = "oldValue = value; value = $event; 
                                                  change.emit({currentValue : $event[valueFld] , previousValue: oldValue});
                                                  valueChange.emit(value)"
-                              [kendoMultiSelectSummaryTag]="!useSummaryTag ?  myValue.length : undefined" >
+                              [kendoMultiSelectSummaryTag]="!useSummaryTag ?  myValue.length : undefined"
+                              (open)="open.emit($event)" (close) = "close.emit($event)" >
                 <ng-template kendoMultiSelectItemTemplate let-dataItem>
                     <span [innerHTML] = "dataItem[textFld] | highlight : filterVal"></span>
                 </ng-template>
