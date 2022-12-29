@@ -342,8 +342,7 @@ export class MultiCheckFilterComponent implements AfterViewInit {
       (f: FilterDescriptor) => f.value
     );
 
-    this.showFilter =
-      typeof this.textAccessor(this.currentData[0]) === "string";
+    this.showFilter =  typeof this.textAccessor(this.currentData[0]) === "string";
   }
 
   public isItemSelected(item: unknown): boolean {

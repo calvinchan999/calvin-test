@@ -206,16 +206,19 @@ export class ArcsDashboardComponent implements OnInit {
     this.dataSrv.subscribeSignalRs(['arcsRobotStatusChange' , 'arcsTaskInfoChange', 'obstacleDetection' , 'tilt' , 'estop'])
 
     this.dataSrv.signalRSubj.arcsRobotStatusChange.pipe(skip(1), takeUntil(this.$onDestroy)).subscribe((c)=>{
-      if(( !this.floorPlanFilter || c?.floorPlanCode == this.floorPlanFilter ) && (!this.robotTypeFilter || c?.robotType == this.robotTypeFilter?.toUpperCase())){
+      if(this.selectedTab == 'dashboard' && ( !this.floorPlanFilter || c?.floorPlanCode == this.floorPlanFilter ) && (!this.robotTypeFilter || c?.robotType == this.robotTypeFilter?.toUpperCase())){
         this.refreshRobotStatus()
       }
       if(this.robotDetailCompRef){
         this.robotDetailCompRef.refreshRobotStatus(false)
       }
+      if(this.selectedTab == 'group'){
+        this.tableRef?.retrieveData();
+      }
     })
 
     this.dataSrv.signalRSubj.arcsWarningChangedRobotCode.pipe(skip(1), takeUntil(this.$onDestroy)).subscribe((c)=>{
-      if(this.robotInfos.map(r=>r.robotCode).includes(c)){
+      if(this.selectedTab == 'dashboard' &&  this.robotInfos.map(r=>r.robotCode).includes(c)){
         this.refreshRobotStatus()
       }
       if(this.robotDetailCompRef && this.robotDetailId == c){
@@ -224,7 +227,7 @@ export class ArcsDashboardComponent implements OnInit {
     })
 
     this.dataSrv.signalRSubj.arcsTaskInfoChange.pipe(skip(1), takeUntil(this.$onDestroy)).subscribe((c)=>{
-      if(( !this.floorPlanFilter || c?.floorPlanCode == this.floorPlanFilter ) && (!this.robotTypeFilter || c?.robotType == this.robotTypeFilter?.toUpperCase())){
+      if(this.selectedTab == 'dashboard' &&  ( !this.floorPlanFilter || c?.floorPlanCode == this.floorPlanFilter ) && (!this.robotTypeFilter || c?.robotType == this.robotTypeFilter?.toUpperCase())){
         this.refreshTaskInfo()
       }
       if((!this.robotTypeFilter || c?.robotType == this.robotTypeFilter?.toUpperCase()) && this.selectedTab == 'task' && this.tableRef){

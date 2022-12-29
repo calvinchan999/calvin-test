@@ -1,5 +1,5 @@
 import { Component, OnInit , HostBinding, ViewChild } from '@angular/core';
-import { HighlightVisualArgs, SeriesLabelsVisualArgs, SeriesVisualArgs } from '@progress/kendo-angular-charts';
+import { ChartComponent, HighlightVisualArgs, SeriesLabelsVisualArgs, SeriesVisualArgs } from '@progress/kendo-angular-charts';
 import { Group, Text } from '@progress/kendo-drawing';
 import { DataService } from 'src/app/services/data.service';
 import { EnumNamePipe, UiService } from 'src/app/services/ui.service';
@@ -14,9 +14,9 @@ import { ArcsChartsComponent } from '../arcs-charts.component';
 })
 
 export class ArcsAbnormalTasksComponent implements OnInit {
-  @ViewChild('robotTypeDonut') robotTypeDonut
-  @ViewChild('reasonDonut') reasonDonut
-  @ViewChild('robotBar') robotBar
+  @ViewChild('robotTypeChart') robotTypeChart : ChartComponent
+  @ViewChild('reasonChart') reasonChart : ChartComponent
+  @ViewChild('robotChart') robotChart : ChartComponent
   dialogRef
   data = []
   total
@@ -80,7 +80,7 @@ export class ArcsAbnormalTasksComponent implements OnInit {
       labelVisual : (arg: SeriesLabelsVisualArgs) => {
         let ret = arg.createVisual();
         let mainText = (<Group>ret).children.filter(c => typeof c?.['chartElement'] === typeof new Text(undefined, undefined))[0];
-        if(arg.sender == this.robotTypeDonut || arg.sender == this.reasonDonut){
+        if(arg.sender == this.robotTypeChart || arg.sender == this.reasonChart){
           (<Text>mainText).content(arg.dataItem.category);
           let subTextContent = `${(arg.percentage * 100).toFixed(2)}%`;
           (<Group>ret).remove((<Group>ret).children.filter(c => typeof c?.['Path'])[0])
@@ -89,14 +89,14 @@ export class ArcsAbnormalTasksComponent implements OnInit {
         }else{
           (<Text>mainText).content(arg.value);
         }
-        if ((arg.sender == this.robotTypeDonut && this.parent.isDimmed(arg, (<Text>mainText).content())) || (arg.sender == this.robotBar && this.robotCode && this.robotCode != arg.value)) {
+        if ((arg.sender == this.robotTypeChart && this.parent.isDimmed(arg, (<Text>mainText).content())) || (arg.sender == this.robotChart && this.robotCode && this.robotCode != arg.value)) {
           ret.options.set('opacity', this.parent.style.dimOpacity)
         }
         return ret;
       },    
       highlightVisual : (arg: SeriesVisualArgs)=>{
         let ret = arg.createVisual();
-        if((this.robotType && arg.sender == this.robotTypeDonut && arg.dataItem.robotType!= this.robotType) || (arg.sender == this.robotBar && this.robotCode && this.robotCode != arg.category) ){
+        if((this.robotType && arg.sender == this.robotTypeChart && arg.dataItem.robotType!= this.robotType) || (arg.sender == this.robotChart && this.robotCode && this.robotCode != arg.category) ){
           ret.options.set('opacity' , this.parent.style.dimOpacity)
         }
         return ret;

@@ -19,6 +19,7 @@
                           [columnDefs] = "gridSettings[selectedTab]['columns']" [(data)]="data" [serverSidePagination] = "true"
                           [dataSourceApiEndpoint] = "gridSettings[selectedTab]['apiUrl']"    [functionId] = "gridSettings[selectedTab]['functionId']"
                           [disabledButtons] = "tableDisabledButtons" [isLoading] = "isTableLoading"  (dataStateChange)="loadData($event)"
+                          [defaultState] = "gridSettings[selectedTab]['defaultState'] ? gridSettings[selectedTab]['defaultState'] : null"
                           (selectedDataChange)="tableDisabledButtons = {new : false , action : $event.length == 0}"
                           (actionClick) = "$event.actionId == 'delete' ? delete(): null "
                           (cellClick) = "$event?.column == 'edit' ? showDetail($event) : null" (createClick) = "showDetail()" [useColumnFilter]='true'>

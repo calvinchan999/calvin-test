@@ -247,6 +247,13 @@ export class highlightSearchPipe implements PipeTransform {
   }
 }
 
+@Pipe({name: 'replace'})
+export class RepalcePipe implements PipeTransform {
+  transform(value: string, fr: string, to: string): string {
+    return value.split(fr).join(to)
+  }
+} 
+
 @Pipe({name: 'roundDown'})
 export class RoundDownPipe implements PipeTransform {
     transform(value: number): number {
@@ -302,7 +309,7 @@ export class DateStringPipe implements PipeTransform {
 @Pipe({name: 'enum'})
 export class EnumNamePipe implements PipeTransform {
   transform(value: string , upperCase = false): string {
-    return value.split("_").map(x => upperCase ? x.toUpperCase() : (x.length > 1 ? x.substring(0, 1).toUpperCase() + x.substring(1, x.length).toLowerCase() : x.toUpperCase())).join(" ");
+    return value.split("_").map(x => upperCase ? x.toUpperCase() : (x.length > 1 ? x.substring(0, 1).toUpperCase() + x.substring(1, x.length).toLowerCase() : x.toUpperCase())).join(" ").toString();
   }
 } 
 

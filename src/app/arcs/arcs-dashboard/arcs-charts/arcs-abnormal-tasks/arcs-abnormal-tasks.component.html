@@ -26,7 +26,7 @@
 <ng-container *ngIf="selectedTab == 'summary'">
     <kendo-tilelayout  class="chart" [columns]="6"  [resizable]="false" [reorderable]="false">
         <kendo-tilelayout-item class = "tile reason" [title]="((taskState == 'failed' ? 'Aborted ' : 'Cancelled ') + 'Task Count by Reason') | label : uiSrv.langPack" [col]="1" [row]="1" [colSpan] = "robotType ? 2 : 3">
-            <kendo-chart #reasonDonut [seriesColors] = "summary.style.seriesColors" class="summary-chart">
+            <kendo-chart #reasonChart [seriesColors] = "summary.style.seriesColors" class="summary-chart">
                 <kendo-chart-area background="transparent"></kendo-chart-area>
                 <!-- <kendo-chart-title [align]="'left'" [text]="'Job Order by Type' | label: uiSrv.langPack"  [color]="style.textColor" ></kendo-chart-title>     -->
                 <ng-template kendoChartDonutCenterTemplate>
@@ -48,7 +48,7 @@
         </kendo-tilelayout-item>
 
         <kendo-tilelayout-item class = "tile robot-type" [title]="((taskState == 'failed' ? 'Aborted ' : 'Cancelled ') + 'Task Count by Robot Type') | label : uiSrv.langPack"  [col]="robotType ? 3 : 4 " [row]="1" [colSpan] = "robotType ? 2 : 3">
-            <kendo-chart #robotTypeDonut [seriesColors] = "summary.style.seriesColors" class="summary-chart">
+            <kendo-chart #robotTypeChart [seriesColors] = "summary.style.seriesColors" class="summary-chart">
                 <kendo-chart-area background="transparent"></kendo-chart-area>
                 <!-- <kendo-chart-title [align]="'left'" [text]="'Job Order by Type' | label: uiSrv.langPack"  [color]="style.textColor" ></kendo-chart-title>     -->
                 <ng-template kendoChartDonutCenterTemplate>
@@ -70,7 +70,7 @@
         </kendo-tilelayout-item>
 
         <kendo-tilelayout-item *ngIf="robotType" class = "tile robot" [title]="((taskState == 'failed' ? 'Aborted ' : 'Cancelled ') + 'Task Count by Robot') | label : uiSrv.langPack"  [col]="5" [row]="1" [colSpan] = "2">
-            <kendo-chart #robotBar  [seriesColors]="summary.style.seriesColors" >
+            <kendo-chart #robotChart  [seriesColors]="summary.style.seriesColors" >
                 <kendo-chart-area background="transparent"></kendo-chart-area>
                 <kendo-chart-category-axis >
                   <kendo-chart-category-axis-item  [categories]="summary.categories.robot" [labels]="{visual : summary.style.labelVisual}"

@@ -133,6 +133,7 @@ export class ArcsSetupComponent implements OnInit {
     synclog:{
       functionId:"SYNC_LOG",
       apiUrl:"api/sync/log/page/v1",
+      defaultState: {skip: 0 , take: 15 , sort:[{dir: 'desc' , field: 'startDateTime'}]},
       columns: [
         { title: "Operation", id: "dataSyncType", width: 100 , type:'pipe' , pipe :'enum' },
         { title: "Record Type", id: "objectType", width: 100 , dropdownOptions:this.dataSrv.objectTypeDropDownOptions},

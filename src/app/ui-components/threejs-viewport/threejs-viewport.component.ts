@@ -41,6 +41,8 @@ export class ThreejsViewportComponent implements OnInit , OnDestroy{
   pointLight : THREE.PointLight
   composer : EffectComposer
   shaderPass : ShaderPass 
+  rendererPass : RenderPass
+  animationRequestId : number
   @ViewChild('canvas') canvas : ElementRef
   @Output() robotClicked = new EventEmitter<any>();
   @Output() to2D =  new EventEmitter<{floorPlanCode? : string, showSite? : boolean}>();
@@ -143,7 +145,7 @@ export class ThreejsViewportComponent implements OnInit , OnDestroy{
   }
 
   animate() {
-    requestAnimationFrame(this.animate.bind(this))
+    this.animationRequestId = requestAnimationFrame(this.animate.bind(this))
     if(!this.suspended){
       //this.renderer.render(this.scene, this.camera )
       this.labelRenderer?.render( this.scene, this.camera );
@@ -273,9 +275,10 @@ export class ThreejsViewportComponent implements OnInit , OnDestroy{
     this.$mapCodeChanged.next()
     this.unsubscribeRobotPoses()
     this.resetScene()
-    this.renderer.renderLists.dispose();
-    this.renderer.dispose();
-    this.renderer = null
+    this.cleanUp()
+    // this.renderer.renderLists.dispose();
+    // this.renderer.dispose();
+    // this.renderer = null
     this.labelRenderer = null
     this.composer = null
   }
@@ -377,7 +380,8 @@ export class ThreejsViewportComponent implements OnInit , OnDestroy{
     this.onResize()
     this.shaderPass = new ShaderPass(FXAAShader);
     this.onResize()
-    this.composer.addPass(new RenderPass(this.scene , this.camera));
+    this.rendererPass = new RenderPass(this.scene , this.camera)
+    this.composer.addPass( this.rendererPass);
     // this.composer.addPass(this.outlinePass);
     this.composer.addPass(this.shaderPass);   
   }
@@ -525,6 +529,62 @@ export class ThreejsViewportComponent implements OnInit , OnDestroy{
     let retX = (rosX - map.originX) * map.meterToPixelRatio - map.width / 2
     let retY = (map.originY - rosY) * map.meterToPixelRatio + map.height / 2
     return new THREE.Vector3(retX, -retY, 15)
+  }
+
+  cleanUp() {
+    if (this.animationRequestId) {
+      window.cancelAnimationFrame(this.animationRequestId);
+   }
+    let dispose = (obj) =>
+    {
+        if (obj !== null)
+        {
+            if(obj instanceof Object3DCommon){
+              obj.outlinePass?.dispose()
+            }
+            for (var i = 0; i < obj.children.length; i++)
+            {
+              dispose(obj.children[i]);
+            }
+            if (obj.geometry)
+            {
+                obj.geometry.dispose();
+                obj.geometry = undefined;
+            }
+            if (obj.material)
+            {
+                if (obj.material.materials)
+                {
+                    for (i = 0; i < obj.material.materials.length; i++)
+                    {
+                        obj.material.materials[i].dispose();
+                    }
+                }
+                else
+                {
+                    obj.material.dispose();
+                }
+                obj.material = undefined;
+            }
+            if (obj.texture)
+            {
+                obj.texture.dispose();
+                obj.texture = undefined;
+            }
+        }
+        obj = undefined;
+    }
+
+    dispose(this.scene)
+    this.shaderPass = null
+    this.rendererPass = null
+    this.pointLight = null
+    this.ambientLight = null
+    this.camera = null
+    this.renderer?.renderLists.dispose()
+    this.renderer.dispose()
+    this.renderer = null
+    this.composer = null
   }
 
   // test16WIphoneScanned() {
@@ -948,6 +1008,9 @@ export class RobotObject3D extends Object3DCommon{
     return this._offline
   }
   set offline(v){
+    if(this.frontFacePointer){
+      this.frontFacePointer.visible = !v
+    }
     this._offline = v
     this.opacity =  v ? 0.5 : 1
   }

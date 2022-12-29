@@ -333,7 +333,7 @@ export class SaTopModuleComponent implements OnInit , OnDestroy {
 
   ngOnDestroy(){
     this.onDestroy.next()
-    this.dataSrv.unsubscribeSignalRs( this.signalRSubscribedTopics , false , this.util.arcsApp ? `/${this.arcsRobotCode}` : undefined)
+    this.dataSrv.unsubscribeSignalRs( this.signalRSubscribedTopics , false , this.util.arcsApp ? this.arcsRobotCode : undefined)
   }
 
 }
