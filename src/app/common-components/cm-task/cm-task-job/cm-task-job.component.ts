@@ -180,7 +180,7 @@ export class CmTaskJobComponent implements OnInit {
 
 
   async loadData(missionId) {
-     let ticket = this.uiSrv.loadAsyncBegin()
+    let ticket = this.uiSrv.loadAsyncBegin()
     let data : JTask = await this.httpSrv.get((this.isTemplate ? "api/task/mission/v1/" : "api/task/v1/") + missionId.toString())
     this.util.loadToFrmgrp(this.frmGrp, data)
     if(this.util.standaloneApp){

@@ -543,21 +543,29 @@ export class DataService {
     }
 
     if(this._USE_AZURE_PUBSUB){
-      this.pubsubSrv.makeWebSocketConnection()
-      await this.subscribeSignalRs(<any>this.signalRGeneralConfig.backgroundSubscribeTypes)
-    }else{
-      await this.subscribeSignalRs(<any>this.signalRGeneralConfig.backgroundSubscribeTypes)
-      this.signalRSrv.onConnected.subscribe(()=>{
-        Object.keys(this.signalRSubj).forEach(k=>{
-          let cnt = this.signalRMaster[k]?.['subscribedCount']
-          if(cnt && typeof cnt === 'object' ){
-            Object.keys(this.signalRMaster[k]['subscribedCount']).forEach(k2 => this.subscribeSignalR(<any>k, k2, true))    
-          }else if(cnt){
-            this.subscribeSignalR( <any>k , undefined , true)
-          }
-        })
-      })
+      this.pubsubSrv.makeWebSocketConnection()   
     }
+    await this.subscribeSignalRs(<any>this.signalRGeneralConfig.backgroundSubscribeTypes)
+    // else{
+    //   await this.subscribeSignalRs(<any>this.signalRGeneralConfig.backgroundSubscribeTypes)
+    //   this.signalRSrv.onConnected.subscribe(()=>{
+    //     Object.keys(this.signalRSubj).forEach(k=>{
+    //       let cnt = this.signalRMaster[k]?.['subscribedCount']
+    //       if(cnt && typeof cnt === 'object' ){
+    //         Object.keys(this.signalRMaster[k]['subscribedCount']).filter(k2=>this.getSubscribedCount(<any>k, k2) > 0).forEach(k2 => {
+    //           console.log(k2)
+    //           this.subscribeSignalR(<any>k, k2, true)
+    //           this.setSubscribedCount(<any>k, this.getSubscribedCount(<any>k, k2) - 1, k2) //I only want to subcribe but not increasing the count, so add this counter weight
+    //         })
+    //       } else if (cnt) {
+    //         this.subscribeSignalR(<any>k, undefined, true)
+    //         if (!isNaN(Number(this.signalRMaster[k]?.['subscribedCount']))) {
+    //           this.signalRMaster[k]['subscribedCount'] = this.signalRMaster[k]['subscribedCount'] - 1
+    //         }
+    //       }
+    //     })
+    //   })
+    // }
     this.uiSrv.loadAsyncDone(ticket)
    }
 
@@ -604,7 +612,7 @@ export class DataService {
       Object.keys(mapping).forEach(k => this.signalRSubj[k].next(null))
       let topicSfx =  paramString == '' ? '' : '/' + paramString 
       if(this._USE_AZURE_PUBSUB){
-        this.pubsubSrv.unsubscribeTopic(this.signalRMaster[type].topic )
+        this.pubsubSrv.unsubscribeTopic(this.signalRMaster[type].topic)
       }else{
         this.signalRSrv.unsubscribeTopic(this.signalRMaster[type].topic + topicSfx)
       }
@@ -617,6 +625,7 @@ export class DataService {
   }
 
   public async subscribeSignalR(type: signalRType, paramString = '' , getLatestFromApi = false ) {//paramString : get concated topic (ARCS implementing query param in signalR topic)
+    console.log(type + '/' + paramString)
     if(!this.util.getCurrentUser()){
       return
     }

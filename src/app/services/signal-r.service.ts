@@ -82,7 +82,9 @@ export class SignalRService {
         this.tokenRefreshed = false
         connection['onConnected'].emit()
         //make sure the connection is in the user groups , so that the topic subscription can be substained on reconnected
-        Object.keys(this.topicSubjMap).forEach(topic => this.invoke("Subscribe", topic))
+        this.subscribedTopics.forEach(topic => {
+          this.invoke("Subscribe", topic)
+        })
         if(this.reconnectLoadingTicket){
          this.uiSrv.loadAsyncDone( this.reconnectLoadingTicket)
          this.reconnectLoadingTicket = null
@@ -154,7 +156,7 @@ export class SignalRService {
     this.getUnsubscribedSubject(topic)?.next()
     this.invoke("Unsubscribe", topic) //stop receiving messages from server side
     this.subscribedTopics = this.subscribedTopics.filter(t=>t!=topic)
-    //delete this.topicSubjMap[topic] 
+    //delete this.topicSubjMap[topic] *** be careful this line could cause repeated subscription of pose ***
   }
 
   getUnsubscribedSubject(topic) : Subject<any>{

@@ -604,9 +604,12 @@ export class ArcsChartsComponent implements OnInit , OnDestroy {
   
   fetchUtilization(fromDate: Date = null, toDate: Date = null) {    
     this.initUtilization(fromDate, toDate)
+    let tmpRow = {type : 'ROBOT' , category : this.robotCodeFilter}
+    this.utilization.statuss.forEach(s=>tmpRow[s] = 0)
+    let filteredRobotData = this.robotCodeFilter  && this.utilizationData.filter(r=> r.type == 'ROBOT' && r.category == this.robotCodeFilter).length == 0 ? [tmpRow]:[]
     // this.utilizationData = this.utilizationData.filter(r => r.type != 'DAILY').concat(this.fullYearDataset.utilization[this.year.toString()].filter(r => r.type == 'DAILY'))
     this.utilizationData = this.utilizationData.filter(r => r.type != 'ROBOT_TYPE').concat(this.utilizationData.filter(r => r.type == 'ROBOT_TYPE').sort((a, b) => b.executing / b.total - a.executing / a.total))
-    this.utilizationData = this.utilizationData.filter(r => r.type != 'ROBOT').concat(this.utilizationData.filter(r => r.type == 'ROBOT').sort((a, b) => b.executing / b.total - a.executing / a.total))
+    this.utilizationData = this.utilizationData.filter(r => r.type != 'ROBOT').concat(this.utilizationData.filter(r => r.type == 'ROBOT').sort((a, b) => b.executing / b.total - a.executing / a.total)).concat(<any>filteredRobotData)
     this.utilizationData.forEach(r => {
       if (r.type == 'DAILY') {
         let splitedDateString = r.category.split("-")
@@ -628,7 +631,7 @@ export class ArcsChartsComponent implements OnInit , OnDestroy {
       let r = sortedUtilByTypes[i]
       this.utilization.total['type' + (i + 1)] = { robotType: r.category, executing: r.executing, total: r.total }
     }
-    this.utilization.totalExecutingHours = this.utilizationData.filter(r=>r.type == 'ROBOT').reduce((acc, r) => acc + r.executing, 0)
+    this.utilization.totalExecutingHours = this.utilizationData.filter(r=>r.type == 'ROBOT' && (!this.robotCodeFilter || this.robotCodeFilter == r.category)).reduce((acc, r) => acc + r.executing, 0)
     this.utilization.totalRobotHours = Utilization_Status_Types.reduce((acc2, t) => acc2 + this.utilizationData.filter(r=>r.type == 'ROBOT').reduce((acc, r) => acc + r[t], 0), 0)
   }
 
