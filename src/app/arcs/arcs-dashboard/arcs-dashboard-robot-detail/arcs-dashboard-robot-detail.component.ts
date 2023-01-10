@@ -106,7 +106,6 @@ export class ArcsDashboardRobotDetailComponent implements OnInit {
       try{
         this.streamingUrl = await this.dataSrv.httpSrv.get(`api/sysparas/streamingUrl/${this.robotId}/v1` , undefined,undefined,undefined,undefined,true , true)
       }catch(err){
-        console.log(err)
         this.streamingUrl = null
         this.streamingError = 'No available streaming source found in Azure'
       }

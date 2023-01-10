@@ -12,7 +12,6 @@ import { UiService } from 'src/app/services/ui.service';
 import { SaMapComponent } from 'src/app/standalone/sa-map/sa-map.component';
 import { DrawingBoardComponent, PixiCommon, PixiPolygon, Robot } from 'src/app/ui-components/drawing-board/drawing-board.component';
 import { GeneralUtil } from 'src/app/utils/general/general.util';
-import { CmMapDetailLocationComponent } from './cm-map-detail-location/cm-map-detail-location.component';
 
 
 @Component({
@@ -253,6 +252,7 @@ export class CmMapDetailComponent implements OnInit {
       this.frmGrp.controls['originY'].setValue(metaData.y)
       let guiOrigin =  this.pixiElRef.calculateMapOrigin(metaData.x , metaData.y, metaData.height /this.util.config.METER_TO_PIXEL_RATIO , this.util.config.METER_TO_PIXEL_RATIO)
       this.pixiElRef.setMapOrigin(guiOrigin[0] , guiOrigin[1])
+      this.pixiElRef.pixiRosMapOriginMarker.resize()
       this.pixiElRef.overlayMsg = null
 
       // this.pixiElRef.hideButton = { arrow: true, upload: true, point: true }

@@ -48,9 +48,9 @@ export class SaControlButtonsComponent implements OnInit ,  OnDestroy {
   @Input() buttonIds : string[] = null
 
   constructor(public uiSrv : UiService, public windowSrv: DialogService, private util : GeneralUtil , private httpSrv : RvHttpService, public dataSrv:DataService , public configSrv : ConfigService) {
-    Object.keys(this.configSrv.disabledModule_SA).filter(k=>this.configSrv.disabledModule_SA[k] == true).forEach(k=>{
-      this.layout.forEach(l => l.buttons =(<any>l.buttons).filter(b => b.id != k))
-    })
+    // Object.keys(this.configSrv.disabledModule_SA).filter(k=>this.configSrv.disabledModule_SA[k] == true).forEach(k=>{
+    //   this.layout.forEach(l => l.buttons =(<any>l.buttons).filter(b => b.id != k))
+    // })
   }
   
   layout = [
@@ -146,7 +146,7 @@ export class SaControlButtonsComponent implements OnInit ,  OnDestroy {
     id = id == 'charge' && isActive ? 'uncharge' : id
     id = id == 'pause' && isActive ? 'resume' : id
     if(requestMap[id]){
-      if(activeSubject){ //id!='manual' : TBR
+      if(activeSubject && id!='manual'){ 
         this.uiSrv.awaitSignalRBegin(activeSubject , true)
       }
       let ticket = this.uiSrv.loadAsyncBegin()

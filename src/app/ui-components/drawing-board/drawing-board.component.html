@@ -58,7 +58,7 @@
       <button *ngIf="isDashboard && util.arcsApp && arcsLocationTree.currentLevel == 'floorplan' && !configSrv.dbConfig.DISABLE_PATH_FOLLOWING" kendoButton class="show-path" [matTooltip]="(uitoggle.showPath? 'Hide Path' : 'Show Path') | label : uiSrv.langPack"  
                 [disabled]="disableButton['showPath']" matTooltipPosition="right" (click)="uitoggle.showPath = !uitoggle.showPath ; togglePath()"
                 [ngClass]="{'btn-active': uitoggle.showPath}">
-          <span [class]="'mdi mdi-arrow-top-right-bottom-left'"></span>
+          <span [class]="'mdi mdi-vector-polyline'"></span>
       </button>
       
       <button *ngIf="isDashboard && util.arcsApp && arcsLocationTree.currentLevel == 'floorplan'" kendoButton class="3d-switch" [matTooltip]="'3D Map' | label : uiSrv.langPack"  

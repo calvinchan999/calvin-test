@@ -4,17 +4,19 @@
         <span class="text">{{row['title'] | label: uiSrv.langPack}}</span>
     </div>
     <div class="button-container">
-        <button kendoButton *ngFor="let button of row['buttons']" [style.display] = "!button['display'] || button['display'].value ? '' : 'none'"
-                [disabled]= "readonly.controls || (button['disabled'] && button['disabled']['value']) || 
-                            (dataSrv.signalRSubj.navigationDisabled.value && (button['id'] == 'followMe' ||  button['id'] == 'auto' || button['id'] == 'changeMap')) ||
-                            (button['id'] == 'changeMap' && dataSrv.signalRSubj.isMappingMode.value) ||
-                            (button['id'] == 'charge' && dataSrv.signalRSubj.isMappingMode.value) ||
-                            ((button['id'] == 'stop' || button['id'] == 'pause' ) && !dataSrv.signalRSubj.isAutoMode.value) "
-                (click)="triggerControl(button['id'], (button['active']?.value ? button['textActive'] : button['text']) , button['active'])" 
-                [class]="(button['text']  | cssClassName) +  (button['active']?.value ? ' active' : '')">
-            <span [class]="'icon ' + button['icon']"></span>
-            <span class="text">{{ button['active']?.value &&  button['textActive'] ? button['textActive'] : button['text'] | label: uiSrv.langPack}}</span>
-        </button>
+        <ng-container *ngFor="let button of row['buttons']" >
+            <button *ngIf="!configSrv.disabledModule_SA[button['id']]" kendoButton [style.display] = "!button['display'] || button['display'].value ? '' : 'none'"
+                    [disabled]= "readonly.controls || (button['disabled'] && button['disabled']['value']) || 
+                        (dataSrv.signalRSubj.navigationDisabled.value && (button['id'] == 'followMe' ||  button['id'] == 'auto' || button['id'] == 'changeMap')) ||
+                        (button['id'] == 'changeMap' && dataSrv.signalRSubj.isMappingMode.value) ||
+                        (button['id'] == 'charge' && dataSrv.signalRSubj.isMappingMode.value) ||
+                        ((button['id'] == 'stop' || button['id'] == 'pause' ) && !dataSrv.signalRSubj.isAutoMode.value) "
+                    (click)="triggerControl(button['id'], (button['active']?.value ? button['textActive'] : button['text']) , button['active'])" 
+                    [class]="(button['text']  | cssClassName) +  (button['active']?.value ? ' active' : '')">
+                <span [class]="'icon ' + button['icon']"></span>
+                <span class="text">{{ button['active']?.value &&  button['textActive'] ? button['textActive'] : button['text'] | label: uiSrv.langPack}}</span>
+            </button>
+        </ng-container>
     </div>
 </div>
 

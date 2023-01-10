@@ -198,7 +198,7 @@ export class ThreejsViewportComponent implements OnInit , OnDestroy{
       firstObj.setMousOverEffect()
       if (firstObj instanceof RobotObject3D || firstObj instanceof MarkerObject3D) {
         firstObj.addMouseClickListener()
-        let tip = firstObj instanceof RobotObject3D ? firstObj.robotCode : (firstObj instanceof MarkerObject3D ? firstObj.pointCode : null)
+        let tip = firstObj instanceof RobotObject3D ? firstObj.getTooltipText() : (firstObj instanceof MarkerObject3D ? firstObj.pointCode : null)
         if(!(firstObj instanceof MarkerObject3D && firstObj.toolTipAlwaysOn)){
           firstObj.showToolTip(tip)
         }
@@ -317,6 +317,7 @@ export class ThreejsViewportComponent implements OnInit , OnDestroy{
     if(subscribePoses && this.mapCode){
       this.subscribeRobotPoses()
     }
+    this.parent.refreshRobotStatus()
 
     //this.testOutline()
 
@@ -406,8 +407,8 @@ export class ThreejsViewportComponent implements OnInit , OnDestroy{
     this.mapCode = mapList[0] ? mapList[0]?.mapCode : this.mapCode
     mapList.forEach(m=>{
       let prefix = 'data:image/png;base64,'
-      let base64 = (m.base64Image.startsWith(prefix) ? '': prefix) + m.base64Image
-      const mapPlane = new MapMesh(this, m.mapCode, m.robotBase , base64 , m.transformedScale, m.transformedAngle , m.transformedPositionX ,  m.transformedPositionY , m.imageWidth , m.imageHeight , m.originX , m.originY );
+      // let base64 = (m.base64Image.startsWith(prefix) ? '': prefix) + m.base64Image
+      const mapPlane = new MapMesh(this, m.mapCode, m.robotBase  , m.transformedScale, m.transformedAngle , m.transformedPositionX ,  m.transformedPositionY , m.imageWidth , m.imageHeight , m.originX , m.originY );
       this.scene.add(mapPlane)
     })
 
@@ -472,9 +473,9 @@ export class ThreejsViewportComponent implements OnInit , OnDestroy{
           console.log(`ERROR : Map not found : [${mapCode}] (ROBOT BASE [${robotData.robotBase}] , ROBOT [${robotCode}])`)
           return
         }
-        let robot = this.getRobot(robotCode) ?   this.getRobot(robotCode) : new RobotObject3D(this , robotCode , robotData.robotBase , robotData.robotType )
-        let oldMapMesh = this.mapMeshes.filter(m=>robot && m.robotBase!=robotData.robotBase && m.children.includes(robot))[0]
-        if(oldMapMesh){
+        let robot = this.getRobot(robotCode) ? this.getRobot(robotCode) : new RobotObject3D(this, robotCode, robotData.robotBase, robotData.robotType)
+        let oldMapMesh = this.mapMeshes.filter(m => robot && m.robotBase != robotData.robotBase && m.children.includes(robot))[0]
+        if (oldMapMesh) {
           oldMapMesh.remove(robot)
         }
 
@@ -491,7 +492,6 @@ export class ThreejsViewportComponent implements OnInit , OnDestroy{
           }
         }
      })
-
     })
     this.subscribedPoseMapCode = mapCode
   }
@@ -619,7 +619,7 @@ class FloorPlanMesh extends Mesh{
   width 
   height
   constructor(public master: ThreejsViewportComponent , base64Image : string , width : number , height : number){
-    super(new THREE.PlaneGeometry(width, height), new THREE.MeshPhongMaterial({ map : THREE.ImageUtils.loadTexture(base64Image ) , side : DoubleSide }))
+    super(new THREE.PlaneGeometry(width, height), new THREE.MeshPhongMaterial({ map: THREE.ImageUtils.loadTexture(base64Image), side : DoubleSide }))
     this.width = width;
     this.height = height;
     (<any>this).material.side = THREE.DoubleSide;
@@ -641,8 +641,8 @@ class MapMesh extends Mesh {
   originY
   meterToPixelRatio = this.master.util.config.METER_TO_PIXEL_RATIO
   robots: RobotObject3D[] = []
-  constructor(public master: ThreejsViewportComponent , mapCode : string , robotBase : string,base64 : string, scale : number, angle : number , x  : number , y  : number , width  : number , height  : number , originX : number , originY : number){
-    super(new THREE.PlaneGeometry(width, height), new THREE.MeshLambertMaterial({ map : THREE.ImageUtils.loadTexture(base64) , opacity: 0.5 , transparent :true , visible : false }))
+  constructor(public master: ThreejsViewportComponent , mapCode : string , robotBase : string, scale : number, angle : number , x  : number , y  : number , width  : number , height  : number , originX : number , originY : number){
+    super(new THREE.PlaneGeometry(width, height), new THREE.MeshLambertMaterial({  opacity: 0.5 , transparent :true , visible : false }))
     this.mapCode = mapCode
     this.robotBase = robotBase
     // this.master.maps = this.master.maps.filter(m=>m!= this).concat(this)
@@ -678,7 +678,8 @@ class Object3DCommon extends Object3D{
     borderRadius : '5px',
     lineHeight : '12px',
     fontSize : '14px',
-    background : 'rgba( 0, 0, 0, 0.6 )'
+    background : 'rgba( 0, 0, 0, 0.6 )',
+    whiteSspace: 'pre'
   }
   defaultOpacity = 1
   _color : number
@@ -695,11 +696,6 @@ class Object3DCommon extends Object3D{
     this.master = master
     this._color = this.master.util.config.robot?.visuals?.[0].fillColor ?  Number(this.master.util.config.robot?.visuals?.[0].fillColor) : 0x00CED1
     this.initToolTip()
-  }
-
-
-  setTooltipText(){
-
   }
 
   
@@ -791,11 +787,11 @@ class Object3DCommon extends Object3D{
       return
     }
     this.mouseOvered = true
-    if( this.outlinePass){
+    if( this.outlinePass && !(this instanceof RobotObject3D && this.offline)){
       this.outlinePass.edgeGlow = 1
       this.outlinePass.edgeThickness = 2
       this.outlinePass.edgeStrength = 4
-    }else{
+    }else if(!(this instanceof RobotObject3D)){
       this.gltf.scene.traverse( (s : any)=> {      
         if (s.isMesh === true && s.material?.originalHex!= null){
           s.material.emissive.setHex(color)
@@ -873,7 +869,7 @@ class MarkerObject3D extends Object3DCommon {
     this._toolTipAlwaysOn = v
     this.toolTip.position.set(0, (v ? -0.2 : 1 )* (this.glbSettings.size * 20) * this.master.ROSmapScale  , 0)
     if(v){
-      this.showToolTip(this.pointCode , undefined , {fontSize : '10px' , lineHeight : '0px' , background : 'rgba(0,0,0,0.4)'})
+      this.showToolTip(this.pointCode, undefined, { fontSize: '10px', lineHeight: '0px', background: 'rgba(0,0,0,0.4)', whiteSspace: 'pre' })
     }else{
       this.hideToolTip()
     }
@@ -926,6 +922,8 @@ export class RobotObject3D extends Object3DCommon{
   master : ThreejsViewportComponent
   outlineSegments : LineSegments
   scene : THREE.Scene = new THREE.Scene()
+  offlineColor = 0xAAAAAA
+  offlineTexture 
   targetPose : {
     vector :  Vector3
     rotation : number
@@ -937,6 +935,7 @@ export class RobotObject3D extends Object3DCommon{
   get importSetting(){
     return this.robotImportSetting[this.robotType] ? this.robotImportSetting[this.robotType] : this.robotImportSetting.BASE
   }
+  
   robotImportSetting = {
     BASE: {
       path : "assets/3D/robot.glb",
@@ -944,15 +943,21 @@ export class RobotObject3D extends Object3DCommon{
       position: { x: 0, y: 0, z: -12.5 },
       rotate: { x: 0, y: 0, z: 180 / radRatio },
       alertPositionZ : 45
-      // replaceColors:[{r: 0 , g : 0 , b : 0 , tolerance : 0.1}], 
     },
-    // BASE: {
-    //   path : "assets/3D/robot.glb",
-    //   scale : 3,
-    //   position : {x : 4 , y: 0 , z : -20},
-    //   rotate : {x : NORMAL_ANGLE_ADJUSTMENT , y : 0,  z : 180/radRatio } ,
-    //   // recolorMaterials : ['Material33'],
-    // },
+    FLOOR_SCRUB: {
+      path : "assets/3D/robot_floor_scrub.glb",
+      scale : 0.8,
+      position: { x: 0, y: 0, z: -12.5 },
+      rotate: { x: 90 / radRatio, y:  180 / radRatio , z: 0 },
+      alertPositionZ : 45
+    },
+    MOBILE_CHAIR:{
+      path : "assets/3D/robot_mobile_chair.glb",
+      scale : 0.8,
+      position: { x: 0, y: 0, z: -12.5 },
+      rotate: { x: 90 / radRatio, y:  180 / radRatio , z: 0 },
+      alertPositionZ : 45
+    },
     PATROL: {
       path : "assets/3D/robot_patrol.glb",
       scale : 35,
@@ -968,10 +973,29 @@ export class RobotObject3D extends Object3DCommon{
       position: { x: 0, y: 0, z: -12.5 },
       rotate: {x : NORMAL_ANGLE_ADJUSTMENT, y: 0, z: 180 / radRatio },
       alertPositionZ : 40
-      // recolorMaterials : ['Material #26'],
-      // replaceColors:[{r: 0 , g : 0 , b : 0 , tolerance : 0.1}],
-      // recolorMaterials : []
     },
+    DISINFECTION: {
+      path : "assets/3D/robot_disinfection.glb",
+      scale : 0.8,
+      position: { x: 0, y: 0, z: -12.5 },
+      rotate: { x: 90 / radRatio, y:  180 / radRatio , z: 0 },
+      alertPositionZ : 40
+    },
+    FORKLIFT: {
+      path : "assets/3D/robot_forklift.glb",
+      scale : 0.6,
+      position: { x: 0, y: 0, z: -12.5 },
+      rotate: { x: 90 / radRatio, y:  180 / radRatio , z: 0 },
+      alertPositionZ : 40
+    },
+    STOCKTAKING: {
+      path : "assets/3D/robot_stocktaking.glb",
+      scale : 0.8,
+      position: { x: 0, y: 0, z: -12.5 },
+      rotate: { x: 90 / radRatio, y:  180 / radRatio , z: 0 },
+      alertPositionZ : 40
+    },
+
   }
 
   pointerSetting : Import3DModelSettings = {
@@ -1012,7 +1036,13 @@ export class RobotObject3D extends Object3DCommon{
       this.frontFacePointer.visible = !v
     }
     this._offline = v
-    this.opacity =  v ? 0.5 : 1
+    // this.gltf?.scene.traverse((s: any) => {
+    //   if (s.isMesh === true && s.material?.originalHex != null) {
+    //     console.log(this.offlineColor)
+    //     s.material.emissive.setHex(v ? this.offlineColor : s.material?.originalHex)
+    //   }
+    // });
+    // this.opacity =  v ? 0.5 : 1
   }
   set alert(v){
     this._alert = v
@@ -1047,7 +1077,7 @@ export class RobotObject3D extends Object3DCommon{
     //
     let ticket = this.master.uiSrv.loadAsyncBegin()
     let setting = this.importSetting
-     this.loader.load(setting.path ,(gltf : GLTF)=> {
+    this.loader.load(setting.path ,(gltf : GLTF)=> {
       new GLTFLoader().load(this.alertIconPath, (alertGltf : GLTF)=>{
         this.gltf = gltf       
 
@@ -1073,6 +1103,12 @@ export class RobotObject3D extends Object3DCommon{
         // this.addSpotLight()
         this.storeOriginalMaterialData()
         this.addFrontFacePointer()
+        new THREE.TextureLoader().load('assets/3D/offline_overlay.jpg',  (texture)=>{
+          this.offlineTexture = texture
+          this.offlineTexture.wrapS = THREE.RepeatWrapping;
+          this.offlineTexture.wrapT = THREE.RepeatWrapping;
+          this.changeMainColor(this.color)
+        })
         this.changeMainColor(this.color)
         let robotInfo = this.master.parent.robotInfos.filter(r=>r.robotCode == this.robotCode)[0]
         this.offline = robotInfo?.robotStatus == 'UNKNOWN'
@@ -1149,9 +1185,14 @@ export class RobotObject3D extends Object3DCommon{
     //                         Math.max(0, parseInt(colorStr.substring(4, 6), 16) + colorDelta).toString(16).padStart(2,'0')) , 
     //                     16)
     // console.log(adjustedColor)
-    this.outlinePass?.visibleEdgeColor.set(color)
-    this.outlinePass?.hiddenEdgeColor.set(color)
-
+    this.outlinePass?.visibleEdgeColor.set(this.offline ? this.offlineColor : color)
+    this.outlinePass?.hiddenEdgeColor.set(this.offline ? this.offlineColor : color)
+    if (this.offline && this.outlinePass) {
+      this.outlinePass.usePatternTexture = true
+      this.outlinePass.patternTexture = this.offlineTexture
+    } else if (this.outlinePass) {
+      this.outlinePass.usePatternTexture = false
+    }
     let materials: MeshStandardMaterial[] = new Object3DCommon(this.master).getMaterials(this.gltf.scene)
     materials.filter(m => this.importSetting.recolorMaterials?.includes(m.name) || 
                           (this.importSetting.replaceColors && 
@@ -1181,6 +1222,11 @@ export class RobotObject3D extends Object3DCommon{
     this.frontFacePointer.scale.set(setting.scale , setting.scale  , setting.scale )
     this.add(this.frontFacePointer)
   }
+
+  getTooltipText(){
+    return `${this.robotCode} ${this.offline ? this.master.uiSrv.translate("\n (Offline)") : ""}` 
+  }
+
 }
 
 

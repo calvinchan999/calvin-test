@@ -2,17 +2,17 @@
 <ng-template #toDateTpl>{{dateRangeToolTip?.to?.content}}</ng-template>
 <ng-template #filterTemplate>
     <div class="form-row">
-        <uc-dropdown  lab = "Robot Type" [(value)] = 'robotTypeFilter' (valueChange)="refreshRobotOptions() ; robotCodeFilter = null ; refreshChart(getSelectedDateRange().fromDate , getSelectedDateRange().toDate)" [options] = "dropdownOptions.types"  [translateOption] = 'true' nullValueDesc="All"></uc-dropdown>
-        <uc-dropdown  lab = "Robot" [(value)] = 'robotCodeFilter' (valueChange)="refreshRobotTypeFilter();refreshChart(getSelectedDateRange().fromDate , getSelectedDateRange().toDate)" [options] = "dropdownOptions.robots"  nullValueDesc="All"></uc-dropdown>
-        <uc-dropdown  lab = "Year" [(value)] = 'year' (valueChange)="refreshDateRange();refreshChart()" [options] = "dropdownOptions.years" [allowClear]="false" ></uc-dropdown>
+        <uc-dropdown  lab = "Robot Type" [(value)] = 'robotTypeFilter' (valueChange)="refreshRobotOptions() ; robotCodeFilter = null ; refreshChart()" [options] = "dropdownOptions.types"  [translateOption] = 'true' nullValueDesc="All"></uc-dropdown>
+        <uc-dropdown  lab = "Robot" [(value)] = 'robotCodeFilter' (valueChange)="refreshRobotTypeFilter();refreshChart()" [options] = "dropdownOptions.robots"  nullValueDesc="All"></uc-dropdown>
+        <uc-dropdown  lab = "Year" [(value)] = 'year' (valueChange)="setDateRange();refreshChart()" [options] = "dropdownOptions.years" [allowClear]="false" ></uc-dropdown>
         <div class="date-range-label col form-group">
             <div class="col-form-label">{{'Date Range' | label: uiSrv.langPack}}</div>
-            <div *ngIf="_chartType == 'usability' && usability " class="label">
+            <div *ngIf="_chartType == 'usability' && usability?.daily?.max " class="label">
                 <span >{{usability.daily.min | date : 'dd/MM'}}</span>
                 <span> - </span>
                 <span>{{(usability.daily.max.getTime() - 86400000) | date : 'dd/MM'}}</span>
             </div>
-            <div *ngIf="_chartType == 'utilization' && utilization" class="label">
+            <div *ngIf="_chartType == 'utilization' && utilization?.daily?.max" class="label">
                 <span >{{utilization.daily.min | date : 'dd/MM'}}</span>
                 <span> - </span>
                 <span>{{(utilization.daily.max.getTime() - 86400000) | date : 'dd/MM'}}</span>

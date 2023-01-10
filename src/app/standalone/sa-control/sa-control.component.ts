@@ -27,14 +27,14 @@ export class SaControlComponent implements OnInit , OnDestroy  {
     robot: false
   }
 
-  optionObj = {
-    type : null ,
+  configObj: { type: 'maxSpeed' | 'safetyZone', title: string, safetyZone: any, maxSpeed: any } = {
+    type: null,
     title: '',
-    safetyZone:{
-      mode:"NORMAL"
+    safetyZone: {
+      mode: "NORMAL"
     },
-    maxSpeed:{
-      limit : 1
+    maxSpeed: {
+      limit: 1
     }
   }
 
@@ -151,8 +151,8 @@ export class SaControlComponent implements OnInit , OnDestroy  {
     let ticket = this.uiSrv.loadAsyncBegin()
     let safetyZoneAction : DropListAction = (await this.dataSrv.getDropLists(["actions"]))?.data?.['actions']?.filter((a:DropListAction)=> a.alias == 'SAFETY_ZONE_CHANGE')[0];
     if(safetyZoneAction){
-      let enumList  = safetyZoneAction.parameterList.filter((a:ActionParameter)=>a.parameterCode == 'mode')[0]?.enumList
-      if(enumList){
+      let enumList = safetyZoneAction.parameterList.filter((a: ActionParameter) => a.parameterCode == 'mode')[0]?.enumList
+      if (enumList) {
         this.safetyZoneOptions = enumList.map(e=>{return{text: e.label , value : e.value}})
       }
     } 
@@ -201,17 +201,32 @@ export class SaControlComponent implements OnInit , OnDestroy  {
 
   
   async sendSafetyZoneRequestToRV(){
-    if( await this.httpSrv.rvRequest('PUT','baseControl/v1/safetyZone/' + this.optionObj.safetyZone.mode, undefined,true, "Set Safety Zone")){
-      this.optionObj.type = null
-      this.optionObj.title = null
+    let ticket = this.uiSrv.loadAsyncBegin()
+    if( await this.httpSrv.rvRequest('PUT','baseControl/v1/safetyZone/' + this.configObj.safetyZone.mode, undefined,true, "Set Safety Zone")){
+      this.configObj.type = null
+      this.configObj.title = null
     }
+    this.uiSrv.loadAsyncDone(ticket)
   }
 
   
   async sendMaxSpeedRequestToRV(){
-    if( await this.httpSrv.rvRequest('PUT','baseControl/v1/speed/' + this.optionObj.maxSpeed.limit, undefined,true, "Set Maximum Speed")){
-      this.optionObj.type = null
-      this.optionObj.title = null
+    let ticket = this.uiSrv.loadAsyncBegin()
+    if( await this.httpSrv.rvRequest('PUT','baseControl/v1/speed/' + this.configObj.maxSpeed.limit, undefined,true, "Set Maximum Speed")){
+      this.configObj.type = null
+      this.configObj.title = null
     }
+    this.uiSrv.loadAsyncDone(ticket)
+  }
+  
+  async loadSafety(){
+    let ticket = this.uiSrv.loadAsyncBegin()
+    let data : {safetyZoneMode : string , maximumSpeed : number} = await this.httpSrv.rvRequest('GET', 'baseControl/v1/safety' , undefined , false)
+    if(this.configObj.type == 'safetyZone'){
+      this.configObj.safetyZone.mode = data.safetyZoneMode 
+    }else if(this.configObj.type == 'maxSpeed'){
+      this.configObj.maxSpeed.limit = data.maximumSpeed
+    }
+    this.uiSrv.loadAsyncDone(ticket)
   }
 }

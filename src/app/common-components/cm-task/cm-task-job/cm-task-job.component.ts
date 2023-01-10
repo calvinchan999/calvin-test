@@ -3,7 +3,7 @@ import { FormControl, FormGroup, Validators } from '@angular/forms';
 import { DialogRef, DialogService, WindowRef } from '@progress/kendo-angular-dialog';
 import { ListViewComponent } from '@progress/kendo-angular-listview';
 import { filter, take, takeUntil } from 'rxjs/operators';
-import { DataService, DropListAction, DropListDataset, DropListLocation, FloorPlanDataset, RobotMaster, ShapeJData, JTask, ActionParameter } from 'src/app/services/data.service';
+import { DataService, DropListAction, DropListDataset, DropListLocation, FloorPlanDataset, RobotMaster, ShapeJData, JTask, ActionParameter, TaskStateOptions } from 'src/app/services/data.service';
 import { RvHttpService } from 'src/app/services/rv-http.service';
 import { TranslatePipe, UiService } from 'src/app/services/ui.service';
 import { DrawingBoardComponent, GraphicOptions, PixiCommon, PixiLocPoint } from 'src/app/ui-components/drawing-board/drawing-board.component';
@@ -11,11 +11,9 @@ import { ListviewComponent, listViewFocusChangeEvent } from 'src/app/ui-componen
 import { GeneralUtil } from 'src/app/utils/general/general.util';
 import { CmTaskJobActionComponent } from './cm-task-job-action/cm-task-job-action.component';
 import { CmTaskJobParametersComponent } from './cm-task-job-parameters/cm-task-job-parameters.component';
-import { Subject } from 'rxjs';
-import {GraphBuilder, DijkstraStrategy} from "js-shortest-path"
+import { of, Subject } from 'rxjs';
 import { AuthService } from 'src/app/services/auth.service';
 import { TabStripComponent } from '@progress/kendo-angular-layout';
-import { DropdownComponent } from 'src/app/ui-components/dropdown/dropdown.component';
 import { ConfigService } from 'src/app/services/config.service';
 
 @Component({
@@ -56,6 +54,9 @@ export class CmTaskJobComponent implements OnInit {
     name: new FormControl(null ,Validators.required),
     modifiedDateTime: new FormControl(null),
     floorPlanCode: new FormControl(null),
+    state : new FormControl(null),
+    reasonCode : new FormControl(null),
+    reasonMessage : new FormControl(null)
   })
 
   frmGrp2 = new FormGroup({
@@ -83,7 +84,9 @@ export class CmTaskJobComponent implements OnInit {
     navigationMode :[],
     types:[],
     subTypes:[],    
-    robots : []
+    robots : [],
+    taskState : [],
+    reason : []
   }
 
   selectedFloorPlanCode
@@ -182,13 +185,23 @@ export class CmTaskJobComponent implements OnInit {
   async loadData(missionId) {
     let ticket = this.uiSrv.loadAsyncBegin()
     let data : JTask = await this.httpSrv.get((this.isTemplate ? "api/task/mission/v1/" : "api/task/v1/") + missionId.toString())
+    // data.state  = 'CANCELED'
+    // data.reasonCode = 'WRONG_TASK'
+    // data.reasonMessage = `Incorrectly created task`
+    if(this.util.arcsApp){
+      if (data.state == 'CANCELED') {
+        this.dropdownOptions.reason = (await this.dataSrv.getDropList('taskCancelReason')).options
+      } else if (data.state == 'FAILED') {
+        this.dropdownOptions.reason = (await this.dataSrv.getDropList('taskFailReason')).options
+      }
+    }
     this.util.loadToFrmgrp(this.frmGrp, data)
-    if(this.util.standaloneApp){
+    if (this.util.standaloneApp) {
       this.frmGrp.controls['floorPlanCode'].setValue(data.taskItemList[0].movement.floorPlanCode)
-      this.selectedFloorPlanCode =  this.frmGrp.controls['floorPlanCode'].value
+      this.selectedFloorPlanCode = this.frmGrp.controls['floorPlanCode'].value
       this.refreshGridLocationOptions_SA()
     }
-    this.listview.loadData(this.jobListDataMassage(false , null , this.getFlattenedData(data)))
+    this.listview.loadData(this.jobListDataMassage(false, null, this.getFlattenedData(data)))
     this.uiSrv.loadAsyncDone(ticket)
   }
 
@@ -222,6 +235,7 @@ export class CmTaskJobComponent implements OnInit {
     this.dropdownOptions.navigationMode = [{value :'AUTONOMY' , text:'Automatic'}, {value :'PATH_FOLLOWING' , text:'Path Follow'}]
     this.dropdownData.actions = this.dropdownData.actions
     this.dropdownOptions.actions = this.dropdownOptions.actions
+    this.dropdownOptions.taskState = TaskStateOptions
     let tableColOptMap = {
       actionAlias : 'actions',
       pointCode : 'locations',

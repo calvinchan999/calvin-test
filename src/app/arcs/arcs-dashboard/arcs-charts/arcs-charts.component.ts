@@ -201,16 +201,15 @@ export class ArcsChartsComponent implements OnInit , OnDestroy {
   }
 
   onSeriesClick(evt : SeriesClickEvent){
-    let dateRange = this.getSelectedDateRange()
     if (evt.sender == this.usabilityByRobotTypeChart || evt.sender == this.utilizationByRobotTypeChart) {
       this.robotTypeFilter = evt.category == this.robotTypeFilter ? null : evt.category
       this.robotCodeFilter = null
       this.refreshRobotOptions()
-      this.refreshChart(dateRange.fromDate , dateRange.toDate)
+      this.refreshChart()
     }else if (evt.sender == this.usabilityByRobotChart || evt.sender == this.utilizationByRobotChart){
       this.robotCodeFilter = evt.category ==  this.robotCodeFilter ? null : evt.category
       this.refreshRobotTypeFilter()
-      this.refreshChart(dateRange.fromDate , dateRange.toDate)
+      this.refreshChart()
     }
   }
 
@@ -243,7 +242,6 @@ export class ArcsChartsComponent implements OnInit , OnDestroy {
     content.taskState = id
     // content.parentRow = evt?.row
     // dialog.result.subscribe(()=>{
-
     // })
   }
 
@@ -261,21 +259,18 @@ export class ArcsChartsComponent implements OnInit , OnDestroy {
     this.robotCodeFilter = null
     let ticket = this.uiSrv.loadAsyncBegin()
     this.year = new Date().getFullYear()
+    this.initUsability()
+    this.initUtilization()
     await this.initDropDown()
-    this.init()
     let frDate = null , toDate = null
-    if(this.chartType == 'utilization'){
-      toDate = this.getSelectedDateRange().toDate   
+    if(this.chartType == 'utilization' && new Date().getMonth()!= 0){
+      toDate = new Date() 
       frDate = toDate.getMonth() == 0 ? new Date(toDate.getFullYear(), 0, 1) : new Date(toDate.getFullYear(), toDate.getMonth(), toDate.getDate());
       frDate.setMonth(frDate.getMonth() - 1);
     }
-    await this.refreshChart(frDate , toDate)
+    this.setDateRange(frDate , toDate)
+    await this.refreshChart()
     this.uiSrv.loadAsyncDone(ticket)
-  }
-
-  init() {  
-    this.initUsability()
-    this.initUtilization()
   }
 
   refreshRobotTypeFilter(){
@@ -287,23 +282,15 @@ export class ArcsChartsComponent implements OnInit , OnDestroy {
     this.dropdownOptions.robots = this.dataSrv.getDropListOptions('robots' , this.dropdownData.robots , this.robotTypeFilter ? {robotType :this.robotTypeFilter} : undefined) 
   }
 
-  fetchData( fromDate: Date = null, toDate: Date = null){
-    if(this._chartType == 'usability'){
-      this.fetchUsability(fromDate , toDate) 
-    }else if(this._chartType == 'utilization'){
-      this.fetchUtilization(fromDate , toDate) 
-    }
-  }
-
   getSelectedDateRange(){
     let fr = null
     let to = null
     if(this._chartType == 'usability'){
-      fr = this.usability.daily.min
-      to = this.usability.daily.max
+      fr = this.usability?.daily?.min
+      to = this.usability?.daily?.max
     }else if(this._chartType == 'utilization'){
-      fr = this.utilization.daily.min
-      to = this.utilization.daily.max
+      fr = this.utilization?.daily?.min
+      to = this.utilization?.daily?.max
     }
     return {fromDate : fr , toDate : to}
   }
@@ -313,8 +300,8 @@ export class ArcsChartsComponent implements OnInit , OnDestroy {
     this.tooltipTo.template = this.toDateTpl
     this.dateRangeToolTip.from.handleEl = this.navigatorChart.surfaceElement.nativeElement.getElementsByClassName("k-left-handle")[0]
     this.dateRangeToolTip.to.handleEl = this.navigatorChart.surfaceElement.nativeElement.getElementsByClassName("k-right-handle")[0]
-    this.tooltipFr.show( this.dateRangeToolTip.from.handleEl )
-    this.tooltipTo.show( this.dateRangeToolTip.to.handleEl )
+    this.tooltipFr.show(this.dateRangeToolTip.from.handleEl)
+    this.tooltipTo.show(this.dateRangeToolTip.to.handleEl)
   }
 
   public async onSelect(evt){
@@ -336,7 +323,7 @@ export class ArcsChartsComponent implements OnInit , OnDestroy {
       this.utilization.daily.max = args.to;
       this.utilization.daily.transitions = false;
     }
-    this.refreshChart(args.from, args.to)
+    this.refreshChart()
   }
 
   style = {
@@ -402,27 +389,39 @@ export class ArcsChartsComponent implements OnInit , OnDestroy {
     }
   }
 
-  refreshDateRange() {
-    this.usability.daily.min = new Date(this.year, 0, 1)
-    this.utilization.daily.min = new Date(this.year, 0, 1)
-    if(this.year == new Date().getFullYear()){
-      this.usability.daily.max = new Date()
-      this.utilization.daily.max = new Date()
-    }else{
-      this.utilization.daily.max = new Date(this.year, 11, 31)
-      this.usability.daily.max = new Date(this.year, 11, 31)
+  setDateRange(frDate = null , toDate = null) {
+    this.usability.daily.min = frDate ? frDate : new Date(this.year, 0, 1)
+    this.utilization.daily.min = frDate ? frDate : new Date(this.year, 0, 1)
+    if(toDate != null){
+      this.usability.daily.max = toDate
+      this.utilization.daily.max = toDate
+    }else if(this.year == new Date().getFullYear()){
+      toDate = new Date(new Date().getFullYear(), new Date().getMonth(), new Date().getDate())
+      toDate.setDate(toDate.getDate() + 1)
+      this.usability.daily.max = toDate
+      this.utilization.daily.max = toDate
+    } else {
+      this.utilization.daily.max = new Date(this.year + 1, 0, 1)
+      this.usability.daily.max = new Date(this.year + 1, 0, 1)
     }
   }
 
-  async refreshChart(fr = null, to = null) {
-    await this.retreiveData(fr , to)
-    this.fetchData(fr , to)
+  async refreshChart() {
+    let toDate = new Date(this.getSelectedDateRange().toDate.getTime())
+    toDate.setDate(toDate.getDate() - 1)
+    await this.retreiveData(this.getSelectedDateRange().fromDate , toDate)
+    if(this._chartType == 'usability'){
+      this.fetchUsability() 
+    }else if(this._chartType == 'utilization'){
+      this.fetchUtilization() 
+    }
   }
 
-  async retreiveData( fromDate: Date = null, toDate: Date = null) {
-    fromDate = fromDate ? fromDate : this.getSelectedDateRange().fromDate
-    toDate = toDate ? toDate : this.getSelectedDateRange().toDate    
-    toDate = new Date(toDate.getTime() - 86400000)
+  async retreiveData( fromDate: Date , toDate: Date ) {
+    // fromDate = fromDate ? fromDate : this.getSelectedDateRange().fromDate
+    // toDate = toDate ? toDate : this.getSelectedDateRange().toDate    
+    // console.log(toDate)
+    // toDate = new Date(toDate.getTime() - 86400000)
     let ticket = this.uiSrv.loadAsyncBegin()
     let frDateStr = this.util.getSQLFmtDateStr(fromDate)
     let toDateStr = this.util.getSQLFmtDateStr(toDate)
@@ -446,7 +445,7 @@ export class ArcsChartsComponent implements OnInit , OnDestroy {
     this.uiSrv.loadAsyncDone(ticket)
   }
   
-  initUtilization(fromDate: Date = null  , toDate : Date = null) {
+  initUtilization() {
     this.utilization = {
       statuss : Utilization_Status_Types,
       statusLabel : {},
@@ -464,8 +463,8 @@ export class ArcsChartsComponent implements OnInit , OnDestroy {
           hold: [],
           unknown:[]
         },
-        min: null,
-        max: null
+        min: this.getSelectedDateRange()?.fromDate,
+        max: this.getSelectedDateRange()?.toDate
       },
       robot:{
         categories: [],
@@ -534,13 +533,13 @@ export class ArcsChartsComponent implements OnInit , OnDestroy {
       newDate.setTime(date.getTime() + 86400000)
       date = newDate
     }
-    this.utilization.daily.min =  fromDate ? fromDate : this.utilization.daily.categories[0]
-    this.utilization.daily.max =  toDate ? toDate : this.utilization.daily.categories[ this.utilization.daily.categories.length - 1]
+    //this.utilization.daily.min =  this.getSelectedDateRange().fromDate //fromDate ? fromDate : this.utilization.daily.categories[0]
+    //this.utilization.daily.max =  this.getSelectedDateRange().toDate //toDate ? toDate : this.utilization.daily.categories[ this.utilization.daily.categories.length - 1]
     this.utilization.daily.categories.pop()
     this.utilization.daily.navigatorStep = Math.floor(this.utilization.daily.categories.length / 12);
   }
 
-  initUsability(fromDate: Date = null  , toDate : Date = null) {
+  initUsability() {
     this.usability = {
       total: null,
       completed: null,
@@ -572,8 +571,8 @@ export class ArcsChartsComponent implements OnInit , OnDestroy {
         categories: [],
         transitions: true,
         navigatorStep: 365 / 12,
-        min: 0,
-        max: 0
+        min: this.getSelectedDateRange()?.fromDate,
+        max: this.getSelectedDateRange()?.toDate
       },
       robot:{
         data: [],
@@ -592,9 +591,9 @@ export class ArcsChartsComponent implements OnInit , OnDestroy {
       date = newDate
     }
     // let lastMonthSameDay = new Date(new Date().getFullYear(), new Date().getMonth() - 1 , new Date().getDate())
-    to.setDate(to.getDate()+1)
-    this.usability.daily.min =  fromDate ? fromDate : this.usability.daily.categories[0]
-    this.usability.daily.max =  toDate ? toDate : to
+    //to.setDate(to.getDate()+1)
+    // this.usability.daily.min =  fromDate ? fromDate : this.usability.daily.categories[0]
+    // this.usability.daily.max =  toDate ? toDate : to
     this.usability.daily.navigatorStep = Math.floor(this.usability.daily.categories.length / 12);
     this.usability.daily.categories.pop()
     for (let i = 0; i < 24; i++) {
@@ -602,8 +601,8 @@ export class ArcsChartsComponent implements OnInit , OnDestroy {
     }
   }
   
-  fetchUtilization(fromDate: Date = null, toDate: Date = null) {    
-    this.initUtilization(fromDate, toDate)
+  fetchUtilization() {    
+    this.initUtilization()
     let tmpRow = {type : 'ROBOT' , category : this.robotCodeFilter}
     this.utilization.statuss.forEach(s=>tmpRow[s] = 0)
     let filteredRobotData = this.robotCodeFilter  && this.utilizationData.filter(r=> r.type == 'ROBOT' && r.category == this.robotCodeFilter).length == 0 ? [tmpRow]:[]
@@ -613,7 +612,7 @@ export class ArcsChartsComponent implements OnInit , OnDestroy {
     this.utilizationData.forEach(r => {
       if (r.type == 'DAILY') {
         let splitedDateString = r.category.split("-")
-        let index = this.daysIntoYear(new Date(Number(splitedDateString[0]), Number(splitedDateString[1]) - 1, Number(splitedDateString[2]) - 1))
+        let index = this.daysIntoYear(new Date(Date.UTC(Number(splitedDateString[0]), Number(splitedDateString[1]) - 1, Number(splitedDateString[2]) )))
         Utilization_Status_Types.forEach(t=> this.utilization.daily.data[t][index] = this.getRoundedValue(r[t] , 1))       
       }else if(r.type == 'ROBOT'){
         this.utilization.robot.categories.push(r.category)
@@ -635,8 +634,8 @@ export class ArcsChartsComponent implements OnInit , OnDestroy {
     this.utilization.totalRobotHours = Utilization_Status_Types.reduce((acc2, t) => acc2 + this.utilizationData.filter(r=>r.type == 'ROBOT').reduce((acc, r) => acc + r[t], 0), 0)
   }
 
-  fetchUsability(fromDate: Date = null, toDate: Date = null) {    
-    this.initUsability(fromDate , toDate)
+  fetchUsability() {    
+    this.initUsability()
     let filteredRobotData = this.robotCodeFilter  && this.usabilityData.filter(r=> r.type == 'ROBOT' && r.category == this.robotCodeFilter).length == 0 ? [{type : 'ROBOT' , category : this.robotCodeFilter , value : 0}]:[]
     this.usabilityData = this.usabilityData.filter(r=>r.type != 'ROBOT').concat((this.usabilityData.filter(r=>r.type == 'ROBOT').sort((a,b)=> b.value - a.value)).concat((<any>filteredRobotData)))
     this.usabilityData.forEach(r => {
@@ -648,7 +647,7 @@ export class ArcsChartsComponent implements OnInit , OnDestroy {
         this.usability.canceled = this.getRoundedValue(r.value , 0)
       } else if (r.type == 'DAILY') {
         let splitedDateString = r.category.split("-")
-        let index = this.daysIntoYear(new Date(Number(splitedDateString[0]), Number(splitedDateString[1]) - 1, Number(splitedDateString[2]) - 1))
+        let index = this.daysIntoYear(new Date(Number(splitedDateString[0]), Number(splitedDateString[1]) - 1, Number(splitedDateString[2]) ))
         this.usability.daily.data[index] = this.getRoundedValue(r.value)
       } else if (r.type == 'HOURLY_AVG') {
         this.usability.hourlyAvg.data[Number(r.category)] = this.getRoundedValue(r.value)
@@ -671,7 +670,10 @@ export class ArcsChartsComponent implements OnInit , OnDestroy {
   }
   
   daysIntoYear(date : Date) {
-    return (Date.UTC(date.getFullYear(), date.getMonth(), date.getDate()) - Date.UTC(date.getFullYear(), 0, 0)) / 24 / 60 / 60 / 1000;
+    // console.log(Date.UTC(date.getFullYear(), date.getMonth(), date.getDate()))
+    console.log(date)
+
+    return (Date.UTC(date.getFullYear(), date.getMonth(), date.getDate()) - Date.UTC(date.getFullYear(), 0, 1)) / 24 / 60 / 60 / 1000;
   }
 }
 

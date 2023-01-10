@@ -40,31 +40,24 @@
             <uc-dropdown *ngIf="util.standaloneApp"  lab="Floor Plan"  [(value)] = "selectedFloorPlanCode" [disabled] = 'readonly'
                          (change) = "onFloorplanChange_SA($event)" [options] = "dropdownOptions.floorplans" [allowClear] = "false">
             </uc-dropdown>
-            <!-- <uc-dropdown #fpdropdown *ngIf="util.standaloneApp" lab="Floor" [frmGrp]="frmGrp" frmCtrl="floorPlanCode"  [disabled] = 'readonly'
-                        [options]="dropdownOptions.floorplans" (change) = "onFloorplanChange_SA($event)">
-            </uc-dropdown> -->
             <uc-txtbox *ngIf="util.standaloneApp && ((isCreate && !isTemplate) || isExecuteTemplate)" lab="Recurrent" [frmGrp]="frmGrp2" frmCtrl="loop"
                         [numeric]="true" [numDecimals] = "0" numFormat="n0" [disabled] = 'readonly'>
             </uc-txtbox>
         </div>
-        <!-- <div class="form-row">
-            <uc-txtbox lab="Remarks" [frmGrp]="frmGrp" frmCtrl="remarks" [textArea]="true">
-            </uc-txtbox>
-        </div> -->
         <div class="form-row" *ngIf="util.arcsApp">        
             <uc-dropdown #fpdropdown lab="Robot Type" [frmGrp]="frmGrp" frmCtrl="robotType" [disabled] = 'readonly' [translateOption]="true"
                          [options]="dropdownOptions.types" (change) = "frmGrp.controls['robotSubtype'].setValue(null); frmGrp.controls['robotCode'].setValue(null);">
             </uc-dropdown>
-            <!-- <uc-dropdown #fpdropdown lab="Robot Sub Type" [frmGrp]="frmGrp" frmCtrl="robotSubtype"  [disabled] = 'readonly'
-                         [options]="dropdownOptions.subTypes" (change) = "frmGrp.controls['robotType'].setValue(null); frmGrp.controls['robotCode'].setValue(null);">
-            </uc-dropdown> -->
             <uc-dropdown #fpdropdown *ngIf="util.arcsApp" lab="Robot" [frmGrp]="frmGrp" frmCtrl="robotCode"  [disabled] = 'readonly' [showValue]="true"
                         [options]="dropdownOptions.robots" (change) = "frmGrp.controls['robotType'].setValue(null); frmGrp.controls['robotSubtype'].setValue(null);">
             </uc-dropdown>
+            <uc-dropdown *ngIf="!isCreate && !isTemplate" lab="Task Status" [frmGrp]="frmGrp" frmCtrl="state" [disabled] = "parentRow" [options]="dropdownOptions.taskState"></uc-dropdown>
         </div>
-        <!-- <div class="form-row" *ngIf="util.arcsApp && isTemplate && !isExecuteTemplate">
-            <uc-cron-editor class="col" [frmGrp] = "frmGrp" frmCtrl = "cronExpress"></uc-cron-editor>
-        </div> -->
+        <div class="form-row" *ngIf="util.arcsApp && !isCreate && !isTemplate && frmGrp.controls['state'].value == 'CANCELED' || frmGrp.controls['state'].value == 'FAILED'"> 
+             <uc-dropdown lab="Aborted Reason" [frmGrp]="frmGrp" frmCtrl="reasonCode" [disabled] = 'readonly' [translateOption]="true" [options]="dropdownOptions.reason" customClass = "col-3" >
+            </uc-dropdown>
+            <uc-txtbox lab="Remarks" [frmGrp]="frmGrp" frmCtrl="reasonMessage" [disabled] = 'readonly' ></uc-txtbox>
+        </div>
     </form>    
 </ng-template>
 
@@ -86,22 +79,7 @@
                                     null ">
         </uc-listview>
     </div>                     
-    <!-- (buttonClick)="" -->
-    
-    <!-- <div class="form-row">
-    
-        <uc-dropdown lab="Floor" [frmGrp]="frmGrp" frmCtrl="floorplanCode" [options] = "dropdownOptions['floorplans']"  (valueChange) = "refreshFormLocationOptions()"></uc-dropdown>
-        <uc-dropdown lab="Location" [frmGrp]="frmGrp" frmCtrl="location" [options] = "dropdownOptions['locations']" (valueChange) = "refreshFormNavigationOption()"></uc-dropdown>
-        <uc-dropdown lab="Navigation Mode" [frmGrp]="frmGrp" frmCtrl="navigationMode" [options] = "dropdownOptions['navigationMode']"></uc-dropdown>
-    </div>
-    <div class="form-row">
-        <uc-dropdown lab="Action" [frmGrp]="frmGrp" frmCtrl="actionId" [options] = "dropdownOptions['actions']"></uc-dropdown>
 
-        <button kendoButton [disabled] = "frmGrp.controls['actionId'].value == null || frmGrp.controls['actionId'].value == undefined "
-                 (click)="addRow()">
-            <span class="mdi mdi-plus"></span>
-        </button>
-    </div> -->
 </ng-template>
 
 <ng-template #map>
@@ -121,20 +99,3 @@
 </ng-template>
 
 
-<!-- * * *  ^ PC VERSION ^   * * * -->
-
-<!-- * * *  v TABLET VERSION v  * * * -->
-<!-- 
-<div *ngIf="uiSrv.isTablet" class="task-job tablet">
-    <form [formGroup]="frmGrp">
-        <div class="form-row">
-            <uc-txtbox *ngIf="!isTemplate" lab="Order No" [frmGrp]="frmGrp" frmCtrl="orderNo"></uc-txtbox>
-            <uc-txtbox *ngIf="isTemplate" lab="Template Code" [frmGrp]="frmGrp" frmCtrl="templateCode"></uc-txtbox>
-            <uc-txtbox lab="Task Name" [frmGrp]="frmGrp" frmCtrl="desc"></uc-txtbox>
-        </div>
-     
-    </form>
-    <div class="tablet-job-action-container">
-        <ng-container *ngTemplateOutlet="actions"></ng-container>
-    </div>
-</div> -->

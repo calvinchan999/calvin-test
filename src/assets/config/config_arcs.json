@@ -21,7 +21,7 @@
 	"MOVE_USING_TRANSITION" : true,
 
 	"IS_DUMMY" : false,
-	"ROBOT_TYPE":["MOBILE_CHAIR" , "DISINFECTION" , "FLOOR_SCRUB" , "DELIVERY" , "PATROL" , "BEVERAGE" ,  "FORKLIFT" , "STOCKTAKING"],
+	"ROBOT_TYPE":["MOBILE_CHAIR" , "DISINFECTION" , "FLOOR_SCRUB" , "DELIVERY" , "PATROL" ,  "FORKLIFT" , "STOCKTAKING"],
 	"ROBOT_1": {
 		"ID": "ROBOT-01",
 		"ROBOT_TYPE": "patrol",
@@ -45,15 +45,7 @@
 			"init_y2" : 980
 		}
 	},
-	"ROBOT_3": {
-		"ID" : "ROBOT-03",
-		"ROBOT_TYPE" : "beverage",
-		"IS_DUMMY_ROBOT" : false,
-		"DUMMY_ROUTE" : {
-			"init_x3" : 1390,
-			"init_y3" : 955
-		}
-	},
+
 	"MAP_ZOOM_PERCENTAGE" : 0.85,
 	"MAP_RESOLUTION" : 1,
 	"METER_TO_PIXEL_RATIO": 20,
@@ -87,10 +79,6 @@
 		"DELIVERY":	{ 
 			"fillColor": "0xFF66B9", 
 			"highlightColor": "0xFF66B9" 
-		},
-		"BEVERAGE":{
-			"fillColor": "0xFFD700", 
-			"highlightColor": "0xFFD700"
 		}
     },
 	"UPLOAD_IMAGE_MAX_SIZE_KB" : 5120

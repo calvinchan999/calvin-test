@@ -518,7 +518,7 @@ export class DataService {
 
     if (this.util.standaloneApp) {
       let profile : {serviceList : {name : string , enabled : boolean}[]} = await this.httpSrv.rvRequest('GET', 'baseControl/v1/profile' , undefined, false)
-      profile.serviceList.forEach(s=> this.configSrv.disabledModule_SA[s.name] = !s.enabled)
+      profile.serviceList.forEach(s=> this.configSrv.disabledModule_SA[s.name] = !s.enabled) 
       // // APPLICABLE ONLY BEWTWEEN VERSION 20221122 - 20221201
       // if(this.util.config.DISABLED_FUNCTIONS){
       //   let keys : string[]= this.util.config.DISABLED_FUNCTIONS.filter(f=>Object.keys(this.disabledModule_SA).includes(f))
@@ -625,7 +625,6 @@ export class DataService {
   }
 
   public async subscribeSignalR(type: signalRType, paramString = '' , getLatestFromApi = false ) {//paramString : get concated topic (ARCS implementing query param in signalR topic)
-    console.log(type + '/' + paramString)
     if(!this.util.getCurrentUser()){
       return
     }
@@ -1235,6 +1234,9 @@ export class JTask {
   expiration? : number
   remark?: string
   taskItemList : TaskItem[]
+  reasonCode ? : string
+  reasonMessage ? : string
+  state? : string
 }
 
 export class TaskItem{
@@ -1404,7 +1406,7 @@ export class loginResponse{
 }
 
 export const ObjectTypes = ['ROBOT' ,'FLOOR_PLAN' , 'FLOOR_PLAN_POINT' , 'MAP' , 'MAP_POINT' , 'TASK' , 'OPERATION' , 'MISSION']
-
+export const TaskStateOptions = [{text : "Pending" , value : "WAITING"} , {text : "Executing" , value : "EXECUTING"},{text : "Completed" , value : "SUCCEEDED"} , {text : "Canceled" , value : "CANCELED"} , {text : "Failed" , value : "FAILED"}, {text : "Busy" , value : "BUSY"}]
 
 
 

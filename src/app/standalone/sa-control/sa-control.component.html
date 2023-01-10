@@ -53,8 +53,8 @@
                         <label>{{ "Configuration" | label : uiSrv.langPack }}</label>
                     </div>
                     <div class="form-row">
-                        <button *ngIf="!configSrv.disabledModule_SA.maxSpeed" kendoButton (click) = "optionObj.type = 'maxSpeed' ;  optionObj.title = 'Set Maximum Speed'" >{{ "Maximum Speed" | label : uiSrv.langPack }}</button>
-                        <button *ngIf="!configSrv.disabledModule_SA.safetyZone" kendoButton (click) = "optionObj.type = 'safetyZone' ; optionObj.title = 'Set Safety Zone'" >{{ "Safety Zone" | label : uiSrv.langPack }}</button>
+                        <button *ngIf="!configSrv.disabledModule_SA.maxSpeed" kendoButton (click) = "loadSafety(); configObj.type = 'maxSpeed' ;  configObj.title = 'Set Maximum Speed'" >{{ "Maximum Speed" | label : uiSrv.langPack }}</button>
+                        <button *ngIf="!configSrv.disabledModule_SA.safetyZone" kendoButton (click) = "loadSafety(); configObj.type = 'safetyZone' ; configObj.title = 'Set Safety Zone'" >{{ "Safety Zone" | label : uiSrv.langPack }}</button>
                         <!-- <uc-txtbox lab="Maximum Speed" [frmGrp]="frmGrpRobot" frmCtrl="robotMaxSpeed" [numeric]="true"></uc-txtbox>
                         <uc-txtbox lab="Safety Zone" [frmGrp]="frmGrpRobot" frmCtrl="robotSafetyZone" [numeric]="true"></uc-txtbox> -->
                     </div>
@@ -110,23 +110,23 @@
 </ng-template>
 
 
-<kendo-dialog *ngIf="optionObj.type" [title]="(optionObj.title | label : uiSrv.langPack)"
-               (close)="optionObj.type = null" [minWidth]="250" [width]="450">
+<kendo-dialog *ngIf="configObj.type" [title]="(configObj.title | label : uiSrv.langPack)"
+               (close)="configObj.type = null" [minWidth]="250" [width]="450">
 
-    <ng-container *ngIf="optionObj.type == 'safetyZone'">
-        <uc-dropdown  lab="Mode" [(value)] = "optionObj.safetyZone.mode" [allowClear] = "false"
+    <ng-container *ngIf="configObj.type == 'safetyZone'">
+        <uc-dropdown  lab="Mode" [(value)] = "configObj.safetyZone.mode" [allowClear] = "false"
                       [options] = "safetyZoneOptions" [translateOption]="true"></uc-dropdown>
     </ng-container>
 
     
-    <ng-container *ngIf="optionObj.type == 'maxSpeed'">
-        <uc-txtbox  lab = "Maximum Speed" [(value)] = "optionObj.maxSpeed.limit"  [numeric]="true" [numMin]="0.3" [numMax] = "1.8" ></uc-txtbox>
+    <ng-container *ngIf="configObj.type == 'maxSpeed'">
+        <uc-txtbox  lab = "Maximum Speed" [(value)] = "configObj.maxSpeed.limit"  [numeric]="true" [numMin]="0.3" [numMax] = "1.8" ></uc-txtbox>
     </ng-container>
 
     <kendo-dialog-actions>
-        <button kendoButton (click)="optionObj.type == 'safetyZone' ? sendSafetyZoneRequestToRV() : (optionObj.type == 'maxSpeed' ?  sendMaxSpeedRequestToRV() : null)">
+        <button kendoButton (click)="configObj.type == 'safetyZone' ? sendSafetyZoneRequestToRV() : (configObj.type == 'maxSpeed' ?  sendMaxSpeedRequestToRV() : null)">
             {{ 'OK' | label : uiSrv.langPack }}
         </button>
-        <button kendoButton (click)="optionObj.type = null">{{ 'Cancel' | label : uiSrv.langPack }}</button>
+        <button kendoButton (click)="configObj.type = null">{{ 'Cancel' | label : uiSrv.langPack }}</button>
     </kendo-dialog-actions>
 </kendo-dialog>

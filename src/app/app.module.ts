@@ -186,7 +186,6 @@ import { CmMapComponent } from './common-components/cm-map/cm-map.component';
 import { CmTaskComponent } from './common-components/cm-task/cm-task.component';
 import { CmMapDetailComponent } from './common-components/cm-map/cm-map-detail/cm-map-detail.component';
 import { CmMapFloorplanComponent } from './common-components/cm-map/cm-map-floorplan/cm-map-floorplan.component';
-import { CmMapDetailLocationComponent } from './common-components/cm-map/cm-map-detail/cm-map-detail-location/cm-map-detail-location.component';
 import { CmTaskJobComponent } from './common-components/cm-task/cm-task-job/cm-task-job.component';
 import { CmTaskJobActionComponent } from './common-components/cm-task/cm-task-job/cm-task-job-action/cm-task-job-action.component';
 import { CmTaskJobParametersComponent } from './common-components/cm-task/cm-task-job/cm-task-job-parameters/cm-task-job-parameters.component';
@@ -278,7 +277,6 @@ import { CmTaskCancelComponent } from './common-components/cm-task/cm-task-cance
         CmMapComponent,
         CmTaskComponent,
         CmMapDetailComponent,
-        CmMapDetailLocationComponent,
         CmMapFloorplanComponent,
         CmTaskJobComponent,
         CmTaskJobActionComponent,

@@ -136,7 +136,7 @@
                                     [arcsRobotType] = "robotTypeFilter"  [(selectedFloorPlanCode)]="selectedFloorPlanCode" 
                                     [arcsRobotColors]="robotIconColorMap" [arcsLocationTree] = "locationTree"
                                     (onBuildingSelected) = "onPixiBuildingSelected($event)" (onSiteSelected) = "loadSite()" 
-                                    (to3D)="dropdownOptions.floorplans = pixiElRef.dropdownOptions.floorplans ; locationTree = pixiElRef.arcsLocationTree ; use3DMap = true">
+                                    (to3D)="dropdownOptions.floorplans = pixiElRef.dropdownOptions.floorplans ; locationTree = pixiElRef.arcsLocationTree ; use3DMap = true ;">
             </uc-drawing-board> 
         </div>
         <div *ngIf="use3DMap" class="three-d-container">

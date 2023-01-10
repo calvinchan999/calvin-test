@@ -118,7 +118,6 @@
 		"FLOOR_SCRUB",
 		"DELIVERY",
 		"PATROL",
-		"BEVERAGE",
 		"FORKLIFT",
 		"STOCKTAKING"
 	],
@@ -166,10 +165,6 @@
 		"DELIVERY": {
 			"fillColor": "0xFF66B9",
 			"highlightColor": "0xFF66B9"
-		},
-		"BEVERAGE": {
-			"fillColor": "0xFFD700",
-			"highlightColor": "0xFFD700"
 		},
 		"AA": {
 			"fillColor": "0xFF6358",

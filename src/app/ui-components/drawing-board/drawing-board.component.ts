@@ -201,13 +201,18 @@ export class DrawingBoardComponent implements OnInit , AfterViewInit , OnDestroy
   get allPixiPolygon() : PixiPolygon[]{
     return this.mainContainer.children.filter(c=> c instanceof PixiPolygon).map(c=> <PixiPolygon>c)
   };
+  get allPixiArrows() : PixiArrow[]{
+    return this.mainContainer.children.filter(c=> c instanceof PixiArrow).map(c=><PixiArrow>c)
+  }
+  get pixiRosMapOriginMarker(): PixiRosMapOriginMarker {
+    return this.mainContainer.children.filter(c => c instanceof PixiRosMapOriginMarker).map(c => <PixiRosMapOriginMarker>c)?.[0]
+  }
+
   robotBasesOptions : {value : string , text : string}[] = []
   brushPaintings = []; //to implement undo easily , not included in drawingsCreated
   linesCreated = []; //to implement undo easily , not included in drawingsCreated
   mainContainerId
-  get allPixiArrows() : PixiArrow[]{
-    return this.mainContainer.children.filter(c=> c instanceof PixiArrow).map(c=><PixiArrow>c)
-  }
+
 
   robots: Robot[] = [];
   handleRadius = 10 * new PixiCommon().arrowHeadScale * (this.uiSrv.isTablet? 2 : 1)
@@ -540,6 +545,9 @@ export class DrawingBoardComponent implements OnInit , AfterViewInit , OnDestroy
             this.selectedGraphics.pixiVertices.forEach(v=>v['draw']())
             this.selectedGraphics.border?.draw()
           }
+          if(this.pixiRosMapOriginMarker){
+            this.pixiRosMapOriginMarker.resize()
+          }
         }     
       })
       ret.next(true)
@@ -848,6 +856,7 @@ export class DrawingBoardComponent implements OnInit , AfterViewInit , OnDestroy
       let heightRatio = this.containerElRef.nativeElement.offsetHeight/height
       let widthRatio = this.containerElRef.nativeElement.offsetWidth/width
       this._ngPixi.viewport.snapZoom(widthRatio < heightRatio ? { width: width ,time:50} : { height: height ,time:50})
+      setTimeout(()=> this.onViewportZoomed.next(true))
     }
     if(this.subscribeTask){
       this.subscribeTaskStatus_SA()  
@@ -1005,6 +1014,9 @@ export class DrawingBoardComponent implements OnInit , AfterViewInit , OnDestroy
 
     this.clickEvts.forEach((trigger) => {
       ret.on(trigger, (evt: PIXI.interaction.InteractionEvent) => {
+        if(this._pickSpawnPoint){
+          return
+        }
         this.onMouseDownOfGraphics(ret, evt)
         this.ngZone.run(() => {
           this.pointClick.emit(ret)
@@ -1631,17 +1643,18 @@ export class DrawingBoardComponent implements OnInit , AfterViewInit , OnDestroy
   }
 
   setMapOrigin(x , y){
-    let origin = this.getMapOriginMarker()
+    let origin = this.pixiRosMapOriginMarker
     if(!origin){
-      this._mainContainer.addChild(new PixiCommon().getOriginMarker(new PIXI.Point(0 ,0)))
+      this._mainContainer.addChild(new PixiRosMapOriginMarker())
     }
-    origin = this.getMapOriginMarker()
-    origin.position.set(x , y)    
+    origin = this.pixiRosMapOriginMarker
+    origin.position.set(x , y)   
+    
   }
 
-  getMapOriginMarker(){
-    return this._mainContainer.children.filter(c=>c['type'] == 'origin')[0]
-  }
+  // getMapOriginMarker(){
+  //   return this._mainContainer.children.filter(c=>c['type'] == 'origin')[0]
+  // }
 
   calculateMapOrigin(rvMetaX , rvMetaY , rosHeight , meterToPixelRatio){
     return [rvMetaX * meterToPixelRatio * -1 , ( rosHeight +  rvMetaY) * meterToPixelRatio]
@@ -1967,7 +1980,7 @@ export class DrawingBoardComponent implements OnInit , AfterViewInit , OnDestroy
     }
 
     let hasMap = this.mainContainer.children.filter(c => c instanceof PixiMapLayer).length > 0
-    let getJPoints = (robotBase : string = null)=> this.allPixiPoints.filter(p=> robotBase == null || p.robotBases.includes(robotBase)).map((point: PixiLocPoint) => {
+    let getJPoints = (robotBase : string = null)=> this.allPixiPoints.filter(p=> this.util.standaloneApp || robotBase == null || p.robotBases.includes(robotBase)).map((point: PixiLocPoint) => {
       let pt : JPoint = copyOriginalData(point , new JPoint())
       pt.floorPlanCode = floorPlanCode
       pt.guiAngle = point.orientationAngle
@@ -2526,8 +2539,8 @@ export class DrawingBoardComponent implements OnInit , AfterViewInit , OnDestroy
       this.switchingMap = null
       return false
     }
-    let fpDs : JFloorPlan = await this.dataSrv.getFloorPlanV2(fpCode)  
-    if (this.mainContainerId != fpDs.floorPlanCode) {
+    if (this.mainContainerId != fpCode) {
+      let fpDs : JFloorPlan = await this.dataSrv.getFloorPlanV2(fpCode)  
       await this.loadFloorPlanDatasetV2(fpDs, true, true)
     }
     this.switchingMap.next(false)
@@ -2617,7 +2630,8 @@ export class DrawingBoardComponent implements OnInit , AfterViewInit , OnDestroy
           }
           if (robot.pixiGraphics.parent && robot.pixiGraphics.parent != this.mapContainerStore[robot.mapCode]) { //&& this.mapId == pose?.mapName
               robot.pixiGraphics.parent.removeChild(robot.pixiGraphics)
-              this.mapContainerStore[robot.mapCode].addChild(robot.pixiGraphics)
+              this._mainContainer.addChild(robot.pixiGraphics)
+              // this.mapContainerStore[robot.mapCode].addChild(robot.pixiGraphics)
               robot.observed = true
           }
         }
@@ -2845,8 +2859,11 @@ export class DrawingBoardComponent implements OnInit , AfterViewInit , OnDestroy
     })
     
     this.dataSrv.signalRSubj.taskItemIndex.subscribe(i => {
+      if(this.pickSpawnPoint){
+        return
+      }
       this.allPixiPoints.filter(p => p.taskItemIndex == this.dataSrv.signalRSubj.taskItemIndex.value).forEach((p: PixiLocPoint) => {
-        let actionName = this.dataSrv.dataStore.action?.[this.dataSrv.signalRSubj.taskActive.value['taskItemList'][this.dataSrv.signalRSubj.taskItemIndex.value]['actionList']?.[i]?.['alias']]
+        let actionName = this.dataSrv.dataStore.action?.[this.dataSrv.signalRSubj.taskActive.value?.taskItemList?.[this.dataSrv.signalRSubj.taskItemIndex.value]?.actionList?.[i]?.alias]
         if (actionName) {
           p.toolTipContent = `${p.text} ${actionName ? ':' : ''} ${actionName}`
         }
@@ -2975,6 +2992,7 @@ export class Robot {
           this.parent.uiSrv.loadAsyncDone(this.parent.loadingTicket)
           this.parent.loadingTicket = null
         }
+        this.parent.refreshLocationOptions()
         this.parent.overlayMsg = null
         if(this.parent._fullScreen && !this.parent._remoteControl){
           this.parent.removeSpawnMarker()                  
@@ -2982,12 +3000,8 @@ export class Robot {
           this.parent.fullScreen = false
           this.parent.changeMode(null)
           this.parent.toggleRosMap(false)
+          this.parent.allPixiPoints.forEach(p=> p.zIndex = 2)
         }
-        // Object.values(this.mapContainerStore).forEach(c => {
-        //   if (c['backgroundSprite']) {
-        //     c['backgroundSprite'].visible = false
-        //   }
-        // })
       })  
     }
   }
@@ -3032,7 +3046,7 @@ export class Robot {
     this.robotCfg = this.util.config.robot;
     this.refreshStatus();
     this.pixiGraphics = this.getPIXIGrahics()
-    this.pixiGraphics.on("mouseover", (evt: PIXI.interaction.InteractionEvent) => this.pixiGraphics.showToolTip(this.id ,evt))
+    this.pixiGraphics.on("mouseover", (evt: PIXI.interaction.InteractionEvent) => this.pixiGraphics.showToolTip(this.id + ` ${this.offline ? this.parent.uiSrv.translate(' (Offline)') : ""}` ,evt))
     this.pixiGraphics.on("mouseout", () => this.pixiGraphics.hideToolTip())
 
     this.pixiGraphics.on('added',()=>{
@@ -3085,7 +3099,7 @@ export class Robot {
     else if(this.parent._remoteControl){
       return [0 , 0]
     } else {
-      return [this.parent?.getMapOriginMarker().position.x, this.parent?.getMapOriginMarker().position.y]
+      return [this.parent?.pixiRosMapOriginMarker.position.x, this.parent?.pixiRosMapOriginMarker.position.y]
     }
   }
 
@@ -3134,7 +3148,7 @@ export class Robot {
     this.rosPose.position.y = rosY
     var origins = [undefined , undefined]
     if(hasOriginMarker){
-      origins = [this.parent.getMapOriginMarker().position.x , this.parent.getMapOriginMarker().position.y ] 
+      origins = [this.parent.pixiRosMapOriginMarker.position.x , this.parent.pixiRosMapOriginMarker.position.y ] 
     }else if(mapCode){
       let container : PixiMapContainer =  this.parent.getMapContainer(mapCode , robotBase)
       if(!container){
@@ -3336,14 +3350,6 @@ export class PixiCommon extends PIXI.Graphics{
         new GlowFilter({color: fillColor , distance: 50, outerStrength: 1 })
       ]
     }
-  }
-
-  public getOriginMarker(p: PIXI.Point, option : GraphicOptions = new GraphicOptions()){
-    let ret = option.baseGraphics;
-    ret.lineStyle(3 , 0xFF0000 ).moveTo(p.x - 15, p.y).lineTo(p.x + 15 , p.y);
-    ret.lineStyle(3 , 0xFF0000 ).moveTo(p.x , p.y - 15 ).lineTo(p.x , p.y + 15);
-    ret['type'] = 'origin'
-    return ret
   }
 
   public getLine(p1: PIXI.Point, p2: PIXI.Point, option : GraphicOptions = new GraphicOptions() , masterComponent : null | DrawingBoardComponent = null , tint = false) : PixiLine{
@@ -4039,9 +4045,9 @@ export class PixiLocPoint extends PixiCommon {
   }
 
 
-  get isLocation(){
-    return this.type == 'location' 
-  }
+  // get isLocation(){
+  //   return this.type == 'location' 
+  // }
 
 
   constructor(type , text = null , opt : GraphicOptions = new GraphicOptions , showAngleIndicator = false , uiSrv = null , iconUrl = null , iconType = null){
@@ -4158,10 +4164,11 @@ export class PixiLocPoint extends PixiCommon {
         this.taskItemSeqLabel['text'].style['stroke'] =  this.taskItemSeqLabel.tint
       }
     }
-    if (this.isLocation && this.taskSeq.length == 0) {
-      this.beginFill( opt.fillColor,  opt.opacity).drawCircle(0, -40, 20).drawPolygon([new PIXI.Point(-18.8, -33), new PIXI.Point(18.8, -33), new PIXI.Point(0, 0)]).endFill()
-      this.beginFill(0xffffff,  opt.opacity).drawCircle(0, -40, 10).endFill()
-    } else if(this.taskSeq.length == 0) {
+    // if (this.isLocation && this.taskSeq.length == 0) {
+    //   this.beginFill( opt.fillColor,  opt.opacity).drawCircle(0, -40, 20).drawPolygon([new PIXI.Point(-18.8, -33), new PIXI.Point(18.8, -33), new PIXI.Point(0, 0)]).endFill()
+    //   this.beginFill(0xffffff,  opt.opacity).drawCircle(0, -40, 10).endFill()
+    // } else 
+    if(this.taskSeq.length == 0) {
       if(this.icon){
         this.iconContainer?.parent?.removeChild(this.iconContainer)
         this.icon.parent?.removeChild(this.icon)     
@@ -4238,7 +4245,7 @@ export class PixiLocPoint extends PixiCommon {
     this.clear()
     if(!this.input){
       this.input = new PixiTextInput(cfg)
-      this.input.position.set(- (10 +  getInputWidth()/2), this.isLocation ? 0 : 15)
+      this.input.position.set(- (10 +  getInputWidth()/2), 15)
       this.input['type'] = 'input'
       this.addChild(this.input);
       let inputEl : HTMLInputElement = this.input.htmlInput;
@@ -4261,7 +4268,7 @@ export class PixiLocPoint extends PixiCommon {
     }
     this.inputBg.zIndex = -10
     this.inputBg.clear()
-    this.input.disabled = this.uiSrv?.isTablet || !selected || (this.isLocation && this.text?.length) || this.readonly
+    this.input.disabled = this.uiSrv?.isTablet || !selected  || this.readonly
     this.input.text = this.text
     if(!useInput){
       this.input.visible = false
@@ -4272,7 +4279,7 @@ export class PixiLocPoint extends PixiCommon {
         this.readOnlyPixiText.position.set(this.input.position.x + this.input.width/2 , this.input.position.y + this.input.height/2 )
         this.addChild(this.readOnlyPixiText)
       }
-      this.readOnlyPixiText.text = this.text.length > 15 ? this.text.substring(0 , 15) + '...' : this.text
+      this.readOnlyPixiText.text = this.text?.length > 15 ? this.text?.substring(0 , 15) + '...' : this.text
       this.inputBg.lineStyle(0).beginFill(0xffffff, 0.7).drawRect(-this.readOnlyPixiText.width / 2 - 10 , this.readOnlyPixiText.height - 7, this.readOnlyPixiText.width + 20, this.readOnlyPixiText.height + 10 ).endFill()
     } else {
       this.input.visible = true
@@ -4388,14 +4395,28 @@ export class PixiLocPoint extends PixiCommon {
 
 
 //#######################################################################################################################################################
-
+export class PixiRosMapOriginMarker extends PixiCommon {
+  type = 'origin'
+  constructor() {
+    super();
+    this.lineStyle(3, 0xFF0000).moveTo(- 15, 0).lineTo(15, 0);
+    this.lineStyle(3, 0xFF0000).moveTo(0, - 15).lineTo(0, 15);
+    this.on('added', () => this.resize())
+  }
+  resize() {
+    if (this.autoScaleOnZoomed && this.getViewport() && this.parent) {
+      let scale = 1 / (this.getViewport().scale.x * this.parent?.scale.x)
+      this.scale.set(scale, scale)
+    }
+  }
+}
 
 export class PixiArrow extends PixiCommon {
   id
   vertices_local
   vertices: PIXI.Point[]
   option : GraphicOptions
-  type = 'arrow'
+  type :'arrow_curved' | 'arrow_bi_curved' |  'arrow_bi' | 'arrow' = 'arrow'
   arrowType
   parent
   velocityLimit = 1

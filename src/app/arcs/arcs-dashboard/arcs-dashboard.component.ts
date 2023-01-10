@@ -3,7 +3,7 @@ import { RvHttpService } from 'src/app/services/rv-http.service';
 import { UiService } from 'src/app/services/ui.service';
 import { DrawingBoardComponent, PixiCommon, Robot } from 'src/app/ui-components/drawing-board/drawing-board.component';
 import { GeneralUtil } from 'src/app/utils/general/general.util';
-import { DataService, DropListBuilding, DropListFloorplan, DropListType, FloorPlanDataset, JFloorPlan, JSite, RobotStatusARCS as RobotStatus, RobotStatusARCS, RobotTaskInfoARCS, ShapeJData } from 'src/app/services/data.service';
+import { DataService, DropListBuilding, DropListFloorplan, DropListType, FloorPlanDataset, JFloorPlan, JSite, RobotStatusARCS as RobotStatus, RobotStatusARCS, RobotTaskInfoARCS, ShapeJData, TaskStateOptions } from 'src/app/services/data.service';
 import { Router } from '@angular/router';
 import { DialogRef } from '@progress/kendo-angular-dialog';
 import { CmTaskJobComponent } from 'src/app/common-components/cm-task/cm-task-job/cm-task-job.component';
@@ -42,7 +42,6 @@ type robotInfo = { //A group can be an individual robot (when filtered by robot 
   robotStatusCssClass? : string
   alert? : string
 } 
-
 
 
 @Component({
@@ -93,7 +92,7 @@ export class ArcsDashboardComponent implements OnInit {
           { title: "#", type: "button", id: "edit", width: 30, icon: 'k-icon k-i-edit iconButton' , fixed : true  },
           // { title: "Order No.", id: "taskId", width: 50 },
           { title: "Description", id: "name", width: 100 },
-          { title: "Status", id: "state", width: 40 , dropdownOptions:[{text : "Pending" , value : "WAITING"} , {text : "Executing" , value : "EXECUTING"},{text : "Completed" , value : "SUCCEEDED"} , {text : "Canceled" , value : "CANCELED"} , {text : "Failed" , value : "FAILED"}, {text : "Busy" , value : "BUSY"}] },
+          { title: "Status", id: "state", width: 40 , dropdownOptions: TaskStateOptions},
         ].concat(
           this.util.arcsApp? <any>[{ title: "Assigned To", id: "robotCode", width: 50 }] : []
         ).concat(<any>[
@@ -113,9 +112,9 @@ export class ArcsDashboardComponent implements OnInit {
         ],
       },
       schedule: {
-        functionId:"TASK_SCHEDULE",
-        apiUrl:"api/task/schedule/page/v1" + (this.robotTypeFilter? `/${this.robotTypeFilter}` : ''),
-        defaultState: {filter:{filters:[{filters:[{field:"expired",operator:"eq",value:false}],logic:"or"}],logic:"and"},skip:0,sort:[{dir: 'asc' , field: 'startDateTime'}],take:15},
+        functionId: "TASK_SCHEDULE",
+        apiUrl: "api/task/schedule/page/v1" + (this.robotTypeFilter ? `/${this.robotTypeFilter}` : ''),
+        defaultState: { filter: { filters: [{ filters: [{ field: "expired", operator: "eq", value: false }], logic: "or" }], logic: "and" }, skip: 0, sort: [{ dir: 'asc', field: 'startDateTime' }], take: 15 },
         columns: [
           { title: "", type: "checkbox", id: "select", width: 30, fixed: true },
           { title: "#", type: "button", id: "edit", width: 30, icon: 'k-icon k-i-edit iconButton', fixed: true },
@@ -423,6 +422,32 @@ export class ArcsDashboardComponent implements OnInit {
 
   async refreshTaskInfo() {
     let data: RobotTaskInfoARCS[] = await this.dataSrv.httpSrv.rvRequest('GET', 'task/v1/taskInfo' + this.getStatusListUrlParam(), undefined, false)    
+    // data = [
+    //   {
+    //     robotType: 'MOBILE_CHAIR',
+    //     floorPlanCode: 'AA-L5-TRANSFER',
+    //     executingTaskCount: 1,
+    //     completedTaskCount: 8,
+    //     waitingTaskCount: 0,
+    //     robotCode: 'Mobilechair-01'
+    //   },
+    //   {
+    //     robotType: 'MOBILE_CHAIR',
+    //     floorPlanCode: 'AA-L5-TRANSFER',
+    //     executingTaskCount: 0,
+    //     completedTaskCount: 12,
+    //     waitingTaskCount: 0,
+    //     robotCode: 'Mobilechair-02'
+    //   },
+    //   {
+    //     robotType: 'MOBILE_CHAIR',
+    //     floorPlanCode: 'AA-L5-TRANSFER',
+    //     executingTaskCount: 1,
+    //     completedTaskCount: 5,
+    //     waitingTaskCount: 1,
+    //     robotCode: 'Mobilechair-03'
+    //   }
+    // ]
     this.addAndRemoveRobotInfos(data)
 
     this.robotInfos.forEach(i=>{
@@ -445,7 +470,27 @@ export class ArcsDashboardComponent implements OnInit {
   }
 
   async refreshRobotStatus(){
-    let data : RobotStatus[] = await this.dataSrv.httpSrv.rvRequest('GET','robot/v1/robotInfo' + this.getStatusListUrlParam(), undefined, false) 
+    let data: RobotStatus[] = await this.dataSrv.httpSrv.rvRequest('GET', 'robot/v1/robotInfo' + this.getStatusListUrlParam(), undefined, false)
+    // data = [
+    //   {
+    //     robotType: 'MOBILE_CHAIR',
+    //     robotCode: 'Mobilechair-02',
+    //     floorPlanCode: 'AA-L5-TRANSFER',
+    //     robotStatus: 'UNKNOWN',
+    //     obstacleDetected : false,
+    //     tiltDetected : false,
+    //     estopped : false
+    //   },
+    //   {
+    //     robotType: 'MOBILE_CHAIR',
+    //     robotCode: 'Mobilechair-03',
+    //     floorPlanCode: 'AA-L5-TRANSFER',
+    //     robotStatus: 'UNKNOWN',
+    //     obstacleDetected : false,
+    //     tiltDetected : false,
+    //     estopped : false
+    //   }
+    // ]
     this.addAndRemoveRobotInfos(data)  
 
     let robotStatusCssClassMap = {
@@ -474,22 +519,37 @@ export class ArcsDashboardComponent implements OnInit {
       i.alertCount = data.filter(s => alerted(s) && s.robotType == i.robotType).length
     })    
     
-    data.forEach(d=>{
-      if(this.pixiElRef){
-        let robot2D : Robot = this.pixiElRef?.robots.filter(r=>r.id == d.robotCode)[0]
-        if(robot2D){
-          robot2D.offline = d.robotStatus == "UNKNOWN"
-          robot2D.alert = alerted(d)
+    for(let i = 0 ; i < data.length ; i ++){
+      let d = data[i];
+      if(this.pixiElRef || this.threeJsElRef){
+        let robot : Robot | RobotObject3D = this.pixiElRef ? this.pixiElRef?.robots.filter(r=>r.id == d.robotCode)[0] : this.threeJsElRef?.robotObjs.filter(r=>r.robotCode == d.robotCode)[0]
+        if(!robot){ // STILL SHOW OFFLINE ROBOT , GET POSE FROM API
+          let pose: { x: number, y: number, angle: number } = await this.httpSrv.rvRequest('GET', 'robotStatus/v1/robotTaskStatus/pose/' + d.robotCode, undefined, false)
+          let mapCode = this.currentFloorPlan.mapList.map(m => m.mapCode)[0]
+          let robotInfo = (await this.dataSrv.getRobotList()).filter(r=>r.robotCode == d.robotCode)[0]
+          let arcsPoseObj = this.dataSrv.signalRSubj.arcsPoses.value ? JSON.parse(JSON.stringify(this.dataSrv.signalRSubj.arcsPoses.value )) : {}
+          arcsPoseObj[mapCode] = arcsPoseObj[mapCode] ? arcsPoseObj[mapCode] : {}
+          arcsPoseObj[mapCode][d.robotCode] = {
+            x: pose.x, y: pose.y, angle: pose.angle,
+            mapName: mapCode,
+            timeStamp: new Date().getTime(),
+            interval: 0
+          }
+          if (this.pixiElRef && this.pixiElRef.getMapContainer(mapCode , robotInfo.robotBase)) {
+            robot = this.pixiElRef.addRobot(d.robotCode , mapCode ,robotInfo.robotBase)
+            robot.observed = true
+          } else if( this.threeJsElRef && this.threeJsElRef.getMapMesh(robotInfo.robotBase)){
+            robot = new RobotObject3D(this.threeJsElRef, d.robotCode, robotInfo.robotBase, robotInfo.robotType)
+            this.threeJsElRef.getMapMesh(robotInfo.robotBase).add(robot)
+            this.threeJsElRef.refreshRobotColors()
+            robot.visible = true
+          }
+          this.dataSrv.signalRSubj.arcsPoses.next(arcsPoseObj)
         }
+        robot.offline = d.robotStatus == "UNKNOWN"
+        robot.alert = alerted(d)
       }
-      if(this.threeJsElRef){
-        let robot3D : RobotObject3D = this.threeJsElRef?.robotObjs.filter(r=>r.robotCode == d.robotCode)[0]
-        if(robot3D){
-          robot3D.offline =  d.robotStatus == "UNKNOWN"
-          robot3D.alert = alerted(d)
-        }
-      }
-    })
+    }
 
     this.activeRobotCount = data.filter(s=>s.robotStatus != 'UNKNOWN').length
     this.totalRobotCount = data.length
