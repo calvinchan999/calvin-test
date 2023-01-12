@@ -671,8 +671,6 @@ export class ArcsChartsComponent implements OnInit , OnDestroy {
   
   daysIntoYear(date : Date) {
     // console.log(Date.UTC(date.getFullYear(), date.getMonth(), date.getDate()))
-    console.log(date)
-
     return (Date.UTC(date.getFullYear(), date.getMonth(), date.getDate()) - Date.UTC(date.getFullYear(), 0, 1)) / 24 / 60 / 60 / 1000;
   }
 }

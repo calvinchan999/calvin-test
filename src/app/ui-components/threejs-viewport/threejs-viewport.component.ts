@@ -156,7 +156,7 @@ export class ThreejsViewportComponent implements OnInit , OnDestroy{
   }
 
   getParentObj(obj: any , type : any = Object3DCommon) {
-    if (obj instanceof type) {
+    if (obj instanceof type ) {
       return obj
     } else if (obj.parent) {
       return this.getParentObj(obj.parent , type)
@@ -206,7 +206,7 @@ export class ThreejsViewportComponent implements OnInit , OnDestroy{
     }
     this.focusedObj = firstObj && (firstObj instanceof RobotObject3D || firstObj instanceof MarkerObject3D) ? firstObj : null
 
-    let blocks = firstObj ? this.getIntersectedBlocks(this.focusedRaycaster , firstObj ) : []
+    let blocks = firstObj ? this.getIntersectedObjs(this.focusedRaycaster , firstObj ).filter(o=> o instanceof Extruded2DMesh) : []
     this.blockMeshes.forEach((b: Extruded2DMesh) => {
       b.blockedFocusedObject = blocks.includes(b)
     })
@@ -224,33 +224,41 @@ export class ThreejsViewportComponent implements OnInit , OnDestroy{
     });
   }
 
-  getIntersectedBlocks(caster : THREE.Raycaster, toObject : Object3D , frObject : Object3D = this.camera) : Extruded2DMesh[]{   
+
+  getIntersectedObjs(caster: THREE.Raycaster, toObject: Object3D, frObject: Object3D = this.camera): Extruded2DMesh[] {
     let frObjPos = new THREE.Vector3();
     let toObjPos = new THREE.Vector3();
     frObject.getWorldPosition(frObjPos);
     toObject.getWorldPosition(toObjPos)
-    let direction = new THREE.Vector3().subVectors( toObjPos , frObjPos).normalize()
+    let direction = new THREE.Vector3().subVectors(toObjPos, frObjPos).normalize()
     caster.set(frObjPos, direction);
-    const camIntersects =  caster.intersectObjects(this.scene.children, true)
-    const objectIntersection = camIntersects.filter(i=> this.getParentObj(i.object , Object3DCommon) == toObject)[0]
-    const blocks =[ ... new Set(camIntersects.filter(i=> this.getParentObj(i.object , Extruded2DMesh) && camIntersects.indexOf(i) < camIntersects.indexOf(objectIntersection)).
+    
+    const intersects = caster.intersectObjects(this.scene.children, true)
+    const objectIntersection = intersects.filter(i=> this.getParentObj(i.object , Object3DCommon) == toObject)[0]
+    // const waypoints = [... new Set(intersects.filter(i => this.getParentObj(i.object, MarkerObject3D) && intersects.indexOf(i) < intersects.indexOf(objectIntersection)).
+    //                                 map(i => this.getParentObj(i.object, MarkerObject3D))
+    //                               )
+    //                   ]
+    const blocks = [ ... new Set(intersects.filter(i=> this.getParentObj(i.object , Extruded2DMesh) && intersects.indexOf(i) < intersects.indexOf(objectIntersection)).
                                               map(i=> this.getParentObj(i.object , Extruded2DMesh))
                                   )
                     ]
     return blocks
   }
 
-
   computeRayCaster(){
     let cameraPostion = new THREE.Vector3();
     this.camera.getWorldPosition(cameraPostion);
-    let transparentBlocks = []
+    let blockingObjs = []
     this.robotObjs.forEach(r => {
-      transparentBlocks = transparentBlocks.concat(this.getIntersectedBlocks(this.cameraRayCaster, r))
+      blockingObjs = blockingObjs.concat(this.getIntersectedObjs(this.cameraRayCaster, r))
     })
     this.blockMeshes.forEach((b) => {
-      b.setOpactiy(transparentBlocks.includes(b) || b.blockedFocusedObject ? b.transparentOpacity : b.defaultOpacity)
+      b.setOpactiy(blockingObjs.includes(b) || b.blockedFocusedObject ? b.transparentOpacity : b.defaultOpacity)
     })
+    // this.waypointMeshes.forEach((w)=>{
+    //   w.setOpactiy(blockingObjs.includes(w) ? w.transparentOpacity : 1)
+    // })
   }
 
   async ngOnInit() {
@@ -320,7 +328,7 @@ export class ThreejsViewportComponent implements OnInit , OnDestroy{
     this.parent.refreshRobotStatus()
 
     //this.testOutline()
-
+    
     this.initBlocks(); // TBR
     ['waypoint', 'waypointName', 'wall'].forEach(k => this.uiToggled(k))
     // this.orbitCtrl.target.set(1, -0.9 , -0.5)
@@ -330,6 +338,12 @@ export class ThreejsViewportComponent implements OnInit , OnDestroy{
     //this.orbitCtrl.update()
 
     // TBR : HOW TO UPDATE CONTROL WITHOUT CHANGING BACK ITS POSITION Z AGAIN??
+
+    //v TESTING v
+    if(this.floorPlanDataset.floorPlanCode == 'AVATECH_SAMPLE'){
+      this.TEST_AVATECH()
+    } 
+    //^ TESTING ^
   }
 
   async getImageDimension(base64 : string) : Promise<{width : number , height : number}>{
@@ -527,9 +541,10 @@ export class ThreejsViewportComponent implements OnInit , OnDestroy{
     //THREE JS DEFAULT . x : + right / - left , y : + up / - down , z : + forward / - backward
     //floorplan rotatedX - 90 deg
     let retX = (rosX - map.originX) * map.meterToPixelRatio - map.width / 2
-    let retY = (map.originY - rosY) * map.meterToPixelRatio + map.height / 2
-    return new THREE.Vector3(retX, -retY, 15)
+    let retY = -1 * ((map.originY - rosY) * map.meterToPixelRatio + map.height / 2) // IDK why need to * -1 but it works
+    return new THREE.Vector3(retX, retY, 15) // z : 15 to be overrided
   }
+  
 
   cleanUp() {
     if (this.animationRequestId) {
@@ -612,12 +627,34 @@ export class ThreejsViewportComponent implements OnInit , OnDestroy{
 
   //   return
   // }
+  TEST_AVATECH(){
+    let ticket = this.uiSrv.loadAsyncBegin();
+    (<THREE.MeshPhongMaterial>this.floorplan.material).visible = false
+    var mtlLoader = new MTLLoader();
+      mtlLoader.load('assets/3D/avatech/6968f1a105c44eb1b19d0605ab8eaa09.mtl', (materials) => {
+      materials.preload();
+      var objLoader = new OBJLoader();
+      objLoader.setMaterials(materials);
+      // objLoader.setPath( 'obj/male02/' );
+      objLoader.load('assets/3D/avatech/6968f1a105c44eb1b19d0605ab8eaa09.obj', (object) => {
+        this.floorplan.add(object)
+        object.position.setX(0.33 * this.floorplan.width)
+        object.scale.set(100, 100, 100)
+        this.floorplan.aabb.setFromObject(object)
+        this.floorplan.maxDepth = (this.floorplan.aabb.max.y - this.floorplan.aabb.min.y) / 2
+        this.uiSrv.loadAsyncDone(ticket)
+        // this.scene.add(object);
+      });
+    });
+  }
 }
 
 class FloorPlanMesh extends Mesh{
   floorPlanCode
   width 
   height
+  aabb = new THREE.Box3()
+  maxDepth = null
   constructor(public master: ThreejsViewportComponent , base64Image : string , width : number , height : number){
     super(new THREE.PlaneGeometry(width, height), new THREE.MeshPhongMaterial({ map: THREE.ImageUtils.loadTexture(base64Image), side : DoubleSide }))
     this.width = width;
@@ -845,6 +882,7 @@ class Object3DCommon extends Object3D{
 class MarkerObject3D extends Object3DCommon {
   // 95 37 159
   readonly color = 0x60259f
+  readonly transparentOpacity = 0.3
   pointCode : string
   pointType : string
   loader : GLTFLoader
@@ -914,6 +952,7 @@ class MarkerObject3D extends Object3DCommon {
 }
 
 export class RobotObject3D extends Object3DCommon{
+  aabb = new THREE.Box3() //Axis Align Bounding Box
   loader : GLTFLoader
   alertIcon : Group
   robotCode : string
@@ -924,6 +963,8 @@ export class RobotObject3D extends Object3DCommon{
   scene : THREE.Scene = new THREE.Scene()
   offlineColor = 0xAAAAAA
   offlineTexture 
+  rayCaster = new THREE.Raycaster();
+  rayCasterZoffset = 0
   targetPose : {
     vector :  Vector3
     rotation : number
@@ -939,28 +980,28 @@ export class RobotObject3D extends Object3DCommon{
   robotImportSetting = {
     BASE: {
       path : "assets/3D/robot.glb",
-      scale : 35,
+      scale : 30,
       position: { x: 0, y: 0, z: -12.5 },
       rotate: { x: 0, y: 0, z: 180 / radRatio },
       alertPositionZ : 45
     },
     FLOOR_SCRUB: {
       path : "assets/3D/robot_floor_scrub.glb",
-      scale : 0.8,
+      scale : 0.6,
       position: { x: 0, y: 0, z: -12.5 },
       rotate: { x: 90 / radRatio, y:  180 / radRatio , z: 0 },
       alertPositionZ : 45
     },
     MOBILE_CHAIR:{
       path : "assets/3D/robot_mobile_chair.glb",
-      scale : 0.8,
+      scale : 0.6,
       position: { x: 0, y: 0, z: -12.5 },
       rotate: { x: 90 / radRatio, y:  180 / radRatio , z: 0 },
       alertPositionZ : 45
     },
     PATROL: {
       path : "assets/3D/robot_patrol.glb",
-      scale : 35,
+      scale : 30,
       position: { x: 0, y: 0, z: -12.5 },
       rotate: { x: 0, y: 0, z: 180 / radRatio },
       alertPositionZ : 45
@@ -969,14 +1010,14 @@ export class RobotObject3D extends Object3DCommon{
     },
     DELIVERY: {
       path : "assets/3D/robot_delivery.glb",
-      scale : 0.8,
+      scale : 0.6,
       position: { x: 0, y: 0, z: -12.5 },
       rotate: {x : NORMAL_ANGLE_ADJUSTMENT, y: 0, z: 180 / radRatio },
       alertPositionZ : 40
     },
     DISINFECTION: {
       path : "assets/3D/robot_disinfection.glb",
-      scale : 0.8,
+      scale : 0.6,
       position: { x: 0, y: 0, z: -12.5 },
       rotate: { x: 90 / radRatio, y:  180 / radRatio , z: 0 },
       alertPositionZ : 40
@@ -990,7 +1031,7 @@ export class RobotObject3D extends Object3DCommon{
     },
     STOCKTAKING: {
       path : "assets/3D/robot_stocktaking.glb",
-      scale : 0.8,
+      scale : 0.6,
       position: { x: 0, y: 0, z: -12.5 },
       rotate: { x: 90 / radRatio, y:  180 / radRatio , z: 0 },
       alertPositionZ : 40
@@ -1080,7 +1121,6 @@ export class RobotObject3D extends Object3DCommon{
     this.loader.load(setting.path ,(gltf : GLTF)=> {
       new GLTFLoader().load(this.alertIconPath, (alertGltf : GLTF)=>{
         this.gltf = gltf       
-
         this.alertIcon = alertGltf.scene
         new Object3DCommon(this.master).getMaterials(  this.alertIcon ).forEach(m=>m.color.set(0xFF0000))
         this.alertIcon.rotateX(-NORMAL_ANGLE_ADJUSTMENT)
@@ -1093,7 +1133,10 @@ export class RobotObject3D extends Object3DCommon{
         this.gltf.scene.rotateX(setting.rotate?.x? setting.rotate?.x : 0 )
         this.gltf.scene.rotateY(setting.rotate?.y? setting.rotate?.y : 0 )
         this.gltf.scene.rotateZ(setting.rotate?.z? setting.rotate?.z : 0 )
-
+        this.aabb.setFromObject(gltf.scene);
+        
+        // const helper = new THREE.Box3Helper(this.aabb);
+        // this.scene.add(helper);
         // this.gltf.scene.add(this.outlineMesh);
  
         // let scale =  this.size * this.master.ROSmapScale * this.master.util.config.METER_TO_PIXEL_RATIO
@@ -1143,7 +1186,8 @@ export class RobotObject3D extends Object3DCommon{
         this.targetPose.ticksRemaining = 0
         clearInterval(this.targetPose.movingRef)
       }
-      this.position.set(v.x , v.y , v.z)
+      this.position.set(v.x, v.y, v.z) //this.position.set(v.x , v.y , v.z)      
+      this.position.z = this.getPositionZ(this.position.x , this.position.y )
       this.rotation.z = r
     }
 
@@ -1165,6 +1209,7 @@ export class RobotObject3D extends Object3DCommon{
             this.position.x += this.targetPose.vectorDiff.x / totalTicks
             this.position.y += this.targetPose.vectorDiff.y / totalTicks
             this.rotation.z += this.targetPose.rotationDiff / totalTicks 
+            this.position.z = this.getPositionZ(this.position.x , this.position.y )
             this.targetPose.ticksRemaining -= 1
           }else{
             forceUpdate(this.targetPose.vector , this.targetPose.rotation)
@@ -1172,7 +1217,7 @@ export class RobotObject3D extends Object3DCommon{
         }, frameMs)
       }
     }else{
-      forceUpdate(vector , pose.angle - 90 / radRatio)
+      forceUpdate(vector , pose.angle - 90 / radRatio)      
     } 
   }
 
@@ -1225,6 +1270,40 @@ export class RobotObject3D extends Object3DCommon{
 
   getTooltipText(){
     return `${this.robotCode} ${this.offline ? this.master.uiSrv.translate("\n (Offline)") : ""}` 
+  }
+
+  getPositionZ(x: number, y: number) {
+    if(!this.master.floorplan.maxDepth ){
+      return 15
+    }
+    let aabbWidth = Math.abs(this.aabb.max.x - this.aabb.min.x)
+    let aabbHeight = Math.abs(this.aabb.max.y - this.aabb.min.y)
+    let castRayVecs = [new THREE.Vector3(x, y, 0), new THREE.Vector3(x + aabbWidth / 2, y + aabbHeight / 2, 0), new THREE.Vector3(x + aabbWidth / 2, y - aabbHeight / 2, 0), new THREE.Vector3(x - aabbWidth / 2, y + aabbHeight / 2, 0), new THREE.Vector3(x - aabbWidth / 2, y - aabbHeight / 2, 0)]
+    let distances = []
+    const offset = 15
+    const casterHeight = this.master.floorplan.maxDepth
+    castRayVecs.forEach(v => {
+      let frPos = this.getWorldPosition(new THREE.Vector3(v.x, v.y, 0));
+      frPos = new Vector3(frPos.x, casterHeight, frPos.z)
+      this.rayCaster.set(frPos, new THREE.Vector3(0, -1, 0));
+      const intersects = this.rayCaster.intersectObjects(this.master.floorplan.children, true)
+      const floorPlanIntersects = [... new Set(intersects.filter(i => (i.object instanceof FloorPlanMesh || this.master.getParentObj(i.object, FloorPlanMesh))))] //&& intersects.indexOf(i) < intersects.indexOf(robotIntersection)
+      floorPlanIntersects.forEach(i => distances.push(i.distance))
+    })
+    return this.parent.worldToLocal(new Vector3(0, (distances.length > 0 ? casterHeight - Math.min.apply(null, distances) : 0), 0)).z + offset
+    // //DEBUG
+    // this.master.scene.add(new THREE.ArrowHelper(this.rayCaster.ray.direction, this.rayCaster.ray.origin, casterHeight, 0xff0000));
+    // const geometry = new THREE.SphereGeometry(1, 32, 16);
+    // const material = new THREE.MeshBasicMaterial({ color: 0x00ff00 });
+    // const sphere = new THREE.Mesh(geometry, material);
+    // //DEBUG
+
+    // let finalPosition = this.parent.worldToLocal(new Vector3(0, (distances.length > 0 ? casterHeight - Math.min.apply(null,  distances) : 0), 0))
+
+    // sphere.position.set(x, y , finalPosition.z)
+    // this.parent.add(sphere);
+
+    // return finalPosition.z + offset
   }
 
 }
@@ -1283,12 +1362,6 @@ class Extruded2DMesh extends Mesh{
     ]
 
     super(this.shapeGeom, this.materials);
-    // this.shapeGeom.computeVertexNormals();
-    // this.shapeGeom.computeBoundingSphere();
-    // this.shapeGeom.computeBoundingBox();
-    // this.shapeGeom.computeTangents();
-    // this.shapeMesh.applyMatrix4(new THREE.Matrix4().makeScale(1, -1, 1))
-    // this.shapeMesh.scale.set(-1,1,1)
   }
 
   setOpactiy(opacity : number){

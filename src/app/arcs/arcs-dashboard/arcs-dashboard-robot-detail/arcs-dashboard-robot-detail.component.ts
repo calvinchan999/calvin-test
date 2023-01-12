@@ -2,6 +2,7 @@ import { Component, OnInit , Input, HostBinding } from '@angular/core';
 import { BehaviorSubject } from 'rxjs';
 import { ARCS_STATUS_MAP, DataService, DropListRobot, RobotDetailARCS, signalRType } from 'src/app/services/data.service';
 import { UiService } from 'src/app/services/ui.service';
+import { GeneralUtil } from 'src/app/utils/general/general.util';
 
 @Component({
   selector: 'app-arcs-dashboard-robot-detail',
@@ -10,7 +11,7 @@ import { UiService } from 'src/app/services/ui.service';
 })
 export class ArcsDashboardRobotDetailComponent implements OnInit {
   @HostBinding('class') customClass = 'dialog-content robot-detail'
-  constructor(public uiSrv: UiService , public dataSrv : DataService) { 
+  constructor(public uiSrv: UiService , public dataSrv : DataService , public util : GeneralUtil) { 
     this.initDataSource()
   }
   dialogRef
@@ -102,14 +103,18 @@ export class ArcsDashboardRobotDetailComponent implements OnInit {
   async getStreamingUrl(){
     this.streamingError = null
     if(!this.streamingUrl){
-      let ticket = this.uiSrv.loadAsyncBegin()
-      try{
-        this.streamingUrl = await this.dataSrv.httpSrv.get(`api/sysparas/streamingUrl/${this.robotId}/v1` , undefined,undefined,undefined,undefined,true , true)
-      }catch(err){
-        this.streamingUrl = null
-        this.streamingError = 'No available streaming source found in Azure'
+      if(this.util.config.USE_AZURE_MEDIA){
+        let ticket = this.uiSrv.loadAsyncBegin()
+        try{
+          this.streamingUrl = await this.dataSrv.httpSrv.get(`api/sysparas/streamingUrl/${this.robotId}/v1` , undefined,undefined,undefined,undefined,true , true)
+        }catch(err){
+          this.streamingUrl = null
+          this.streamingError = 'No available streaming source found in Azure'
+        }
+        this.uiSrv.loadAsyncDone(ticket)
+      }else{
+        this.streamingUrl = 'wss://calvinchan999.eastasia.cloudapp.azure.com/RV-ROBOT-2023/ws' //testing
       }
-      this.uiSrv.loadAsyncDone(ticket)
     }
   }
 }

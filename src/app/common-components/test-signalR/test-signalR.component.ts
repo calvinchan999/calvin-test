@@ -97,6 +97,11 @@ export class TestSignalRComponent implements OnInit {
   }
 
   sampleData = {
+    avatech:{
+      seriesInterval: 0,
+      topic: 'rvautotech/fobo/pose/ASD',
+      content:`{"robotId":"RV-ROBOT-105","mapName":"ASD","x":11.002865711592390685,"y":2.010194407119371363,"angle":-2.7410346655388328272}`//`{"robotId":"RV-ROBOT-105","mapName":"ASD","x":12.002865711592390685,"y":-0.010194407119371363,"angle":-2.7410346655388328272}`
+    },
     arcsSyncLog:{
       seriesInterval: 0,
       topic: 'rvautotech/fobo/ARCS/data/sync/log',

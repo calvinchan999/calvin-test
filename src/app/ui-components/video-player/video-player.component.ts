@@ -1,6 +1,7 @@
-import { Component, ElementRef, Input, OnDestroy, OnInit, ViewChild, ViewEncapsulation , Output  ,EventEmitter , HostBinding , HostListener} from '@angular/core';
+import { Component, ElementRef, Input, OnDestroy, OnInit, ViewChild, ViewEncapsulation, Output, EventEmitter, HostBinding, HostListener } from '@angular/core';
 import * as flvjs from 'flv.js/dist/flv.min.js';
 import { UiService } from 'src/app/services/ui.service';
+import { WsVideoStreamingService } from 'src/app/services/ws-video-streaming.service';
 import { GeneralUtil } from 'src/app/utils/general/general.util';
 // import WebsocketTransport from 'html5_rtsp_player/src/transport/websocket.js';
 // import RTSPClient from 'html5_rtsp_player/src/client/rtsp/client.js';
@@ -13,26 +14,30 @@ import { GeneralUtil } from 'src/app/utils/general/general.util';
 })
 
 export class VideoPlayerComponent implements OnInit, OnDestroy {
-  @ViewChild('video') videoElRef : ElementRef
+  @ViewChild('video') videoElRef: ElementRef
   @Input() src = this.util.config.IP_CAMERA_URL
   @Input() width = 800
   @Input() height = 450
-  player 
+  player
   @Input() isAzure = false
   @Output() ended: EventEmitter<any> = new EventEmitter();
   @Output() seeking: EventEmitter<any> = new EventEmitter();
-  @HostBinding('class') cssClass = 'video-player' 
-    
-  constructor(private elementRef: ElementRef, private uiSrv: UiService , private util : GeneralUtil) {
+  @HostBinding('class') cssClass = 'video-player'
+  terminated = false;
+  ws = null;
+  pc = null;
+  restartTimeout = null;
+
+  constructor(private elementRef: ElementRef, private uiSrv: UiService, public util: GeneralUtil, public wsStremingSrv: WsVideoStreamingService) {
     // rtsp.RTSP_CONFIG['websocket.url'] = "ws://127.0.0.1:8090/ws";
   }
 
   @HostListener('window:resize', ['$event'])
-  refreshWidthHeight(){
+  refreshWidthHeight() {
     this.height = Math.floor(window.innerHeight * 0.575)
     this.width = Math.floor(this.height * 16 / 9)
-    if(this.isAzure){
-      let player : amp.Player = this.player 
+    if (this.isAzure) {
+      let player: amp.Player = this.player
       player.width(this.width + 'px')
       player.height(this.height + 'px')
     }
@@ -41,25 +46,26 @@ export class VideoPlayerComponent implements OnInit, OnDestroy {
   ngOnInit() { }
   // Instantiate a Video.js player OnInit
   ngAfterViewInit() {
-    if(this.isAzure){
-      this.player = amp('vid1' );
-      let player : amp.Player = this.player 
-      player.addEventListener('error',(e)=>{
+    if (this.isAzure) {
+      this.player = amp('vid1');
+      let player: amp.Player = this.player
+      player.addEventListener('error', (e) => {
         console.log(e)
-      })      
-    
-      setTimeout(()=>{
+      })
+
+      setTimeout(() => {
         this.refreshWidthHeight()
         player.autoplay(true);
         player.controls(true);
         player.src({
-            type: "application/dash+xml",
-            src: this.src,
+          type: "application/dash+xml",
+          src: this.src,
         });
       })
-
-    }else{
-      if (flvjs.isSupported()) {   
+    } else if (this.util.arcsApp) {
+      this.wsStremingSrv.start(this.videoElRef.nativeElement, this.src)
+    } else {
+      if (flvjs.isSupported()) {
         this.loadFlv()
       } else {
         console.log('FLV player not supported')
@@ -67,28 +73,31 @@ export class VideoPlayerComponent implements OnInit, OnDestroy {
     }
   }
 
-  unload(){
-    if(!this.isAzure){
+  unload() {
+    if (this.isAzure) {
+      this.player.dispose()
+    }
+    else if (this.util.arcsApp) {
+      this.wsStremingSrv.close()
+    } else {
       this.player.unload();
       this.player.destroy()
-    }else{
-      this.player.dispose()
     }
   }
 
-  loadFlv(){
+  loadFlv() {
     var videoElement = this.videoElRef.nativeElement
     this.player = flvjs.createPlayer({
       type: 'flv',
       url: this.src,
-      isLive:true
-    } , {enableStashBuffer : true});
+      isLive: true
+    }, { enableStashBuffer: true });
     this.player.attachMediaElement(videoElement);
     this.player.muted = true
     this.player.on(flvjs.Events.ERROR, (err) => {
       if (err === flvjs.ErrorTypes.NETWORK_ERROR) {
-        this.uiSrv.showNotificationBar("Disconnected from video streaming source ... trying to reconnect ...",'error')
-        setTimeout(()=>{
+        this.uiSrv.showNotificationBar("Disconnected from video streaming source ... trying to reconnect ...", 'error')
+        setTimeout(() => {
           this.refreshFlvUrl()
           this.unload()
           this.loadFlv()
@@ -99,9 +108,9 @@ export class VideoPlayerComponent implements OnInit, OnDestroy {
     this.player.play();
   }
 
-  refreshFlvUrl(){
- 
-  }  
+  refreshFlvUrl() {
+
+  }
 
   ngOnDestroy() {
     this.unload()

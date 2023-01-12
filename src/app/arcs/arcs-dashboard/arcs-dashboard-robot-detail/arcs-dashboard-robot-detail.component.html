@@ -69,7 +69,7 @@
     </ng-container>    
 
     <ng-container *ngIf="selectedTab == 'camera'">
-        <uc-video-player *ngIf="!streamingError && streamingUrl" [isAzure]="true" [src] = "streamingUrl" ></uc-video-player>
+        <uc-video-player *ngIf="!streamingError && streamingUrl" [isAzure]="util.config.USE_AZURE_MEDIA" [src] = "streamingUrl" ></uc-video-player>
         <span *ngIf="streamingError">{{streamingError |  label : uiSrv.langPack}}</span>
     </ng-container>
 
