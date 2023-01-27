@@ -1,9 +1,12 @@
-import { Component, OnInit , Input, HostBinding } from '@angular/core';
+import { Component, OnInit , Input, HostBinding, ViewChildren } from '@angular/core';
+import { List } from '@zxing/library/esm/customTypings';
 import { BehaviorSubject } from 'rxjs';
 import { ARCS_STATUS_MAP, DataService, DropListRobot, RobotDetailARCS, signalRType } from 'src/app/services/data.service';
 import { UiService } from 'src/app/services/ui.service';
+import { VideoPlayerComponent } from 'src/app/ui-components/video-player/video-player.component';
 import { GeneralUtil } from 'src/app/utils/general/general.util';
 
+const testStreamUrl = 'wss://calvinchan999.eastasia.cloudapp.azure.com/RV-ROBOT-104.' //TESTING
 @Component({
   selector: 'app-arcs-dashboard-robot-detail',
   templateUrl: './arcs-dashboard-robot-detail.component.html',
@@ -14,6 +17,7 @@ export class ArcsDashboardRobotDetailComponent implements OnInit {
   constructor(public uiSrv: UiService , public dataSrv : DataService , public util : GeneralUtil) { 
     this.initDataSource()
   }
+  @ViewChildren('videoPlayer') videoPlayers : List<VideoPlayerComponent>
   dialogRef
   selectedTab = 'info'
   tabs = [
@@ -23,6 +27,15 @@ export class ArcsDashboardRobotDetailComponent implements OnInit {
     [{ id: 'status' , rowSpan: 3 , col:1 } , { id: 'battery' , col : 2 }],
     [{ id: 'mode' , col: 2 }],
     [{ id: 'speed' , col: 2 }],
+  ]
+  cameraLayout = [
+    [
+      { id: '1', rowSpan: 2, colSpan: 2, col: 1, row: 1, streamingUrl: testStreamUrl + '1/ws?authorization=' + this.util.getUserAccessToken() },
+      { id: '2', col: 3, row: 1, streamingUrl: testStreamUrl + '2/ws?authorization=' + this.util.getUserAccessToken() }
+    ], 
+    [
+      { id: '3', col: 3, row: 2, streamingUrl: testStreamUrl + '3/ws?authorization=' + this.util.getUserAccessToken() }
+    ]
   ]
   ds : {status? : {} , battery? : {} , mode? : {} , speed? : {}} = {}
   @Input() robotId
@@ -112,9 +125,35 @@ export class ArcsDashboardRobotDetailComponent implements OnInit {
           this.streamingError = 'No available streaming source found in Azure'
         }
         this.uiSrv.loadAsyncDone(ticket)
-      }else{
-        this.streamingUrl = 'wss://calvinchan999.eastasia.cloudapp.azure.com/RV-ROBOT-2023/ws' //testing
       }
+      // else{
+      //   this.streamingUrl = 'wss://calvinchan999.eastasia.cloudapp.azure.com/RV-ROBOT-104.1/ws?authorization=' + this.util.getUserAccessToken() //testing
+      // }
     }
   }
+
+  switchMainCamera(cameraLayoutItem : layoutItemDef){
+    let currentMainCameraItem : layoutItemDef = this.cameraLayout.filter(itms=>itms.some((i:layoutItemDef)=>i.row == 1 && i.col == 1))[0].
+                                                                  filter((i:layoutItemDef)=>i.row == 1 && i.col == 1)[0]
+    currentMainCameraItem.row = cameraLayoutItem.row
+    currentMainCameraItem.rowSpan = cameraLayoutItem.rowSpan
+    currentMainCameraItem.colSpan = cameraLayoutItem.colSpan
+    currentMainCameraItem.col = cameraLayoutItem.col
+    cameraLayoutItem.col = 1
+    cameraLayoutItem.row = 1
+    cameraLayoutItem.rowSpan = 2
+    cameraLayoutItem.colSpan = 2
+    setTimeout(()=>{
+      this.videoPlayers.forEach(v=>{
+        v.refreshWidthHeight()
+      })
+    })
+  }
+}
+
+class layoutItemDef {
+  row: number
+  rowSpan?: number
+  colSpan?: number
+  col: number
 }

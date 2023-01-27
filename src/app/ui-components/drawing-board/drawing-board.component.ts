@@ -2214,8 +2214,8 @@ export class DrawingBoardComponent implements OnInit , AfterViewInit , OnDestroy
     pointsLayer.pivot.set(pivotLayer.pivot.x , pivotLayer.pivot.y)
     pointsLayer.position.set(pivotLayer.pivot.x , pivotLayer.pivot.y)
     pointsLayer.angle = this.spawnPointObj.rotation - 90
-    lidarResp.pointList.forEach((p) => {
-      pointsLayer.beginFill(0xFF0000).drawCircle( this.calculateMapX(p['x']  , mapContainer.guiOriginX ), this.calculateMapY(p['y']  , mapContainer.guiOriginY) , 1.5).endFill()
+    lidarResp.pointList.forEach((p : {x : number , y : number}) => {
+      pointsLayer.beginFill(0xFF0000).drawCircle( this.calculateMapX(p.x  , mapContainer.guiOriginX ), this.calculateMapY(p.y  , mapContainer.guiOriginY) , 1.5).endFill()
     });
     this.spawnPointObj.lidarLayer['getPivotLayer'] = ()=> pivotLayer
   }
@@ -2630,8 +2630,9 @@ export class DrawingBoardComponent implements OnInit , AfterViewInit , OnDestroy
           }
           if (robot.pixiGraphics.parent && robot.pixiGraphics.parent != this.mapContainerStore[robot.mapCode]) { //&& this.mapId == pose?.mapName
               robot.pixiGraphics.parent.removeChild(robot.pixiGraphics)
-              this._mainContainer.addChild(robot.pixiGraphics)
-              // this.mapContainerStore[robot.mapCode].addChild(robot.pixiGraphics)
+              //this._mainContainer.addChild(robot.pixiGraphics)
+              this.mapContainerStore[robot.mapCode].addChild(robot.pixiGraphics)
+              // this.mapContainerStore[robot.mapCode].zIndex = -1
               robot.observed = true
           }
         }
@@ -2702,6 +2703,8 @@ export class DrawingBoardComponent implements OnInit , AfterViewInit , OnDestroy
         this.toggleRosMap(true)
         this.liveLidarObj.mapCode = lidarData.mapName
         this.liveLidarObj.graphic = new PIXI.Graphics();
+
+        //BUG HERE ?????
         if(this.liveLidarObj.mapCode ){
           mapContainer.addChild(this.liveLidarObj.graphic)
         }else{ //without map
@@ -2709,12 +2712,13 @@ export class DrawingBoardComponent implements OnInit , AfterViewInit , OnDestroy
         }
       }
       this.liveLidarObj.graphic.clear()
-      lidarData.pointList.forEach((p) => {
+      
+      lidarData.pointList.forEach((p : {x : number , y : number}) => {
         if(this.liveLidarObj.mapCode){
-          this.liveLidarObj.graphic .beginFill(0xFF0000).drawCircle(this.calculateMapX(p['x'], mapContainer.guiOriginX), this.calculateMapY(p['y'], mapContainer.guiOriginY), 1.5).endFill()
+          this.liveLidarObj.graphic .beginFill(0xFF0000).drawCircle(this.calculateMapX(p.x, mapContainer.guiOriginX), this.calculateMapY(p.y, mapContainer.guiOriginY), 1.5).endFill()
         }else{
           let guiOrigin = this.calculateMapOrigin(0 , 0 , VIRTUAL_MAP_ROS_HEIGHT , this.util.config.METER_TO_PIXEL_RATIO)
-          this.liveLidarObj.graphic .beginFill(0xFF0000).drawCircle(this.calculateMapX(p['x'], guiOrigin[0]), this.calculateMapY(p['y'], guiOrigin[1]), 1.5).endFill()
+          this.liveLidarObj.graphic .beginFill(0xFF0000).drawCircle(this.calculateMapX(p.x, guiOrigin[0]), this.calculateMapY(p.y, guiOrigin[1]), 1.5).endFill()
         }
       });
     }
@@ -2992,7 +2996,7 @@ export class Robot {
           this.parent.uiSrv.loadAsyncDone(this.parent.loadingTicket)
           this.parent.loadingTicket = null
         }
-        this.parent.refreshLocationOptions()
+        // this.parent.refreshLocationOptions()
         this.parent.overlayMsg = null
         if(this.parent._fullScreen && !this.parent._remoteControl){
           this.parent.removeSpawnMarker()                  
@@ -3000,7 +3004,6 @@ export class Robot {
           this.parent.fullScreen = false
           this.parent.changeMode(null)
           this.parent.toggleRosMap(false)
-          this.parent.allPixiPoints.forEach(p=> p.zIndex = 2)
         }
       })  
     }

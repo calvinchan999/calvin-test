@@ -5,14 +5,15 @@ import { EnumNamePipe, UiService } from './ui.service';
 import { GeneralUtil } from 'src/app/utils/general/general.util';
 import { toDataSourceRequestString, toODataString } from '@progress/kendo-data-query';
 import { SignalRService } from './signal-r.service';
-import { BehaviorSubject , Subject } from 'rxjs';
-import { filter, skip, takeUntil } from 'rxjs/operators';
+import { BehaviorSubject , Observable, Subject , pipe, of} from 'rxjs';
+import { filter, skip, takeUntil , map ,  take , catchError} from 'rxjs/operators';
 import { ticker } from 'pixi.js';
 import { PixiCommon } from '../ui-components/drawing-board/drawing-board.component';
 import { Router } from '@angular/router';
 import { AzurePubsubService } from './azure-pubsub.service';
 import { DatePipe } from '@angular/common'
 import { ConfigService } from './config.service';
+import { HttpHeaders } from '@angular/common/http';
 export type syncStatus = 'TRANSFERRED' | 'TRANSFERRING' | 'MALFUNCTION'
 export type syncLog =  {dataSyncId? : string , dataSyncType? : string , objectType? : string , dataSyncStatus?: syncStatus , objectCode?: string , robotCode?: string , progress? : any , startDateTime? : Date , endDateTime : Date  }
 export type dropListType =  'floorplans' | 'buildings' | 'sites' | 'maps' | 'actions' | 'types' | 'locations' | 'userGroups' | 'subTypes' | 'robots' | 'missions' | 'taskFailReason' | 'taskCancelReason'
@@ -955,6 +956,14 @@ export class DataService {
   }
   public async stopManualMode(){
     return this.httpSrv.rvRequest('PUT', 'baseControl/v1/manual/OFF'  ,  null , true, 'Manual OFF')  
+  }
+  public async getAssets(url: string): Promise<any> {
+    try{      
+      return await this.httpSrv.http.get(url).toPromise()
+    }catch{
+      return null
+    }
+    // return <any> ret.pipe(filter(v => ![null,undefined].includes(v)), take(1)).toPromise()
   }
   // * * * ^ RV STANDALONE ACTIONS ^ * * * 
 }

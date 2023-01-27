@@ -4,7 +4,7 @@
 
 export const environment = {
   production: true,
-  version: '20230111-1243',
+  version: '20230127-1546',
   app : 'arcs',
   recaptchaSiteKey : '6LdzgfUhAAAAALqOYXkFO__F3Juldg7N500ld1CM',
   routes:

@@ -1,4 +1,12 @@
-:host .video-player{
+:host .video-player {
     display: flex;
     justify-content: center;
+}
+
+:host .switch-camera-btn {
+    position: absolute;
+    padding: 10px;
+    right: 5px;
+    top: 0px;
+    z-index: 2;
 }

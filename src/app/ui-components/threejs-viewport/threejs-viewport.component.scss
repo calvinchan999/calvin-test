@@ -1,0 +1,24 @@
+::ng-deep .three-js-viewport-overlay{
+    z-index: 1;
+    position: fixed;
+    display: flex;
+    justify-content: center;
+    backdrop-filter: blur(10px);
+}
+
+::ng-deep .three-js-viewport-overlay > div {
+    align-self:  center;
+}
+
+::ng-deep .three-js-viewport-overlay > div > span {
+    display: flex;
+    width: 100%;
+    justify-content: center;
+}
+
+::ng-deep .three-js-viewport-overlay kendo-progressbar {
+    width: 250px!important;
+    height: 10px;
+}
+
+

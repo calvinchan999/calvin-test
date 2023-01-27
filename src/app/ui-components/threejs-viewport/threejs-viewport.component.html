@@ -28,6 +28,15 @@
   </button>
 </div>
 <div #canvas class="canvas-container"></div>
+
+<div *ngIf="loadingPercent!=null" class="three-js-viewport-overlay" [style.width]="width + 'px'" [style.height]="height + 'px'">
+  <div>
+    <span>{{ "Loading 3D Model" | label : uiSrv.langPack }}</span>
+    <kendo-progressbar [max]="100" [value]="loadingPercent" [label]='{visible: false, format: "percent", position: "center"}'>
+    </kendo-progressbar>
+  </div>
+</div>
+
 <!-- <th-canvas #canvas (onRender)="animate()" >
   <th-scene #scene>
     <th-ambientLight [intensity]="0.1" intensity_x="0.7"> </th-ambientLight>

@@ -38,6 +38,7 @@ export class GeneralUtil {
 		console.log(`FOBO-AMR-WEB [${ environment.app.toUpperCase()}] BUILD ${environment.version} By RV Automation Technology Company Limited `)
 		console.log('**************************************************************************************')
 	}
+	
 
 	public trimNum(value , decimalPlaces = 3){
 		return isNaN(Number(value))? 0 : Number(Number(value).toFixed(decimalPlaces))
@@ -246,6 +247,10 @@ export class GeneralUtil {
 
 	public getCurrentUser() {
 		return sessionStorage.getItem('currentUser') ? sessionStorage.getItem('currentUser'): null;
+	}
+
+	public getTenantCode(){
+		return this.decodeJWT(this.getUserAccessToken())?.['tenant_code']
 	}
 
 	public getUserAccess() {

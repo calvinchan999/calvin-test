@@ -68,9 +68,23 @@
         
     </ng-container>    
 
+  
     <ng-container *ngIf="selectedTab == 'camera'">
-        <uc-video-player *ngIf="!streamingError && streamingUrl" [isAzure]="util.config.USE_AZURE_MEDIA" [src] = "streamingUrl" ></uc-video-player>
-        <span *ngIf="streamingError">{{streamingError |  label : uiSrv.langPack}}</span>
+        <ng-container *ngIf="util.config.USE_AZURE_MEDIA" >
+            <uc-video-player *ngIf="!streamingError && streamingUrl" [isAzure]="true" [src] = "streamingUrl" ></uc-video-player>
+            <span *ngIf="streamingError">{{streamingError |  label : uiSrv.langPack}}</span>
+        </ng-container>
+
+        <kendo-tilelayout *ngIf="!util.config.USE_AZURE_MEDIA" [columns]="3" [resizable]="false" [reorderable]="false">
+            <ng-container *ngFor = "let row of cameraLayout ; let ri = index">
+                <kendo-tilelayout-item *ngFor = "let cell of row ; let ci = index" [class]="(cell.id | cssClassName : 'ts-') + ' tile' + (cell.rowSpan ? cell.rowSpan : 1) + '-' + (cell.colSpan ? cell.colSpan : 1)" 
+                        [col]="( cell['col'] ? cell['col'] : ci) " [row]="cell['row'] ? cell['row'] : (ri + 1)" 
+                        [colSpan]="cell['colSpan']? cell['colSpan']: 1"  [rowSpan]="cell['rowSpan']? cell['rowSpan']: 1">
+                        <a *ngIf="cell['colSpan'] == null || cell['colSpan'] == 1" (click)="switchMainCamera(cell)" class="mdi mdi-overscan switch-camera-btn"></a>
+                        <uc-video-player #videoPlayer *ngIf="cell.streamingUrl"  [isAzure]="false" [src] = "cell.streamingUrl"></uc-video-player>
+                </kendo-tilelayout-item>
+            </ng-container>
+        </kendo-tilelayout>     
     </ng-container>
 
 

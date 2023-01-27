@@ -1,7 +1,7 @@
 import { Component, ElementRef, Input, OnDestroy, OnInit, ViewChild, ViewEncapsulation, Output, EventEmitter, HostBinding, HostListener } from '@angular/core';
 import * as flvjs from 'flv.js/dist/flv.min.js';
 import { UiService } from 'src/app/services/ui.service';
-import { WsVideoStreamingService } from 'src/app/services/ws-video-streaming.service';
+import { WsVideoStreamingTransientService } from 'src/app/services/webrtc-streaming-transient-service';
 import { GeneralUtil } from 'src/app/utils/general/general.util';
 // import WebsocketTransport from 'html5_rtsp_player/src/transport/websocket.js';
 // import RTSPClient from 'html5_rtsp_player/src/client/rtsp/client.js';
@@ -18,6 +18,7 @@ export class VideoPlayerComponent implements OnInit, OnDestroy {
   @Input() src = this.util.config.IP_CAMERA_URL
   @Input() width = 800
   @Input() height = 450
+  @Input() id = 'vid1'
   player
   @Input() isAzure = false
   @Output() ended: EventEmitter<any> = new EventEmitter();
@@ -27,15 +28,29 @@ export class VideoPlayerComponent implements OnInit, OnDestroy {
   ws = null;
   pc = null;
   restartTimeout = null;
+  wsStremingSrv
 
-  constructor(private elementRef: ElementRef, private uiSrv: UiService, public util: GeneralUtil, public wsStremingSrv: WsVideoStreamingService) {
+  constructor(private elementRef: ElementRef, private uiSrv: UiService, public util: GeneralUtil ) {
+    this.wsStremingSrv = new WsVideoStreamingTransientService()
     // rtsp.RTSP_CONFIG['websocket.url'] = "ws://127.0.0.1:8090/ws";
   }
 
   @HostListener('window:resize', ['$event'])
   refreshWidthHeight() {
-    this.height = Math.floor(window.innerHeight * 0.575)
-    this.width = Math.floor(this.height * 16 / 9)
+    let parentEl = this.elementRef.nativeElement.parentElement
+    parentEl.style.display = 'flex'
+    parentEl.style.justifyContent = 'center'
+    let parentWidth = parentEl.offsetWidth
+    let parentHeight = parentEl.offsetHeight
+    if(parentWidth / parentHeight > 16 / 9){
+      this.height = parentEl.offsetHeight
+      this.width =  this.height  * 16 / 9
+    }else{
+      this.width =  parentEl.offsetWidth
+      this.height =  this.width  * 9 / 16
+    }
+    // this.height = Math.floor(window.innerHeight * 0.575)
+    // this.width = Math.floor(this.height * 16 / 9)
     if (this.isAzure) {
       let player: amp.Player = this.player
       player.width(this.width + 'px')
@@ -46,15 +61,18 @@ export class VideoPlayerComponent implements OnInit, OnDestroy {
   ngOnInit() { }
   // Instantiate a Video.js player OnInit
   ngAfterViewInit() {
+    setTimeout(()=>{
+      this.refreshWidthHeight()
+    })
     if (this.isAzure) {
-      this.player = amp('vid1');
+      this.player = amp(this.id);
       let player: amp.Player = this.player
       player.addEventListener('error', (e) => {
         console.log(e)
       })
 
       setTimeout(() => {
-        this.refreshWidthHeight()
+        // this.refreshWidthHeight()
         player.autoplay(true);
         player.controls(true);
         player.src({

@@ -23,6 +23,7 @@ import {  FXAAShader  } from  'three/examples/jsm/shaders/FXAAShader' ;
 import { getBorderVertices } from 'src/app/utils/math/functions';
 import { ArcsDashboardComponent } from 'src/app/arcs/arcs-dashboard/arcs-dashboard.component';
 import { Color } from '@progress/kendo-drawing';
+import { transform } from 'typescript';
 
 const NORMAL_ANGLE_ADJUSTMENT =  - 90 / radRatio
 
@@ -43,6 +44,7 @@ export class ThreejsViewportComponent implements OnInit , OnDestroy{
   shaderPass : ShaderPass 
   rendererPass : RenderPass
   animationRequestId : number
+  loadingPercent = null
   @ViewChild('canvas') canvas : ElementRef
   @Output() robotClicked = new EventEmitter<any>();
   @Output() to2D =  new EventEmitter<{floorPlanCode? : string, showSite? : boolean}>();
@@ -225,7 +227,7 @@ export class ThreejsViewportComponent implements OnInit , OnDestroy{
   }
 
 
-  getIntersectedObjs(caster: THREE.Raycaster, toObject: Object3D, frObject: Object3D = this.camera): Extruded2DMesh[] {
+  getIntersectedObjs(caster: THREE.Raycaster, toObject: Object3D, frObject: Object3D = this.camera): any[] {
     let frObjPos = new THREE.Vector3();
     let toObjPos = new THREE.Vector3();
     frObject.getWorldPosition(frObjPos);
@@ -239,13 +241,18 @@ export class ThreejsViewportComponent implements OnInit , OnDestroy{
     //                                 map(i => this.getParentObj(i.object, MarkerObject3D))
     //                               )
     //                   ]
-    const blocks = [ ... new Set(intersects.filter(i=> this.getParentObj(i.object , Extruded2DMesh) && intersects.indexOf(i) < intersects.indexOf(objectIntersection)).
-                                              map(i=> this.getParentObj(i.object , Extruded2DMesh))
-                                  )
+    const walls = [ ... new Set(intersects.filter(i=> this.getParentObj(i.object , Extruded2DMesh) && intersects.indexOf(i) < intersects.indexOf(objectIntersection))
+                                           .map(i=> this.getParentObj(i.object , Extruded2DMesh))
+                                )
+                   ]
+    const blocks = [ ... new Set(intersects.filter(i=> this.getParentObj(i.object , FloorPlanMesh) && intersects.indexOf(i) < intersects.indexOf(objectIntersection))
+                                            .map(i=> i.object)
+                                 )
                     ]
-    return blocks
+    return walls.concat(blocks)
   }
 
+  // uuids = []
   computeRayCaster(){
     let cameraPostion = new THREE.Vector3();
     this.camera.getWorldPosition(cameraPostion);
@@ -256,9 +263,18 @@ export class ThreejsViewportComponent implements OnInit , OnDestroy{
     this.blockMeshes.forEach((b) => {
       b.setOpactiy(blockingObjs.includes(b) || b.blockedFocusedObject ? b.transparentOpacity : b.defaultOpacity)
     })
-    // this.waypointMeshes.forEach((w)=>{
-    //   w.setOpactiy(blockingObjs.includes(w) ? w.transparentOpacity : 1)
-    // })
+    
+    this.floorplan?.traverse(c => {
+      if ((<any>c).material) {
+        (<any>c).material.opacity = 1;
+        (<any>c).material.depthWrite = true
+      }
+    })
+
+    blockingObjs.forEach(b=>{
+      (<any>b).material.opacity = 0.3 ;
+      (<any>b).material.depthWrite = false
+    })
   }
 
   async ngOnInit() {
@@ -325,11 +341,11 @@ export class ThreejsViewportComponent implements OnInit , OnDestroy{
     if(subscribePoses && this.mapCode){
       this.subscribeRobotPoses()
     }
-    this.parent.refreshRobotStatus()
+    this.parent.refreshRobotStatus();
 
     //this.testOutline()
     
-    this.initBlocks(); // TBR
+    // TBR
     ['waypoint', 'waypointName', 'wall'].forEach(k => this.uiToggled(k))
     // this.orbitCtrl.target.set(1, -0.9 , -0.5)
     // var lookAtVector = new THREE.Vector3(0, 0, -1);
@@ -340,10 +356,56 @@ export class ThreejsViewportComponent implements OnInit , OnDestroy{
     // TBR : HOW TO UPDATE CONTROL WITHOUT CHANGING BACK ITS POSITION Z AGAIN??
 
     //v TESTING v
-    if(this.floorPlanDataset.floorPlanCode == 'AVATECH_SAMPLE'){
-      this.TEST_AVATECH()
-    } 
+    this.initCustom3dModel()
     //^ TESTING ^
+  }
+
+  onObjProgress( xhr ){
+    if ( xhr.lengthComputable ) {
+      this.loadingPercent = Math.round(xhr.loaded / xhr.total * 100)
+    }
+  };
+
+  async initCustom3dModel() {
+    let tenantCode = this.util.getTenantCode()
+    let path = `assets/3D/floorplans/${tenantCode}/${this.floorPlanDataset.floorPlanCode}`
+    let settings: { withModel? : boolean, wallHeight : number ,walls : {x:number , y:number}[][], path?: string, scale?: number, position?: { x?: number, y?: number, z?: number }, rotate?: { x?: number, y?: number, z?: number } } | null = await this.dataSrv.getAssets(path + '.json')
+    path = settings?.path ? settings.path : path + '.glb'
+    let transform = (obj: THREE.Group) => {
+      obj.rotation.set(settings.rotate?.x ? settings.rotate?.x : 0, settings.rotate?.y ? settings.rotate?.y : 0, settings.rotate?.z ? settings.rotate?.z : 0)
+      if (settings?.scale) {
+        obj.scale.set(settings?.scale, settings?.scale, settings?.scale)
+      }
+      obj.position.set(settings.position?.x ? settings.position?.x : 0, settings.position?.y ? settings.position?.y : 0, settings.position?.z ? settings.position?.z : 0)
+    }
+    // let fileExt = settings?.fileExtension ? settings?.fileExtension : '.glb'
+    if (settings && settings?.withModel != false) {
+      (<THREE.MeshPhongMaterial>this.floorplan.material).visible = false
+      if (path.endsWith(".glb")) {
+        new GLTFLoader().load(path, (gltf: GLTF) => {
+          this.loadingPercent = null
+          let obj = gltf.scene
+          transform(obj)
+          this.floorplan.add(obj)
+        }, this.onObjProgress)
+      } else if (path.endsWith(".obj")) {
+        var mtlLoader = new MTLLoader();
+        mtlLoader.load(path.substring(0, path.length - 4) + '.mtl', (materials) => {
+          materials.preload();
+          var objLoader = new OBJLoader();
+          objLoader.setMaterials(materials);
+          // objLoader.setPath( 'obj/male02/' );
+          objLoader.load(path, (obj) => {
+            this.loadingPercent = null
+            transform(obj)
+            this.floorplan.add(obj)
+          }, this.onObjProgress);
+        });
+      }
+    } 
+    if(settings?.walls){
+      this.initWalls(settings.walls , settings.wallHeight);
+    }
   }
 
   async getImageDimension(base64 : string) : Promise<{width : number , height : number}>{
@@ -430,43 +492,12 @@ export class ThreejsViewportComponent implements OnInit , OnDestroy{
     // mapPlane.addRobot(robot)
   }
 
-  initBlocks(){
-    //TBR
-    var testBlocks = {
-      "150": {
-        "MICROSOFT_INDUSTRY_DAY": [MS_BLOCK2_VERTICES],
-      },
-      "100": {
-        "5W_2022": [BLOCK1_VERTICES, BLOCK2_VERTICES, BLOCK3_VERTICES, BLOCK4_VERTICES],
-      },
-      "50": {
-        "MICROSOFT_INDUSTRY_DAY": []
-      }
-    }
-    var testBlockWithCeiling = {
-      "150": {
-        "MICROSOFT_INDUSTRY_DAY": [MS_BLOCK1_VERTICES],
-      }
-    };
-    [testBlocks, testBlockWithCeiling].forEach(b => {
-      Object.keys(b).forEach(h => {
-        if (b[h][this.floorPlanDataset.floorPlanCode]) {
-          b[h][this.floorPlanDataset.floorPlanCode].forEach((vertices) => {
-            let block = new Extruded2DMesh(this, JSON.parse(vertices), Number(h), b == testBlockWithCeiling ? 0x777777 : undefined ,  b == testBlockWithCeiling ? 0x777777 : undefined , b == testBlockWithCeiling , b == testBlockWithCeiling ? 0.95 : undefined )
-            this.floorplan.add(block)
-            block.position.set(-this.floorplan.width / 2, - this.floorplan.height / 2, this.floorplan.position.z + 1);
-          })
-        }
-      })
+  initWalls(walls : {x:number , y:number}[][] , height: number = 50){
+    walls.forEach((vertices) => {
+      let block = new Extruded2DMesh(this, vertices, Number(height))
+      this.floorplan.add(block)
+      block.position.set(-this.floorplan.width / 2, - this.floorplan.height / 2, this.floorplan.position.z + 1);
     })
-
-    
-
-    // (this.mapCode == '5W_2022' ? [BLOCK1_VERTICES , BLOCK2_VERTICES , BLOCK3_VERTICES , BLOCK4_VERTICES] : (this.floorPlanDataset.floorPlanCode == 'MICROSOFT_INDUSTRY_DAY'? [MS_BLOCK1_VERTICES] : [])).forEach(vertices=>{
-    //   let block = new Extruded2DMesh(this , JSON.parse(vertices) , this.floorPlanDataset.floorPlanCode == 'MICROSOFT_INDUSTRY_DAY'?  200 : 100 )
-    //   this.floorplan.add(block)
-    //   block.position.set(-this.floorplan.width/2 , - this.floorplan.height/2 , this.floorplan.position.z + 1);
-    // });
   }
 
   public subscribeRobotPoses(mapCode = this.mapCode){ //Assume 1 Map per robot per floor plan
@@ -628,29 +659,33 @@ export class ThreejsViewportComponent implements OnInit , OnDestroy{
   //   return
   // }
   TEST_AVATECH(){
-    let ticket = this.uiSrv.loadAsyncBegin();
+    // let onObjProgress = ( xhr ) => {
+    //   if ( xhr.lengthComputable ) {
+    //     this.loadingPercent = Math.round(xhr.loaded / xhr.total * 100)
+    //   }
+    // };
+
     (<THREE.MeshPhongMaterial>this.floorplan.material).visible = false
-    var mtlLoader = new MTLLoader();
+    var mtlLoader = new MTLLoader( );
       mtlLoader.load('assets/3D/avatech/6968f1a105c44eb1b19d0605ab8eaa09.mtl', (materials) => {
       materials.preload();
       var objLoader = new OBJLoader();
       objLoader.setMaterials(materials);
       // objLoader.setPath( 'obj/male02/' );
       objLoader.load('assets/3D/avatech/6968f1a105c44eb1b19d0605ab8eaa09.obj', (object) => {
+        this.loadingPercent = null
         this.floorplan.add(object)
         object.position.setX(0.33 * this.floorplan.width)
         object.scale.set(100, 100, 100)
         this.floorplan.aabb.setFromObject(object)
         this.floorplan.maxDepth = (this.floorplan.aabb.max.y - this.floorplan.aabb.min.y) / 2
-        this.uiSrv.loadAsyncDone(ticket)
         // this.scene.add(object);
-      });
+      } , this.onObjProgress);
     });
   }
 }
 
 class FloorPlanMesh extends Mesh{
-  floorPlanCode
   width 
   height
   aabb = new THREE.Box3()
@@ -709,6 +744,7 @@ class Object3DCommon extends Object3D{
   toolTip : CSS2DObject
   mouseOvered = false
   clickListener
+  touchListener
   onClick = new Subject()
   defaultTooltipStyle = {
     padding : '8px',
@@ -854,11 +890,12 @@ class Object3DCommon extends Object3D{
   }
 
   addMouseClickListener() {
-    if (this.clickListener) {
+    if (this.clickListener || this.touchListener) {
       return
     }    
     this.master.container.style.cursor = 'pointer'
     this.clickListener =  this.master.ngRenderer.listen(this.master.container,'click',()=> this.onClick.next())
+    this.touchListener =  this.master.ngRenderer.listen(this.master.container,'touchstart',()=> this.onClick.next())
   }
 
   removeMouseClickListener() {
@@ -868,6 +905,10 @@ class Object3DCommon extends Object3D{
       }
       this.clickListener()
       this.clickListener = null
+    }
+    if(this.touchListener){
+      this.touchListener()
+      this.touchListener = null
     }
   }
 
@@ -1473,13 +1514,14 @@ class Import3DModelSettings {
 //   "Mobilechair-02" : "DEFAULT"
 // }
 
-const BLOCK1_VERTICES = `[{"x":99.02021985708224,"y":267.2522632772183},{"x":170.25654617656147,"y":266.30885246868274},{"x":171.67184476950354,"y":405.4625135450282},{"x":156.57546081761444,"y":405.4625135450282},{"x":159.8778074045427,"y":726.6950904657913},{"x":909.8634512709015,"y":722.744217751932},{"x":904.6554591338161,"y":217.79894773168402},{"x":883.9066521146965,"y":217.79894773168402},{"x":883.845186132649,"y":57.19247468823681},{"x":96.52106182998074,"y":62.65031168422087}]`
-const BLOCK2_VERTICES = `[{"x" : 665 , "y": 782} , {"x" : 665 , "y": 948} , {"x" : 591 , "y": 948} , {"x" : 591 , "y": 1026},{"x" : 905 , "y": 1026} ,{"x" : 905 , "y": 782}]`
-const BLOCK3_VERTICES = `[{"x" : 415 , "y": 782} , {"x" : 660 , "y": 782} , {"x" : 660 , "y": 945} , {"x" : 415 , "y": 945} ]`
-const BLOCK4_VERTICES = `[{"x" : 105 , "y": 782} , {"x" : 410 , "y": 782} , {"x" : 410 , "y": 945} , {"x" : 105 , "y": 945} ]`
+// const BLOCK1_VERTICES = `[{"x":99.02021985708224,"y":267.2522632772183},{"x":170.25654617656147,"y":266.30885246868274},{"x":171.67184476950354,"y":405.4625135450282},{"x":156.57546081761444,"y":405.4625135450282},{"x":159.8778074045427,"y":726.6950904657913},{"x":909.8634512709015,"y":722.744217751932},{"x":904.6554591338161,"y":217.79894773168402},{"x":883.9066521146965,"y":217.79894773168402},{"x":883.845186132649,"y":57.19247468823681},{"x":96.52106182998074,"y":62.65031168422087}]`
+// const BLOCK2_VERTICES = `[{"x" : 665 , "y": 782} , {"x" : 665 , "y": 948} , {"x" : 591 , "y": 948} , {"x" : 591 , "y": 1026},{"x" : 905 , "y": 1026} ,{"x" : 905 , "y": 782}]`
+// const BLOCK3_VERTICES = `[{"x" : 415 , "y": 782} , {"x" : 660 , "y": 782} , {"x" : 660 , "y": 945} , {"x" : 415 , "y": 945} ]`
+// const BLOCK4_VERTICES = `[{"x" : 105 , "y": 782} , {"x" : 410 , "y": 782} , {"x" : 410 , "y": 945} , {"x" : 105 , "y": 945} ]`
 
-const MS_BLOCK1_VERTICES = `[{"x": 135 ,"y" : 20 } , {"x": 2200 ,"y" : 20 } , {"x": 2200 ,"y" : 510 } ,{"x": 1600 ,"y" : 510 },{"x": 1600 ,"y" : 1335 } ,{"x": 690 ,"y" : 1335 },{"x": 690 ,"y" : 510 } ,{"x": 135 ,"y" : 510 }]`
-const MS_BLOCK2_VERTICES = `[{"x": 135 ,"y" : 515 } , {"x" : 690 , "y" : 515 } , {"x" : 690 , "y" : 1340} , {"x"  : 1600 , "y" : 1340 } , {"x" : 1600 , "y" : 515} , {"x" : 2200 , "y" : 515} , {"x" : 2200 , "y" : 1550} , {"x" : 1930 , "y" : 1550 } , {"x" : 1930 , "y": 1875} , {"x" : 1685, "y" : 1875} , {"x" : 1685 , "y" : 1955} , {"x" : 385 , "y" : 1955} , {"x" : 385 , "y" : 1820}, {"x" : 335 , "y" : 1820} , {"x" : 335 , "y" : 1555} , {"x" : 135 , "y" : 1555}]`
+// const MS_BLOCK1_VERTICES = `[{"x": 135 ,"y" : 20 } , {"x": 2200 ,"y" : 20 } , {"x": 2200 ,"y" : 510 } ,{"x": 1600 ,"y" : 510 },{"x": 1600 ,"y" : 1335 } ,{"x": 690 ,"y" : 1335 },{"x": 690 ,"y" : 510 } ,{"x": 135 ,"y" : 510 }]`
+// const MS_BLOCK2_VERTICES = `[{"x": 135 ,"y" : 515 } , {"x" : 690 , "y" : 515 } , {"x" : 690 , "y" : 1340} , {"x"  : 1600 , "y" : 1340 } , {"x" : 1600 , "y" : 515} , {"x" : 2200 , "y" : 515} , {"x" : 2200 , "y" : 1550} , {"x" : 1930 , "y" : 1550 } , {"x" : 1930 , "y": 1875} , {"x" : 1685, "y" : 1875} , {"x" : 1685 , "y" : 1955} , {"x" : 385 , "y" : 1955} , {"x" : 385 , "y" : 1820}, {"x" : 335 , "y" : 1820} , {"x" : 335 , "y" : 1555} , {"x" : 135 , "y" : 1555}]`
+
 // const VERTEX_SHADER = `
 // attribute vec3 control0;
 // attribute vec3 control1;
