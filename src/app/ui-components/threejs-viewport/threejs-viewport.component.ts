@@ -24,9 +24,10 @@ import { getBorderVertices } from 'src/app/utils/math/functions';
 import { ArcsDashboardComponent } from 'src/app/arcs/arcs-dashboard/arcs-dashboard.component';
 import { Color } from '@progress/kendo-drawing';
 import { transform } from 'typescript';
+import { DRACOLoader } from 'three/examples/jsm/loaders/DRACOLoader';
 
 const NORMAL_ANGLE_ADJUSTMENT =  - 90 / radRatio
-
+const ASSETS_ROOT = 'assets/3D'
 @Component({
   selector: 'uc-3d-viewport',
   templateUrl: './threejs-viewport.component.html',
@@ -34,7 +35,6 @@ const NORMAL_ANGLE_ADJUSTMENT =  - 90 / radRatio
 })
 export class ThreejsViewportComponent implements OnInit , OnDestroy{
   public selected = false;
-  public readonly glbPath = `assets/3D/DamagedHelmet.glb`;
   public loadingTicket = null
   scene : THREE.Scene
   camera : THREE.PerspectiveCamera
@@ -300,9 +300,6 @@ export class ThreejsViewportComponent implements OnInit , OnDestroy{
     this.unsubscribeRobotPoses()
     this.resetScene()
     this.cleanUp()
-    // this.renderer.renderLists.dispose();
-    // this.renderer.dispose();
-    // this.renderer = null
     this.labelRenderer = null
     this.composer = null
   }
@@ -321,13 +318,10 @@ export class ThreejsViewportComponent implements OnInit , OnDestroy{
     this.mapMeshes.forEach(m=>this.scene.remove(m))
     this.robotObjs.forEach(r=>r.hideToolTip())
     this.waypointMeshes.forEach(w=>w.hideToolTip())
-    // this.robotObjs.forEach(r=>this.scene.remove(r))
     this.unsubscribeRobotPoses()
   }
 
   async loadFloorPlan(floorplan: JFloorPlan, subscribePoses = true) {
-    // this.test16WIphoneScanned()
-    // return
     this.resetScene()
     let dimension =  await this.getImageDimension(floorplan.base64Image)
     this.initFloorPlan(floorplan , dimension.width , dimension.height);
@@ -360,17 +354,17 @@ export class ThreejsViewportComponent implements OnInit , OnDestroy{
     //^ TESTING ^
   }
 
-  onObjProgress( xhr ){
+  onObjProgress = ( xhr )=>{
     if ( xhr.lengthComputable ) {
-      this.loadingPercent = Math.round(xhr.loaded / xhr.total * 100)
+     this.loadingPercent = Math.round(xhr.loaded / xhr.total * 100)
     }
   };
 
   async initCustom3dModel() {
     let tenantCode = this.util.getTenantCode()
-    let path = `assets/3D/floorplans/${tenantCode}/${this.floorPlanDataset.floorPlanCode}`
-    let settings: { withModel? : boolean, wallHeight : number ,walls : {x:number , y:number}[][], path?: string, scale?: number, position?: { x?: number, y?: number, z?: number }, rotate?: { x?: number, y?: number, z?: number } } | null = await this.dataSrv.getAssets(path + '.json')
-    path = settings?.path ? settings.path : path + '.glb'
+    let path = `${ASSETS_ROOT}/floorplans/${tenantCode}/${this.floorPlanDataset.floorPlanCode}`
+    let settings: { tabletPath?: string, withModel? : boolean, wallHeight : number ,walls : {x:number , y:number}[][], path?: string, scale?: number, position?: { x?: number, y?: number, z?: number }, rotate?: { x?: number, y?: number, z?: number } } | null = await this.dataSrv.getAssets(path + '.json')
+    path = this.uiSrv.detectMob() && settings.tabletPath?  settings.tabletPath : (settings?.path ? settings.path : path + '.glb') 
     let transform = (obj: THREE.Group) => {
       obj.rotation.set(settings.rotate?.x ? settings.rotate?.x : 0, settings.rotate?.y ? settings.rotate?.y : 0, settings.rotate?.z ? settings.rotate?.z : 0)
       if (settings?.scale) {
@@ -381,8 +375,12 @@ export class ThreejsViewportComponent implements OnInit , OnDestroy{
     // let fileExt = settings?.fileExtension ? settings?.fileExtension : '.glb'
     if (settings && settings?.withModel != false) {
       (<THREE.MeshPhongMaterial>this.floorplan.material).visible = false
-      if (path.endsWith(".glb")) {
-        new GLTFLoader().load(path, (gltf: GLTF) => {
+      if (path.endsWith(".glb") || path.endsWith(".gltf") ) {
+        const dracoLoader = new DRACOLoader();
+        dracoLoader.setDecoderPath(ASSETS_ROOT + '/draco/');      
+        const loader =  new GLTFLoader();
+        loader.setDRACOLoader(dracoLoader);
+        loader.load(path, (gltf: GLTF) => {   
           this.loadingPercent = null
           let obj = gltf.scene
           transform(obj)
@@ -394,7 +392,6 @@ export class ThreejsViewportComponent implements OnInit , OnDestroy{
           materials.preload();
           var objLoader = new OBJLoader();
           objLoader.setMaterials(materials);
-          // objLoader.setPath( 'obj/male02/' );
           objLoader.load(path, (obj) => {
             this.loadingPercent = null
             transform(obj)
@@ -482,8 +479,6 @@ export class ThreejsViewportComponent implements OnInit , OnDestroy{
     this.ROSmapScale = mapList[0] ? mapList[0]?.transformedScale : this.ROSmapScale
     this.mapCode = mapList[0] ? mapList[0]?.mapCode : this.mapCode
     mapList.forEach(m=>{
-      let prefix = 'data:image/png;base64,'
-      // let base64 = (m.base64Image.startsWith(prefix) ? '': prefix) + m.base64Image
       const mapPlane = new MapMesh(this, m.mapCode, m.robotBase  , m.transformedScale, m.transformedAngle , m.transformedPositionX ,  m.transformedPositionY , m.imageWidth , m.imageHeight , m.originX , m.originY );
       this.scene.add(mapPlane)
     })
@@ -622,6 +617,7 @@ export class ThreejsViewportComponent implements OnInit , OnDestroy{
     }
 
     dispose(this.scene)
+    this.floorplan = null
     this.shaderPass = null
     this.rendererPass = null
     this.pointLight = null
@@ -631,57 +627,6 @@ export class ThreejsViewportComponent implements OnInit , OnDestroy{
     this.renderer.dispose()
     this.renderer = null
     this.composer = null
-  }
-
-  // test16WIphoneScanned() {
-  //   this.resetScene()
-  //   var mtlLoader = new MTLLoader();
-  //   mtlLoader.load('assets/3D/16W/ReprocessedMesh.mtl', (materials) => {
-  //     materials.preload();
-  //     var objLoader = new OBJLoader();
-  //     objLoader.setMaterials(materials);
-  //     // objLoader.setPath( 'obj/male02/' );
-  //     objLoader.load('assets/3D/16W/ReprocessedMesh.obj', (object) => {
-  //       var testRobot = new RobotObject3D(this, 'RV-ROBOT-100', "PATROL", "PATROL")
-  //       object.add(testRobot)
-  //       testRobot.rotateX(NORMAL_ANGLE_ADJUSTMENT)
-  //       testRobot.scale.multiplyScalar(0.035)
-  //       testRobot.position.set(1.35 , 0.55 , -1.5)
-  //       testRobot.visible = true
-  //       // object.position.y = - 95;
-  //       this.scene.add(object);
-  //     });
-  //   });
-  //   this.camera.position.set(0, 10, 20)
-  //   this.camera.lookAt(1, -0.9, -0.5)
-  //   this.orbitCtrl.update()
-
-  //   return
-  // }
-  TEST_AVATECH(){
-    // let onObjProgress = ( xhr ) => {
-    //   if ( xhr.lengthComputable ) {
-    //     this.loadingPercent = Math.round(xhr.loaded / xhr.total * 100)
-    //   }
-    // };
-
-    (<THREE.MeshPhongMaterial>this.floorplan.material).visible = false
-    var mtlLoader = new MTLLoader( );
-      mtlLoader.load('assets/3D/avatech/6968f1a105c44eb1b19d0605ab8eaa09.mtl', (materials) => {
-      materials.preload();
-      var objLoader = new OBJLoader();
-      objLoader.setMaterials(materials);
-      // objLoader.setPath( 'obj/male02/' );
-      objLoader.load('assets/3D/avatech/6968f1a105c44eb1b19d0605ab8eaa09.obj', (object) => {
-        this.loadingPercent = null
-        this.floorplan.add(object)
-        object.position.setX(0.33 * this.floorplan.width)
-        object.scale.set(100, 100, 100)
-        this.floorplan.aabb.setFromObject(object)
-        this.floorplan.maxDepth = (this.floorplan.aabb.max.y - this.floorplan.aabb.min.y) / 2
-        // this.scene.add(object);
-      } , this.onObjProgress);
-    });
   }
 }
 
@@ -928,19 +873,19 @@ class MarkerObject3D extends Object3DCommon {
   pointType : string
   loader : GLTFLoader
   glbSettings = {
-    path :  'assets/3D/pin.glb',
+    path :  ASSETS_ROOT + '/pin.glb',
     size : 2,
     position : new Vector3( 0 , 0 , 0.2),
     recolorMaterials : ['mat14'],
   }
   private customGlb = {
     CHARGING_STATION : {
-      path :  'assets/3D/battery.glb',
+      path :  ASSETS_ROOT + '/battery.glb',
       size : 0.75,
       position : new Vector3( 0 , 0 , 0.4),
       recolorMaterials : [],
       replaceMaterial:{
-        Battery : 'assets/3D/battery.png'
+        Battery : ASSETS_ROOT + '/battery.png'
       }
     }
   }
@@ -1020,28 +965,28 @@ export class RobotObject3D extends Object3DCommon{
   
   robotImportSetting = {
     BASE: {
-      path : "assets/3D/robot.glb",
+      path : ASSETS_ROOT + "/robot.glb",
       scale : 30,
       position: { x: 0, y: 0, z: -12.5 },
       rotate: { x: 0, y: 0, z: 180 / radRatio },
       alertPositionZ : 45
     },
     FLOOR_SCRUB: {
-      path : "assets/3D/robot_floor_scrub.glb",
+      path : ASSETS_ROOT + "/robot_floor_scrub.glb",
       scale : 0.6,
       position: { x: 0, y: 0, z: -12.5 },
       rotate: { x: 90 / radRatio, y:  180 / radRatio , z: 0 },
       alertPositionZ : 45
     },
     MOBILE_CHAIR:{
-      path : "assets/3D/robot_mobile_chair.glb",
+      path : ASSETS_ROOT + "/robot_mobile_chair.glb",
       scale : 0.6,
       position: { x: 0, y: 0, z: -12.5 },
       rotate: { x: 90 / radRatio, y:  180 / radRatio , z: 0 },
       alertPositionZ : 45
     },
     PATROL: {
-      path : "assets/3D/robot_patrol.glb",
+      path : ASSETS_ROOT + "/robot_patrol.glb",
       scale : 30,
       position: { x: 0, y: 0, z: -12.5 },
       rotate: { x: 0, y: 0, z: 180 / radRatio },
@@ -1050,28 +995,28 @@ export class RobotObject3D extends Object3DCommon{
       // replaceColors:[{r: 0 , g : 0 , b : 0 , tolerance : 0.1}], 
     },
     DELIVERY: {
-      path : "assets/3D/robot_delivery.glb",
+      path : ASSETS_ROOT + "/robot_delivery.glb",
       scale : 0.6,
       position: { x: 0, y: 0, z: -12.5 },
       rotate: {x : NORMAL_ANGLE_ADJUSTMENT, y: 0, z: 180 / radRatio },
       alertPositionZ : 40
     },
     DISINFECTION: {
-      path : "assets/3D/robot_disinfection.glb",
+      path : ASSETS_ROOT + "/robot_disinfection.glb",
       scale : 0.6,
       position: { x: 0, y: 0, z: -12.5 },
       rotate: { x: 90 / radRatio, y:  180 / radRatio , z: 0 },
       alertPositionZ : 40
     },
     FORKLIFT: {
-      path : "assets/3D/robot_forklift.glb",
+      path : ASSETS_ROOT + "/robot_forklift.glb",
       scale : 0.6,
       position: { x: 0, y: 0, z: -12.5 },
       rotate: { x: 90 / radRatio, y:  180 / radRatio , z: 0 },
       alertPositionZ : 40
     },
     STOCKTAKING: {
-      path : "assets/3D/robot_stocktaking.glb",
+      path : ASSETS_ROOT + "/robot_stocktaking.glb",
       scale : 0.6,
       position: { x: 0, y: 0, z: -12.5 },
       rotate: { x: 90 / radRatio, y:  180 / radRatio , z: 0 },
@@ -1143,8 +1088,8 @@ export class RobotObject3D extends Object3DCommon{
   }
   // spotLight : THREE.SpotLight
   // mesh : Mesh  
-  // readonly glbPath = "assets/3D/robot.glb" // Raptor Heavy Planetary Crawler by Aaron Clifford [CC-BY] via Poly Pizza
-  readonly alertIconPath = 'assets/3D/exclamation.glb' //This work is based on "Exclamation Mark 3D icon" (https://sketchfab.com/3d-models/exclamation-mark-3d-icon-35fcb8285f134554989f822ab90ee974) by summer57 (https://sketchfab.com/summer5717) licensed under CC-BY-4.0 (http://creativecommons.org/licenses/by/4.0/)
+  // readonly glbPath = ASSESTS_ROOT + "/robot.glb" // Raptor Heavy Planetary Crawler by Aaron Clifford [CC-BY] via Poly Pizza
+  readonly alertIconPath = ASSETS_ROOT + '/exclamation.glb' //This work is based on "Exclamation Mark 3D icon" (https://sketchfab.com/3d-models/exclamation-mark-3d-icon-35fcb8285f134554989f822ab90ee974) by summer57 (https://sketchfab.com/summer5717) licensed under CC-BY-4.0 (http://creativecommons.org/licenses/by/4.0/)
   constructor( master: ThreejsViewportComponent , _robotCode : string , _robotBase : string , _robotType : string){
     super(master)
     this.add(this.scene)
@@ -1187,7 +1132,7 @@ export class RobotObject3D extends Object3DCommon{
         // this.addSpotLight()
         this.storeOriginalMaterialData()
         this.addFrontFacePointer()
-        new THREE.TextureLoader().load('assets/3D/offline_overlay.jpg',  (texture)=>{
+        new THREE.TextureLoader().load(ASSETS_ROOT +'/offline_overlay.jpg',  (texture)=>{
           this.offlineTexture = texture
           this.offlineTexture.wrapS = THREE.RepeatWrapping;
           this.offlineTexture.wrapT = THREE.RepeatWrapping;
