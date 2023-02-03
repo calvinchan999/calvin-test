@@ -316,8 +316,7 @@ import { CmTaskCancelComponent } from './common-components/cm-task/cm-task-cance
         ArcsSetupExportFloorplanComponent,
         ArcsRobotGroupComponent,
         ArcsAbnormalTasksComponent,
-        CmTaskCancelComponent,
-        
+        CmTaskCancelComponent        
     ],
     imports: [
         PowerBIEmbedModule,

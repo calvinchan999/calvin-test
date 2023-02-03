@@ -10,3 +10,27 @@
     top: 0px;
     z-index: 2;
 }
+
+:host .popup-title{
+    display: none;
+}
+
+:host .popup-robot-code {
+    line-height: 5px !important;
+    font-size: 12px!important;
+}
+
+:host .popup-row{
+    justify-content: space-between;
+    display: flex;
+    line-height: normal!important;
+    margin-top: 5px;
+}
+
+// :host .popup-row i.battery{
+//     color: rgba(0, 206, 209, 0.8);
+// }
+
+
+
+

@@ -26,6 +26,12 @@
   <button kendoButton class="2d-switch" [matTooltip]="'2D Map' | label : uiSrv.langPack" (click)="dataSrv.setLocalStorage('dashboardMapType' , '2D');to2D.emit({floorPlanCode : floorPlanDataset.floorPlanCode })">
     <span class="mdi mdi-video-2d"></span>
   </button>
+  <button kendoButton class="robot-status-popup" [matTooltip]="'Show robot info' | label : uiSrv.langPack"  (click)="uiToggles.showRobotStatus = !uiToggles.showRobotStatus ; uiToggled('robotStatus')" [ngClass]="{'btn-active':uiToggles.showRobotStatus}" >
+    <span class="mdi mdi-message-text"></span>
+  </button>
+  <button *ngIf="isMobile" kendoButton class="full-screen" [matTooltip]="'Full Screen' | label : uiSrv.langPack" (click)="toggleFullScreen()"  [ngClass]="{'btn-active':fullScreen}" >
+    <span [class]="'mdi mdi-' + (fullScreen ? 'fullscreen-exit' : 'fullscreen')"></span>
+  </button>
 </div>
 <div #canvas class="canvas-container"></div>
 

@@ -1,4 +1,4 @@
-::ng-deep .three-js-viewport-overlay{
+:host ::ng-deep  .three-js-viewport-overlay{
     z-index: 1;
     position: fixed;
     display: flex;
@@ -6,19 +6,32 @@
     backdrop-filter: blur(10px);
 }
 
-::ng-deep .three-js-viewport-overlay > div {
+:host ::ng-deep .three-js-viewport-overlay > div {
     align-self:  center;
 }
 
-::ng-deep .three-js-viewport-overlay > div > span {
+:host ::ng-deep .three-js-viewport-overlay > div > span {
     display: flex;
     width: 100%;
     justify-content: center;
 }
 
-::ng-deep .three-js-viewport-overlay kendo-progressbar {
+:host ::ng-deep .three-js-viewport-overlay kendo-progressbar {
     width: 250px!important;
     height: 10px;
 }
 
+:host ::ng-deep .robot-info{
+    display: flex;
+}
+
+:host ::ng-deep .full-screen-viewport{
+    z-index: 9999;
+    top: 0;
+    left: 0;
+    width: 100vw;
+    height: 100vh!important;
+    position: fixed;
+    backdrop-filter: blur(15px)!important;
+}
 

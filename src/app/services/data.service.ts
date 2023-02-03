@@ -1,4 +1,4 @@
-import { Injectable } from '@angular/core';
+import { Injectable, NgZone } from '@angular/core';
 import { DataStateChangeEvent } from '@progress/kendo-angular-grid';
 import { RvHttpService } from './rv-http.service';
 import { EnumNamePipe, UiService } from './ui.service';
@@ -144,9 +144,10 @@ export class DataService {
     // taskActionActiveAlias : new BehaviorSubject<any>(null)
   }
 
+  public arcsRobotDataMap : { [key: string] : ArcsRobotDetailBehaviorSubjMap} = {}
   //api pending : tilt , pose , obstacle detection , arcsPoses
   
-  public signalRMaster = {
+  public signalRMaster : { [key: string] : {topic? : string , mapping ? : any , api ? :any , subscribedCount ? : any}}= {
     trayRack : {topic : "rvautotech/fobo/trayRack" ,   mapping:{ trayRackAvail: (d)=> {return d['levelList'].map(lv=> lv['trayFull'] ? 'Occupied' : 'Available')}}},
     taskPopups:{ topic: "rvautotech/fobo/topModule/request", mapping: { taskPopupRequest: (d)=> d }},
     activeMap: { topic: "rvautotech/fobo/map/active", mapping: { activeMap: 'id' } },
@@ -161,8 +162,15 @@ export class DataService {
     followMePair: { topic: "rvautotech/fobo/followme/pairing", mapping: { followMePaired: (d)=> d['pairingState'] == 'PAIRED' } , api: 'followMe/v1/pairing'},//pending: confirm with RV what would pairingState return , except 'unpaired'
     followMeAoa: { topic: "rvautotech/fobo/followme/aoa", mapping: { followMeAoaState: 'aoaState' } , api: 'followMe/v1/pairing/aoa' },
     digitalOutput: { topic: "rvautotech/fobo/digital/output" },
-    fan : {topic: "rvautotech/fobo/fan" ,  mapping :{fan: (d)=> d['fanOn']}, api:'fan/v1' },
-    ieq: { topic: "rvautotech/fobo/ieq" , mapping: { ieq : (d)=> {Object.keys(d['ieq']).forEach(k=>d['ieq'][k] = this.util.trimNum(d['ieq'][k], 0)); return d['ieq'] ;} } , api:'ieqSensor/v1/read' },
+    fan : {topic: "rvautotech/fobo/fan" ,  mapping :{fan: (d : {fanOn : any })=> d.fanOn}, api:'fan/v1' },
+    ieq: { topic: "rvautotech/fobo/ieq" , mapping: { ieq : (d : {robotId : string , ieq : any})=> {                                                      
+                                                      Object.keys(d.ieq).forEach(k=>d.ieq[k] = this.util.trimNum(d.ieq[k], 0)); 
+                                                      this.updateArcsRobotDataMap(d.robotId , 'ieq' , d.ieq)
+                                                      return d.ieq;
+                                                     } 
+                                                  } , 
+                                          api:'ieqSensor/v1/read' 
+    },
     rfid: { topic: "rvautotech/fobo/rfid" },
     rotaryHead: { topic: "rvautotech/fobo/rotaryHead" },
     nirCamera: { topic: "rvautotech/fobo/nirCamera" },
@@ -174,36 +182,49 @@ export class DataService {
     heartbeatClient: { topic: "rvautotech/fobo/heartbeat/client" },
     lidarStatus: { topic: "rvautotech/fobo/lidar/status", mapping: { lidarSwitchedOn: (d) => d['SwitchOn']}, api: 'lidar/v1/status' },
     lidar:{topic : 'rvautotech/fobo/lidar' , mapping: { lidar:(d)=> <any>(d)}},
-    speed: { topic: 'rvautotech/fobo/speed', mapping: { speed: (d) => !isNaN(Number(d['speed']))? (Number(d['speed']).toFixed(2) == '-0.00' ? '0.00' : Number(d['speed']).toFixed(2)) : ' - ' } , api:'baseControl/v1/speed' },
-    brake: { topic: "rvautotech/fobo/brake", mapping: { brakeActive: (d) => d['switchedOn'] } , api:'baseControl/v1/brake' },
-    estop: { topic: "rvautotech/fobo/estop", mapping: { estop: (d)=>{ if(d['stopped'] ){
+    speed: { topic: 'rvautotech/fobo/speed', mapping: { speed: (d : {robotId: string , speed : number}) => {
+                                                          let ret = !isNaN(Number(d.speed))? (Number(d.speed).toFixed(2) == '-0.00' ? '0.00' : Number(d.speed).toFixed(2)) : ' - ' 
+                                                          this.updateArcsRobotDataMap(d.robotId , 'speed' , ret)
+                                                          return ret
+                                                        }
+                                                      } ,
+                                             api:'baseControl/v1/speed' 
+    },
+    brake: { topic: "rvautotech/fobo/brake", mapping: { brakeActive: (d : {switchedOn : any}) => d.switchedOn } , api:'baseControl/v1/brake' },
+    estop: { topic: "rvautotech/fobo/estop", mapping: { estop: (d : { robotId : string , stopped : any})=>{
+                                                                      if(d.stopped ){
                                                                         this.onLoggedNotificationReceived('Emergency Stop Switched On', d['robotId'] , 'warning' , true)
                                                                       }; 
-                                                                      return d['stopped']
+                                                                      this.updateArcsRobotDataMap(d.robotId , 'estop' , d.stopped)
+                                                                      return d.stopped
                                                                     },
                                                         arcsWarningChangedRobotCode:(d)=>{
                                                           return d['robotId']
                                                         }
                                                       } , api:'baseControl/v1/estop' 
            },
-    tilt: { topic: "rvautotech/fobo/tilt", mapping: { tiltActive: (d)=> {  if(d['detected'] ){
-                                                                             this.onLoggedNotificationReceived('Excess tilt detected', d['robotId'] , 'warning' , true)                                                                             
-                                                                            }; 
-                                                                           return d['detected'];
-                                                                        },
+    tilt: { topic: "rvautotech/fobo/tilt", mapping: { tiltActive: (d : {robotId : any , detected : any})=> {  
+                                                        if(d.detected ){
+                                                           this.onLoggedNotificationReceived('Excess tilt detected', d.robotId , 'warning' , true)                                                                             
+                                                        }; 
+                                                        this.updateArcsRobotDataMap(d.robotId , 'tiltActive' , d.detected)
+                                                        return d.detected;
+                                                      },
                                                       arcsWarningChangedRobotCode:(d)=>{
                                                        return d['robotId']
                                                       }
                                                     } , api:'baseControl/v1/obstacle/detection' 
            },
     obstacleDetection: { topic: "rvautotech/fobo/obstacle/detection", 
-                         mapping: { obstacleDetected: (d)=> { if(d['detected'] ){
-                                                                this.onLoggedNotificationReceived( 'Obstacle detected' , d['robotId'] , 'warning' , true)
-                                                              } 
-                                                              return d['detected'];
-                                                            },
-                                     arcsWarningChangedRobotCode:(d)=>{
-                                      return d['robotId']
+                         mapping: { obstacleDetected: (d : {robotId : string , detected : any})=> {
+                                      if(d.detected ){
+                                        this.onLoggedNotificationReceived( 'Obstacle detected' , d['robotId'] , 'warning' , true)
+                                      } 
+                                      this.updateArcsRobotDataMap(d.robotId , 'obstacleDetected' , d.detected)
+                                      return d.detected;
+                                    },
+                                    arcsWarningChangedRobotCode:(d : {robotId : string , detected : any})=>{
+                                      return d.robotId
                                     }
                                   }
                         },
@@ -302,19 +323,24 @@ export class DataService {
                                                               }
                   },
     state: { topic: "rvautotech/fobo/state", 
-             mapping:{  state : (d)=>{
-                          if(d['manual']){
-                            return "Manual"
-                          }else{
-                            let stateMap = {UNDEFINED : ' - ' ,  NAVIGATION : 'Navigation', FOLLOW_ME : 'Follow Me', MAPPING : 'Map Scan', PATH_FOLLOWING : 'Path Follow'} ; 
-                            return stateMap[d['state']]
-                          }                        
+             mapping:{  
+                        state : (d : {robotId : string , state : any ,  manual : any})=>{
+                          const stateMap = {
+                            UNDEFINED : ' - ' , 
+                            NAVIGATION : 'Navigation', 
+                            FOLLOW_ME : 'Follow Me', 
+                            MAPPING : 'Map Scan', 
+                            PATH_FOLLOWING : 'Path Follow'
+                          } ; 
+                          let ret = d.manual ? "Manual" : stateMap[d.state]
+                          this.updateArcsRobotDataMap(d.robotId , 'state' , ret)
+                          return ret                   
                         },
-                        isFollowMeMode:(d)=>{return d['state'] == 'FOLLOW_ME'},
-                        isFollowMeWithoutMap:(d)=>{return d['followMeStandalone']},
-                        isAutoMode:(d)=>{return d['state'] == 'NAVIGATION'},
-                        isMappingMode:(d)=>{return d['state'] == 'MAPPING'},
-                        isManualMode:(d)=>{return d['manual'] == true},
+                        isFollowMeMode:(d : {state : any })=>{return d.state == 'FOLLOW_ME'},
+                        isFollowMeWithoutMap:(d : {followMeStandalone : any})=>{return d.followMeStandalone},
+                        isAutoMode:(d : { state : any})=>{return d.state == 'NAVIGATION'},
+                        isMappingMode:(d : {state : any})=>{return d.state == 'MAPPING'},
+                        isManualMode:(d : { manual : any})=>{return d.manual == true},
                       },
              api:'mode/v1' 
             }, 
@@ -325,7 +351,12 @@ export class DataService {
           },
     battery: { topic: "rvautotech/fobo/battery",
                mapping: { battery: 'percentage' ,
-                          batteryRounded: (d)=>{ return (d['percentage'] * 100).toFixed(0)} , 
+
+                          batteryRounded: (d : {robotId : string , percentage : number})=>{ 
+                            let ret = (d.percentage * 100).toFixed(0)
+                            this.updateArcsRobotDataMap(d.robotId , 'batteryRounded', ret)
+                            return ret
+                          } , 
                           charging: (d) => { return d['powerSupplyStatus'] == 'CHARGING' || d['powerSupplyStatus'] == 'FULL' } ,
                           status : (d) => {return d['powerSupplyStatus'] == 'CHARGING' ? 'Charging' : 
                                                     (this.signalRSubj.taskActive.value ? 'Working' : 
@@ -399,7 +430,7 @@ export class DataService {
     return this.util.arcsApp && !this.util.config.USE_SIGNALR
   }
 
-  constructor(public httpSrv : RvHttpService , private uiSrv : UiService, private util: GeneralUtil , public signalRSrv : SignalRService, private router : Router , public pubsubSrv : AzurePubsubService , private datePipe : DatePipe , public configSrv : ConfigService) {     
+  constructor(public httpSrv : RvHttpService , private uiSrv : UiService, private util: GeneralUtil , public signalRSrv : SignalRService, private router : Router , public pubsubSrv : AzurePubsubService , private datePipe : DatePipe , public configSrv : ConfigService , public ngZone : NgZone) {     
     this.uiSrv.dataSrv = this
     this.unreadNotificationCount.pipe(skip(1)).subscribe(v=>{
       this.setLocalStorage('unreadNotificationCount' , v.toString())
@@ -578,15 +609,15 @@ export class DataService {
 
   private setSubscribedCount(type , count , key = ''){
     if(key == '' || this._USE_AZURE_PUBSUB){
-      this.signalRMaster[type]['subscribedCount'] = count
+      this.signalRMaster[type].subscribedCount = count
     }else{
-      this.signalRMaster[type]['subscribedCount'] =  this.signalRMaster[type]['subscribedCount'] ?  this.signalRMaster[type]['subscribedCount'] : {}
-      this.signalRMaster[type]['subscribedCount'][key] = count
+      this.signalRMaster[type].subscribedCount =  this.signalRMaster[type].subscribedCount ?  this.signalRMaster[type].subscribedCount : {}
+      this.signalRMaster[type].subscribedCount[key] = count
     }
   }
 
   private getSubscribedCount(type , key = ''){
-    let value = (key == '' || this._USE_AZURE_PUBSUB) ? this.signalRMaster[type]['subscribedCount'] : this.signalRMaster[type]?.['subscribedCount']?.[key]
+    let value = (key == '' || this._USE_AZURE_PUBSUB) ? this.signalRMaster[type].subscribedCount : this.signalRMaster[type]?.subscribedCount?.[key]
     return !value ? 0 : value
   }
 
@@ -601,7 +632,7 @@ export class DataService {
   }
 
   public unsubscribeAllSignalR(){
-    this.unsubscribeSignalRs(<any>Object.keys(this.signalRMaster).filter(t=>!this.signalRMaster[t]['subscribingCount']) , true)
+    this.unsubscribeSignalRs(<any>Object.keys(this.signalRMaster).filter(t=>!this.signalRMaster[t].subscribedCount) , true)
   }
 
   public async unsubscribeSignalR(type: signalRType , forced = false , paramString = '') {
@@ -609,7 +640,7 @@ export class DataService {
 
     this.setSubscribedCount(type, (forced ? 0 : Math.max(0, this.getSubscribedCount(type, paramString) - 1)), paramString)
     if( this.getSubscribedCount(type , paramString) == 0 && !this.signalRGeneralConfig.backgroundSubscribeTypes.includes(type) ){
-      let mapping = this.signalRMaster[type]['mapping']
+      let mapping = this.signalRMaster[type].mapping
       Object.keys(mapping).forEach(k => this.signalRSubj[k].next(null))
       let topicSfx =  paramString == '' ? '' : '/' + paramString 
       if(this._USE_AZURE_PUBSUB){
@@ -629,7 +660,7 @@ export class DataService {
     if(!this.util.getCurrentUser()){
       return
     }
-    let mapping = this.signalRMaster[type]['mapping']
+    let mapping = this.signalRMaster[type].mapping
     let subscribedCount = this.getSubscribedCount(type, paramString) 
     let topicSfx = paramString == '' ? '' : '/' + paramString 
     let newSubscription =  !(this._USE_AZURE_PUBSUB ? this.pubsubSrv.getCreatedTopics() : this.signalRSrv.subscribedTopics).includes(this.signalRMaster[type].topic + topicSfx)
@@ -673,7 +704,7 @@ export class DataService {
   }
 
   updateSignalRBehaviorSubject(type , data , param = '') {
-    let mapping = this.signalRMaster[type]['mapping']
+    let mapping = this.signalRMaster[type].mapping
     if (this.util.config.DEBUG_SIGNALR && (!this.util.config.DEBUG_SIGNALR_TYPE || this.util.config.DEBUG_SIGNALR_TYPE?.length == 0 || type == this.util.config.DEBUG_SIGNALR_TYPE)) {
       console.log(`[${new Date().toDateString()}] SignalR Received [${type.toUpperCase()}] : ${JSON.stringify(data)}`)
     }
@@ -714,6 +745,20 @@ export class DataService {
       this.updateSignalRBehaviorSubject('taskComplete',taskWrapped.taskCompletionDTO)
     }
   }
+
+  initArcsRobotDataMap(robotCode : string){
+    let obj = this.arcsRobotDataMap[robotCode]
+    if(!obj && robotCode){
+      obj = new ArcsRobotDetailBehaviorSubjMap()
+      this.arcsRobotDataMap[robotCode] = obj
+    }
+  } 
+
+  updateArcsRobotDataMap(robotCode : string , objKey : ArcsRobotDetailSubjTypes , value : any){
+    this.initArcsRobotDataMap(robotCode)
+    this.arcsRobotDataMap[robotCode][objKey].next(value) 
+  }
+
 
 
   // ^ =========================== SIGNALR =========================== ^ 
@@ -1410,11 +1455,34 @@ export class loginResponse{
     tenant_id ? : string
     user_id ? : string
     user_name ? : string
-    configurations : {configKey : string , configValue: string}[]
+    configurations: { configKey: string, configValue: string }[]
   }
 }
 
-export const ObjectTypes = ['ROBOT' ,'FLOOR_PLAN' , 'FLOOR_PLAN_POINT' , 'MAP' , 'MAP_POINT' , 'TASK' , 'OPERATION' , 'MISSION']
+export type ArcsRobotDetailSubjTypes = 'speed'| 'batteryRounded' | 'state' | 'ieq' |  'estop' | 'obstacleDetected' | 'tiltActive' | 'status'
+export class ArcsRobotDetailBehaviorSubjMap {
+  speed: BehaviorSubject<any>
+  batteryRounded: BehaviorSubject<any>
+  state: BehaviorSubject<any>
+  ieq: BehaviorSubject<any>
+  estop: BehaviorSubject<boolean>
+  obstacleDetected: BehaviorSubject<boolean>
+  tiltActive: BehaviorSubject<boolean>
+  status :  BehaviorSubject<any>
+
+  constructor() {
+    this.speed = new BehaviorSubject<any>(null)
+    this.batteryRounded = new BehaviorSubject<any>(null)
+    this.state = new BehaviorSubject<any>(null)
+    this.ieq = new BehaviorSubject<any>(null)
+    this.estop = new BehaviorSubject<boolean>(null)
+    this.obstacleDetected = new BehaviorSubject<boolean>(null)
+    this.tiltActive = new BehaviorSubject<boolean>(null)
+    this.status = new BehaviorSubject<any>(null)
+  }
+}
+
+export const ObjectTypes = ['ROBOT','FLOOR_PLAN' , 'FLOOR_PLAN_POINT' , 'MAP' , 'MAP_POINT' , 'TASK' , 'OPERATION' , 'MISSION']
 export const TaskStateOptions = [{text : "Pending" , value : "WAITING"} , {text : "Executing" , value : "EXECUTING"},{text : "Completed" , value : "SUCCEEDED"} , {text : "Canceled" , value : "CANCELED"} , {text : "Failed" , value : "FAILED"}, {text : "Busy" , value : "BUSY"}]
 
 

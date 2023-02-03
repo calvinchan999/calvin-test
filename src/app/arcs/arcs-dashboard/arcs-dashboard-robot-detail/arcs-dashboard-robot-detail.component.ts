@@ -1,4 +1,4 @@
-import { Component, OnInit , Input, HostBinding, ViewChildren } from '@angular/core';
+import { Component, OnInit , Input, HostBinding, ViewChildren, ElementRef } from '@angular/core';
 import { List } from '@zxing/library/esm/customTypings';
 import { BehaviorSubject } from 'rxjs';
 import { ARCS_STATUS_MAP, DataService, DropListRobot, RobotDetailARCS, signalRType } from 'src/app/services/data.service';
@@ -14,11 +14,11 @@ const testStreamUrl = 'wss://calvinchan999.eastasia.cloudapp.azure.com/RV-ROBOT-
 })
 export class ArcsDashboardRobotDetailComponent implements OnInit {
   @HostBinding('class') customClass = 'dialog-content robot-detail'
-  constructor(public uiSrv: UiService , public dataSrv : DataService , public util : GeneralUtil) { 
-    this.initDataSource()
+  constructor(public uiSrv: UiService , public dataSrv : DataService , public util : GeneralUtil , public elRef : ElementRef) { 
   }
   @ViewChildren('videoPlayer') videoPlayers : List<VideoPlayerComponent>
   dialogRef
+  parent
   selectedTab = 'info'
   tabs = [
     {id: 'info' , label : 'Info'},
@@ -37,8 +37,15 @@ export class ArcsDashboardRobotDetailComponent implements OnInit {
       { id: '3', col: 3, row: 2, streamingUrl: testStreamUrl + '3/ws?authorization=' + this.util.getUserAccessToken() }
     ]
   ]
-  ds : {status? : {} , battery? : {} , mode? : {} , speed? : {}} = {}
+  ds : {status? : any , battery? : any , mode? : any , speed? :any} = {}
   @Input() robotId
+  // @Input() set robotId(v){
+  //   this._robotId = v
+  // }
+  // get robotId(){
+  //   return this._robotId
+  // }
+  _robotId
   robotType
   robotSubType 
   topics : signalRType[] =  ['battery' , 'speed' , 'state'] 
@@ -51,6 +58,7 @@ export class ArcsDashboardRobotDetailComponent implements OnInit {
   streamingError = null
 
   async ngOnInit() {
+    this.initDataSource()
     let ticket = this.uiSrv.loadAsyncBegin()
     let robotList : DropListRobot[] = <any>(await this.dataSrv.getDropList('robots')).data
     this.uiSrv.loadAsyncDone(ticket)
@@ -59,19 +67,21 @@ export class ArcsDashboardRobotDetailComponent implements OnInit {
     this.robotSubType = robot?.robotSubType
     this.tabs = this.tabs.concat(this.topModuleTabs[this.robotType ] && !(this.robotType == 'DELIVERY' && this.robotSubType == 'NA') ? this.topModuleTabs[this.robotType ] : [])
     this.dataSrv.subscribeSignalRs(this.topics, this.robotId)
-    this.refreshRobotStatus()
+    this.refreshRobotStatus(this.parent)
   }
 
   ngOnDestroy(){
     this.dataSrv.unsubscribeSignalRs(this.topics, true ,  this.robotId )
   }
+
   
   initDataSource(){
+    this.dataSrv.initArcsRobotDataMap(this.robotId)
     this.ds = {
       status : {title: 'Status', suffix: '' , icon:'mdi-autorenew' , content : null },
-      battery : {title: 'Battery', suffix: '%' , icon : 'mdi-battery-70' , signalR: this.dataSrv.signalRSubj.batteryRounded},
-      mode : { title: 'Mode',  suffix: '' , icon:'mdi-map-marker-path' , signalR: this.dataSrv.signalRSubj.state},
-      speed:{title: 'Speed',  suffix: 'm/s' , icon:'mdi-speedometer', signalR: this.dataSrv.signalRSubj.speed},
+      battery : {title: 'Battery', suffix: '%' , icon : 'mdi-battery-70' , signalR: this.dataSrv.arcsRobotDataMap[this.robotId].batteryRounded},
+      mode : { title: 'Mode',  suffix: '' , icon:'mdi-map-marker-path' , signalR: this.dataSrv.arcsRobotDataMap[this.robotId].state},
+      speed:{title: 'Speed',  suffix: 'm/s' , icon:'mdi-speedometer', signalR: this.dataSrv.arcsRobotDataMap[this.robotId].speed},
       // pending_task : { title: 'Current Task',  suffix: '' , icon:'mdi-file-clock-outline', signalR: this.dataSrv.signalRSubj.currentTaskId},
     };
   }
@@ -83,12 +93,13 @@ export class ArcsDashboardRobotDetailComponent implements OnInit {
     }
     let robotDetail: RobotDetailARCS = await this.dataSrv.httpSrv.rvRequest("GET", "robot/v1/robotDetail/" + this.robotId, undefined, false)
     //let robotDetail = { robotCode: this.robotId, robotStatus: "IDLE", modeState: "NAVIGATION", batteryPercentage: 0.46965376, speed: 0.023951124 }
-    this.ds.status['robotStatus'] = robotDetail.robotStatus
-    this.ds.status['content'] = ARCS_STATUS_MAP[robotDetail.robotStatus]
-    this.ds.status['cssClass'] = this.ds.status['content']
-    this.ds.battery['signalR'].next(this.dataSrv.signalRMaster.battery.mapping.batteryRounded({ percentage: robotDetail.batteryPercentage }))
-    this.ds.mode['signalR'].next(this.dataSrv.signalRMaster.state.mapping.state({ state: robotDetail.modeState }))
-    this.ds.speed['signalR'].next(this.dataSrv.signalRMaster.speed.mapping.speed({ speed: robotDetail.speed }))
+    this.ds.status.robotStatus = robotDetail.robotStatus
+    this.ds.status.content = ARCS_STATUS_MAP[robotDetail.robotStatus]
+    this.ds.status.cssClass = this.ds.status.content
+    this.dataSrv.updateArcsRobotDataMap(this.robotId , 'batteryRounded' , this.dataSrv.signalRMaster.battery.mapping.batteryRounded({ robotId : this.robotId , percentage: robotDetail.batteryPercentage }))
+    this.dataSrv.updateArcsRobotDataMap(this.robotId , 'state' , this.dataSrv.signalRMaster.state.mapping.state({ robotId : this.robotId , state: robotDetail.modeState , manual : false }))
+    this.dataSrv.updateArcsRobotDataMap(this.robotId , 'speed' , this.dataSrv.signalRMaster.speed.mapping.speed({ robotId : this.robotId , speed: robotDetail.speed }))
+
     this.alertMsg = (robotDetail.estopped ? [this.uiSrv.commonAlertMessages.estopped] : []).concat(robotDetail.obstacleDetected ? [this.uiSrv.commonAlertMessages.obstacleDetected] : []).concat(robotDetail.tiltDetected ? [this.uiSrv.commonAlertMessages.tiltDetected] : []).join(" ,\n")
     if (blockUI) {
       this.uiSrv.loadAsyncDone(ticket)

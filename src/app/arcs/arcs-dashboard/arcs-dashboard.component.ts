@@ -626,7 +626,7 @@ export class ArcsDashboardComponent implements OnInit {
       content: ArcsDashboardRobotDetailComponent ,   
       preventAction: () => true
     });
-    const content = dialog.content.instance;
+    const content : ArcsDashboardRobotDetailComponent = dialog.content.instance;
     content.parent = this
     content.dialogRef = dialog
     content.robotId = this.robotDetailId
