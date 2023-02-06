@@ -4,6 +4,7 @@ import { RvHttpService } from 'src/app/services/rv-http.service';
 import { SignalRService } from 'src/app/services/signal-r.service';
 import { UiService } from 'src/app/services/ui.service';
 import { GeneralUtil } from 'src/app/utils/general/general.util';
+import { environment } from 'src/environments/environment';
 
 @Component({
   selector: 'app-test-signalR',
@@ -14,6 +15,7 @@ export class TestSignalRComponent implements OnInit {
   content = ''
   topic = ''
   seriesInterval = 1
+  environment = environment
   constructor(private signalRSrv: SignalRService , private uiSrv : UiService , private httpSrv : RvHttpService , private util : GeneralUtil , private pubsubSrv : AzurePubsubService) {
     if(this.util.arcsApp && !this.util.config.USE_SIGNALR){
       this.pubsubSrv.makeWebSocketConnection()
@@ -94,6 +96,49 @@ export class TestSignalRComponent implements OnInit {
         interval += content[i][2]
       }
     })
+  }
+
+  stressTest(){
+    for(let i = 1 ; i < 10 ; i++){
+      let content = 
+      `[
+        {"robotId":"DUMMY-ROBOT","mapName":"DIM_TEST","x":0 + ${i*2},"y":0 ,"angle":0.7},
+        {"robotId":"DUMMY-ROBOT","mapName":"DIM_TEST","x":0 + ${i*2},"y":0,"angle":0.7},
+        {"robotId":"DUMMY-ROBOT","mapName":"DIM_TEST","x":0 + ${i*2},"y":0,"angle":0.7},
+        {"robotId":"DUMMY-ROBOT","mapName":"DIM_TEST","x":0+ ${i*2},"y":0,"angle":0.7},
+        {"robotId":"DUMMY-ROBOT","mapName":"DIM_TEST","x":0+ ${i*2},"y":0,"angle":0.7},
+        {"robotId":"DUMMY-ROBOT","mapName":"DIM_TEST","x":0+ ${i*2},"y":0,"angle":0.7},
+        {"robotId":"DUMMY-ROBOT","mapName":"DIM_TEST","x":1+ ${i*2},"y":0.5,"angle":0.7},
+        {"robotId":"DUMMY-ROBOT","mapName":"DIM_TEST","x":2+ ${i*2},"y":1.1,"angle":0.7},
+        {"robotId":"DUMMY-ROBOT","mapName":"DIM_TEST","x":3+ ${i*2},"y":1.5,"angle":0.7},
+        {"robotId":"DUMMY-ROBOT","mapName":"DIM_TEST","x":4+ ${i*2},"y":2.0,"angle":0.7},
+        {"robotId":"DUMMY-ROBOT","mapName":"DIM_TEST","x":5+ ${i*2},"y":2.5,"angle":0.7},
+        {"robotId":"DUMMY-ROBOT","mapName":"DIM_TEST","x":6+ ${i*2},"y":3.0,"angle":0.7},
+        {"robotId":"DUMMY-ROBOT","mapName":"DIM_TEST","x":7+ ${i*2},"y":3.5,"angle":0.2},
+        {"robotId":"DUMMY-ROBOT","mapName":"DIM_TEST","x":8+ ${i*2},"y":3.8,"angle":0},
+        {"robotId":"DUMMY-ROBOT","mapName":"DIM_TEST","x":9+ ${i*2},"y":3.5,"angle":-0.3},
+        {"robotId":"DUMMY-ROBOT","mapName":"DIM_TEST","x":9.5+ ${i*2},"y":3,"angle":-0.5},
+        {"robotId":"DUMMY-ROBOT","mapName":"DIM_TEST","x":9.5+ ${i*2},"y":3,"angle":-2.5},
+        {"robotId":"DUMMY-ROBOT","mapName":"DIM_TEST","x":9+ ${i*2},"y":3,"angle":-2.5},
+        {"robotId":"DUMMY-ROBOT","mapName":"DIM_TEST","x":8+ ${i*2},"y":3,"angle":-2.5},
+        {"robotId":"DUMMY-ROBOT","mapName":"DIM_TEST","x":7.5+ ${i*2},"y":2.5,"angle":-2.5},
+        {"robotId":"DUMMY-ROBOT","mapName":"DIM_TEST","x":7+ ${i*2},"y":2.5,"angle":-3},
+        {"robotId":"DUMMY-ROBOT","mapName":"DIM_TEST","x":6+ ${i*2},"y":2.5,"angle":-3},
+        {"robotId":"DUMMY-ROBOT","mapName":"DIM_TEST","x":5+ ${i*2},"y":2,"angle":-3},
+        {"robotId":"DUMMY-ROBOT","mapName":"DIM_TEST","x":4+ ${i*2},"y":1.5,"angle":-3},
+        {"robotId":"DUMMY-ROBOT","mapName":"DIM_TEST","x":3+ ${i*2},"y":1,"angle":-3},
+        {"robotId":"DUMMY-ROBOT","mapName":"DIM_TEST","x":2+ ${i*2},"y":0.5,"angle":-3},
+        {"robotId":"DUMMY-ROBOT","mapName":"DIM_TEST","x":1+ ${i*2},"y":0.5,"angle":-3},
+        {"robotId":"DUMMY-ROBOT","mapName":"DIM_TEST","x":0+ ${i*2},"y":0,"angle":-2},
+        {"robotId":"DUMMY-ROBOT","mapName":"DIM_TEST","x":0+ ${i*2},"y":0,"angle":-0.9},
+        {"robotId":"DUMMY-ROBOT","mapName":"DIM_TEST","x":0+ ${i*2},"y":0,"angle":0.7}
+      ]`
+      //30
+      content = content.split("DUMMY-ROBOT").join("DUMMY-ROBOT" + '-' + i)
+      this.invokeSignalR( 'rvautotech/fobo/pose/DIM_TEST', content , 1)
+      setTimeout(()=>this.stressTest(), 30 * 1000)
+    }
+
   }
 
   sampleData = {

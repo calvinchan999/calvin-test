@@ -44,7 +44,7 @@
             <span></span>
         </div>
         
-        <app-sa-top-module *ngIf="robotType && selectedTab == 'topModule'" [arcsRobotType] = "robotType"  [arcsRobotSubType] = "robotSubType"  [arcsRobotCode] = "robotId"></app-sa-top-module>    
+        <app-sa-top-module *ngIf="robotType && selectedTab == 'topModule'"  [arcsRobotType] = "robotType"  [arcsRobotSubType] = "robotSubType"  [arcsRobotCode] = "robotId"></app-sa-top-module>    
         <ng-container *ngIf="selectedTab == 'info'">
             <kendo-tilelayout [columns]="2" [resizable]="false" [reorderable]="false">
                 <ng-container *ngFor = "let row of dashboardLayout ; let ri = index">
@@ -93,14 +93,25 @@
 
 <!-- ============================================================================================================================================================================================================================== -->
 
-<div *ngIf="!parent">
+<div class="popup" *ngIf="!parent">
     <span class="popup-robot-code">{{robotId}}</span>
-    <div class="popup-row">
-        <span>{{ds.status.content}}</span>
+    <div class="popup-content">
+        <div class="popup-row">
+            <span *ngIf="ds.status?.content"> 
+                <i [class]="'status mdi mdi-circle ' +  ( ds.status?.content ? (ds.status?.content | cssClassName) : '')  " ></i> 
+                <span>{{ds.status.content | label : uiSrv.langPack}}</span>
+            </span>
+    
+            <span *ngIf="ds.battery.signalR?.value">
+                <i [class]="'battery mdi mdi-battery-' + ( ds.battery.signalR?.value < 10 ? '10' : ((ds.battery.signalR?.value / 10) | roundDown) * 10) "></i> 
+                <span>{{ds.battery.signalR?.value}}%</span>
+            </span>
+        </div>
 
-        <span *ngIf="ds.battery.signalR?.value">
-            <i class="battery mdi mdi-battery-70"></i> 
-            <span>{{ds.battery.signalR?.value}} %</span>
-        </span>
+        <div class="popup-row">
+            <app-sa-top-module *ngIf="robotType" [isPartOf3dTooltip] = 'true'  [arcsRobotType] = "robotType"  [arcsRobotSubType] = "robotSubType"  [arcsRobotCode] = "robotId"></app-sa-top-module>   
+        </div> 
     </div>
 </div>
+<!-- 
+ -->

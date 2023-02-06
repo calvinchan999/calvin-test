@@ -1,6 +1,7 @@
 import { Component, OnInit , Input, HostBinding, ViewChildren, ElementRef } from '@angular/core';
 import { List } from '@zxing/library/esm/customTypings';
-import { BehaviorSubject } from 'rxjs';
+import { BehaviorSubject , Subject} from 'rxjs';
+import { takeUntil } from 'rxjs/operators';
 import { ARCS_STATUS_MAP, DataService, DropListRobot, RobotDetailARCS, signalRType } from 'src/app/services/data.service';
 import { UiService } from 'src/app/services/ui.service';
 import { VideoPlayerComponent } from 'src/app/ui-components/video-player/video-player.component';
@@ -12,7 +13,7 @@ const testStreamUrl = 'wss://calvinchan999.eastasia.cloudapp.azure.com/RV-ROBOT-
   templateUrl: './arcs-dashboard-robot-detail.component.html',
   styleUrls: ['./arcs-dashboard-robot-detail.component.scss']
 })
-export class ArcsDashboardRobotDetailComponent implements OnInit {
+export class ArcsDashboardRobotDetailComponent implements OnInit  {
   @HostBinding('class') customClass = 'dialog-content robot-detail'
   constructor(public uiSrv: UiService , public dataSrv : DataService , public util : GeneralUtil , public elRef : ElementRef) { 
   }
@@ -56,6 +57,7 @@ export class ArcsDashboardRobotDetailComponent implements OnInit {
   alertMsg = null
   streamingUrl = null
   streamingError = null
+  $onDestroy  = new Subject()
 
   async ngOnInit() {
     this.initDataSource()
@@ -65,12 +67,13 @@ export class ArcsDashboardRobotDetailComponent implements OnInit {
     let robot = robotList.filter(r=>r.robotCode == this.robotId)[0]
     this.robotType = robot?.robotType
     this.robotSubType = robot?.robotSubType
-    this.tabs = this.tabs.concat(this.topModuleTabs[this.robotType ] && !(this.robotType == 'DELIVERY' && this.robotSubType == 'NA') ? this.topModuleTabs[this.robotType ] : [])
+    this.tabs = this.tabs.concat(this.topModuleTabs[this.robotType] && !(this.robotType == 'DELIVERY' && this.robotSubType == 'NA') ? this.topModuleTabs[this.robotType ] : [])
     this.dataSrv.subscribeSignalRs(this.topics, this.robotId)
     this.refreshRobotStatus(this.parent)
   }
 
   ngOnDestroy(){
+    this.$onDestroy.next()
     this.dataSrv.unsubscribeSignalRs(this.topics, true ,  this.robotId )
   }
 
@@ -78,12 +81,17 @@ export class ArcsDashboardRobotDetailComponent implements OnInit {
   initDataSource(){
     this.dataSrv.initArcsRobotDataMap(this.robotId)
     this.ds = {
-      status : {title: 'Status', suffix: '' , icon:'mdi-autorenew' , content : null },
+      status : {title: 'Status', suffix: '' , icon:'mdi-autorenew' , content:null},
       battery : {title: 'Battery', suffix: '%' , icon : 'mdi-battery-70' , signalR: this.dataSrv.arcsRobotDataMap[this.robotId].batteryRounded},
       mode : { title: 'Mode',  suffix: '' , icon:'mdi-map-marker-path' , signalR: this.dataSrv.arcsRobotDataMap[this.robotId].state},
       speed:{title: 'Speed',  suffix: 'm/s' , icon:'mdi-speedometer', signalR: this.dataSrv.arcsRobotDataMap[this.robotId].speed},
       // pending_task : { title: 'Current Task',  suffix: '' , icon:'mdi-file-clock-outline', signalR: this.dataSrv.signalRSubj.currentTaskId},
     };
+    this.dataSrv.arcsRobotDataMap[this.robotId].status.pipe(takeUntil(this.$onDestroy)).subscribe(s=>{
+      this.ds.status.robotStatus = s
+      this.ds.status.content = ARCS_STATUS_MAP[s]
+      this.ds.status.cssClass = this.ds.status.content
+    })
   }
 
   async refreshRobotStatus(blockUI = true) {
@@ -111,7 +119,7 @@ export class ArcsDashboardRobotDetailComponent implements OnInit {
       let ticket = this.uiSrv.loadAsyncBegin()
       await this.dataSrv.httpSrv.rvRequest("PUT", `robot/v1/hold?robotCode=${this.robotId}&hold=true`, undefined, true, this.uiSrv.translate("Robot reserved sucessfully - ") + this.robotId)
       this.uiSrv.loadAsyncDone(ticket)
-      this.refreshRobotStatus()
+      // this.refreshRobotStatus()
     }
   }
 
@@ -120,7 +128,7 @@ export class ArcsDashboardRobotDetailComponent implements OnInit {
       let ticket = this.uiSrv.loadAsyncBegin()
       await this.dataSrv.httpSrv.rvRequest("PUT",`robot/v1/hold?robotCode=${this.robotId}&hold=false`, undefined, true, this.uiSrv.translate("Robot released sucessfully - ") + this.robotId)
       this.uiSrv.loadAsyncDone(ticket)
-      this.refreshRobotStatus()
+      // this.refreshRobotStatus()
     }
   }
 

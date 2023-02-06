@@ -1,61 +1,75 @@
-<kendo-scrollview *ngIf="!util.arcsApp  && (robotType == 'patrol' && !isTaskLayout)" [data]="patrolFlvSrc ? [1 , 2] : [1]" [arrows]="!uiSrv.isTablet" [pageable]="true">
-    <ng-template let-item="item">
-        <ng-container *ngIf="item == 2">
-            <uc-video-player [width]="1700" [height]="700" [src]="patrolFlvSrc"></uc-video-player>
-        </ng-container>
-        <ng-container *ngIf="item == 1">
-            <ng-container *ngTemplateOutlet="tileLayout"></ng-container>
-        </ng-container>
+<ng-container *ngIf="!isPartOf3dTooltip">
+    <kendo-scrollview *ngIf="!util.arcsApp  && (robotType == 'patrol' && !isTaskLayout)" [data]="patrolFlvSrc ? [1 , 2] : [1]" [arrows]="!uiSrv.isTablet" [pageable]="true">
+        <ng-template let-item="item">
+            <ng-container *ngIf="item == 2">
+                <uc-video-player [width]="1700" [height]="700" [src]="patrolFlvSrc"></uc-video-player>
+            </ng-container>
+            <ng-container *ngIf="item == 1">
+                <ng-container *ngTemplateOutlet="tileLayout"></ng-container>
+            </ng-container>
+        </ng-template>
+    </kendo-scrollview>
+    
+    <ng-container *ngIf="util.arcsApp || robotType != 'patrol' || isTaskLayout">
+        <ng-container *ngTemplateOutlet = "tileLayout"></ng-container>
+    </ng-container>
+    
+    <ng-template #tileLayout let-items="tileLayout">
+        <kendo-tilelayout [columns]="4" [resizable]="false" [reorderable]="false" >
+            <ng-container *ngFor = "let row of dashboardLayout ; let ri = index">
+                <kendo-tilelayout-item *ngFor = "let cell of row ; let ci = index" [class]="(cell.id | cssClassName : 'ts-') + ' tile' + (cell.rowSpan ? cell.rowSpan : 1) + '-' + (cell.colSpan ? cell.colSpan : 1)" 
+                                       [col]=" ( cell['col'] ? cell['col'] : ci) " [row]="cell['row'] ? cell['row'] : (ri )" 
+                                       [colSpan]="cell['colSpan']? cell['colSpan']: 1"  [rowSpan]="cell['rowSpan']? cell['rowSpan']: 1">
+                        <kendo-tilelayout-item-body>
+                            <ng-container *ngFor = "let item of (cell['cells'] ? cell['cells'] : [cell])" >
+                                <ng-container *ngTemplateOutlet = "item['cells']? dashboarodNestedItems : dashboarodItem; context : {item : item , items : item['cells']}" ></ng-container>
+                            </ng-container>   
+                        </kendo-tilelayout-item-body>      
+                </kendo-tilelayout-item>
+           </ng-container>
+        </kendo-tilelayout>    
     </ng-template>
-</kendo-scrollview>
+    
+    <ng-template #dashboarodNestedItems let-items="items">
+        <div class='bl-box'>
+            <ng-container *ngFor="let item of items">
+                <ng-container *ngTemplateOutlet="dashboarodItem; context : {item : item}"></ng-container>
+            </ng-container>
+        </div>
+    </ng-template>
+    
+    <ng-template #dashboarodItem let-item ="item">
+        <div class='bl-item' [class]="(item['id'] | cssClassName) + (item['type'] == 'button' ? ' bl-button' : '') + ( item['id'] == 'air_quality' ? (' ' + (airQualitySubj.value | cssClassName) ): '') + ' ' + (ds[item['id']]?.class ? ( ds[item['id']]?.class | cssClassName) : '')">
+            <ng-container  *ngIf="item['type']!='button' && item['type']!='textbox'">
+                <div class="bl-icon"><i class="k-icon mdi" [ngClass]="ds[item['id']] && ds[item['id']].icon? ds[item['id']].icon : (item.id | cssClassName : 'ts-')"></i></div>
+                <div class="bl-text">
+                    <label class="bl-label">{{ds[item['id']]?.title | label : uiSrv.langPack}}</label>
+                    <span class="bl-result">{{ds[item['id']]?.disabled ? ' - ' : (ds[item['id']]?.content ? ds[item['id']].content :  
+                                               ( ds[item['id']]?.signalRfld!=null &&  ds[item['id']]?.signalRfld!=undefined && ds[item['id']].signalR?.value? 
+                                                 ds[item['id']].signalR?.value[ds[item['id']].signalRfld] : 
+                                                 ds[item['id']]?.signalR?.value ) 
+                                              )  }}</span>
+                    <span class="bl-unit">{{ (ds[item['id']]?.suffixSignalR && ds[item['id']]?.suffixSignalR.value ?  ds[item['id']]?.suffixSignalR.value : ds[item['id']]?.suffix ) | label : uiSrv.langPack }}</span>
+                </div>   
+            </ng-container>
+            <ng-container  *ngIf="item['type']=='button'">
+                <button kendoButton (click) = "buttonClicked(item)" >{{ds[item['id']]?.title | label : uiSrv.langPack}}</button>
+            </ng-container>
+            <ng-container  *ngIf="item['type']=='textbox'">
+                <uc-txtbox [lab] = "item.label" [(value)] = "ngModelObj[item['id']].value"></uc-txtbox>
+            </ng-container>
+        </div>
+    </ng-template>
 
-<ng-container *ngIf="util.arcsApp || robotType != 'patrol' || isTaskLayout">
-    <ng-container *ngTemplateOutlet = "tileLayout"></ng-container>
 </ng-container>
 
-<ng-template #tileLayout let-items="tileLayout">
-    <kendo-tilelayout [columns]="4" [resizable]="false" [reorderable]="false" >
-        <ng-container *ngFor = "let row of dashboardLayout ; let ri = index">
-            <kendo-tilelayout-item *ngFor = "let cell of row ; let ci = index" [class]="(cell.id | cssClassName : 'ts-') + ' tile' + (cell.rowSpan ? cell.rowSpan : 1) + '-' + (cell.colSpan ? cell.colSpan : 1)" 
-                                   [col]=" ( cell['col'] ? cell['col'] : ci) " [row]="cell['row'] ? cell['row'] : (ri )" 
-                                   [colSpan]="cell['colSpan']? cell['colSpan']: 1"  [rowSpan]="cell['rowSpan']? cell['rowSpan']: 1">
-                    <kendo-tilelayout-item-body>
-                        <ng-container *ngFor = "let item of (cell['cells'] ? cell['cells'] : [cell])" >
-                            <ng-container *ngTemplateOutlet = "item['cells']? dashboarodNestedItems : dashboarodItem; context : {item : item , items : item['cells']}" ></ng-container>
-                        </ng-container>   
-                    </kendo-tilelayout-item-body>      
-            </kendo-tilelayout-item>
-       </ng-container>
-    </kendo-tilelayout>    
-</ng-template>
 
-<ng-template #dashboarodNestedItems let-items="items">
-    <div class='bl-box'>
-        <ng-container *ngFor="let item of items">
-            <ng-container *ngTemplateOutlet="dashboarodItem; context : {item : item}"></ng-container>
-        </ng-container>
-    </div>
-</ng-template>
+<ng-container *ngIf="isPartOf3dTooltip">
+    <span *ngIf="robotType == 'patrol'" [class] ="'aqlevel ' +  (  airQualitySubj.value ? (airQualitySubj.value | cssClassName) : '')">
+        <!-- <i class="ieq mdi mdi-tailwind aq-icon"></i> -->
+        <span>{{'IEQ' | label : uiSrv.langPack }} : </span> 
+        <span>{{ airQualitySubj.value | label : uiSrv.langPack }} </span>
 
-<ng-template #dashboarodItem let-item ="item">
-    <div class='bl-item' [class]="(item['id'] | cssClassName) + (item['type'] == 'button' ? ' bl-button' : '') + ( item['id'] == 'air_quality' ? (' ' + (airQualitySubj.value | cssClassName) ): '') + ' ' + (ds[item['id']]?.class ? ( ds[item['id']]?.class | cssClassName) : '')">
-        <ng-container  *ngIf="item['type']!='button' && item['type']!='textbox'">
-            <div class="bl-icon"><i class="k-icon mdi" [ngClass]="ds[item['id']] && ds[item['id']].icon? ds[item['id']].icon : (item.id | cssClassName : 'ts-')"></i></div>
-            <div class="bl-text">
-                <label class="bl-label">{{ds[item['id']]?.title | label : uiSrv.langPack}}</label>
-                <span class="bl-result">{{ds[item['id']]?.disabled ? ' - ' : (ds[item['id']]?.content ? ds[item['id']].content :  
-                                           ( ds[item['id']]?.signalRfld!=null &&  ds[item['id']]?.signalRfld!=undefined && ds[item['id']].signalR?.value? 
-                                             ds[item['id']].signalR?.value[ds[item['id']].signalRfld] : 
-                                             ds[item['id']]?.signalR?.value ) 
-                                          )  }}</span>
-                <span class="bl-unit">{{ (ds[item['id']]?.suffixSignalR && ds[item['id']]?.suffixSignalR.value ?  ds[item['id']]?.suffixSignalR.value : ds[item['id']]?.suffix ) | label : uiSrv.langPack }}</span>
-            </div>   
-        </ng-container>
-        <ng-container  *ngIf="item['type']=='button'">
-            <button kendoButton (click) = "buttonClicked(item)" >{{ds[item['id']]?.title | label : uiSrv.langPack}}</button>
-        </ng-container>
-        <ng-container  *ngIf="item['type']=='textbox'">
-            <uc-txtbox [lab] = "item.label" [(value)] = "ngModelObj[item['id']].value"></uc-txtbox>
-        </ng-container>
-    </div>
-</ng-template>
+        <!-- <span>{{}}</span> -->
+    </span>
+</ng-container>

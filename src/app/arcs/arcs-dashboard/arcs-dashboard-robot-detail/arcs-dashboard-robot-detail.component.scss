@@ -15,7 +15,12 @@
     display: none;
 }
 
+:host .margin-top-5px {
+    margin-top: 5px;    
+}
+
 :host .popup-robot-code {
+    font-weight: 900;
     line-height: 5px !important;
     font-size: 12px!important;
 }
@@ -24,12 +29,51 @@
     justify-content: space-between;
     display: flex;
     line-height: normal!important;
-    margin-top: 5px;
 }
 
-// :host .popup-row i.battery{
-//     color: rgba(0, 206, 209, 0.8);
-// }
+:host .popup-content {
+    // border-top:solid 1px rgba(255,255,255,0.8);
+    margin-top: 8px;
+}
+
+:host .popup-row i.status{
+    margin-right: 3px;
+}
+
+:host ::ng-deep .popup-row i.status.idle , i.popup-row .status.reserved{
+    color: Darkturquoise;
+}
+
+:host ::ng-deep .popup-row i.status.working{
+    color: greenyellow;
+}
+
+:host ::ng-deep .popup-row i.status.charging{
+    color: orange;
+}
+
+:host ::ng-deep .popup-row i.status.offline{
+    color: #aaa;
+}
+
+:host ::ng-deep .popup-row i.mdi-battery-90,  :host ::ng-deep .popup-row i.mdi-battery-80 {
+    color: greenyellow;
+}
+:host ::ng-deep .popup-row i.mdi-battery-70,  :host ::ng-deep .popup-row i.mdi-battery-60 , :host ::ng-deep .popup-row i.mdi-battery-50, :host ::ng-deep .popup-row i.mdi-battery-40{
+    color:  darkturquoise;
+}
+:host ::ng-deep .popup-row i.mdi-battery-30,  :host ::ng-deep .popup-row i.mdi-battery-20 {
+    color: orange;
+}
+:host ::ng-deep .popup-row i.mdi-battery-10 {
+    color: red;
+}
+:host .popup-row i.battery{
+    // text-shadow: -1px -1px 0 rgba(200,200,200, 0.5), 1px -1px 0  rgb(200,200,200, 0.5), -1px 1px 0  rgb(200,200,200, 0.5), 1px 1px 0  rgb(200,200,200, 0.5);
+    font-size: 13px;
+    line-height: 14px;
+}
+
 
 
 

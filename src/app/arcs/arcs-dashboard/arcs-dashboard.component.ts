@@ -208,9 +208,9 @@ export class ArcsDashboardComponent implements OnInit {
       if(this.selectedTab == 'dashboard' && ( !this.floorPlanFilter || c?.floorPlanCode == this.floorPlanFilter ) && (!this.robotTypeFilter || c?.robotType == this.robotTypeFilter?.toUpperCase())){
         this.refreshRobotStatus()
       }
-      if(this.robotDetailCompRef){
-        this.robotDetailCompRef.refreshRobotStatus(false)
-      }
+      // if(this.robotDetailCompRef){
+      //   this.robotDetailCompRef.refreshRobotStatus(false)
+      // }
       if(this.selectedTab == 'group'){
         this.tableRef?.retrieveData();
       }
@@ -220,9 +220,9 @@ export class ArcsDashboardComponent implements OnInit {
       if(this.selectedTab == 'dashboard' &&  this.robotInfos.map(r=>r.robotCode).includes(c)){
         this.refreshRobotStatus()
       }
-      if(this.robotDetailCompRef && this.robotDetailId == c){
-        this.robotDetailCompRef.refreshRobotStatus(false)
-      }
+      // if(this.robotDetailCompRef && this.robotDetailId == c){
+      //   this.robotDetailCompRef.refreshRobotStatus(false)
+      // }
     })
 
     this.dataSrv.signalRSubj.arcsTaskInfoChange.pipe(skip(1), takeUntil(this.$onDestroy)).subscribe((c)=>{
@@ -267,6 +267,7 @@ export class ArcsDashboardComponent implements OnInit {
     }
     this.uiSrv.loadAsyncDone(ticket)
   }
+  
 
   async refreshFloorPlanOptions(){
     var data = (await this.dataSrv.getDropList('floorplans')).data
@@ -482,16 +483,18 @@ export class ArcsDashboardComponent implements OnInit {
     //     estopped : false
     //   },
     //   {
-    //     robotType: 'MOBILE_CHAIR',
-    //     robotCode: 'Mobilechair-03',
-    //     floorPlanCode: 'AA-L5-TRANSFER',
-    //     robotStatus: 'UNKNOWN',
+    //     robotType: 'PATROL',
+    //     robotCode: 'RV-ROBOT-104',
+    //     floorPlanCode: '5W_2022',
+    //     robotStatus: 'EXECUTING',
     //     obstacleDetected : false,
     //     tiltDetected : false,
     //     estopped : false
     //   }
     // ]
     this.addAndRemoveRobotInfos(data)  
+
+    this.refreshRobotDetail(data)
 
     let robotStatusCssClassMap = {
       IDLE : 'idle',
@@ -635,6 +638,25 @@ export class ArcsDashboardComponent implements OnInit {
       this.loadData()
       this.robotDetailCompRef = null
     })
+  }
+  
+  refreshRobotDetail(data : RobotStatus[] ){
+    data.forEach(s=>{
+      this.dataSrv.initArcsRobotDataMap(s.robotCode)
+      this.dataSrv.updateArcsRobotDataMap(s.robotCode , 'status' , s.robotStatus)
+      this.dataSrv.updateArcsRobotDataMap(s.robotCode , 'estop' , s.estopped)
+      this.dataSrv.updateArcsRobotDataMap(s.robotCode , 'tiltActive' , s.tiltDetected)
+      this.dataSrv.updateArcsRobotDataMap(s.robotCode , 'obstacleDetected' , s.obstacleDetected)
+    })
+    // if(this.robotDetailCompRef){
+    //   this.robotDetailCompRef.refreshRobotStatus(false)
+    // }
+    // if(this.threeJsElRef){
+    //   robotCodes.forEach(c=>{
+    //     const robotDtlPopUp : ArcsDashboardRobotDetailComponent = this.threeJsElRef.robotObjs.filter(r=>r.robotCode == c)?.[0]?.dashboardDtlCompRef?.instance
+    //     robotDtlPopUp.refreshRobotStatus(false)
+    //   })
+    // }
   }
 
 

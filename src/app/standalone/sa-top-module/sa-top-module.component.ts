@@ -34,6 +34,7 @@ export class SaTopModuleComponent implements OnInit , OnDestroy {
   @Input() arcsRobotType = null
   @Input() arcsRobotSubType = null
   @Input() arcsRobotCode = null
+  @Input() isPartOf3dTooltip = false
   @Output() onButtonClicked : EventEmitter<any> = new EventEmitter();
   patrolFlvSrc
   ds = {} //datasource
@@ -128,6 +129,13 @@ export class SaTopModuleComponent implements OnInit , OnDestroy {
     this.uiSrv.loadAsyncDone(this.loadingTicket)
   }
 
+  getIeqSubj() {
+    if (this.util.arcsApp) {
+      this.dataSrv.initArcsRobotDataMap(this.arcsRobotCode)
+    }
+    return this.util.arcsApp ? this.dataSrv.arcsRobotDataMap[this.arcsRobotCode].ieq : this.dataSrv.signalRSubj.ieq
+  }
+ 
  async initAirQualitySubscription() {
     if (this.robotType == 'patrol') {
       let ieqReq = await this.dataSrv.httpSrv.rvRequest('GET', this.dataSrv.signalRMaster.ieq.api + (this.util.arcsApp ?  ('/' + this.arcsRobotCode) : '') , undefined , false)
@@ -180,34 +188,36 @@ export class SaTopModuleComponent implements OnInit , OnDestroy {
 
       }
       // refreshIeq(ieqData)
-      this.dataSrv.signalRSubj.ieq.pipe(skip(1),takeUntil(this.onDestroy),filter(ieq=>ieq!=null)).subscribe(ieq => refreshIeq(ieq))
-      this.dataSrv.signalRSubj.ieq.next(ieqData)
+      const ieqSubj = this.getIeqSubj()
+      ieqSubj.pipe(skip(1),takeUntil(this.onDestroy),filter(ieq=>ieq!=null)).subscribe(ieq => refreshIeq(ieq))
+      ieqSubj.next(ieqData)
     }
   }
 
   initDataSource(){
+    const ieqSubj = this.getIeqSubj()
     this.ds = {
       status : {title: 'Status', suffix: '' , icon:'mdi-autorenew' ,  signalR: this.dataSrv.signalRSubj.status},
       battery : {title: 'Battery', suffix: '%' , icon : 'mdi-battery-70' , signalR: this.dataSrv.signalRSubj.batteryRounded},
       mode : { title: 'Mode',  suffix: '' , icon:'mdi-map-marker-path' , signalR: this.dataSrv.signalRSubj.state},
       pending_task : { title: 'Current Task',  suffix: '' , icon:'mdi-file-clock-outline', signalR: this.dataSrv.signalRSubj.currentTaskId},
       wifi_signal : { title: 'Wifi', suffix: '%' , icon : 'mdi-wifi'},
-      cellular_bars : { title: 'Cellular', suffix: '/' , icon:'mdi-signal-cellular-3' , signalR : this.dataSrv.signalRSubj.cellularNumerator, suffixSignalR: this.dataSrv.signalRSubj.cellularDenominator},
-      tvoc_pid: { title: 'TVOC', suffix: 'µg/m3' , icon :'mdi-spray', signalR: this.dataSrv.signalRSubj.ieq , signalRfld : 'tvoc_pid'},
-      pm2_5: { title: 'PM 2.5', suffix: 'µg/m3', icon: 'mdi-chart-bubble', signalR: this.dataSrv.signalRSubj.ieq , signalRfld : 'pm2_5'},
-      co2: { title: 'Carbon Dioxide', suffix: 'ppm', icon: 'mdi-molecule-co2', signalR: this.dataSrv.signalRSubj.ieq , signalRfld : 'co2'},
-      air_quality: { title: 'Air Quality',  suffix: '' , icon: 'mdi-blur' , signalR : this.airQualitySubj},
-      co: { title: 'Carbon Monoxide',  suffix: 'µg/m3', icon: 'mdi-molecule-co', signalR: this.dataSrv.signalRSubj.ieq , signalRfld : 'co'},
-      pm1: { title: 'PM 1',  suffix: 'µg/m3' , icon:'mdi-scatter-plot' , signalR: this.dataSrv.signalRSubj.ieq , signalRfld : 'pm1'},
-      pm10: { title: 'PM 10',  suffix: 'µg/m3' , icon :'mdi-scatter-plot-outline' , signalR: this.dataSrv.signalRSubj.ieq , signalRfld : 'pm10'},
-      o3: { title: 'Ozone' , suffix: 'ppb' , icon:'mdi-webhook', signalR: this.dataSrv.signalRSubj.ieq , signalRfld : 'o3'},
-      no2: { title: 'Nitrogen Dioxide', suffix: 'µg/m3' , icon: 'mdi-chemical-weapon', signalR: this.dataSrv.signalRSubj.ieq , signalRfld : 'no2'},
-      temperature: { title: 'Temperature', suffix: '°C' , icon:'mdi-thermometer-lines', signalR: this.dataSrv.signalRSubj.ieq , signalRfld : 't'},
-      pressure: { title: 'Pressure',  suffix: 'hPa' , icon: 'mdi-gauge-low' , signalR: this.dataSrv.signalRSubj.ieq , signalRfld : 'p'},
-      humidity: { title: 'Humidity', suffix: '%' , icon : 'mdi-water-outline' , signalR: this.dataSrv.signalRSubj.ieq , signalRfld : 'rh'},
-      formaldehyde: { title: 'Formaldehyde',  suffix: 'ppb', icon: 'mdi-molecule', signalR: this.dataSrv.signalRSubj.ieq , signalRfld : 'hcho' },
-      light: { title: 'Light', suffix: 'lux', icon: 'mdi-white-balance-sunny', signalR: this.dataSrv.signalRSubj.ieq , signalRfld : 'light'},
-      noise: { title: 'Noise', suffix: 'dB SPL', icon: 'mdi-volume-high', signalR: this.dataSrv.signalRSubj.ieq , signalRfld : 'noise_moy'},
+      cellular_bars: { title: 'Cellular', suffix: '/', icon: 'mdi-signal-cellular-3', signalR: this.dataSrv.signalRSubj.cellularNumerator, suffixSignalR: this.dataSrv.signalRSubj.cellularDenominator },
+      tvoc_pid: { title: 'TVOC', suffix: 'µg/m3', icon: 'mdi-spray', signalR: ieqSubj, signalRfld: 'tvoc_pid' },
+      pm2_5: { title: 'PM 2.5', suffix: 'µg/m3', icon: 'mdi-chart-bubble', signalR: ieqSubj, signalRfld: 'pm2_5' },
+      co2: { title: 'Carbon Dioxide', suffix: 'ppm', icon: 'mdi-molecule-co2', signalR: ieqSubj, signalRfld: 'co2' },
+      air_quality: { title: 'Air Quality', suffix: '', icon: 'mdi-blur', signalR: this.airQualitySubj },
+      co: { title: 'Carbon Monoxide', suffix: 'µg/m3', icon: 'mdi-molecule-co', signalR: ieqSubj, signalRfld: 'co' },
+      pm1: { title: 'PM 1', suffix: 'µg/m3', icon: 'mdi-scatter-plot', signalR: ieqSubj, signalRfld: 'pm1' },
+      pm10: { title: 'PM 10', suffix: 'µg/m3', icon: 'mdi-scatter-plot-outline', signalR: ieqSubj, signalRfld: 'pm10' },
+      o3: { title: 'Ozone', suffix: 'ppb', icon: 'mdi-webhook', signalR: ieqSubj, signalRfld: 'o3' },
+      no2: { title: 'Nitrogen Dioxide', suffix: 'µg/m3', icon: 'mdi-chemical-weapon', signalR: ieqSubj, signalRfld: 'no2' },
+      temperature: { title: 'Temperature', suffix: '°C', icon: 'mdi-thermometer-lines', signalR: ieqSubj, signalRfld: 't' },
+      pressure: { title: 'Pressure', suffix: 'hPa', icon: 'mdi-gauge-low', signalR: ieqSubj, signalRfld: 'p' },
+      humidity: { title: 'Humidity', suffix: '%', icon: 'mdi-water-outline', signalR: ieqSubj, signalRfld: 'rh' },
+      formaldehyde: { title: 'Formaldehyde', suffix: 'ppb', icon: 'mdi-molecule', signalR: ieqSubj, signalRfld: 'hcho' },
+      light: { title: 'Light', suffix: 'lux', icon: 'mdi-white-balance-sunny', signalR: ieqSubj, signalRfld: 'light' },
+      noise: { title: 'Noise', suffix: 'dB SPL', icon: 'mdi-volume-high', signalR: ieqSubj, signalRfld: 'noise_moy' },
     };
     Object.keys(this.ds).filter(k=>(this.util.config.IEQ_DISABLED ? this.util.config.IEQ_DISABLED : []).includes(k)).forEach(k=>{
       this.ds[k].disabled = true

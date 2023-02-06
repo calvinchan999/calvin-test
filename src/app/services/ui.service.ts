@@ -256,15 +256,15 @@ export class RepalcePipe implements PipeTransform {
 
 @Pipe({name: 'roundDown'})
 export class RoundDownPipe implements PipeTransform {
-    transform(value: number): number {
-        return Math.floor(value);
+    transform(value): number {
+        return Math.floor(Number(value));
     }
 } 
 
 @Pipe({name: 'roundUp'})
 export class RoundUpPipe implements PipeTransform {
-    transform(value: number): number {
-        return Math.ceil(value);
+    transform(value): number {
+        return Math.ceil(Number(value));
     }
 } 
 

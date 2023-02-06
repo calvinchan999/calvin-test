@@ -220,10 +220,10 @@ export class ThreejsViewportComponent implements OnInit , OnDestroy{
     if (firstObj) {
       firstObj.setMousOverEffect()
       if (firstObj instanceof RobotObject3D || firstObj instanceof MarkerObject3D) {
-        firstObj.addMouseClickListener()
-        let tiptext = firstObj instanceof RobotObject3D ? firstObj.getTooltipText() : (firstObj instanceof MarkerObject3D ? firstObj.pointCode : null)
+        firstObj.addMouseListener()
+        let toolTipContent = firstObj instanceof RobotObject3D ? firstObj.toolTipSettings.customEl : (firstObj instanceof MarkerObject3D ? firstObj.pointCode : null)
         if (!(firstObj instanceof Object3DCommon && firstObj.toolTipAlwaysOn)) {
-          firstObj.showToolTip(tiptext, firstObj.getToolTipPos(true), firstObj instanceof MarkerObject3D ? firstObj.toolTipSettings.style : undefined)
+          firstObj.showToolTip(toolTipContent, firstObj.getToolTipPos(true))
         }
       }
     }
@@ -238,7 +238,7 @@ export class ThreejsViewportComponent implements OnInit , OnDestroy{
       if (object instanceof Object3DCommon && object!=firstObj) {
         object.removeMouseOverEffect()
         if(object instanceof RobotObject3D || object instanceof MarkerObject3D){
-          object.removeMouseClickListener()
+          object.removeMouseListener()
           if(!(object instanceof Object3DCommon && object.toolTipAlwaysOn)){
             object.hideToolTip()
           }
@@ -473,7 +473,6 @@ export class ThreejsViewportComponent implements OnInit , OnDestroy{
     if(this.floorPlanDataset){
      await this.loadFloorPlan(this.floorPlanDataset);
     }
-
   }
 
   initPasses() {
@@ -723,21 +722,21 @@ class Object3DCommon extends Object3D{
   mouseOvered = false
   clickListener
   touchListener
+  contextMenuListener
   onClick = new Subject()
-  defaultTooltipStyle = {
-    padding : '8px',
-    borderRadius : '5px',
-    lineHeight : '12px',
-    fontSize : '14px',
-    background : 'rgba( 0, 0, 0, 0.6 )',
-    whiteSspace: 'pre'
-  }
   defaultOpacity = 1
-  _color : number
-  toolTipSettings = {
-    customEl : null,
-    position : new Vector3(0,0,0) ,
-    style : { fontSize: '10px', lineHeight: '0px', background: 'rgba(0,0,0,0.4)', whiteSspace: 'pre' }
+  _color: number
+  toolTipSettings: { customEl?: HTMLElement, position?: any, style?: any } = {
+    customEl: null,
+    position: new Vector3(0, 0, 0),
+    style: {
+      padding: '8px',
+      borderRadius: '5px',
+      lineHeight: '0px',
+      fontSize: '10px',
+      background: 'rgba( 0, 0, 0, 0.45)',
+      whiteSpace: 'pre',
+    }
   }
 
   set toolTipText(v){
@@ -750,7 +749,7 @@ class Object3DCommon extends Object3D{
   set toolTipAlwaysOn(v) { //to be refractored in commonObj
     this._toolTipAlwaysOn = v
     if (v) {
-      this.showToolTip(this.toolTipSettings.customEl ? this.toolTipSettings.customEl : this.toolTipText, this.toolTipSettings.position, this.toolTipSettings.style)
+      this.showToolTip(this.toolTipSettings.customEl ? this.toolTipSettings.customEl : this.toolTipText, this.toolTipSettings.position)
     } else {
       this.hideToolTip()
     }
@@ -798,12 +797,13 @@ class Object3DCommon extends Object3D{
     if(content && (typeof(content) === 'string' || content instanceof String)){
       this.toolTipText = <any>content 
     }else if(content instanceof HTMLElement){
+      content.hidden = false
       this.toolTip.element.innerText = null
       this.toolTip.element.appendChild(content)
     }
 
-    Object.keys(this.defaultTooltipStyle).forEach(k=>{
-      this.toolTip.element.style[k] = this.defaultTooltipStyle[k]
+    Object.keys(this.toolTipSettings.style).forEach(k=>{
+      this.toolTip.element.style[k] = this.toolTipSettings.style[k]
     })
     if(addonStyle){
       Object.keys(addonStyle).forEach(k=>{
@@ -890,16 +890,24 @@ class Object3DCommon extends Object3D{
     } );
   }
 
-  addMouseClickListener() {
-    if (this.clickListener || this.touchListener) {
+  addMouseListener() {
+    if (this.clickListener || this.touchListener || this.contextMenuListener) {
       return
-    }    
+    }
     this.master.container.style.cursor = 'pointer'
-    this.clickListener =  this.master.ngRenderer.listen(this.master.container,'click',()=> this.onClick.next())
-    this.touchListener =  this.master.ngRenderer.listen(this.master.container,'touchstart',()=> this.onClick.next())
+    this.clickListener = this.master.ngRenderer.listen(this.master.container, 'click', () => this.onClick.next())
+    this.touchListener = this.master.ngRenderer.listen(this.master.container, 'touchstart', () => this.onClick.next())
+    this.contextMenuListener = this.master.ngRenderer.listen(this.master.container, 'contextmenu', () => {
+      this.toolTipAlwaysOn = !this.toolTipAlwaysOn
+      if (!this.toolTipAlwaysOn && this.master?.robotObjs.every(r => !r.toolTipAlwaysOn)) {
+        this.master.uiToggles.showRobotStatus = false
+      } else if (this.master) {
+        this.master.uiToggles.showRobotStatus = true
+      }
+    })
   }
 
-  removeMouseClickListener() {
+  removeMouseListener() {
     if (this.clickListener) {
       if(!this.master.focusedObj){
         this.master.container.style.cursor = 'default'
@@ -910,6 +918,10 @@ class Object3DCommon extends Object3D{
     if(this.touchListener){
       this.touchListener()
       this.touchListener = null
+    }
+    if(this.contextMenuListener){
+      this.contextMenuListener()
+      this.contextMenuListener = null
     }
   }
 
@@ -1020,28 +1032,28 @@ export class RobotObject3D extends Object3DCommon{
       scale : 30,
       position: { x: 0, y: 0, z: -12.5 },
       rotate: { x: 0, y: 0, z: 180 / radRatio },
-      alertPositionZ : 45
+      toolTipPositionZ : 45
     },
     FLOOR_SCRUB: {
       path : ASSETS_ROOT + "/robot_floor_scrub.glb",
       scale : 0.6,
       position: { x: 0, y: 0, z: -12.5 },
       rotate: { x: 90 / radRatio, y:  180 / radRatio , z: 0 },
-      alertPositionZ : 45
+      toolTipPositionZ : 45
     },
     MOBILE_CHAIR:{    
       path : ASSETS_ROOT + "/robot_mobile_chair.glb",
       scale : 0.6,
       position: { x: 0, y: 0, z: -12.5 },
       rotate: { x: 90 / radRatio, y:  180 / radRatio , z: 0 },
-      alertPositionZ : 45
+      toolTipPositionZ : 45
     },
     PATROL: {
       path : ASSETS_ROOT + "/robot_patrol.glb",
       scale : 30,
       position: { x: 0, y: 0, z: -12.5 },
       rotate: { x: 0, y: 0, z: 180 / radRatio },
-      alertPositionZ : 45
+      toolTipPositionZ : 55,
       // recolorMaterials : ['0.019608_0.000000_0.000000_0.000000_0.000000']
       // replaceColors:[{r: 0 , g : 0 , b : 0 , tolerance : 0.1}], 
     },
@@ -1052,35 +1064,35 @@ export class RobotObject3D extends Object3DCommon{
           scale : 25,
           position: { x: 0, y: 0, z: -12.5 },
           rotate: {x : NORMAL_ANGLE_ADJUSTMENT, y: 0, z: 180 / radRatio },
-          alertPositionZ : 40
+          toolTipPositionZ : 40
         }
       },
       path : ASSETS_ROOT + "/robot_delivery.glb",
       scale : 0.6,
       position: { x: 0, y: 0, z: -12.5 },
       rotate: {x : NORMAL_ANGLE_ADJUSTMENT, y: 0, z: 180 / radRatio },
-      alertPositionZ : 40
+      toolTipPositionZ : 40
     },
     DISINFECTION: {
       path : ASSETS_ROOT + "/robot_disinfection.glb",
       scale : 0.6,
       position: { x: 0, y: 0, z: -12.5 },
       rotate: { x: 90 / radRatio, y:  180 / radRatio , z: 0 },
-      alertPositionZ : 40
+      toolTipPositionZ : 40
     },
     FORKLIFT: {
       path : ASSETS_ROOT + "/robot_forklift.glb",
       scale : 0.6,
       position: { x: 0, y: 0, z: -12.5 },
       rotate: { x: 90 / radRatio, y:  180 / radRatio , z: 0 },
-      alertPositionZ : 40
+      toolTipPositionZ : 40
     },
     STOCKTAKING: {
       path : ASSETS_ROOT + "/robot_stocktaking.glb",
       scale : 0.6,
       position: { x: 0, y: 0, z: -12.5 },
       rotate: { x: 90 / radRatio, y:  180 / radRatio , z: 0 },
-      alertPositionZ : 40
+      toolTipPositionZ : 40
     },
 
   }
@@ -1124,13 +1136,6 @@ export class RobotObject3D extends Object3DCommon{
     }
     this.toolTipAlwaysOn = !v && this.master.uiToggles.showRobotStatus
     this._offline = v
-    // this.gltf?.scene.traverse((s: any) => {
-    //   if (s.isMesh === true && s.material?.originalHex != null) {
-    //     console.log(this.offlineColor)
-    //     s.material.emissive.setHex(v ? this.offlineColor : s.material?.originalHex)
-    //   }
-    // });
-    // this.opacity =  v ? 0.5 : 1
   }
   set alert(v){
     this._alert = v
@@ -1172,7 +1177,7 @@ export class RobotObject3D extends Object3DCommon{
         new Object3DCommon(this.master).getMaterials(  this.alertIcon ).forEach(m=>m.color.set(0xFF0000))
         this.alertIcon.rotateX(-NORMAL_ANGLE_ADJUSTMENT)
         this.alertIcon.scale.set(this.alertIconSetting.size , this.alertIconSetting.size , this.alertIconSetting.size)
-        this.alertIcon.position.z = setting.alertPositionZ ? setting.alertPositionZ : this.alertIconSetting.positionZ
+        this.alertIcon.position.z = setting.toolTipPositionZ ? setting.toolTipPositionZ : this.alertIconSetting.positionZ
         this.add(this.alertIcon)
 
         this.gltf.scene.scale.set(setting.scale, setting.scale, setting.scale)
@@ -1221,11 +1226,12 @@ export class RobotObject3D extends Object3DCommon{
     this.dashboardDtlCompRef = this.master.vcRef.createComponent(this.master.compResolver.resolveComponentFactory(ArcsDashboardRobotDetailComponent))
     this.dashboardDtlCompRef.instance.robotId = this.robotCode
     this.toolTipSettings.customEl = this.dashboardDtlCompRef.instance.elRef.nativeElement 
+    this.toolTipSettings.customEl.hidden = true
   }
 
 
   getToolTipPos(isMouseOver = false) {
-    return isMouseOver ? new Vector3(0, 0, 25) : new Vector3(0, 0, 75)
+    return  new Vector3(0, 0, this.importSetting?.toolTipPositionZ?   this.importSetting?.toolTipPositionZ : 25)
   }
 
   updatePositionAndRotation(pose : {x : number  , y : number , angle : number , interval : number}){
@@ -1311,9 +1317,9 @@ export class RobotObject3D extends Object3DCommon{
     this.add(this.frontFacePointer)
   }
 
-  getTooltipText(){
-    return `${this.robotCode} ${this.offline ? this.master.uiSrv.translate("\n (Offline)") : ""}` 
-  }
+  // getTooltipText(){
+  //   return `${this.robotCode} ${this.offline ? this.master.uiSrv.translate("\n (Offline)") : ""}` 
+  // }
 
   getPositionZ(x: number, y: number) {
     if(!this.master.floorplan?.maxDepth ){
@@ -1436,7 +1442,7 @@ class Import3DModelSettings {
   recolorMaterials?: string[]
   replaceMaterial? : Object //key : material name  , values : image path
   replaceColors?: {r:number , g: number , b : number , tolerance : number}[]
-  alertPositionZ ? : number
+  toolTipPositionZ ? : number
 }
 
 // test16WIphoneScanned(){
