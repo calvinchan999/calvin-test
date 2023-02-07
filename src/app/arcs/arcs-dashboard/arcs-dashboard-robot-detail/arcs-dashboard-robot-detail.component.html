@@ -103,7 +103,7 @@
             </span>
     
             <span *ngIf="ds.battery.signalR?.value">
-                <i [class]="'battery mdi mdi-battery-' + ( ds.battery.signalR?.value < 10 ? '10' : ((ds.battery.signalR?.value / 10) | roundDown) * 10) "></i> 
+                <i [class]="'battery mdi mdi-battery' + ( ds.battery.signalR?.value == 100 ? '' : ('-' + ( ds.battery.signalR?.value < 10 ? '10' : ((ds.battery.signalR?.value / 10) | roundDown) * 10))) "></i> 
                 <span>{{ds.battery.signalR?.value}}%</span>
             </span>
         </div>

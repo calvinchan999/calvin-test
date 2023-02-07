@@ -2576,7 +2576,7 @@ export class DrawingBoardComponent implements OnInit , AfterViewInit , OnDestroy
         let robotsAdded = []
         // console.log('test')
         let getPose = (robotId) => { return poseObj[mapCode][robotId] }
-        let refreshPose = (r : Robot) => r.refreshPose(getPose(r.id).x, getPose(r.id).y, getPose(r.id).angle, getPose(r.id).interval, mapCode, r.robotBase)
+        let refreshPose = (r: Robot) => r.refreshPose(getPose(r.id).x, getPose(r.id).y, getPose(r.id).angle, getPose(r.id).interval, mapCode, r.robotBase, undefined, undefined, getPose(r.id).timeStamp)
         //all related map containers MUST be added already before calling this function/all related map containers MUST be added already before calling this function
         //let container = this.mapContainerStore[mapCode] //  + robotBase //
         let robotCodes = Object.keys(poseObj[mapCode])
@@ -2971,7 +2971,7 @@ export class Robot {
   public mapCode
   public robotBase
   public id: string;
-  public rosPose  = { position: { x: null, y: null }, angleRad: 0, frame_id: '' };
+  public rosPose  = { position: { x: null, y: null }, angleRad: 0, frame_id: '' , timeStamp : null};
   public pose = { position: { x: null, y: null }, angle: 0, frame_id: '' };
   public pixiGraphics = new PixiCommon()
   public clicked = new EventEmitter();
@@ -3137,7 +3137,10 @@ export class Robot {
     this.pixiGraphics.visible = true
   }
 
-  public refreshPose(rosX, rosY, angle =  this.pose.angle, endInMs = null, mapCode = null , robotBase = null, noTransition = false , hasOriginMarker = false) {
+  public refreshPose(rosX, rosY, angle =  this.pose.angle, endInMs = null, mapCode = null , robotBase = null, noTransition = false , hasOriginMarker = false , timeStamp = null) {
+    if( timeStamp!=null && this.rosPose?.timeStamp == timeStamp){
+      return
+    }
     if (this.movingRef) {
       clearInterval(this.movingRef);
       this.movingRef = null;
@@ -3149,6 +3152,7 @@ export class Robot {
     const orgAngle = this.pose.angle
     this.rosPose.position.x = rosX
     this.rosPose.position.y = rosY
+    this.rosPose.timeStamp = timeStamp
     var origins = [undefined , undefined]
     if(hasOriginMarker){
       origins = [this.parent.pixiRosMapOriginMarker.position.x , this.parent.pixiRosMapOriginMarker.position.y ] 

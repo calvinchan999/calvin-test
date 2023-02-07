@@ -35,7 +35,6 @@ export class TestSignalRComponent implements OnInit {
 
   async invokeSignalR(topic , content , interval = this.seriesInterval ) {
     content = JSON.parse(content)
-    console.log(content)
     if (content instanceof Array && topic != 'rvautotech/fobo/wifi') {
       for (let i = 0; i < content.length; i++) {
         // if(topic == 'rvautotech/fobo/map/occupancyGrid'){
@@ -98,47 +97,105 @@ export class TestSignalRComponent implements OnInit {
     })
   }
 
-  stressTest(){
+  matterPortStressTest(verify = false){
+    if(verify && this.content!='CHRIS'){
+      console.log('Please authorise to use this function')
+      return
+    }
     for(let i = 1 ; i < 10 ; i++){
       let content = 
       `[
-        {"robotId":"DUMMY-ROBOT","mapName":"DIM_TEST","x":0 + ${i*2},"y":0 ,"angle":0.7},
-        {"robotId":"DUMMY-ROBOT","mapName":"DIM_TEST","x":0 + ${i*2},"y":0,"angle":0.7},
-        {"robotId":"DUMMY-ROBOT","mapName":"DIM_TEST","x":0 + ${i*2},"y":0,"angle":0.7},
-        {"robotId":"DUMMY-ROBOT","mapName":"DIM_TEST","x":0+ ${i*2},"y":0,"angle":0.7},
-        {"robotId":"DUMMY-ROBOT","mapName":"DIM_TEST","x":0+ ${i*2},"y":0,"angle":0.7},
-        {"robotId":"DUMMY-ROBOT","mapName":"DIM_TEST","x":0+ ${i*2},"y":0,"angle":0.7},
-        {"robotId":"DUMMY-ROBOT","mapName":"DIM_TEST","x":1+ ${i*2},"y":0.5,"angle":0.7},
-        {"robotId":"DUMMY-ROBOT","mapName":"DIM_TEST","x":2+ ${i*2},"y":1.1,"angle":0.7},
-        {"robotId":"DUMMY-ROBOT","mapName":"DIM_TEST","x":3+ ${i*2},"y":1.5,"angle":0.7},
-        {"robotId":"DUMMY-ROBOT","mapName":"DIM_TEST","x":4+ ${i*2},"y":2.0,"angle":0.7},
-        {"robotId":"DUMMY-ROBOT","mapName":"DIM_TEST","x":5+ ${i*2},"y":2.5,"angle":0.7},
-        {"robotId":"DUMMY-ROBOT","mapName":"DIM_TEST","x":6+ ${i*2},"y":3.0,"angle":0.7},
-        {"robotId":"DUMMY-ROBOT","mapName":"DIM_TEST","x":7+ ${i*2},"y":3.5,"angle":0.2},
-        {"robotId":"DUMMY-ROBOT","mapName":"DIM_TEST","x":8+ ${i*2},"y":3.8,"angle":0},
-        {"robotId":"DUMMY-ROBOT","mapName":"DIM_TEST","x":9+ ${i*2},"y":3.5,"angle":-0.3},
-        {"robotId":"DUMMY-ROBOT","mapName":"DIM_TEST","x":9.5+ ${i*2},"y":3,"angle":-0.5},
-        {"robotId":"DUMMY-ROBOT","mapName":"DIM_TEST","x":9.5+ ${i*2},"y":3,"angle":-2.5},
-        {"robotId":"DUMMY-ROBOT","mapName":"DIM_TEST","x":9+ ${i*2},"y":3,"angle":-2.5},
-        {"robotId":"DUMMY-ROBOT","mapName":"DIM_TEST","x":8+ ${i*2},"y":3,"angle":-2.5},
-        {"robotId":"DUMMY-ROBOT","mapName":"DIM_TEST","x":7.5+ ${i*2},"y":2.5,"angle":-2.5},
-        {"robotId":"DUMMY-ROBOT","mapName":"DIM_TEST","x":7+ ${i*2},"y":2.5,"angle":-3},
-        {"robotId":"DUMMY-ROBOT","mapName":"DIM_TEST","x":6+ ${i*2},"y":2.5,"angle":-3},
-        {"robotId":"DUMMY-ROBOT","mapName":"DIM_TEST","x":5+ ${i*2},"y":2,"angle":-3},
-        {"robotId":"DUMMY-ROBOT","mapName":"DIM_TEST","x":4+ ${i*2},"y":1.5,"angle":-3},
-        {"robotId":"DUMMY-ROBOT","mapName":"DIM_TEST","x":3+ ${i*2},"y":1,"angle":-3},
-        {"robotId":"DUMMY-ROBOT","mapName":"DIM_TEST","x":2+ ${i*2},"y":0.5,"angle":-3},
-        {"robotId":"DUMMY-ROBOT","mapName":"DIM_TEST","x":1+ ${i*2},"y":0.5,"angle":-3},
-        {"robotId":"DUMMY-ROBOT","mapName":"DIM_TEST","x":0+ ${i*2},"y":0,"angle":-2},
-        {"robotId":"DUMMY-ROBOT","mapName":"DIM_TEST","x":0+ ${i*2},"y":0,"angle":-0.9},
-        {"robotId":"DUMMY-ROBOT","mapName":"DIM_TEST","x":0+ ${i*2},"y":0,"angle":0.7}
+        {"robotId":"DUMMY-ROBOT","mapName":"ASD","x": ${0 + i * 2},"y":0 ,"angle":0.7},
+        {"robotId":"DUMMY-ROBOT","mapName":"ASD","x": ${0 + i * 2},"y":0,"angle":0.7},
+        {"robotId":"DUMMY-ROBOT","mapName":"ASD","x": ${0 + i * 2},"y":0,"angle":0.7},
+        {"robotId":"DUMMY-ROBOT","mapName":"ASD","x":${0 + i * 2},"y":0,"angle":0.7},
+        {"robotId":"DUMMY-ROBOT","mapName":"ASD","x": ${0 + i * 2},"y":0,"angle":0.7},
+        {"robotId":"DUMMY-ROBOT","mapName":"ASD","x": ${0 + i * 2},"y":0,"angle":0.7},
+        {"robotId":"DUMMY-ROBOT","mapName":"ASD","x": ${1 + i * 2},"y":0.5,"angle":0.7},
+        {"robotId":"DUMMY-ROBOT","mapName":"ASD","x": ${2 + i * 2},"y":1.1,"angle":0.7},
+        {"robotId":"DUMMY-ROBOT","mapName":"ASD","x": ${3 + i * 2},"y":1.5,"angle":0.7},
+        {"robotId":"DUMMY-ROBOT","mapName":"ASD","x": ${4 + i * 2},"y":2.0,"angle":0.7},
+        {"robotId":"DUMMY-ROBOT","mapName":"ASD","x": ${5 + i * 2},"y":2.5,"angle":0.7},
+        {"robotId":"DUMMY-ROBOT","mapName":"ASD","x": ${6 + i * 2},"y":3.0,"angle":0.7},
+        {"robotId":"DUMMY-ROBOT","mapName":"ASD","x": ${7 + i * 2},"y":3.5,"angle":0.2},
+        {"robotId":"DUMMY-ROBOT","mapName":"ASD","x": ${8 + i * 2},"y":3.8,"angle":0},
+        {"robotId":"DUMMY-ROBOT","mapName":"ASD","x": ${9 + i * 2},"y":3.5,"angle":-0.3},
+        {"robotId":"DUMMY-ROBOT","mapName":"ASD","x": ${9.5 + i * 2},"y":3,"angle":-0.5},
+        {"robotId":"DUMMY-ROBOT","mapName":"ASD","x": ${9.5 + i * 2},"y":3,"angle":-2.5},
+        {"robotId":"DUMMY-ROBOT","mapName":"ASD","x":${9 + i * 2},"y":3,"angle":-2.5},
+        {"robotId":"DUMMY-ROBOT","mapName":"ASD","x": ${8 + i * 2},"y":3,"angle":-2.5},
+        {"robotId":"DUMMY-ROBOT","mapName":"ASD","x": ${7.5 + i * 2},"y":2.5,"angle":-2.5},
+        {"robotId":"DUMMY-ROBOT","mapName":"ASD","x": ${7 + i * 2},"y":2.5,"angle":-3},
+        {"robotId":"DUMMY-ROBOT","mapName":"ASD","x":${6 + i * 2},"y":2.5,"angle":-3},
+        {"robotId":"DUMMY-ROBOT","mapName":"ASD","x": ${5 + i * 2},"y":2,"angle":-3},
+        {"robotId":"DUMMY-ROBOT","mapName":"ASD","x": ${4 + i * 2},"y":1.5,"angle":-3},
+        {"robotId":"DUMMY-ROBOT","mapName":"ASD","x": ${3 + i * 2},"y":1,"angle":-3},
+        {"robotId":"DUMMY-ROBOT","mapName":"ASD","x": ${2 + i * 2},"y":0.5,"angle":-3},
+        {"robotId":"DUMMY-ROBOT","mapName":"ASD","x": ${1 + i * 2},"y":0.5,"angle":-3},
+        {"robotId":"DUMMY-ROBOT","mapName":"ASD","x": ${0 + i * 2},"y":0,"angle":-2},
+        {"robotId":"DUMMY-ROBOT","mapName":"ASD","x":${0 + i * 2},"y":0,"angle":-0.9},
+        {"robotId":"DUMMY-ROBOT","mapName":"ASD","x":${0 + i * 2},"y":0,"angle":0.7}
       ]`
       //30
-      content = content.split("DUMMY-ROBOT").join("DUMMY-ROBOT" + '-' + i)
-      this.invokeSignalR( 'rvautotech/fobo/pose/DIM_TEST', content , 1)
-      setTimeout(()=>this.stressTest(), 30 * 1000)
+      content = content.split("DUMMY-ROBOT").join("DUMMY-TEST" + '-' + i)
+      this.invokeSignalR('rvautotech/fobo/pose/ASD', content , 1)
+      // let content2 = `
+      //   [{"robotId":"${"DUMMY-TEST-" + i}","percentage":0.8},{"robotId":"${"DUMMY-TEST-" + i}","percentage":0.4},{"robotId":"${"DUMMY-TEST-" + i}","percentage":0.2}]
+      // `
+      // this.invokeSignalR(`rvautotech/fobo/battery/${"DUMMY-TEST-" + i}` , content2 , 10)
     }
+    setTimeout(()=>this.matterPortStressTest(), 30 * 1000)
 
+  }
+
+  stressTest(verify = false){
+    if(verify && this.content!='CHRIS'){
+      console.log('Please authorise to use this function')
+      return
+    }
+    for(let i = 1 ; i < 10 ; i++){
+      let content = 
+      `[
+        {"robotId":"DUMMY-ROBOT","mapName":"DIM_TEST","x": ${0 + i * 2},"y":0 ,"angle":0.7},
+        {"robotId":"DUMMY-ROBOT","mapName":"DIM_TEST","x": ${0 + i * 2},"y":0,"angle":0.7},
+        {"robotId":"DUMMY-ROBOT","mapName":"DIM_TEST","x": ${0 + i * 2},"y":0,"angle":0.7},
+        {"robotId":"DUMMY-ROBOT","mapName":"DIM_TEST","x":${0 + i * 2},"y":0,"angle":0.7},
+        {"robotId":"DUMMY-ROBOT","mapName":"DIM_TEST","x": ${0 + i * 2},"y":0,"angle":0.7},
+        {"robotId":"DUMMY-ROBOT","mapName":"DIM_TEST","x": ${0 + i * 2},"y":0,"angle":0.7},
+        {"robotId":"DUMMY-ROBOT","mapName":"DIM_TEST","x": ${1 + i * 2},"y":0.5,"angle":0.7},
+        {"robotId":"DUMMY-ROBOT","mapName":"DIM_TEST","x": ${2 + i * 2},"y":1.1,"angle":0.7},
+        {"robotId":"DUMMY-ROBOT","mapName":"DIM_TEST","x": ${3 + i * 2},"y":1.5,"angle":0.7},
+        {"robotId":"DUMMY-ROBOT","mapName":"DIM_TEST","x": ${4 + i * 2},"y":2.0,"angle":0.7},
+        {"robotId":"DUMMY-ROBOT","mapName":"DIM_TEST","x": ${5 + i * 2},"y":2.5,"angle":0.7},
+        {"robotId":"DUMMY-ROBOT","mapName":"DIM_TEST","x": ${6 + i * 2},"y":3.0,"angle":0.7},
+        {"robotId":"DUMMY-ROBOT","mapName":"DIM_TEST","x": ${7 + i * 2},"y":3.5,"angle":0.2},
+        {"robotId":"DUMMY-ROBOT","mapName":"DIM_TEST","x": ${8 + i * 2},"y":3.8,"angle":0},
+        {"robotId":"DUMMY-ROBOT","mapName":"DIM_TEST","x": ${9 + i * 2},"y":3.5,"angle":-0.3},
+        {"robotId":"DUMMY-ROBOT","mapName":"DIM_TEST","x": ${9.5 + i * 2},"y":3,"angle":-0.5},
+        {"robotId":"DUMMY-ROBOT","mapName":"DIM_TEST","x": ${9.5 + i * 2},"y":3,"angle":-2.5},
+        {"robotId":"DUMMY-ROBOT","mapName":"DIM_TEST","x":${9 + i * 2},"y":3,"angle":-2.5},
+        {"robotId":"DUMMY-ROBOT","mapName":"DIM_TEST","x": ${8 + i * 2},"y":3,"angle":-2.5},
+        {"robotId":"DUMMY-ROBOT","mapName":"DIM_TEST","x": ${7.5 + i * 2},"y":2.5,"angle":-2.5},
+        {"robotId":"DUMMY-ROBOT","mapName":"DIM_TEST","x": ${7 + i * 2},"y":2.5,"angle":-3},
+        {"robotId":"DUMMY-ROBOT","mapName":"DIM_TEST","x":${6 + i * 2},"y":2.5,"angle":-3},
+        {"robotId":"DUMMY-ROBOT","mapName":"DIM_TEST","x": ${5 + i * 2},"y":2,"angle":-3},
+        {"robotId":"DUMMY-ROBOT","mapName":"DIM_TEST","x": ${4 + i * 2},"y":1.5,"angle":-3},
+        {"robotId":"DUMMY-ROBOT","mapName":"DIM_TEST","x": ${3 + i * 2},"y":1,"angle":-3},
+        {"robotId":"DUMMY-ROBOT","mapName":"DIM_TEST","x": ${2 + i * 2},"y":0.5,"angle":-3},
+        {"robotId":"DUMMY-ROBOT","mapName":"DIM_TEST","x": ${1 + i * 2},"y":0.5,"angle":-3},
+        {"robotId":"DUMMY-ROBOT","mapName":"DIM_TEST","x": ${0 + i * 2},"y":0,"angle":-2},
+        {"robotId":"DUMMY-ROBOT","mapName":"DIM_TEST","x":${0 + i * 2},"y":0,"angle":-0.9},
+        {"robotId":"DUMMY-ROBOT","mapName":"DIM_TEST","x":${0 + i * 2},"y":0,"angle":0.7}
+      ]`
+      //30
+      content = content.split("DUMMY-ROBOT").join("DUMMY-TEST" + '-' + i)
+      this.invokeSignalR('rvautotech/fobo/pose/DIM_TEST', content , 1)
+      let content2 = `
+        [{"robotId":"${"DUMMY-TEST-" + i}","percentage":0.8},{"robotId":"${"DUMMY-TEST-" + i}","percentage":0.4},{"robotId":"${"DUMMY-TEST-" + i}","percentage":0.2}]
+      `
+      this.invokeSignalR(`rvautotech/fobo/battery/${"DUMMY-TEST-" + i}` , content2 , 10)
+    }
+    setTimeout(()=>this.stressTest(), 30 * 1000)
   }
 
   sampleData = {

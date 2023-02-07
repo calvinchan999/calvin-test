@@ -56,7 +56,7 @@
     color: #aaa;
 }
 
-:host ::ng-deep .popup-row i.mdi-battery-90,  :host ::ng-deep .popup-row i.mdi-battery-80 {
+:host ::ng-deep .popup-row i.mdi-battery , :host ::ng-deep .popup-row i.mdi-battery-90,  :host ::ng-deep .popup-row i.mdi-battery-80 {
     color: greenyellow;
 }
 :host ::ng-deep .popup-row i.mdi-battery-70,  :host ::ng-deep .popup-row i.mdi-battery-60 , :host ::ng-deep .popup-row i.mdi-battery-50, :host ::ng-deep .popup-row i.mdi-battery-40{

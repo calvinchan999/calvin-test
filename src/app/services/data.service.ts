@@ -394,12 +394,16 @@ export class DataService {
                               Object.keys(poseObj).filter(k=>k!=p.mapName && Object.keys(poseObj[k]).includes(p.robotId)).forEach(k=>delete poseObj[k][p.robotId])
                               poseObj[p.mapName] = poseObj[p.mapName]? poseObj[p.mapName] : {}
                               let oldTimeStamp = poseObj[p.mapName]?.[p.robotId]?.timeStamp
+                              // if(poseObj[p.mapName]?.[p.robotId]?.timeStamp == new Date().getTime()){
+                              //   console.log('redundant')
+                              // }
                               poseObj[p.mapName][p.robotId] = {
                                 x: p.x, y: p.y, angle: p.angle,
                                 mapName: p.mapName,
                                 timeStamp: new Date().getTime(),
                                 interval: (oldTimeStamp? new Date().getTime() - oldTimeStamp : 0)
                               }
+                             
                             return poseObj
                           }
                   }

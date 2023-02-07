@@ -5,13 +5,14 @@ import * as THREE from 'three';
 import { GLTF, GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader';
 import { MTLLoader } from 'three/examples/jsm/loaders/MTLLoader';
 import { OBJLoader } from 'three/examples/jsm/loaders/OBJLoader';
+import {TWEEN} from "three/examples/jsm/libs/tween.module.min";
 import { DragControls } from 'three/examples/jsm/controls/DragControls';
 import { AmbientLight, DirectionalLight, DoubleSide, Group, Mesh, Object3D, ShapeGeometry, WebGLRenderer ,BufferGeometry, LineSegments, MeshStandardMaterial, Vector3, MeshBasicMaterial, ShaderMaterial, Material, MeshPhongMaterial } from 'three';
 import { GeneralUtil } from 'src/app/utils/general/general.util';
 import { DataService, DropListFloorplan, DropListRobot, JFloorPlan, JMap, JPoint, RobotDetailARCS } from 'src/app/services/data.service';
-import { debounce, debounceTime, filter, retry, share, skip, switchMap, take, takeUntil } from 'rxjs/operators';
+import { debounce, debounceTime, filter, retry, share, skip, switchMap, take, takeUntil , map } from 'rxjs/operators';
 import { radRatio } from '../drawing-board/drawing-board.component';
-import { Subject } from 'rxjs';
+import { interval, Observable, Subject, Subscription } from 'rxjs';
 import { CSS2DRenderer, CSS2DObject } from 'three/examples/jsm/renderers/CSS2DRenderer'; //three-css2drender
 import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls';
 import { BufferGeometryUtils  } from 'three/examples/jsm/utils/BufferGeometryUtils';
@@ -26,6 +27,7 @@ import { Color } from '@progress/kendo-drawing';
 import { transform } from 'typescript';
 import { DRACOLoader } from 'three/examples/jsm/loaders/DRACOLoader';
 import { ArcsDashboardRobotDetailComponent } from 'src/app/arcs/arcs-dashboard/arcs-dashboard-robot-detail/arcs-dashboard-robot-detail.component';
+
 
 const NORMAL_ANGLE_ADJUSTMENT =  - 90 / radRatio
 const ASSETS_ROOT = 'assets/3D'
@@ -167,6 +169,7 @@ export class ThreejsViewportComponent implements OnInit , OnDestroy{
 
   animate() {
     this.animationRequestId = requestAnimationFrame(this.animate.bind(this))
+      TWEEN.update();
     if(!this.suspended){
       //this.renderer.render(this.scene, this.camera )
       this.labelRenderer?.render( this.scene, this.camera );
@@ -553,7 +556,7 @@ export class ThreejsViewportComponent implements OnInit , OnDestroy{
           this.refreshRobotColors()
         }
 
-        let pose : {x : number , y : number , angle : number , interval : number} = poseObj[mapCode][robotCode]
+        let pose : {x : number , y : number , angle : number , interval : number , timeStamp : number} = poseObj[mapCode][robotCode]
         if(robot && mapMesh){
           robot.updatePositionAndRotation(pose)
           if(isNewRobot){
@@ -1014,12 +1017,10 @@ export class RobotObject3D extends Object3DCommon{
   rayCaster = new THREE.Raycaster();
   rayCasterZoffset = 0
   targetPose : {
+    timeStamp : number
     vector :  Vector3
     rotation : number
-    vectorDiff : Vector3
-    rotationDiff : number
-    movingRef : any
-    ticksRemaining : number
+    movingTweenRef : any
   }
   get importSetting(){
     let setting = this.robotImportSetting[this.robotType] 
@@ -1234,17 +1235,27 @@ export class RobotObject3D extends Object3DCommon{
     return  new Vector3(0, 0, this.importSetting?.toolTipPositionZ?   this.importSetting?.toolTipPositionZ : 25)
   }
 
-  updatePositionAndRotation(pose : {x : number  , y : number , angle : number , interval : number}){
+  updatePositionAndRotation(pose : {x : number  , y : number , angle : number , interval : number , timeStamp : number}){
+    if(pose.timeStamp == this.targetPose?.timeStamp){
+      return
+    }
+    const defaultDurationMs = 1000
+    const MaxDurationMs = 3000
+    // let test= new Date()
+    // console.log(`${test.getMinutes().toString().padStart(2 , '0')} : ${test.getSeconds().toString().padStart(2 , '0')}  : ${test.getMilliseconds().toString().padStart(2 , '0')}`)
     let vector =  this.master.getConvertedRobotVector(pose.x , pose.y , <MapMesh>this.parent) 
-    const frameMs = 50
-    const totalTicks =  Math.max(1 , Math.ceil(Math.min((pose.interval ? pose.interval : frameMs) , 3000) / frameMs))
-    let diffAngle = (pose.angle * radRatio - 90 - this.rotation.z * radRatio) 
-    diffAngle = diffAngle > 180 ? (diffAngle - 360) : diffAngle < -180 ? (360 + diffAngle) : diffAngle
+    // const frameMs = 100
+    // const totalTicks =  Math.max(1 , Math.ceil(Math.min((pose.interval ? pose.interval : frameMs) , 3000) / frameMs))
+    // let diffAngle = (pose.angle * radRatio - 90 - this.rotation.z * radRatio) 
+    // diffAngle = diffAngle > 180 ? (diffAngle - 360) : diffAngle < -180 ? (360 + diffAngle) : diffAngle
 
     let forceUpdate = (v : Vector3 , r : number)=>{
-      if(this.targetPose?.movingRef){
-        this.targetPose.ticksRemaining = 0
-        clearInterval(this.targetPose.movingRef)
+      if(this.targetPose?.movingTweenRef){
+        // this.targetPose.ticksRemaining = 0
+        this.targetPose.movingTweenRef.stop();
+        TWEEN.remove(this.targetPose.movingTweenRef);
+        // clearInterval(this.targetPose.movingRef)
+        // this.targetPose?.movingRef.unsubscribe()
       }
       this.position.set(v.x, v.y, v.z) //this.position.set(v.x , v.y , v.z)      
       this.position.z = this.getPositionZ(this.position.x , this.position.y )
@@ -1253,33 +1264,90 @@ export class RobotObject3D extends Object3DCommon{
 
     if(!this.targetPose){//just spawn or not using smooth transition
       forceUpdate(vector , pose.angle - 90 / radRatio)
-    }else if(this.targetPose.ticksRemaining > 0 ){ 
+    }else{
       forceUpdate(this.targetPose.vector , this.targetPose.rotation)
     }
+    // else if(this.targetPose.ticksRemaining > 0 ){ 
+    //   forceUpdate(this.targetPose.vector , this.targetPose.rotation)
+    // }
 
     if(this.master.util.config.MOVE_USING_TRANSITION){
       this.targetPose = {
+        timeStamp : pose.timeStamp,
         vector : vector,
         rotation :  (pose.angle - 90 / radRatio),
-        vectorDiff : new Vector3(vector.x - this.position.x , vector.y - this.position.y , vector.z),
-        rotationDiff : diffAngle / radRatio,        
-        ticksRemaining :totalTicks,
-        movingRef : setInterval(()=> {
-          if( this.targetPose.ticksRemaining > 1){ // not arrived
-            this.position.x += this.targetPose.vectorDiff.x / totalTicks
-            this.position.y += this.targetPose.vectorDiff.y / totalTicks
-            this.rotation.z += this.targetPose.rotationDiff / totalTicks 
-            this.position.z = this.getPositionZ(this.position.x , this.position.y )
-            this.targetPose.ticksRemaining -= 1
-          }else{
-            forceUpdate(this.targetPose.vector , this.targetPose.rotation)
-          }
-        }, frameMs)
+        // vectorDiff : new Vector3(vector.x - this.position.x , vector.y - this.position.y , vector.z),
+        // rotationDiff : diffAngle / radRatio,        
+        // ticksRemaining :totalTicks,
+        // targetTicks : totalTicks,
+        movingTweenRef: new TWEEN.Tween(this.position).to(vector, Math.ceil(Math.min((pose.interval ? pose.interval : defaultDurationMs) , MaxDurationMs) )).start()
       }
+      // interval(frameMs).subscribe(() => {
+      //   if (this.targetPose.ticksRemaining > 1) { // not arrived
+      //     this.position.x += this.targetPose.vectorDiff.x / totalTicks
+      //     this.position.y += this.targetPose.vectorDiff.y / totalTicks
+      //     this.rotation.z += this.targetPose.rotationDiff / totalTicks
+      //     this.position.z = this.getPositionZ(this.position.x, this.position.y)
+      //     this.targetPose.ticksRemaining -= 1
+      //   } else {
+      //     forceUpdate(this.targetPose.vector, this.targetPose.rotation)
+      //   }
+      // })
     }else{
       forceUpdate(vector , pose.angle - 90 / radRatio)      
     } 
   }
+
+  // updatePositionAndRotation(pose : {x : number  , y : number , angle : number , interval : number}){
+  //   let vector =  this.master.getConvertedRobotVector(pose.x , pose.y , <MapMesh>this.parent) 
+  //   const frameMs = 100
+  //   const totalTicks =  Math.max(1 , Math.ceil(Math.min((pose.interval ? pose.interval : frameMs) , 3000) / frameMs))
+  //   let diffAngle = (pose.angle * radRatio - 90 - this.rotation.z * radRatio) 
+  //   diffAngle = diffAngle > 180 ? (diffAngle - 360) : diffAngle < -180 ? (360 + diffAngle) : diffAngle
+
+  //   let forceUpdate = (v : Vector3 , r : number)=>{
+  //     if(this.targetPose?.movingPoseRef){
+  //       this.targetPose.ticksRemaining = 0
+  //       clearInterval(this.targetPose.movingPoseRef)
+  //     }
+  //     this.position.set(v.x, v.y, v.z) //this.position.set(v.x , v.y , v.z)      
+  //     this.position.z = this.getPositionZ(this.position.x , this.position.y )
+  //     this.rotation.z = r
+  //   }
+
+  //   let smoothUpdate = (poseRef, interval)=>{
+  //     console.log(poseRef == this.targetPose?.movingPoseRef)
+  //       if( poseRef == this.targetPose?.movingPoseRef && this.targetPose.ticksRemaining > 1){ // not arrived
+  //         this.position.x += this.targetPose.vectorDiff.x / totalTicks
+  //         this.position.y += this.targetPose.vectorDiff.y / totalTicks
+  //         this.rotation.z += this.targetPose.rotationDiff / totalTicks 
+  //         this.position.z = this.getPositionZ(this.position.x , this.position.y )
+  //         this.targetPose.ticksRemaining -= 1
+  //         setTimeout(() => smoothUpdate(poseRef, interval), interval)
+  //       }
+  //   }
+
+  //   if(!this.targetPose){//just spawn or not using smooth transition
+  //     forceUpdate(vector , pose.angle - 90 / radRatio)
+  //   } else if(this.targetPose.movingPoseRef && this.targetPose.ticksRemaining > 1){
+  //     forceUpdate(this.targetPose.movingPoseRef.vector , this.targetPose.movingPoseRef.angle - 90 / radRatio)
+  //     this.targetPose.movingPoseRef = null
+  //   }
+
+  //   if(this.master.util.config.MOVE_USING_TRANSITION){
+  //     this.targetPose = {
+  //       vector : vector,
+  //       rotation :  (pose.angle - 90 / radRatio),
+  //       vectorDiff : new Vector3(vector.x - this.position.x , vector.y - this.position.y , vector.z),
+  //       rotationDiff : diffAngle / radRatio,        
+  //       ticksRemaining :totalTicks,
+  //       movingPoseRef : {vector : vector , angle : pose.angle}
+  //     }
+  //     smoothUpdate(this.targetPose.movingPoseRef , frameMs)
+  //   }else{
+  //     forceUpdate(vector , pose.angle - 90 / radRatio)      
+  //   } 
+  // }
 
   changeMainColor(color: number) {
     this.outlinePass?.visibleEdgeColor.set(this.offline ? this.offlineColor : color)

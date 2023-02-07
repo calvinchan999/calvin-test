@@ -120,7 +120,7 @@ export class SaTopModuleComponent implements OnInit , OnDestroy {
     if(this.arcsRobotSubType == 'TRAY_DELIVERY'){
       this.signalRModuleTopic.delivery = ['trayRack']
     }
-    this.signalRSubscribedTopics = this.signalRModuleTopic[this.robotType]
+    this.signalRSubscribedTopics = this.signalRModuleTopic[this.robotType] ? this.signalRModuleTopic[this.robotType]  : []
     this.dataSrv.subscribeSignalRs(this.signalRSubscribedTopics , this.util.arcsApp ? this.arcsRobotCode : undefined)
     this.initAirQualitySubscription()
     this.initDataSource()

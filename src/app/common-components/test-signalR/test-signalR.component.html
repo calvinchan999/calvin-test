@@ -9,9 +9,6 @@
 <div style="display: flex; margin: 10px;">
    <span style="padding: 5px 15px 5px 0px;">Sample Data : </span>
    <kendo-buttongroup selection="single">
-      <button kendoButton *ngIf="!environment.production" (click)="stressTest()">
-         Stress Test
-      </button>
       <button kendoButton (click)="getSampleData('matterport')">
          Matterport Pose
       </button>
@@ -81,6 +78,12 @@
 <div style="display: flex; margin: 10px;">
    <button kendoButton (click)="getSampleData('arcsPose')">
       ARCS Poses 
+   </button>
+   <button kendoButton (click)="stressTest(true)">
+      Inno2 Stress Test 
+   </button>
+   <button kendoButton (click)="matterPortStressTest(true)">
+      Matterport Stress Test
    </button>
 </div>
 <uc-txtbox lab="Topic" [(value)] = "topic"></uc-txtbox>
