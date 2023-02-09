@@ -1,4 +1,6 @@
 {
+    "Cabinet Avail." : "可用儲存格",
+    "Tray Avail.": "可用儲存格",
     "minutes":"分鐘",
     "Utilization Percentage By Robot":"平均使用百分比 (按機械人)",
     "Average Robot Utilization Percentage By Hour" : "平均機械人使用百分比 (按小時)",
@@ -127,7 +129,7 @@
     "Disinfection":"消毒",
     "Mobile Chair" : "智遊椅",
     "Floor Scrub":"清潔",
-    "Delivery":"送貨",
+    "Delivery":"搬運",
     "Patrol":"巡邏",
     "Date Range":"日期範圍",
     "Year":"年份",

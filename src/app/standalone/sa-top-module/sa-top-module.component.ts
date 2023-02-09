@@ -93,11 +93,17 @@ export class SaTopModuleComponent implements OnInit , OnDestroy {
   signalRSubscribedTopics = []
   signalRModuleTopic = {
     patrol: [ 'ieq' ],
-    delivery : ['trayRack' , 'cabinet']
+    delivery : []
+  }
+  subTypeTopicMap = {
+    delivery : {
+      TRAY_DELIVERY : ['trayRack'],
+      CABINET_DELIVERY : ['cabinet']
+    }
   }
 
-  constructor( public util : GeneralUtil, public uiSrv : UiService , private httpSrv : RvHttpService , public authSrv : AuthService,
-               public router: Router , private dataSrv :  DataService , private signalRSrv : SignalRService , private configSrv : GeneralUtil) { }
+  constructor( public util : GeneralUtil, public uiSrv : UiService ,  public authSrv : AuthService,
+               public router: Router , public dataSrv :  DataService ,  private configSrv : GeneralUtil) { }
 
   async ngOnInit(){
     this.patrolFlvSrc = this.configSrv.config.IP_CAMERA_URL
@@ -117,11 +123,17 @@ export class SaTopModuleComponent implements OnInit , OnDestroy {
       this.robotType = this.dataSrv.robotMaster.robotType.toLowerCase()//data?.['robotTypeName']?.toLowerCase()//TO BE REVISED
     }
     this.customClass += ' ' + this.robotType
-    if(this.arcsRobotSubType == 'TRAY_DELIVERY'){
-      this.signalRModuleTopic.delivery = ['trayRack']
+    this.arcsRobotSubType == 'CABINET_DELIVERY' //TESTING
+    if(this.subTypeTopicMap[this.robotType]){
+      this.signalRModuleTopic[this.robotType] = this.subTypeTopicMap[this.robotType][this.arcsRobotSubType] ?  this.subTypeTopicMap[this.robotType][this.arcsRobotSubType] : []
     }
     this.signalRSubscribedTopics = this.signalRModuleTopic[this.robotType] ? this.signalRModuleTopic[this.robotType]  : []
     this.dataSrv.subscribeSignalRs(this.signalRSubscribedTopics , this.util.arcsApp ? this.arcsRobotCode : undefined)
+
+    if(this.arcsRobotSubType == 'CABINET_DELIVERY' && this.arcsRobotType == 'DELIVERY'){ //TBR !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+      this.dataSrv.subscribeSignalR('cabinet')
+    }
+
     this.initAirQualitySubscription()
     this.initDataSource()
     await this.initByRobotType()
@@ -158,9 +170,6 @@ export class SaTopModuleComponent implements OnInit , OnDestroy {
         //   pm2_5: [[null, 150.5], [null, 55.4], [null, 35.4], [null, 12]],
         //   tvoc_pid: [[null, 75], [null, 51], [null, 26], [null, 16]]
         // }
-
-
-
 
         Object.keys(this.ds).filter(k2=>Object.keys(range).includes(this.ds[k2].signalRfld)).forEach(k2=>delete this.ds[k2].class)
 
@@ -229,11 +238,36 @@ export class SaTopModuleComponent implements OnInit , OnDestroy {
     let ticket = this.uiSrv.loadAsyncBegin()
     if(this.robotType == 'patrol'){
     
-    } else if(this.robotType == 'delivery'){ // tray API endpoint TBR 
-      let hasDoors = this.arcsRobotSubType != 'TRAY_DELIVERY'
-      let containersResp = await this.httpSrv.rvRequest("GET", (hasDoors ? "cabinet" : "trayRack" ) + `/v1${this.util.arcsApp? ('/' + this.arcsRobotCode) : ''}`)
-      // let containersResp = {status : 200 , body:`{
-      //   "robotId": "RV-ROBOT-100",
+    } else if(this.robotType == 'delivery' && this.signalRModuleTopic.delivery.length > 0){ // tray API endpoint TBR 
+      let hasDoors = this.arcsRobotSubType == 'CABINET_DELIVERY'
+      let containersResp = await this.dataSrv.httpSrv.rvRequest("GET", (hasDoors ? "cabinet" : "trayRack" ) + `/v1${this.util.arcsApp? ('/' + this.arcsRobotCode) : ''}`)
+      // let containersResp = {status : 200 , body: `
+      // {
+      //   "robotId": "DUMMY-TEST-10",
+      //   "doorList": [
+      //     {
+      //       "id": 1,
+      //       "status": "CLOSED",
+      //       "trayFull": false,
+      //       "lightOn": false
+      //     },
+      //     {
+      //       "id": 2,
+      //       "status": "CLOSED",
+      //       "trayFull": false,
+      //       "lightOn": false
+      //     },
+      //     {
+      //       "id": 3,
+      //       "status": "CLOSED",
+      //       "trayFull": false,
+      //       "lightOn": false
+      //     }
+      //   ]
+      // }
+      // `}
+      // `{
+      //   "robotId": "DUMMY-TEST-10",
       //   "levelList": [
       //     {
       //       "id": 1,
@@ -248,11 +282,17 @@ export class SaTopModuleComponent implements OnInit , OnDestroy {
       //       "trayFull": false
       //     }
       //   ]
-      // }`}
+      // }`
+     
       if(containersResp.status == 200 && containersResp?.body){
         var containers = JSON.parse(containersResp.body)?.[ hasDoors ? 'doorList' : 'levelList']
         let doorIds = containers.map(d=>d['id'])
-        this.dataSrv.signalRSubj.trayRackAvail.next(this.dataSrv.signalRMaster.trayRack.mapping.trayRackAvail(JSON.parse(containersResp.body))) 
+        if(hasDoors){
+
+          this.dataSrv.signalRSubj.cabinetAvail.next(this.dataSrv.signalRMaster.cabinet.mapping.cabinetAvail(JSON.parse(containersResp.body))) 
+        }else{
+          this.dataSrv.signalRSubj.trayRackAvail.next(this.dataSrv.signalRMaster.trayRack.mapping.trayRackAvail(JSON.parse(containersResp.body))) 
+        }
         let containerData = {
           containerId: { title: 'Container ID', icon: 'mdi mdi-package-variant-closed', class: 'container' },
           availability: { title: 'Available / Occupied', icon: 'mdi mdi-tray-alert', class: 'availibility' },
@@ -343,6 +383,9 @@ export class SaTopModuleComponent implements OnInit , OnDestroy {
 
   ngOnDestroy(){
     this.onDestroy.next()
+    if(this.arcsRobotSubType == 'CABINET_DELIVERY' && this.arcsRobotType == 'DELIVERY'){ //TBR !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+      this.dataSrv.unsubscribeSignalR('cabinet')
+    }
     this.dataSrv.unsubscribeSignalRs( this.signalRSubscribedTopics , false , this.util.arcsApp ? this.arcsRobotCode : undefined)
   }
 

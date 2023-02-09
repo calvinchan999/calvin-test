@@ -471,6 +471,9 @@ export class ArcsDashboardComponent implements OnInit {
   }
 
   async refreshRobotStatus(){
+    if(!this.currentFloorPlan){
+      return
+    }
     let data: RobotStatus[] = await this.dataSrv.httpSrv.rvRequest('GET', 'robot/v1/robotInfo' + this.getStatusListUrlParam(), undefined, false)
     // data = [
     //   {
@@ -541,7 +544,7 @@ export class ArcsDashboardComponent implements OnInit {
           robot = this.pixiElRef.addRobot(d.robotCode, mapCode, robotInfo.robotBase)
           // robot.observed = true
         } else if (this.threeJsElRef && this.threeJsElRef.getMapMesh(robotInfo.robotBase)) {
-          robot = new RobotObject3D(this.threeJsElRef, d.robotCode, robotInfo.robotBase, robotInfo.robotType)
+          robot = this.threeJsElRef.getRobot(d.robotCode) ? this.threeJsElRef.getRobot(d.robotCode) : new RobotObject3D(this.threeJsElRef, d.robotCode, robotInfo.robotBase, robotInfo.robotType)
           this.threeJsElRef.getMapMesh(robotInfo.robotBase).add(robot)
           this.threeJsElRef.refreshRobotColors()
           robot.visible = true

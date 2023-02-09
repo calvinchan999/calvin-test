@@ -95,21 +95,44 @@
 
 <div class="popup" *ngIf="!parent">
     <span class="popup-robot-code">{{robotId}}</span>
-    <div class="popup-content">
+    <div *ngIf="robotSubj" class="popup-content">
         <div class="popup-row">
-            <span *ngIf="ds.status?.content"> 
+            <span class="status"  *ngIf="ds.status?.content"> 
                 <i [class]="'status mdi mdi-circle ' +  ( ds.status?.content ? (ds.status?.content | cssClassName) : '')  " ></i> 
                 <span>{{ds.status.content | label : uiSrv.langPack}}</span>
             </span>
     
-            <span *ngIf="ds.battery.signalR?.value">
-                <i [class]="'battery mdi mdi-battery' + ( ds.battery.signalR?.value == 100 ? '' : ('-' + ( ds.battery.signalR?.value < 10 ? '10' : ((ds.battery.signalR?.value / 10) | roundDown) * 10))) "></i> 
+            <span class="battery" *ngIf="ds.battery.signalR?.value">
+                <i [class]="'mdi mdi-battery' + ( ds.battery.signalR?.value == 100 ? '' : ('-' + ( ds.battery.signalR?.value < 10 ? '10' : ((ds.battery.signalR?.value / 10) | roundDown) * 10))) "></i> 
                 <span>{{ds.battery.signalR?.value}}%</span>
             </span>
         </div>
 
-        <div class="popup-row">
+        <div class="popup-row" [style.display] = "robotSubj.obstacleDetected?.value ||  robotSubj.tiltActive?.value || robotSubj.estop?.value ? 'none' : null">
             <app-sa-top-module *ngIf="robotType" [isPartOf3dTooltip] = 'true'  [arcsRobotType] = "robotType"  [arcsRobotSubType] = "robotSubType"  [arcsRobotCode] = "robotId"></app-sa-top-module>   
+        </div> 
+
+        <div class="popup-row" *ngIf="robotSubj.obstacleDetected?.value || robotSubj.tiltActive?.value || robotSubj.estop?.value">
+            <span class="warning">
+                <i class="mdi mdi-alert"></i>
+                <span>{{(robotSubj.estop?.value ? uiSrv.commonAlertMessages.estopped : (
+                            robotSubj.tiltActive?.value ?  uiSrv.commonAlertMessages.tiltDetected : uiSrv.commonAlertMessages.obstacleDetected
+                            )
+                         ) | label : uiSrv.langPack}}</span>
+            </span>
+        </div>
+
+        <div *ngIf="robotSubj.status?.value != 'UNKNOWN' && robotSubj.destination?.value"  class="popup-row">         
+            <span class="loading-dots">
+                <i class="loading-dots--dot"></i>
+                <i class="loading-dots--dot"></i>
+                <i class="loading-dots--dot"></i>
+            </span>
+
+            <span class="destination">
+                <i class="mdi mdi-map-marker"></i>
+                <span>{{robotSubj.destination.value}}</span>
+            </span>
         </div> 
     </div>
 </div>

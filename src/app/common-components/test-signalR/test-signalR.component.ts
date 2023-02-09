@@ -199,6 +199,20 @@ export class TestSignalRComponent implements OnInit {
   }
 
   sampleData = {
+    arcsRobotDestination:{
+      seriesInterval: 0,
+      topic: 'rvautotech/fobo/ARCS/task/bo/RV-ROBOT-418',
+      content : `
+     {
+      "taskId":"Task20230207100745105",
+      "robotCode":"RV-ROBOT-418",
+      "movementDTOList":
+      [{"actionListTimeout":0,"movement":{"floorPlanCode":"5W_2022","pointCode":"WP-07","navigationMode":"AUTONOMY","orientationIgnored":true},"actionList":[{"alias":"NIL","properties":{}}]},{"actionListTimeout":0,"movement":{"floorPlanCode":"5W_2022","pointCode":"WP-06","navigationMode":"AUTONOMY","orientationIgnored":true},"actionList":[{"alias":"NIL","properties":{}}]}],
+      "currentTaskItemIndex":0,
+      "isCancelled":false
+     }
+      `
+    },
     inno2:{
       seriesInterval: 1,
       topic: 'rvautotech/fobo/pose/DIM_TEST',

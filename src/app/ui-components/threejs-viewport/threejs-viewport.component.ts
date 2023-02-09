@@ -1135,7 +1135,9 @@ export class RobotObject3D extends Object3DCommon{
     if(this.frontFacePointer){
       this.frontFacePointer.visible = !v
     }
-    this.toolTipAlwaysOn = !v && this.master.uiToggles.showRobotStatus
+    if(this.toolTipAlwaysOn && v){
+      this.toolTipAlwaysOn = false
+    }
     this._offline = v
   }
   set alert(v){
@@ -1297,58 +1299,7 @@ export class RobotObject3D extends Object3DCommon{
       forceUpdate(vector , pose.angle - 90 / radRatio)      
     } 
   }
-
-  // updatePositionAndRotation(pose : {x : number  , y : number , angle : number , interval : number}){
-  //   let vector =  this.master.getConvertedRobotVector(pose.x , pose.y , <MapMesh>this.parent) 
-  //   const frameMs = 100
-  //   const totalTicks =  Math.max(1 , Math.ceil(Math.min((pose.interval ? pose.interval : frameMs) , 3000) / frameMs))
-  //   let diffAngle = (pose.angle * radRatio - 90 - this.rotation.z * radRatio) 
-  //   diffAngle = diffAngle > 180 ? (diffAngle - 360) : diffAngle < -180 ? (360 + diffAngle) : diffAngle
-
-  //   let forceUpdate = (v : Vector3 , r : number)=>{
-  //     if(this.targetPose?.movingPoseRef){
-  //       this.targetPose.ticksRemaining = 0
-  //       clearInterval(this.targetPose.movingPoseRef)
-  //     }
-  //     this.position.set(v.x, v.y, v.z) //this.position.set(v.x , v.y , v.z)      
-  //     this.position.z = this.getPositionZ(this.position.x , this.position.y )
-  //     this.rotation.z = r
-  //   }
-
-  //   let smoothUpdate = (poseRef, interval)=>{
-  //     console.log(poseRef == this.targetPose?.movingPoseRef)
-  //       if( poseRef == this.targetPose?.movingPoseRef && this.targetPose.ticksRemaining > 1){ // not arrived
-  //         this.position.x += this.targetPose.vectorDiff.x / totalTicks
-  //         this.position.y += this.targetPose.vectorDiff.y / totalTicks
-  //         this.rotation.z += this.targetPose.rotationDiff / totalTicks 
-  //         this.position.z = this.getPositionZ(this.position.x , this.position.y )
-  //         this.targetPose.ticksRemaining -= 1
-  //         setTimeout(() => smoothUpdate(poseRef, interval), interval)
-  //       }
-  //   }
-
-  //   if(!this.targetPose){//just spawn or not using smooth transition
-  //     forceUpdate(vector , pose.angle - 90 / radRatio)
-  //   } else if(this.targetPose.movingPoseRef && this.targetPose.ticksRemaining > 1){
-  //     forceUpdate(this.targetPose.movingPoseRef.vector , this.targetPose.movingPoseRef.angle - 90 / radRatio)
-  //     this.targetPose.movingPoseRef = null
-  //   }
-
-  //   if(this.master.util.config.MOVE_USING_TRANSITION){
-  //     this.targetPose = {
-  //       vector : vector,
-  //       rotation :  (pose.angle - 90 / radRatio),
-  //       vectorDiff : new Vector3(vector.x - this.position.x , vector.y - this.position.y , vector.z),
-  //       rotationDiff : diffAngle / radRatio,        
-  //       ticksRemaining :totalTicks,
-  //       movingPoseRef : {vector : vector , angle : pose.angle}
-  //     }
-  //     smoothUpdate(this.targetPose.movingPoseRef , frameMs)
-  //   }else{
-  //     forceUpdate(vector , pose.angle - 90 / radRatio)      
-  //   } 
-  // }
-
+  
   changeMainColor(color: number) {
     this.outlinePass?.visibleEdgeColor.set(this.offline ? this.offlineColor : color)
     this.outlinePass?.hiddenEdgeColor.set(this.offline ? this.offlineColor : color)

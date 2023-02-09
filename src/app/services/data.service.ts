@@ -25,7 +25,7 @@ export type signalRType = 'activeMap' | 'occupancyGridMap' | 'navigationMove' | 
                     'followMeAoa' | 'digitalOutput' | 'wifi' | 'cellular' | 'ieq' | 'rfid' | 'cabinet' | 'rotaryHead' | 'nirCamera' | 'nirCameraDetection' |
                     'thermalCamera' | 'thermalCameraDetection' | 'webcam' | 'heartbeatServer' | 'heartbeatClient' | 'arcsPoses' | 'taskActive' | 'lidarStatus' |
                     'led' | 'fan' | 'pauseResume' | 'taskComplete' | 'taskDepart' | 'taskArrive' | 'destinationReached' | 'taskProgress' | 'moving' | 'lidar'| 'taskPopups'|
-                    'arcsRobotStatusChange' | 'arcsTaskInfoChange' | 'arcsSyncLog'
+                    'arcsRobotStatusChange' | 'arcsTaskInfoChange' | 'arcsSyncLog' | 'arcsRobotDestination'
 
 @Injectable({
   providedIn: 'root'
@@ -140,7 +140,8 @@ export class DataService {
     arcsTaskInfoChange : new BehaviorSubject<{robotType : string , floorPlanCode : string}>(null),
     arcsWarningChangedRobotCode : new BehaviorSubject<string>(null),
     nextTaskAction : new BehaviorSubject<string>(null),
-    arcsSyncLog : new BehaviorSubject<syncLog[]>([])
+    arcsSyncLog : new BehaviorSubject<syncLog[]>([]),
+    arcsRobotDestination : new BehaviorSubject<string>(null),
     // taskActionActiveAlias : new BehaviorSubject<any>(null)
   }
 
@@ -148,7 +149,14 @@ export class DataService {
   //api pending : tilt , pose , obstacle detection , arcsPoses
   
   public signalRMaster : { [key: string] : {topic? : string , mapping ? : any , api ? :any , subscribedCount ? : any}}= {
-    trayRack : {topic : "rvautotech/fobo/trayRack" ,   mapping:{ trayRackAvail: (d)=> {return d['levelList'].map(lv=> lv['trayFull'] ? 'Occupied' : 'Available')}}},
+    trayRack : { topic : "rvautotech/fobo/trayRack" ,   
+                 mapping:{ trayRackAvail: (d : { robotId : string , levelList? : {trayFull? : boolean}[]})=> {
+                             this.updateArcsRobotDataMap(d.robotId , 'totalContainersCount' , d.levelList.length)
+                             this.updateArcsRobotDataMap(d.robotId , 'availContainersCount' , d.levelList.filter(l=>!l.trayFull).length)
+                             return d.levelList.map(lv=> lv.trayFull ? 'Occupied' : 'Available')
+                           }
+                         }
+               },
     taskPopups:{ topic: "rvautotech/fobo/topModule/request", mapping: { taskPopupRequest: (d)=> d }},
     activeMap: { topic: "rvautotech/fobo/map/active", mapping: { activeMap: 'id' } },
     occupancyGridMap: { topic: "rvautotech/fobo/map/occupancyGrid", mapping: { occupancyGridMap: null } }, //NO need to call API to get latest value for this
@@ -374,7 +382,11 @@ export class DataService {
                 api:'cellular/v1/signal'
               },
     cabinet: { topic: "rvautotech/fobo/cabinet" , 
-               mapping:{ cabinetAvail: (d)=> {return d['doorList'].map(door=> door['trayFull'] ? 'Occupied' : 'Available')}, 
+               mapping:{ cabinetAvail: (d : { robotId : string , doorList? : {trayFull? : boolean}[]})=> {
+                          this.updateArcsRobotDataMap(d.robotId , 'totalContainersCount' , d.doorList.length)
+                          this.updateArcsRobotDataMap(d.robotId , 'availContainersCount' , d.doorList.filter(l=>!l.trayFull).length)
+                          return d.doorList.map(door=> door.trayFull ? 'Occupied' : 'Available')
+                        },
                          cabinetDoorStatus:  (d)=> { return d['doorList'].map(door=> door['status']) }
                        },
                api:'cabinet/v1'
@@ -426,6 +438,15 @@ export class DataService {
                     },
                     api:'api/sync/log/processing/v1'
                   },
+     arcsRobotDestination : { topic: "rvautotech/fobo/ARCS/task/bo", 
+                              mapping: { arcsRobotDestination: (d : {robotCode : string , movementDTOList : TaskItem[] , currentTaskItemIndex : number})=>{ 
+                                          let ret = d.movementDTOList?.[d.currentTaskItemIndex]?.movement?.pointCode
+                                          this.updateArcsRobotDataMap(d.robotCode , 'destination', ret)
+                                          return ret
+                                        } 
+                              },
+                              api:'task/v1/executing/bo' 
+                            }
   }
 
   eventLog = new BehaviorSubject<eventLog[]>([])
@@ -672,23 +693,24 @@ export class DataService {
     let $unsubscribed = this.signalRSrv.getUnsubscribedSubject(this.signalRMaster[type].topic + topicSfx)
     if (subscribedCount == 0 || getLatestFromApi ) {           
       if (mapping != undefined && mapping != null) {
-        if (this.util.standaloneApp && this.signalRMaster[type]['api']) {
+        if (this.util.standaloneApp && this.signalRMaster[type].api) {
           if(this.getSubscribedCount(type, paramString) == 0){    
-              let resp = await this.httpSrv.rvRequest('GET' , this.signalRMaster[type]['api'])      
+              let resp = await this.httpSrv.rvRequest('GET' , this.signalRMaster[type].api)      
               if(resp && resp.status == 200){
                 this.updateSignalRBehaviorSubject(type, JSON.parse(resp.body) , paramString)
               }
           }
         } else if(this.util.arcsApp){       
             if(this.getSubscribedCount(type, paramString) == 0){      
-              if(['ieq'].includes(type)){
-                let resp = await this.httpSrv.rvRequest('GET' , this.signalRMaster[type]['api']  + '/' + paramString)
-                if(resp && resp.status == 200){
+              const signalRTypesRequiredApiByRobot : signalRType[] = ['ieq' , 'arcsRobotDestination']
+              if(signalRTypesRequiredApiByRobot.includes(type)){
+                let resp = await this.httpSrv.rvRequest('GET' , this.signalRMaster[type].api + '/' + paramString)
+                if(resp && resp.status == 200 && resp.body?.length > 0){
                   this.updateSignalRBehaviorSubject(type, JSON.parse(resp.body), paramString)
                 }
               }else if( ['arcsSyncLog'].includes(type)){
                 let ticket = this.uiSrv.loadAsyncBegin()
-                let resp = await this.httpSrv.get(this.signalRMaster[type]['api']);
+                let resp = await this.httpSrv.get(this.signalRMaster[type].api);
                 this.signalRSubj.arcsSyncLog.next((this.getLocalStorage('syncDoneLog') ? JSON.parse(this.getLocalStorage('syncDoneLog')) : []).concat(resp))
                 this.uiSrv.loadAsyncDone(ticket)
               }  
@@ -759,6 +781,9 @@ export class DataService {
   } 
 
   updateArcsRobotDataMap(robotCode : string , objKey : ArcsRobotDetailSubjTypes , value : any){
+    if(!robotCode){
+      return
+    }
     this.initArcsRobotDataMap(robotCode)
     this.arcsRobotDataMap[robotCode][objKey].next(value) 
   }
@@ -893,6 +918,9 @@ export class DataService {
         this.util.showErrors(resp.validationResults , errorMap, resp)
       }
       resp.msg = resp.msg ? resp.msg : this.uiSrv.translate('Save Failed')
+      if(resp.exceptionDetail){
+        console.log(resp.exceptionDetail)
+      }
       // this.uiSrv.showWarningDialog("Save Failed" + (resp?.msg ? (' : ' + resp.msg) : ''))
     } 
     if(resp?.msg){
@@ -1156,8 +1184,9 @@ export class DataStorage {
 }
 
 export class SaveRecordResp {
-    result
-    msg ?
+    result : boolean
+    msg ? : string
+    exceptionDetail? : string
     validationResults?:[]
 }
 
@@ -1463,16 +1492,24 @@ export class loginResponse{
   }
 }
 
-export type ArcsRobotDetailSubjTypes = 'speed'| 'batteryRounded' | 'state' | 'ieq' |  'estop' | 'obstacleDetected' | 'tiltActive' | 'status'
+export type ArcsRobotDetailSubjTypes = 'speed'| 'batteryRounded' | 'state' | 'ieq' |  'estop' | 'obstacleDetected' | 'tiltActive' | 'status' | 'destination' | 'availContainersCount' | 'totalContainersCount'
 export class ArcsRobotDetailBehaviorSubjMap {
   speed: BehaviorSubject<any>
   batteryRounded: BehaviorSubject<any>
   state: BehaviorSubject<any>
-  ieq: BehaviorSubject<any>
   estop: BehaviorSubject<boolean>
   obstacleDetected: BehaviorSubject<boolean>
   tiltActive: BehaviorSubject<boolean>
   status :  BehaviorSubject<any>
+  destination :  BehaviorSubject<any>
+
+  // topModules
+
+  //PATROL
+  ieq: BehaviorSubject<any>
+  //DELIVERY
+  availContainersCount: BehaviorSubject<any>
+  totalContainersCount: BehaviorSubject<any>
 
   constructor() {
     this.speed = new BehaviorSubject<any>(null)
@@ -1483,6 +1520,9 @@ export class ArcsRobotDetailBehaviorSubjMap {
     this.obstacleDetected = new BehaviorSubject<boolean>(null)
     this.tiltActive = new BehaviorSubject<boolean>(null)
     this.status = new BehaviorSubject<any>(null)
+    this.destination = new BehaviorSubject<any>(null)
+    this.availContainersCount =  new BehaviorSubject<any>(null)
+    this.totalContainersCount =  new BehaviorSubject<any>(null)
   }
 }
 

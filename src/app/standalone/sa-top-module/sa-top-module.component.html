@@ -72,4 +72,11 @@
 
         <!-- <span>{{}}</span> -->
     </span>
+
+    <span *ngIf="robotType == 'delivery' && dataSrv.arcsRobotDataMap[arcsRobotCode].totalContainersCount.value">
+        <!-- <i class="ieq mdi mdi-tailwind aq-icon"></i> -->
+        <span>{{((arcsRobotSubType == 'TRAY_DELIVERY' ? 'Trays': 'Cabinet') + ' Avail.') | label : uiSrv.langPack }} : </span> 
+        <span>{{ dataSrv.arcsRobotDataMap[arcsRobotCode].availContainersCount.value | label : uiSrv.langPack }} / {{  dataSrv.arcsRobotDataMap[arcsRobotCode].totalContainersCount.value | label : uiSrv.langPack }}</span>
+        <!-- <span>{{}}</span> -->
+    </span>
 </ng-container>

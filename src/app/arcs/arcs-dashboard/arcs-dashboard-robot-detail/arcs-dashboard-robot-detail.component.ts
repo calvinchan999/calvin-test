@@ -49,7 +49,7 @@ export class ArcsDashboardRobotDetailComponent implements OnInit  {
   _robotId
   robotType
   robotSubType 
-  topics : signalRType[] =  ['battery' , 'speed' , 'state'] 
+  topics : signalRType[] =  ['battery' , 'speed' , 'state' , 'arcsRobotDestination'] 
   topModuleTabs = {
     PATROL : [{id : 'topModule' , label : 'Module'} , {id : 'camera' , label : 'Cameras'}],
     DELIVERY :[{ id :'topModule' , label : 'Module'}]
@@ -58,6 +58,7 @@ export class ArcsDashboardRobotDetailComponent implements OnInit  {
   streamingUrl = null
   streamingError = null
   $onDestroy  = new Subject()
+  robotSubj = null
 
   async ngOnInit() {
     this.initDataSource()
@@ -80,6 +81,7 @@ export class ArcsDashboardRobotDetailComponent implements OnInit  {
   
   initDataSource(){
     this.dataSrv.initArcsRobotDataMap(this.robotId)
+    this.robotSubj = this.dataSrv.arcsRobotDataMap[this.robotId]
     this.ds = {
       status : {title: 'Status', suffix: '' , icon:'mdi-autorenew' , content:null},
       battery : {title: 'Battery', suffix: '%' , icon : 'mdi-battery-70' , signalR: this.dataSrv.arcsRobotDataMap[this.robotId].batteryRounded},

@@ -274,11 +274,16 @@ export class GeneralUtil {
 		return !frmGrp.invalid
 	}
 	
-	public showErrors(validationResults, ucMap, resp = null) {
+	// {result ? :boolean ,msgCode : string , msg : string ,  }
+	public showErrors(validationResults , ucMap, resp = null) {
 		validationResults.forEach(result => {
 			if (resp && !resp.msg) {
 				resp.msg = result.message
 			}
+
+			// if(resp?.exceptionDetail){
+			// 	console.log(resp?.exceptionDetail)
+			// }
 			if (!ucMap || result?.fields.length <= 0) {
 				return
 			}

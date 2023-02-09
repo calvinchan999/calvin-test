@@ -68,13 +68,135 @@
 :host ::ng-deep .popup-row i.mdi-battery-10 {
     color: red;
 }
-:host .popup-row i.battery{
+:host .popup-row .battery i , :host .popup-row .destination  i ,  :host .popup-row .warning i{
     // text-shadow: -1px -1px 0 rgba(200,200,200, 0.5), 1px -1px 0  rgb(200,200,200, 0.5), -1px 1px 0  rgb(200,200,200, 0.5), 1px 1px 0  rgb(200,200,200, 0.5);
     font-size: 13px;
     line-height: 14px;
 }
 
+:host .popup-row .warning i{
+    color: #FFC000;
+    margin-right: 2px;   
+}
 
 
+:host .popup-row .destination{
+    justify-content: space-between;
+    i {
+        margin-right: 2px;    
+        color: paleturquoise;
+    }
+}
+
+@keyframes dot-keyframes {
+    0% {
+      opacity: .6;
+      transform: scale(0.8, 0.8);
+    }
+  
+    50% {
+      opacity: 1;
+      transform: scale(1.4, 1.4);
+    }
+  
+    100% {
+      opacity: .6;
+      transform: scale(0.8, 0.8);
+    }
+  }
+
+  :host .loading-dots {
+      text-align: center;
+      &--dot {
+          animation: dot-keyframes 2.5s infinite ease-in-out;
+          width: 0;
+          height: 0;
+          border-style: solid;
+          border-width: 4px 0 4px 6px;
+          border-color: transparent transparent transparent paleturquoise;
+          margin-left: 2px;
+          margin-right: 2px;
+          //   background-color: paleturquoise;
+          //   border-radius: 10px;
+          display: inline-block;
+          //   height: 5px;
+          //   width: 5px;
+
+          &:nth-child(2) {
+              animation-delay: 1s;
+          }
+
+          &:nth-child(3) {
+              animation-delay: 1.5s;
+          }
+      }
+  }
+// :host .dot-pulse {
+//     position: relative;
+//     left: -9999px;
+//     width: 10px;
+//     height: 10px;
+//     border-radius: 5px;
+//     background-color: #9880ff;
+//     color: #9880ff;
+//     box-shadow: 9999px 0 0 -5px;
+//     animation: dot-pulse 1.5s infinite linear;
+//     animation-delay: 0.25s;
+//   }
+//   :host .dot-pulse::before, :host .dot-pulse::after {
+//     content: "";
+//     display: inline-block;
+//     position: absolute;
+//     top: 0;
+//     width: 10px;
+//     height: 10px;
+//     border-radius: 5px;
+//     background-color: #9880ff;
+//     color: #9880ff;
+//   }
+//   :host .dot-pulse::before {
+//     box-shadow: 9984px 0 0 -5px;
+//     animation: dot-pulse-before 1.5s infinite linear;
+//     animation-delay: 0s;
+//   }
+//   :host .dot-pulse::after {
+//     box-shadow: 10014px 0 0 -5px;
+//     animation: dot-pulse-after 1.5s infinite linear;
+//     animation-delay: 0.5s;
+//   }
+  
+//   @keyframes dot-pulse-before {
+//     0% {
+//       box-shadow: 9984px 0 0 -5px;
+//     }
+//     30% {
+//       box-shadow: 9984px 0 0 2px;
+//     }
+//     60%, 100% {
+//       box-shadow: 9984px 0 0 -5px;
+//     }
+//   }
+//   @keyframes dot-pulse {
+//     0% {
+//       box-shadow: 9999px 0 0 -5px;
+//     }
+//     30% {
+//       box-shadow: 9999px 0 0 2px;
+//     }
+//     60%, 100% {
+//       box-shadow: 9999px 0 0 -5px;
+//     }
+//   }
+//   @keyframes dot-pulse-after {
+//     0% {
+//       box-shadow: 10014px 0 0 -5px;
+//     }
+//     30% {
+//       box-shadow: 10014px 0 0 2px;
+//     }
+//     60%, 100% {
+//       box-shadow: 10014px 0 0 -5px;
+//     }
+//   }
 
 
