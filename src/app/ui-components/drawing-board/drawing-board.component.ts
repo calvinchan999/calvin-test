@@ -38,6 +38,7 @@ const WebGLMaxMobileTextureSize = 4096
 const WebGLMaxPcTextureSize = 16384
 const wayPointCodeMaxLength = 50
 const ROBOT_ACTUAL_LENGTH_METER = 1
+const DEFAULT_WAYPOINT_NAME = "WAYPOINT"
 //pending : add curved arrow default curved (rescontrol point ) 
 @Component({
   selector: 'uc-drawing-board',
@@ -985,6 +986,10 @@ export class DrawingBoardComponent implements OnInit , AfterViewInit , OnDestroy
     option.fillColor = Number(this.selectedStyle.marker.color.replace("#", "0x"))
     option.lineColor = option.fillColor
     option.opacity = this.selectedStyle.marker.opacity
+    if(text == null){
+      let names = [DEFAULT_WAYPOINT_NAME].concat(Array.from(Array(this.allPixiPoints.length ).keys()).map(k=> `${DEFAULT_WAYPOINT_NAME}-${k + 1}`))
+      text = names.filter(n => !this.allPixiPoints.map(p => p.text).some(t => t == n))[0]
+    }
     let ret: PixiLocPoint = new PixiLocPoint(type, text, option, !this.readonly, this.uiSrv ,iconUrl , pointType )
     ret.robotBases = Object.keys(this.mapLayerStore)
     // if (!this.readonly) {
@@ -2172,6 +2177,7 @@ export class DrawingBoardComponent implements OnInit , AfterViewInit , OnDestroy
     } else {
       await this.getDropList()
       let poseResp: { x: number, y: number, mapName: string, angle: number } = await this.httpSrv.rvRequest('GET', 'localization/v1/pose', undefined, false)
+      //let poseResp  = {x : 0 , y:0 , mapName : "5W_0429" , angle : 0}
       this.spawnPointObj.rotation = trimAngle(poseResp.angle * radRatio)
       this.spawnPointObj.rosX = poseResp.x
       this.spawnPointObj.rosY = poseResp.y
@@ -2194,6 +2200,390 @@ export class DrawingBoardComponent implements OnInit , AfterViewInit , OnDestroy
     this.spawnPointObj.x = this.spawnPointObj.markerGraphic?.position.x
     this.spawnPointObj.y = this.spawnPointObj.markerGraphic?.position.y
     let lidarResp = await this.httpSrv.rvRequest('GET' , 'lidar/v1',undefined,false)
+    // let lidarResp = JSON.parse(`
+    // {
+    //   "robotId": "J6-RV-FR-001",
+    //   "mapName": "5W_0429",
+    //   "pointList": [
+    //     {
+    //       "x": 1.9672983884811401,
+    //       "y": 1.8787097930908203
+    //     },
+    //     {
+    //       "x": 1.9665380716323853,
+    //       "y": 1.866902470588684
+    //     },
+    //     {
+    //       "x": 1.9650241136550903,
+    //       "y": 1.8549879789352417
+    //     },
+    //     {
+    //       "x": 1.964506983757019,
+    //       "y": 1.8431344032287598
+    //     },
+    //     {
+    //       "x": 1.9641087055206299,
+    //       "y": 1.8312633037567139
+    //     },
+    //     {
+    //       "x": 1.9696950912475586,
+    //       "y": 1.8201162815093994
+    //     },
+    //     {
+    //       "x": 1.9686931371688843,
+    //       "y": 1.808152198791504
+    //     },
+    //     {
+    //       "x": 1.9735336303710938,
+    //       "y": 1.7969837188720703
+    //     },
+    //     {
+    //       "x": 1.9736096858978271,
+    //       "y": 1.7851431369781494
+    //     },
+    //     {
+    //       "x": 1.9729959964752197,
+    //       "y": 1.773160696029663
+    //     },
+    //     {
+    //       "x": 1.972346544265747,
+    //       "y": 1.7611274719238281
+    //     },
+    //     {
+    //       "x": 1.9729728698730469,
+    //       "y": 1.7492763996124268
+    //     },
+    //     {
+    //       "x": 1.9735443592071533,
+    //       "y": 1.7373887300491333
+    //     },
+    //     {
+    //       "x": 1.9724985361099243,
+    //       "y": 1.7251516580581665
+    //     },
+    //     {
+    //       "x": 1.9733208417892456,
+    //       "y": 1.713240623474121
+    //     },
+    //     {
+    //       "x": 1.9752297401428223,
+    //       "y": 1.701535701751709
+    //     },
+    //     {
+    //       "x": 1.9697669744491577,
+    //       "y": 1.6881595849990845
+    //     },
+    //     {
+    //       "x": 1.9738572835922241,
+    //       "y": 1.6768747568130493
+    //     },
+    //     {
+    //       "x": 1.9763789176940918,
+    //       "y": 1.6652328968048096
+    //     },
+    //     {
+    //       "x": 1.973029375076294,
+    //       "y": 1.652100682258606
+    //     },
+    //     {
+    //       "x": 1.9767794609069824,
+    //       "y": 1.6407134532928467
+    //     },
+    //     {
+    //       "x": 1.9784810543060303,
+    //       "y": 1.6287832260131836
+    //     },
+    //     {
+    //       "x": 1.9774454832077026,
+    //       "y": 1.6160571575164795
+    //     },
+    //     {
+    //       "x": 1.9834845066070557,
+    //       "y": 1.6053048372268677
+    //     },
+    //     {
+    //       "x": 1.9798636436462402,
+    //       "y": 1.59170663356781
+    //     },
+    //     {
+    //       "x": 1.976691722869873,
+    //       "y": 1.5781127214431763
+    //     },
+    //     {
+    //       "x": 1.979042649269104,
+    //       "y": 1.56615149974823
+    //     },
+    //     {
+    //       "x": 1.9808911085128784,
+    //       "y": 1.553999423980713
+    //     },
+    //     {
+    //       "x": 1.9834961891174316,
+    //       "y": 1.5420658588409424
+    //     },
+    //     {
+    //       "x": 1.9846839904785156,
+    //       "y": 1.5296138525009155
+    //     },
+    //     {
+    //       "x": 1.9819408655166626,
+    //       "y": 1.515699863433838
+    //     },
+    //     {
+    //       "x": 1.9797024726867676,
+    //       "y": 1.5018362998962402
+    //     },
+    //     {
+    //       "x": 1.9809917211532593,
+    //       "y": 1.4891767501831055
+    //     },
+    //     {
+    //       "x": 1.9781520366668701,
+    //       "y": 1.4748550653457642
+    //     },
+    //     {
+    //       "x": 1.9769628047943115,
+    //       "y": 1.4610430002212524
+    //     },
+    //     {
+    //       "x": 1.9790687561035156,
+    //       "y": 1.4484580755233765
+    //     },
+    //     {
+    //       "x": 1.9827684164047241,
+    //       "y": 1.4364867210388184
+    //     },
+    //     {
+    //       "x": 1.9897305965423584,
+    //       "y": 1.4258900880813599
+    //     },
+    //     {
+    //       "x": 1.989120364189148,
+    //       "y": 1.4120131731033325
+    //     },
+    //     {
+    //       "x": 1.9818214178085327,
+    //       "y": 1.3950138092041016
+    //     },
+    //     {
+    //       "x": 1.982460379600525,
+    //       "y": 1.3814024925231934
+    //     },
+    //     {
+    //       "x": 1.982777714729309,
+    //       "y": 1.3675414323806763
+    //     },
+    //     {
+    //       "x": 1.9810373783111572,
+    //       "y": 1.3525816202163696
+    //     },
+    //     {
+    //       "x": 1.984379768371582,
+    //       "y": 1.339965581893921
+    //     },
+    //     {
+    //       "x": 1.9820854663848877,
+    //       "y": 1.324465036392212
+    //     },
+    //     {
+    //       "x": 1.9822030067443848,
+    //       "y": 1.3100268840789795
+    //     },
+    //     {
+    //       "x": 1.985565423965454,
+    //       "y": 1.2971638441085815
+    //     },
+    //     {
+    //       "x": 1.986025333404541,
+    //       "y": 1.2826855182647705
+    //     },
+    //     {
+    //       "x": 1.99366295337677,
+    //       "y": 1.272007703781128
+    //     },
+    //     {
+    //       "x": 1.9965808391571045,
+    //       "y": 1.258724331855774
+    //     },
+    //     {
+    //       "x": 1.9854176044464111,
+    //       "y": 1.2373325824737549
+    //     },
+    //     {
+    //       "x": 1.9852581024169922,
+    //       "y": 1.2219334840774536
+    //     },
+    //     {
+    //       "x": 1.985787034034729,
+    //       "y": 1.2067831754684448
+    //     },
+    //     {
+    //       "x": 1.991969347000122,
+    //       "y": 1.1949070692062378
+    //     },
+    //     {
+    //       "x": 1.9928511381149292,
+    //       "y": 1.1797407865524292
+    //     },
+    //     {
+    //       "x": 1.990869402885437,
+    //       "y": 1.1626226902008057
+    //     },
+    //     {
+    //       "x": 1.980393409729004,
+    //       "y": 1.1398290395736694
+    //     },
+    //     {
+    //       "x": 1.9777605533599854,
+    //       "y": 1.1217256784439087
+    //     },
+    //     {
+    //       "x": -0.9162338376045227,
+    //       "y": -0.8243995308876038
+    //     },
+    //     {
+    //       "x": -0.835849940776825,
+    //       "y": -0.8232772350311279
+    //     },
+    //     {
+    //       "x": -0.7903231382369995,
+    //       "y": -0.8448595404624939
+    //     },
+    //     {
+    //       "x": -0.7782213687896729,
+    //       "y": -0.8894774317741394
+    //     },
+    //     {
+    //       "x": -0.7396490573883057,
+    //       "y": -0.9154194593429565
+    //     },
+    //     {
+    //       "x": -0.7323909401893616,
+    //       "y": -0.9639236927032471
+    //     },
+    //     {
+    //       "x": -0.747251033782959,
+    //       "y": -1.0294058322906494
+    //     },
+    //     {
+    //       "x": -0.7435011267662048,
+    //       "y": -1.0818840265274048
+    //     },
+    //     {
+    //       "x": -0.7509958148002625,
+    //       "y": -1.1436846256256104
+    //     },
+    //     {
+    //       "x": -0.7506275177001953,
+    //       "y": -1.2002702951431274
+    //     },
+    //     {
+    //       "x": -0.7558069825172424,
+    //       "y": -1.2620753049850464
+    //     },
+    //     {
+    //       "x": -0.9241551160812378,
+    //       "y": -1.550987720489502
+    //     },
+    //     {
+    //       "x": -0.8500384092330933,
+    //       "y": -1.551024079322815
+    //     },
+    //     {
+    //       "x": -0.7633897066116333,
+    //       "y": -1.5388861894607544
+    //     },
+    //     {
+    //       "x": -0.6637645363807678,
+    //       "y": -1.5135819911956787
+    //     },
+    //     {
+    //       "x": -0.610251247882843,
+    //       "y": -1.527567982673645
+    //     },
+    //     {
+    //       "x": -0.5567825436592102,
+    //       "y": -1.5408744812011719
+    //     },
+    //     {
+    //       "x": -0.5106861591339111,
+    //       "y": -1.5603150129318237
+    //     },
+    //     {
+    //       "x": -0.4761466681957245,
+    //       "y": -1.5902084112167358
+    //     },
+    //     {
+    //       "x": -0.4536023437976837,
+    //       "y": -1.6315522193908691
+    //     },
+    //     {
+    //       "x": -0.5199309587478638,
+    //       "y": -1.760360836982727
+    //     },
+    //     {
+    //       "x": -0.5211942195892334,
+    //       "y": -1.8276257514953613
+    //     },
+    //     {
+    //       "x": -0.5166462659835815,
+    //       "y": -1.8901934623718262
+    //     },
+    //     {
+    //       "x": -0.5133677124977112,
+    //       "y": -1.9551113843917847
+    //     },
+    //     {
+    //       "x": -0.5960541367530823,
+    //       "y": -2.1115596294403076
+    //     },
+    //     {
+    //       "x": -0.696076512336731,
+    //       "y": -2.2909162044525146
+    //     },
+    //     {
+    //       "x": -0.7019374966621399,
+    //       "y": -2.372864007949829
+    //     },
+    //     {
+    //       "x": -0.6356481313705444,
+    //       "y": -2.376518964767456
+    //     },
+    //     {
+    //       "x": -0.5483750104904175,
+    //       "y": -2.3554065227508545
+    //     },
+    //     {
+    //       "x": -0.47881630063056946,
+    //       "y": -2.352673053741455
+    //     },
+    //     {
+    //       "x": -0.42064011096954346,
+    //       "y": -2.3619582653045654
+    //     },
+    //     {
+    //       "x": -0.344558447599411,
+    //       "y": -2.349113702774048
+    //     },
+    //     {
+    //       "x": -0.3243808150291443,
+    //       "y": -2.4023358821868896
+    //     },
+    //     {
+    //       "x": -0.3110983371734619,
+    //       "y": -2.464836359024048
+    //     },
+    //     {
+    //       "x": -0.305088609457016,
+    //       "y": -2.5375850200653076
+    //     },
+    //     {
+    //       "x": 0.9134411811828613,
+    //       "y": -1.1753305196762085
+    //     }
+    //   ]
+    // }
+    // `)
     this.uiSrv.loadAsyncDone(ticket)
     // let mapContainer : PIXI.Container = <any> (Object.values(this.mapContainerStore).filter(m=>m['mapCode'] == lidarResp['mapName'])[0])
     let mapContainer : PixiMapContainer =  <PixiMapContainer>this.mapContainerStore[this.spawnPointObj.selectedMap] //testing
@@ -2303,15 +2693,19 @@ export class DrawingBoardComponent implements OnInit , AfterViewInit , OnDestroy
   //   }
   // }
 
-  async refreshLocationOptions(){
-    if(this.pickSpawnPoint){
-      this.dropdownOptions.locations = this.allPixiPoints.map(g => {return {value : g.code , text: g.code}})
-    } else if(this.showNavigationDropdown){
-      if(!this.dropdownData.locations || this.dropdownData.locations.length == 0){
-        this.dropdownData.locations =  (await this.dataSrv.getDropList('locations')).data
+  async refreshLocationOptions() {
+    var locationOptions = []
+    if (this.pickSpawnPoint) {
+      locationOptions = this.allPixiPoints.map(g => { return { value: g.code, text: g.code } })
+    } else if (this.showNavigationDropdown) {
+      if (!this.dropdownData.locations || this.dropdownData.locations.length == 0) {
+        this.dropdownData.locations = (await this.dataSrv.getDropList('locations')).data
       }
-      this.dropdownOptions.locations =  this.dataSrv.getDropListOptions('locations' ,this.dropdownData.locations  , {floorPlanCode :this.spawnPointObj.selectedPlan ? this.spawnPointObj.selectedPlan : this.mainContainerId})
+      locationOptions = this.dataSrv.getDropListOptions('locations', this.dropdownData.locations, { floorPlanCode: this.spawnPointObj.selectedPlan ? this.spawnPointObj.selectedPlan : this.mainContainerId })
+    }else{
+      return
     }
+    this.dropdownOptions.locations = locationOptions.sort((a, b) => a.text < b.text ? -1 : 1);
   }
 
   async onFloorplanSelected_SA(){
@@ -2888,10 +3282,10 @@ export class DrawingBoardComponent implements OnInit , AfterViewInit , OnDestroy
         p.visible = this.dataSrv.signalRSubj.isMovingInTask.value && p.taskItemIndex == i - 1
         p.alpha = 0.7
       })
-      this.allPixiPoints.filter(p => p.taskItemIndex == i).forEach((p: PixiLocPoint) => {
+      this.allPixiPoints.filter(p =>  p.taskItemIndex != null &&  p.taskItemIndex == i).forEach((p: PixiLocPoint) => {
         p.setTaskItemSeq((p.taskItemIndex + 1).toString(), undefined, !this.dataSrv.signalRSubj.isMovingInTask.value, this.dataSrv.signalRSubj.isMovingInTask.value)
       })
-      this.allPixiPoints.filter(p => p.taskItemIndex > i).forEach((p: PixiLocPoint) => {
+      this.allPixiPoints.filter(p =>  p.taskItemIndex != null &&  p.taskItemIndex > i).forEach((p: PixiLocPoint) => {
         p.setTaskItemSeq((p.taskItemIndex + 1).toString())
       })
     })

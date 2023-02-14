@@ -254,9 +254,9 @@ export class DataService {
             },
     taskActive:{topic:'rvautotech/fobo/execution',   mapping:{
       taskItemIndex: ()=> 0 , 
-      nextTaskAction : (d : {moveTask : JTask})=> d.moveTask.taskItemList.filter(t=>t.actionList.length > 0)[0]?.actionList[0].alias ,     
+      nextTaskAction : (d : {moveTask : JTask})=> d.moveTask.taskItemList.filter(t=>t.actionList?.length > 0)[0]?.actionList[0].alias ,     
       currentTaskId :  (d :  {taskId : string})=> d.taskId,
-        taskActive: (d :  {taskId : string ,moveTask : JTask}) => {
+        taskActive: (d :  {taskId : string , moveTask : JTask}) => {
           let ret =  d.taskId!= null ? d : d.moveTask
           this.signalRSubj.taskProgress.next(0)
           if (this.uiSrv.isTablet && ret) {
@@ -272,10 +272,10 @@ export class DataService {
                       if(taskItemList){
                         let taskItemIndex = d['taskItemIndex']
                         let actionIndex = d['actionIndex'] 
-                        let ttlActionsCnt = taskItemList.map(itm => itm.actionList.length).reduce((acc, inc) => inc + acc, 0)
-                        let currCnt = taskItemList.filter(itm=>taskItemList.indexOf(itm) < taskItemIndex).map(itm => itm.actionList.length).reduce((acc, inc) => inc + acc, 0) + actionIndex + 1
+                        let ttlActionsCnt = taskItemList.map(itm => itm.actionList?.length ? itm.actionList?.length : 0).reduce((acc, inc) => inc + acc, 0)
+                        let currCnt = taskItemList.filter(itm=>taskItemList.indexOf(itm) < taskItemIndex).map(itm => itm.actionList?.length ? itm.actionList?.length : 0).reduce((acc, inc) => inc + acc, 0) + actionIndex + 1
                         // this.signalRSubj.taskActionIndex.next( d['actionIndex'])
-                        let lastActionOfTaskItem =  taskItemList[taskItemIndex].actionList.length - 1 == actionIndex
+                        let lastActionOfTaskItem =  taskItemList[taskItemIndex].actionList?.length - 1 == actionIndex
                         let nextTaskItem = lastActionOfTaskItem? taskItemList[taskItemIndex + 1] : taskItemList[taskItemIndex]
                         let nextActionIdx = lastActionOfTaskItem ? 0 : actionIndex  + 1
                         this.signalRSubj.nextTaskAction.next(nextTaskItem?.actionList?.[nextActionIdx].alias)
@@ -802,7 +802,7 @@ export class DataService {
         value: value,
         text: apiMap[type]['enumPipe'] ? this.enumPipe.transform(desc) : desc
       }
-    })
+    }).sort((a, b) => a.text < b.text ? -1 : 1)
   }
 
   public getDropListDesc(list : object[] , value ,  type : dropListType = null ){
@@ -992,11 +992,12 @@ export class DataService {
     if(blockUI){
       ticket = this.uiSrv.loadAsyncBegin()
     }
-    if(code && this.dataStore.floorPlan[code] ){
-      let noImgFp = await this.httpSrv.get('api/map/plan/v1/' +  code  + '?mapImage=false&floorPlanImage=false');
-      if(noImgFp.modifiedDateTime == this.dataStore.floorPlan[code].modifiedDateTime){
-        if(blockUI){
-          this.uiSrv.loadAsyncDone(ticket)
+    let cachedFp : JFloorPlan = this.dataStore.floorPlan[code]?.data
+    if (code && cachedFp) {
+      let noImgFp: JFloorPlan = await this.httpSrv.get('api/map/plan/v1/' + code + '?mapImage=false&floorPlanImage=false');
+      if (noImgFp.modifiedDateTime == cachedFp.modifiedDateTime && noImgFp.mapList.every(m => cachedFp.mapList && cachedFp.mapList.filter(m2 => m2.mapCode == m.mapCode && m2.robotBase == m.robotBase)[0]?.modifiedDateTime == m.modifiedDateTime)) {
+        if (blockUI) {
+          this.uiSrv.loadAsyncDone(ticket) 
         }
         return this.dataStore.floorPlan[code].data
       }
@@ -1411,6 +1412,7 @@ export class JMap {
   pointList : JPoint[]
   pathList : JPath[]
   base64Image: string
+  modifiedDateTime?: Date
 }
 
 export class JBuilding {

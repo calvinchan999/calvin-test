@@ -490,7 +490,8 @@
                      (valueChange)="refreshSelectedPixiLoc();onSpawnPointSelected()"
                      (mouseoverOptionChange)="refreshPixiLocColor($event?.value)"
                      (open)="suspendViewportPlugin('wheel'); refreshPixiLocColor();"
-                     (close)="resumeViewportPlugin('wheel') ; refreshPixiLocColor();">
+                     (close)="resumeViewportPlugin('wheel') ; refreshPixiLocColor();"
+                     [filterable] = "true">
   </uc-dropdown>
 </ng-template>
 

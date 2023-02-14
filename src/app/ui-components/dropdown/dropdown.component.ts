@@ -14,13 +14,23 @@ export class DropdownComponent implements OnInit , OnDestroy {
   //*** For value change subscription , please use the event emitter of this UC for instead of form control --- formControl valueChange is suppressed ***/
   constructor(public uiSrv : UiService) { }
   @Input() showValue = false
+  @Input() filterable = false
   @Input() translateOption = false
   @Input() lab
   @Input() frmGrp : FormGroup
   @Input() frmCtrl
   @Input() textFld = 'text'
   @Input() valueFld = 'value'
-  @Input() options = []
+  _options
+  filter = null
+  @Input() set options(v){
+    this._options = v
+    this.handleFilter(this.filter)
+  }
+  get options(){
+    return this._options
+  }
+  filteredOptions = []
   @Input() defaultValue = null
   @Input() useTranslation = false
   @Output() change = new EventEmitter()
@@ -181,6 +191,16 @@ export class DropdownComponent implements OnInit , OnDestroy {
       return false
     }
     return true
+  }
+
+  handleFilter(v) {
+    this.filter = v
+    v = v && v.length > 0 ? v.toLowerCase() : null
+    let exactMatch = this.options.filter(o => o[this.textFld].toLowerCase() == v)
+    let startsWith = this.options.filter(o => o[this.textFld].toLowerCase().startsWith(v) && o[this.textFld].toLowerCase() != v)
+    let contains = this.options.filter(o => o[this.textFld].toLowerCase().includes(v) && o[this.textFld].toLowerCase() != v && !startsWith.map(o => o[this.valueFld]).includes(o[this.valueFld]))
+    this.filteredOptions = v ? exactMatch.concat(startsWith).concat(contains) : JSON.parse(JSON.stringify(this.options))
+    // return this.filteredOptions
   }
 
   // setBackgroundAnimation(){

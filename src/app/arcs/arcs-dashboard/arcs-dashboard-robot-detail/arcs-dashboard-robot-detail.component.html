@@ -112,16 +112,6 @@
             <app-sa-top-module *ngIf="robotType" [isPartOf3dTooltip] = 'true'  [arcsRobotType] = "robotType"  [arcsRobotSubType] = "robotSubType"  [arcsRobotCode] = "robotId"></app-sa-top-module>   
         </div> 
 
-        <div class="popup-row" *ngIf="robotSubj.obstacleDetected?.value || robotSubj.tiltActive?.value || robotSubj.estop?.value">
-            <span class="warning">
-                <i class="mdi mdi-alert"></i>
-                <span>{{(robotSubj.estop?.value ? uiSrv.commonAlertMessages.estopped : (
-                            robotSubj.tiltActive?.value ?  uiSrv.commonAlertMessages.tiltDetected : uiSrv.commonAlertMessages.obstacleDetected
-                            )
-                         ) | label : uiSrv.langPack}}</span>
-            </span>
-        </div>
-
         <div *ngIf="robotSubj.status?.value != 'UNKNOWN' && robotSubj.destination?.value"  class="popup-row">         
             <span class="loading-dots">
                 <i class="loading-dots--dot"></i>
@@ -134,6 +124,17 @@
                 <span>{{robotSubj.destination.value}}</span>
             </span>
         </div> 
+
+        <div class="popup-row" *ngIf="robotSubj.obstacleDetected?.value || robotSubj.tiltActive?.value || robotSubj.estop?.value">
+            <span class="warning">
+                <i class="mdi mdi-alert"></i>
+                <span>{{(robotSubj.estop?.value ? uiSrv.commonAlertMessages.estopped : (
+                            robotSubj.tiltActive?.value ?  uiSrv.commonAlertMessages.tiltDetected : uiSrv.commonAlertMessages.obstacleDetected
+                            )
+                         ) | label : uiSrv.langPack}}
+                </span>
+            </span>
+        </div>
     </div>
 </div>
 <!-- 

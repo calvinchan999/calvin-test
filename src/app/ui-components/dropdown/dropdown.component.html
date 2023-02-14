@@ -1,10 +1,12 @@
 <div [class]="lab ? 'form-group': ''">
     <label class="col-form-label">{{ lab | label : uiSrv.langPack}}</label>
 
-    <kendo-dropdownlist #kDropdown [ngModel] = "myValue"  [data]="options"  [textField]="textFld" [valueField]="valueFld"  (open)="open.emit($event)" (close) = "blurKdropdown();close.emit($event)"
+    <kendo-dropdownlist #kDropdown [ngModel] = "myValue"  [data]="filteredOptions"  [textField]="textFld" [valueField]="valueFld"  (open)="open.emit($event)" (close) = "blurKdropdown();close.emit($event)"
                         (ngModelChange) = " oldValue = value; value = $event[valueFld]; valueChange.emit(value) ; change.emit({currentValue : $event[valueFld] , previousValue: oldValue})"
                         [class] = "(transitBackground ? 'animated-bg' : '' ) + (kendoCssClass? (' ' + kendoCssClass ) : '') "  
-                        [disabled] = "disabled || (frmGrp && frmGrp.controls[frmCtrl] && frmGrp.controls[frmCtrl].disabled)">
+                        [disabled] = "disabled || (frmGrp && frmGrp.controls[frmCtrl] && frmGrp.controls[frmCtrl].disabled)"
+                        [filterable] = "filterable"
+                        (filterChange)="handleFilter($event)">
         <ng-template kendoDropDownListNoDataTemplate *ngIf = "noDataMsg">
             {{noDataMsg}}
         </ng-template>
