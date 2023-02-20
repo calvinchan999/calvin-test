@@ -33,7 +33,7 @@ export class UiService {
     // if(this.isTablet){
     //   this.fullScreen()
     // } 
-     this.initNotification()
+    this.initNotification()
   }
   public isTablet = false
   public langPack = { }
@@ -52,17 +52,29 @@ export class UiService {
   }
 
   initNotification(){
-    Notification.requestPermission((status) =>{})      
+    // if(this.isIos()){
+    //   return
+    // }
+    try{
+      Notification.requestPermission((status) =>{})      
+    }catch(e){
+      console.log(`This device do not support browser notification function : \n ${e}`)
+    }
   }
 
   showBrowserPopupNotification(msg : string , onlyIfAppIsNonActiveTab = true){
-    if(onlyIfAppIsNonActiveTab && ! document.hidden){
+    if( (onlyIfAppIsNonActiveTab && ! document.hidden)){
       return
     }
-    if(Notification.permission === "granted"){
-     new Notification(msg , { icon: './assets/rvicon.png' , requireInteraction: true , body : this.datePipe.transform(new Date(),'hh:mm:ss aa') });
-    }else{
-     this.initNotification()
+    try{
+      if(Notification.permission === "granted"){
+        new Notification(msg , { icon: './assets/rvicon.png' , requireInteraction: true , body : this.datePipe.transform(new Date(),'hh:mm:ss aa') });
+       }else{
+        this.initNotification()
+       }
+    } 
+    catch(e){
+      console.log(`This device do not support browser notification function : \n ${e}`)
     }
   }
 
@@ -81,6 +93,14 @@ export class UiService {
         return navigator.userAgent.match(toMatchItem);
     });
   }
+
+  // isIos(){
+  //   const browserInfo = navigator.userAgent.toLowerCase();
+  //   return browserInfo.match('iphone') || 
+  //          browserInfo.match('ipad') || 
+  //          ['iPad Simulator', 'iPhone Simulator', 'iPod Simulator', 'iPad', 'iPhone', 'iPod'].includes(navigator.platform) ||
+  //          window.navigator.platform && window.navigator.platform.match(/iPhone|iPod|iPad/)
+  // }
 
   loadAsyncBegin(zIndex = null) {
     this.loadingShadeZindex = zIndex != null ? zIndex : this.loadingShadeZindex

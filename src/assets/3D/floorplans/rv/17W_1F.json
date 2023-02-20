@@ -1,0 +1,6 @@
+{
+ "tabletPath":"assets/3D/tablet/17W_1F.glb",
+ "scale" : 26.5 ,
+ "position" : { "x": 280, "y": 55, "z": 0},
+ "rotate": { "x": 1.57 , "y": 0 , "z": 0}
+}

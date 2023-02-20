@@ -25,15 +25,7 @@
     display: flex;
 }
 
-:host ::ng-deep .full-screen-viewport{
-    z-index: 9999;
-    top: 0;
-    left: 0;
-    width: 100vw;
-    height: 100vh!important;
-    position: fixed;
-    backdrop-filter: blur(15px)!important;
-}
+
 
 // :host ::ng-deep .tooltip {
 //     padding: '8px';

@@ -385,7 +385,8 @@ export class ThreejsViewportComponent implements OnInit , OnDestroy{
   async initCustom3dModel() {
     let tenantCode = this.util.getTenantCode()
     let path = `${ASSETS_ROOT}/floorplans/${tenantCode}/${this.floorPlanDataset.floorPlanCode}`
-    let settings: { tabletPath?: string, withModel? : boolean, wallHeight : number ,walls : {x:number , y:number}[][], path?: string, scale?: number, position?: { x?: number, y?: number, z?: number }, rotate?: { x?: number, y?: number, z?: number } } | null = await this.dataSrv.getAssets(path + '.json')
+    let settings = await this.dataSrv.getAssets(path + '.json')
+    this.floorplan.settings = settings
     path = this.uiSrv.detectMob() && settings.tabletPath?  settings.tabletPath : (settings?.path ? settings.path : path + '.glb') 
     let transform = (obj: THREE.Group) => {
       obj.rotation.set(settings.rotate?.x ? settings.rotate?.x : 0, settings.rotate?.y ? settings.rotate?.y : 0, settings.rotate?.z ? settings.rotate?.z : 0)
@@ -431,6 +432,7 @@ export class ThreejsViewportComponent implements OnInit , OnDestroy{
     } else {
       (<THREE.MeshPhongMaterial>this.floorplan.material).visible = true
     }
+    
 
     if(settings?.walls){
       this.initWalls(settings.walls , settings.wallHeight);
@@ -670,6 +672,7 @@ class FloorPlanMesh extends Mesh{
   height
   aabb = new THREE.Box3()
   maxDepth = null
+  settings :  { tabletPath?: string, withModel? : boolean, wallHeight : number ,walls : {x:number , y:number}[][], path?: string, scale?: number, position?: { x?: number, y?: number, z?: number }, rotate?: { x?: number, y?: number, z?: number } }
   constructor(public master: ThreejsViewportComponent , base64Image : string , width : number , height : number){
     super(new THREE.PlaneGeometry(width, height), new THREE.MeshPhongMaterial({ map: THREE.ImageUtils.loadTexture(base64Image), side : DoubleSide }))
     this.width = width;

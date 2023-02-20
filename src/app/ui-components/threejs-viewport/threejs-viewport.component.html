@@ -20,7 +20,7 @@
                 [ngClass]="{'btn-intermediate': uiToggles.showWaypoint && !uiToggles.showWaypointName , 'btn-active': uiToggles.showWaypoint && uiToggles.showWaypointName }">
           <span class="mdi mdi-map-marker"></span>
  </button>
-  <button kendoButton class="wall" [matTooltip]="'Show walls' | label : uiSrv.langPack" (click)="uiToggles.showWall = !uiToggles.showWall ; uiToggled('wall')" [ngClass]="{'btn-active':uiToggles.showWall}" >
+  <button *ngIf="floorplan?.settings?.walls" kendoButton class="wall" [matTooltip]="'Show walls' | label : uiSrv.langPack" (click)="uiToggles.showWall = !uiToggles.showWall ; uiToggled('wall')" [ngClass]="{'btn-active':uiToggles.showWall}" >
     <span class="mdi mdi-wall"></span>
   </button>
   <button kendoButton class="2d-switch" [matTooltip]="'2D Map' | label : uiSrv.langPack" (click)="dataSrv.setLocalStorage('dashboardMapType' , '2D');to2D.emit({floorPlanCode : floorPlanDataset.floorPlanCode })">

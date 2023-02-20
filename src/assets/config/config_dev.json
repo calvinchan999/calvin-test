@@ -5,6 +5,7 @@
 	"DEBUG_SIGNALR": false,
 	"DEBUG_SIGNALR_TYPE": "",
 	"ROBOT_BASE": "WC",
+	"SIGNALR_URLxxx": "https://rv-adt-test.azurewebsites.net/api",
 	"SIGNALR_URL": "http://localhost:5001/signalR",
 	"SIGNALR_URLx": "https://rv-dev.eastasia.cloudapp.azure.com:5001/signalR",
 	"IP_CAMERA_URLxx": "http://localhost/live?port=1935&app=live&stream=stream",

@@ -96,7 +96,7 @@ export class DropdownComponent implements OnInit , OnDestroy {
   }
 
   refreshDataNotFoundState(){
-    this.dataNotFound = this.myValue && this.myValue[this.valueFld] != null && !this.options.map(o=>o[this.valueFld]).includes(this.myValue[this.valueFld])
+    this.dataNotFound = this.myValue && this.myValue[this.valueFld] != null && !this.options?.map(o=>o[this.valueFld]).includes(this.myValue[this.valueFld])
   }
 
   get value() {

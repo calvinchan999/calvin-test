@@ -1,5 +1,5 @@
 import { BrowserModule, Title } from '@angular/platform-browser';
-import { RouterModule } from '@angular/router';
+import { Router, RouterModule } from '@angular/router';
 import { NgModule, LOCALE_ID } from '@angular/core';
 import { BrowserAnimationsModule } from '@angular/platform-browser/animations';
 import { HttpClientModule, HTTP_INTERCEPTORS } from '@angular/common/http';
@@ -9,6 +9,7 @@ import { CommonModule, LocationStrategy, HashLocationStrategy, DatePipe } from '
 import { AppComponent } from './app.component';
 import { ConfigModule, ConfigService } from './services/config.service';
 import { HeaderComponent } from './common-components/header/header.component';
+
 // import { RatingComponent } from './components/team/rating.component';
 // import { DashboardComponent } from './components/dashboard/dashboard.component';
 // import { CardComponent } from './components/planning/cards/card.component';
@@ -474,4 +475,5 @@ import { CmTaskCancelComponent } from './common-components/cm-task/cm-task-cance
 
     bootstrap: [AppComponent]
 })
-export class AppModule { }
+export class AppModule { 
+}

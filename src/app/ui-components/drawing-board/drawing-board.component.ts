@@ -981,7 +981,7 @@ export class DrawingBoardComponent implements OnInit , AfterViewInit , OnDestroy
   public getPixiLocPoint(option = new GraphicOptions(), text = null, type = this.point.type , iconUrl = null , pointType = this.defaultPointType): PixiLocPoint { //Some parts to be moved to PixiArrow
     if(pointType != null && !iconUrl){
       let base64 = (<DropListPointIcon[]>this.dropdownData.iconTypes).filter(t=>t.code == pointType)[0]?.base64Image
-      iconUrl = base64 && base64!="" ? base64 : null
+      iconUrl = base64 && base64 != "" ? base64 : null
     }
     option.fillColor = Number(this.selectedStyle.marker.color.replace("#", "0x"))
     option.lineColor = option.fillColor
