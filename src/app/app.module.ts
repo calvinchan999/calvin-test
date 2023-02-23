@@ -226,6 +226,7 @@ import { ArcsSetupExportFloorplanComponent } from './arcs/arcs-setup/arcs-setup-
 import { ArcsRobotGroupComponent } from './arcs/arcs-dashboard/arcs-robot-group/arcs-robot-group.component';
 import { ArcsAbnormalTasksComponent } from './arcs/arcs-dashboard/arcs-charts/arcs-abnormal-tasks/arcs-abnormal-tasks.component';
 import { CmTaskCancelComponent } from './common-components/cm-task/cm-task-cancel/cm-task-cancel.component';
+import { ArcsLiftIotComponent } from './arcs/arcs-IoT/arcs-lift-iot/arcs-lift-iot.component';
 
 @NgModule({
     declarations: [
@@ -317,7 +318,8 @@ import { CmTaskCancelComponent } from './common-components/cm-task/cm-task-cance
         ArcsSetupExportFloorplanComponent,
         ArcsRobotGroupComponent,
         ArcsAbnormalTasksComponent,
-        CmTaskCancelComponent        
+        CmTaskCancelComponent,
+        ArcsLiftIotComponent        
     ],
     imports: [
         PowerBIEmbedModule,

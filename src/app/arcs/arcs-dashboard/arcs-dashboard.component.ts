@@ -499,6 +499,13 @@ export class ArcsDashboardComponent implements OnInit {
 
     this.refreshRobotDetail(data)
 
+    if(this.threeJsElRef){
+      this.threeJsElRef.robotObjs.filter(r=>! data.map(r2=>r2.robotCode).includes(r.robotCode)).forEach(r=>r.destroy())
+    }
+    if(this.pixiElRef){
+      this.pixiElRef.robots.filter(r => !data.map(r2 => r2.robotCode).includes(r.id)).forEach(r => this.pixiElRef.removeRobot(r))
+    }
+
     let robotStatusCssClassMap = {
       IDLE : 'idle',
       EXECUTING : 'working',
@@ -653,12 +660,6 @@ export class ArcsDashboardComponent implements OnInit {
     })
     // if(this.robotDetailCompRef){
     //   this.robotDetailCompRef.refreshRobotStatus(false)
-    // }
-    // if(this.threeJsElRef){
-    //   robotCodes.forEach(c=>{
-    //     const robotDtlPopUp : ArcsDashboardRobotDetailComponent = this.threeJsElRef.robotObjs.filter(r=>r.robotCode == c)?.[0]?.dashboardDtlCompRef?.instance
-    //     robotDtlPopUp.refreshRobotStatus(false)
-    //   })
     // }
   }
 

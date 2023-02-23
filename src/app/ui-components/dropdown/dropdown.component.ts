@@ -196,10 +196,10 @@ export class DropdownComponent implements OnInit , OnDestroy {
   handleFilter(v) {
     this.filter = v
     v = v && v.length > 0 ? v.toLowerCase() : null
-    let exactMatch = this.options.filter(o => o[this.textFld].toLowerCase() == v)
-    let startsWith = this.options.filter(o => o[this.textFld].toLowerCase().startsWith(v) && o[this.textFld].toLowerCase() != v)
-    let contains = this.options.filter(o => o[this.textFld].toLowerCase().includes(v) && o[this.textFld].toLowerCase() != v && !startsWith.map(o => o[this.valueFld]).includes(o[this.valueFld]))
-    this.filteredOptions = v ? exactMatch.concat(startsWith).concat(contains) : JSON.parse(JSON.stringify(this.options))
+    let exactMatch = this.options?.filter(o => o[this.textFld].toLowerCase() == v)
+    let startsWith = this.options?.filter(o => o[this.textFld].toLowerCase().startsWith(v) && o[this.textFld].toLowerCase() != v)
+    let contains = this.options?.filter(o => o[this.textFld].toLowerCase().includes(v) && o[this.textFld].toLowerCase() != v && !startsWith.map(o => o[this.valueFld]).includes(o[this.valueFld]))
+    this.filteredOptions = v ? (exactMatch ? exactMatch : []).concat(startsWith ?  startsWith : []).concat(contains ? contains : []) : JSON.parse(JSON.stringify(this.options ? this.options : []))
     // return this.filteredOptions
   }
 

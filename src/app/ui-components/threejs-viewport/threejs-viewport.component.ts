@@ -5,9 +5,11 @@ import * as THREE from 'three';
 import { GLTF, GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader';
 import { MTLLoader } from 'three/examples/jsm/loaders/MTLLoader';
 import { OBJLoader } from 'three/examples/jsm/loaders/OBJLoader';
+import { FontLoader } from 'three/examples/jsm/loaders/FontLoader.js';
+import { TextGeometry } from 'three/examples/jsm/geometries/TextGeometry.js';
 import {TWEEN} from "three/examples/jsm/libs/tween.module.min";
 import { DragControls } from 'three/examples/jsm/controls/DragControls';
-import { AmbientLight, DirectionalLight, DoubleSide, Group, Mesh, Object3D, ShapeGeometry, WebGLRenderer ,BufferGeometry, LineSegments, MeshStandardMaterial, Vector3, MeshBasicMaterial, ShaderMaterial, Material, MeshPhongMaterial } from 'three';
+import { AmbientLight, DirectionalLight, DoubleSide, Group, Mesh, Object3D, ShapeGeometry, WebGLRenderer ,BufferGeometry, LineSegments, MeshStandardMaterial, Vector3, MeshBasicMaterial, ShaderMaterial, Material, MeshPhongMaterial, PlaneGeometry } from 'three';
 import { GeneralUtil } from 'src/app/utils/general/general.util';
 import { DataService, DropListFloorplan, DropListRobot, JFloorPlan, JMap, JPoint, RobotDetailARCS } from 'src/app/services/data.service';
 import { debounce, debounceTime, filter, retry, share, skip, switchMap, take, takeUntil , map } from 'rxjs/operators';
@@ -27,6 +29,7 @@ import { Color } from '@progress/kendo-drawing';
 import { transform } from 'typescript';
 import { DRACOLoader } from 'three/examples/jsm/loaders/DRACOLoader';
 import { ArcsDashboardRobotDetailComponent } from 'src/app/arcs/arcs-dashboard/arcs-dashboard-robot-detail/arcs-dashboard-robot-detail.component';
+import { ArcsLiftIotComponent } from 'src/app/arcs/arcs-IoT/arcs-lift-iot/arcs-lift-iot.component';
 
 
 const NORMAL_ANGLE_ADJUSTMENT =  - 90 / radRatio
@@ -129,6 +132,10 @@ export class ThreejsViewportComponent implements OnInit , OnDestroy{
   }
   get blockMeshes() : Extruded2DMesh[] {
     return this.floorplan? <any>this.floorplan?.children.filter(b=>b instanceof Extruded2DMesh) : []
+  }
+
+  get elevators() : ElevatorObject3D[] {
+    return this.floorplan? <any>this.floorplan?.children.filter(b=>b instanceof ElevatorObject3D) : []
   }
 
   get width() {
@@ -288,15 +295,15 @@ export class ThreejsViewportComponent implements OnInit , OnDestroy{
       b.setOpactiy(blockingObjs.includes(b) || b.blockedFocusedObject ? b.transparentOpacity : b.defaultOpacity)
     })
     
-    this.floorplan?.traverse(c => {
+    this.floorplan?.traverse((c : any) => {
       if ((<any>c).material) {
-        (<any>c).material.opacity = 1;
+        (<any>c).material.opacity = c.defaultOpacity ? c.defaultOpacity : 1;
       }
     })
 
     blockingObjs.forEach(b=>{
       (<any>b).material.transparent = true;
-      (<any>b).material.opacity = 0.3 ;
+      (<any>b).material.opacity = b.parent instanceof ElevatorObject3D ? 0.6 :  0.3 ;
     })
   }
 
@@ -413,7 +420,6 @@ export class ThreejsViewportComponent implements OnInit , OnDestroy{
           this.loadingPercent = null
           let obj = gltf.scene
           transform(obj)
-          console.log(obj)
           this.floorplan.add(obj)
         }, this.onObjProgress)
       } else if (path.endsWith(".obj")) {
@@ -432,11 +438,58 @@ export class ThreejsViewportComponent implements OnInit , OnDestroy{
     } else {
       (<THREE.MeshPhongMaterial>this.floorplan.material).visible = true
     }
+    // (<THREE.MeshPhongMaterial>this.floorplan.material).visible = true
+  
     
 
     if(settings?.walls){
       this.initWalls(settings.walls , settings.wallHeight);
     }
+
+    //elevators
+    this.initElevators()
+    //turnstile
+    this.initTurnstile()
+  }
+
+  initElevators(){
+    // const geometry = new THREE.BoxGeometry(100, 100, 100);
+    // const material = new THREE.MeshBasicMaterial({ color: 0x00ff00 });
+    // const cube = new THREE.Mesh(geometry, material);
+    // this.floorplan.add(cube);
+    const testElevators = [
+      { code: "1", position: { x: 120, y: -20, z: 0 } },
+      { code: "2", position: { x: 200, y: -20, z: 0 } },
+      { code: "3", position: { x: 280, y: -20, z: 0 } },
+      { code: "4", position: { x: 120, y: 125, z: 0 } },
+      { code: "5", position: { x: 200, y: 125, z: 0 } },
+      { code: "6", position: { x: 280, y: 125, z: 0 } }
+    ]
+    testElevators.forEach(l => {
+      let elevator = new ElevatorObject3D(this , l.code)
+      this.floorplan.add(elevator)
+      elevator.position.setX(l.position.x)
+      elevator.position.setY(l.position.y)
+      elevator.position.setZ(l.position.z)
+    })
+    // let testRobot = new RobotObject3D(this, "DUMMY", "PATROL", "PATROL")
+    // let mapMesh = this.getMapMesh("PATROL")
+    // if (!mapMesh.children.includes(testRobot)) {
+    //   mapMesh.add(testRobot)
+    //   this.refreshRobotColors()
+    // }
+
+    
+    // testRobot.visible = true
+    // testRobot.updatePositionAndRotation({x : 0 , y : 0 , angle : 0 , interval : null , timeStamp : null})
+    // let elevatorPosition = this.elevators.filter(e => e.code == '2')[0]?.position
+    // let vec = this.floorplan.getWorldPosition(elevatorPosition)
+    // let pos = mapMesh.worldToLocal(vec)
+    // testRobot.position.set( pos.x , pos.y ,15)
+  }
+
+  initTurnstile(){
+
   }
 
   async getImageDimension(base64 : string) : Promise<{width : number , height : number}>{
@@ -530,6 +583,7 @@ export class ThreejsViewportComponent implements OnInit , OnDestroy{
   }
 
   public subscribeRobotPoses(mapCode = this.mapCode){ //Assume 1 Map per robot per floor plan
+    //TBR : dont add robot if it is inside lift
     this.dataSrv.subscribeSignalR('arcsPoses' , mapCode)
     this.dataSrv.signalRSubj.arcsPoses.pipe(filter(v => v) , takeUntil(this.$mapCodeChanged)).subscribe(async (poseObj) => { //{mapCode : robotId : pose}
       Object.keys(poseObj[mapCode]).forEach((robotCode)=>{
@@ -1005,6 +1059,7 @@ class MarkerObject3D extends Object3DCommon {
 }
 
 export class RobotObject3D extends Object3DCommon{
+  destroyed = false
   dashboardDtlCompRef : ComponentRef<ArcsDashboardRobotDetailComponent>
   aabb = new THREE.Box3() //Axis Align Bounding Box
   loader : GLTFLoader
@@ -1162,7 +1217,7 @@ export class RobotObject3D extends Object3DCommon{
   // mesh : Mesh  
   // readonly glbPath = ASSESTS_ROOT + "/robot.glb" // Raptor Heavy Planetary Crawler by Aaron Clifford [CC-BY] via Poly Pizza
   readonly alertIconPath = ASSETS_ROOT + '/exclamation.glb' //This work is based on "Exclamation Mark 3D icon" (https://sketchfab.com/3d-models/exclamation-mark-3d-icon-35fcb8285f134554989f822ab90ee974) by summer57 (https://sketchfab.com/summer5717) licensed under CC-BY-4.0 (http://creativecommons.org/licenses/by/4.0/)
-  constructor( master: ThreejsViewportComponent , _robotCode : string , _robotBase : string , _robotType : string  ){
+  constructor( master: ThreejsViewportComponent , _robotCode : string , _robotBase : string , _robotType : string ){
     super(master)
     this.add(this.scene)
     this.robotImportSetting = this.master.util.config.MAP_3D?.ROBOT ? this.master.util.config.MAP_3D.ROBOT : this.robotImportSetting
@@ -1205,26 +1260,35 @@ export class RobotObject3D extends Object3DCommon{
         this.storeOriginalMaterialData()
         this.addFrontFacePointer()
         new THREE.TextureLoader().load(ASSETS_ROOT +'/offline_overlay.jpg',  (texture)=>{
-          this.offlineTexture = texture
-          this.offlineTexture.wrapS = THREE.RepeatWrapping;
-          this.offlineTexture.wrapT = THREE.RepeatWrapping;
+          if(this.robotCode){
+            this.offlineTexture = texture
+            this.offlineTexture.wrapS = THREE.RepeatWrapping;
+            this.offlineTexture.wrapT = THREE.RepeatWrapping;
+          }
           this.changeMainColor(this.color)
         })
         this.changeMainColor(this.color)
         let robotInfo = this.master.parent.robotInfos.filter(r=>r.robotCode == this.robotCode)[0]
-        this.offline = robotInfo?.robotStatus == 'UNKNOWN'
+        this.offline = !this.robotCode || robotInfo?.robotStatus == 'UNKNOWN'
         this.alert = robotInfo?.alert!= null && robotInfo.alert.length > 0 
         this.master.uiSrv.loadAsyncDone(ticket)
+        if(this.destroyed){
+          this.destroy()
+        }
       })
     })
 
     // this.toolTip.position.set(0, 0 , 25 );
     this.toolTipSettings.position = this.getToolTipPos()
-    this.initInfoToolTipEl()
-    this.toolTipAlwaysOn = this.master.uiToggles.showRobotStatus && !this.offline
-    this.visible = false
+    if(this.robotCode != null){
+      this.initInfoToolTipEl()      
+      this.toolTipAlwaysOn = this.master.uiToggles.showRobotStatus && !this.offline
+    }
+    this.visible = !this.robotCode
     this.onClick.subscribe(()=>{
-      this.master.robotClicked.emit({id:this.robotCode , object : this})
+      if(this.robotCode){
+        this.master.robotClicked.emit({id:this.robotCode , object : this})
+      }
     })
   }
 
@@ -1241,7 +1305,7 @@ export class RobotObject3D extends Object3DCommon{
   }
 
   updatePositionAndRotation(pose : {x : number  , y : number , angle : number , interval : number , timeStamp : number}){
-    if(pose.timeStamp == this.targetPose?.timeStamp){
+    if(pose.timeStamp && pose.timeStamp == this.targetPose?.timeStamp){
       return
     }
     const defaultDurationMs = 1000
@@ -1306,7 +1370,7 @@ export class RobotObject3D extends Object3DCommon{
   changeMainColor(color: number) {
     this.outlinePass?.visibleEdgeColor.set(this.offline ? this.offlineColor : color)
     this.outlinePass?.hiddenEdgeColor.set(this.offline ? this.offlineColor : color)
-    if (this.offline && this.outlinePass) {
+    if (this.offline && this.outlinePass && this.offlineTexture) {
       this.outlinePass.usePatternTexture = true
       this.outlinePass.patternTexture = this.offlineTexture
     } else if (this.outlinePass) {
@@ -1378,6 +1442,8 @@ export class RobotObject3D extends Object3DCommon{
   }
 
   destroy(){
+    this.destroyed = true
+    this.parent?.remove(this)
     this.master.composer?.removePass(this.outlinePass)
     this.hideToolTip()
     this.toolTip?.element?.remove()
@@ -1448,8 +1514,73 @@ class Extruded2DMesh extends Mesh{
       o.opacity = opacity
     })
   }
+}
+
+class ElevatorObject3D extends Object3DCommon{
+  planeMesh : Mesh
+  boxMesh : Mesh
+  width = 60
+  height = 60
+  depth = 90
+  code
+  robotDisplay : RobotObject3D
+  _displayRobotType : string
+  toolTipCompRef : ComponentRef<ArcsLiftIotComponent>
+
+  get displayRobotType(){
+    return this._displayRobotType
+  }
+
+  set displayRobotType(v) {
+    this._displayRobotType = v;
+    (<any>this.boxMesh).defaultOpacity = v ? 0.45 : 0.85
+    if (v &&(this._displayRobotType != v || !this.robotDisplay)) {
+      this.initDisplayRobot()
+    }else if(!v && this.robotDisplay){
+      this.robotDisplay.destroy()
+      this.robotDisplay = null
+    }
+  }
+
+  initDisplayRobot(){
+    if(this.robotDisplay && this.robotDisplay.robotType != this.displayRobotType){
+      this.robotDisplay.parent.remove(this.robotDisplay)
+      this.robotDisplay = null
+    }  
+    if (!this.robotDisplay) {
+      this.robotDisplay = new RobotObject3D(this.master, null , this.master.mapMeshes[0]?.robotBase, this.displayRobotType )
+      this.robotDisplay.position.set(0, 0, 15)
+      this.add(this.robotDisplay)
+    }
+  }
+
+  constructor(public master : ThreejsViewportComponent , _id : string ){
+    super(master)
+    this.code = _id
+    this.planeMesh = new Mesh(new THREE.PlaneGeometry(this.width, this.height) , new THREE.MeshBasicMaterial({ color: 0x666666, side: THREE.FrontSide , transparent : true , opacity : 0.4}))
+    this.add(this.planeMesh)
+    this.boxMesh = new THREE.Mesh(new THREE.BoxGeometry(this.width, this.height, this.depth),  new THREE.MeshLambertMaterial({side: THREE.DoubleSide , color: 0xAAAAAA, opacity: 0.8, transparent: true }));
+    this.boxMesh.position.set(0, 0, this.depth / 2)
+    this.boxMesh.visible = this.code == '5' || this.code == '2' || this.code == '3' //testing
+    this.add(this.boxMesh)
+    this.displayRobotType = null
+    if (this.code == '2') { //testing
+      this.displayRobotType = 'PATROL'
+    }
+  }
+
+  initInfoToolTipEl() { 
+    this.toolTipCompRef = this.master.vcRef.createComponent(this.master.compResolver.resolveComponentFactory(ArcsLiftIotComponent))
+    this.toolTipCompRef.instance.id = this.code
+    this.toolTipSettings.customEl = this.toolTipCompRef.instance.elRef.nativeElement 
+    this.toolTipSettings.customEl.hidden = true
+  }
+}
+
+class TurnstileObject3D extends Object3DCommon{ 
 
 }
+
 
 class Import3DModelSettings {
   type? : string = "GLB"
