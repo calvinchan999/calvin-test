@@ -1,1 +1,16 @@
-<p>arcs-lift-iot works!</p>
+<span class="iot-id">
+    <i class="mdi mdi-window-open-variant"></i>
+    <span>{{liftId}}</span>
+</span>
+<div class="iot" *ngIf="dataSrv.signalRSubj.arcsLift.value && dataSrv.signalRSubj.arcsLift.value[liftId]">
+    <div class="iot-content">
+        <div class="floor iot-row">
+            <span>{{'Floor' | label : uiSrv.langPack}} : </span>
+            <span>{{dataSrv.signalRSubj.arcsLift.value[liftId].floor}}</span>            
+        </div>
+        <div class="robot iot-row" *ngIf="dataSrv.signalRSubj.arcsLift.value[liftId].robotCode">
+            <i class="mdi mdi-robot"></i> 
+            <span>{{dataSrv.signalRSubj.arcsLift.value[liftId].robotCode}}</span>
+        </div>
+    </div>
+</div>

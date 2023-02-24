@@ -199,11 +199,11 @@ export class TestSignalRComponent implements OnInit {
   }
 
   sampleData = {
-    testLift17W_1F:{
+    lift:{
       seriesInterval: 1,
-      topic: 'rvautotech/fobo/pose/DIM_TEST2',
+      topic: 'rvautotech/fobo/lift',
       content : `[
-        {"robotId":"RV-ROBOT-104","mapName":"DIM_TEST2","x":22,"y":6.5,"angle":0.7}
+        {"liftId":"LIFT-2", "floor" : "1F", "robotId":"RV-ROBOT-104","status" : "OPENED"}
       ]`
     },
     arcsRobotDestination:{

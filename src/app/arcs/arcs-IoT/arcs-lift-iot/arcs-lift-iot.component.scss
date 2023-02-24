@@ -1,0 +1,15 @@
+:host .iot-row.robot i{
+    // text-shadow: -1px -1px 0 rgba(200,200,200, 0.5), 1px -1px 0  rgb(200,200,200, 0.5), -1px 1px 0  rgb(200,200,200, 0.5), 1px 1px 0  rgb(200,200,200, 0.5);
+    font-size: 13px;
+    line-height: 12px;
+    margin-right: 3px;
+    color: darkturquoise;
+}
+
+:host .iot-row.robot {
+    margin-top: 2px;
+}
+
+:host .iot-id i {
+    margin-right: 3px;
+}

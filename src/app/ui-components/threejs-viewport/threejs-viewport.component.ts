@@ -11,7 +11,7 @@ import {TWEEN} from "three/examples/jsm/libs/tween.module.min";
 import { DragControls } from 'three/examples/jsm/controls/DragControls';
 import { AmbientLight, DirectionalLight, DoubleSide, Group, Mesh, Object3D, ShapeGeometry, WebGLRenderer ,BufferGeometry, LineSegments, MeshStandardMaterial, Vector3, MeshBasicMaterial, ShaderMaterial, Material, MeshPhongMaterial, PlaneGeometry } from 'three';
 import { GeneralUtil } from 'src/app/utils/general/general.util';
-import { DataService, DropListFloorplan, DropListRobot, JFloorPlan, JMap, JPoint, RobotDetailARCS } from 'src/app/services/data.service';
+import { DataService, DropListFloorplan, DropListRobot, JFloorPlan, JMap, JPoint, RobotDetailARCS, signalRType } from 'src/app/services/data.service';
 import { debounce, debounceTime, filter, retry, share, skip, switchMap, take, takeUntil , map } from 'rxjs/operators';
 import { radRatio } from '../drawing-board/drawing-board.component';
 import { interval, Observable, Subject, Subscription } from 'rxjs';
@@ -42,6 +42,8 @@ const ASSETS_ROOT = 'assets/3D'
 export class ThreejsViewportComponent implements OnInit , OnDestroy{
   public selected = false;
   public loadingTicket = null
+  subcribedIotSignalRTypes : signalRType [] = []
+
   scene : THREE.Scene
   camera : THREE.PerspectiveCamera
   ambientLight : THREE.AmbientLight
@@ -80,6 +82,7 @@ export class ThreejsViewportComponent implements OnInit , OnDestroy{
   focusedObj = null
   isMobile = false
   fullScreen = false 
+  $onDestroy = new Subject()
 
   @Input() uiToggles = {
     showWall : true,
@@ -220,25 +223,25 @@ export class ThreejsViewportComponent implements OnInit , OnDestroy{
     if(!this.renderer || this.suspended){
       return
     }
+    const IoTClassList = [RobotObject3D , ElevatorObject3D , TurnstileObject3D]
     const rect = this.renderer.domElement.getBoundingClientRect();
     this.mouse.x = ((event.clientX - rect.left) / (rect.right - rect.left)) * 2 - 1;
     this.mouse.y = - ((event.clientY - rect.top) / (rect.bottom - rect.top)) * 2 + 1;
     this.mouseRaycaster.setFromCamera(this.mouse, this.camera);
     const mouseIntersects = this.mouseRaycaster.intersectObjects(this.scene.children, true);
 
-    let firstObj = mouseIntersects.map(i=>this.getParentObj(i.object)).filter(o=>o && o.visible)[0]
+    let firstObj : Object3DCommon = mouseIntersects.map(i=>this.getParentObj(i.object)).filter(o=>o && o.visible)[0]
     if (firstObj) {
       firstObj.setMousOverEffect()
-      if (firstObj instanceof RobotObject3D || firstObj instanceof MarkerObject3D) {
+      if (IoTClassList.some(c=>firstObj instanceof c) || firstObj instanceof MarkerObject3D) {
         firstObj.addMouseListener()
-        let toolTipContent = firstObj instanceof RobotObject3D ? firstObj.toolTipSettings.customEl : (firstObj instanceof MarkerObject3D ? firstObj.pointCode : null)
+        let toolTipContent = IoTClassList.some(c=>firstObj instanceof c) ? firstObj.toolTipSettings.customEl : (firstObj instanceof MarkerObject3D ? firstObj.pointCode : null)
         if (!(firstObj instanceof Object3DCommon && firstObj.toolTipAlwaysOn)) {
           firstObj.showToolTip(toolTipContent, firstObj.getToolTipPos(true))
         }
       }
     }
-    this.focusedObj = firstObj && (firstObj instanceof RobotObject3D || firstObj instanceof MarkerObject3D) ? firstObj : null
-
+    this.focusedObj = firstObj && (IoTClassList.some(c=>firstObj instanceof c) || firstObj instanceof MarkerObject3D) ? firstObj : null
     let blocks = firstObj ? this.getIntersectedObjs(this.focusedRaycaster , firstObj ).filter(o=> o instanceof Extruded2DMesh) : []
     this.blockMeshes.forEach((b: Extruded2DMesh) => {
       b.blockedFocusedObject = blocks.includes(b)
@@ -247,7 +250,7 @@ export class ThreejsViewportComponent implements OnInit , OnDestroy{
     this.scene.traverse((object: any) => {
       if (object instanceof Object3DCommon && object!=firstObj) {
         object.removeMouseOverEffect()
-        if(object instanceof RobotObject3D || object instanceof MarkerObject3D){
+        if(IoTClassList.some(c=>object instanceof c)  || object instanceof MarkerObject3D){
           object.removeMouseListener()
           if(!(object instanceof Object3DCommon && object.toolTipAlwaysOn)){
             object.hideToolTip()
@@ -326,6 +329,8 @@ export class ThreejsViewportComponent implements OnInit , OnDestroy{
   }
 
   ngOnDestroy(){
+    this.$onDestroy.next()
+    this.unsubscribeIot()
     this.$mapCodeChanged.next()
     this.unsubscribeRobotPoses()
     this.resetScene()
@@ -344,6 +349,14 @@ export class ThreejsViewportComponent implements OnInit , OnDestroy{
   resetScene(){
     this.mapCode = null
     this.robotObjs.forEach(r=>r.destroy())
+    this.floorplan?.traverse(obj=>{
+      if(obj instanceof Object3DCommon){
+        obj.hideToolTip()
+      }
+      if(obj instanceof ElevatorObject3D){
+        obj.robotDisplay?.destroy()
+      }
+    })
     this.scene.remove(this.floorplan)
     this.mapMeshes.forEach(m=>this.scene.remove(m))
     this.waypointMeshes.forEach(w=>w.hideToolTip())
@@ -447,45 +460,59 @@ export class ThreejsViewportComponent implements OnInit , OnDestroy{
     }
 
     //elevators
-    this.initElevators()
+    if(settings?.elevators ){
+      this.initElevators( settings.floor , settings.elevators)
+    }
     //turnstile
     this.initTurnstile()
   }
 
-  initElevators(){
-    // const geometry = new THREE.BoxGeometry(100, 100, 100);
-    // const material = new THREE.MeshBasicMaterial({ color: 0x00ff00 });
-    // const cube = new THREE.Mesh(geometry, material);
-    // this.floorplan.add(cube);
-    const testElevators = [
-      { code: "1", position: { x: 120, y: -20, z: 0 } },
-      { code: "2", position: { x: 200, y: -20, z: 0 } },
-      { code: "3", position: { x: 280, y: -20, z: 0 } },
-      { code: "4", position: { x: 120, y: 125, z: 0 } },
-      { code: "5", position: { x: 200, y: 125, z: 0 } },
-      { code: "6", position: { x: 280, y: 125, z: 0 } }
-    ]
-    testElevators.forEach(l => {
-      let elevator = new ElevatorObject3D(this , l.code)
+  async initElevators(floor : string , elevators : { liftId : string , position? : {x : number , y : number , z : number } , rotation? : number , width? : number , height? : number , depth? : number }[]){
+    // [
+    //   { liftId: "LIFT-1", position: { x: 120, y: -20, z: 0 }, width: null, height: null, depth: null, rotation: null },
+    //   { liftId: "LIFT-2", position: { x: 200, y: -20, z: 0 }, width: null, height: null, depth: null, rotation: null },
+    //   { liftId: "LIFT-3", position: { x: 280, y: -20, z: 0 }, width: null, height: null, depth: null, rotation: null },
+    //   { liftId: "LIFT-4", position: { x: 120, y: 125, z: 0 }, width: null, height: null, depth: null, rotation: 3.14 },
+    //   { liftId: "LIFT-5", position: { x: 200, y: 125, z: 0 }, width: null, height: null, depth: null, rotation: 3.14 },
+    //   { liftId: "LIFT-6", position: { x: 280, y: 125, z: 0 }, width: null, height: null, depth: null, rotation: 3.14 }
+    // ]
+    elevators.forEach(l => {
+      let elevator = new ElevatorObject3D(this , l.liftId , floor )
       this.floorplan.add(elevator)
-      elevator.position.setX(l.position.x)
-      elevator.position.setY(l.position.y)
-      elevator.position.setZ(l.position.z)
+      if(l.position){
+        elevator.position.setX(l.position.x ? l.position.x : 0)
+        elevator.position.setY(l.position.y ? l.position.y : 0)
+        elevator.position.setZ(l.position.z ? l.position.z : 0)
+      }
+      elevator.width = l.width ? l.width : elevator.width
+      elevator.height = l.height ? l.height : elevator.height
+      elevator.depth = l.depth ? l.depth : elevator.depth
+      if(l.rotation){
+        elevator.rotateZ(l.rotation)
+      }
     })
-    // let testRobot = new RobotObject3D(this, "DUMMY", "PATROL", "PATROL")
-    // let mapMesh = this.getMapMesh("PATROL")
-    // if (!mapMesh.children.includes(testRobot)) {
-    //   mapMesh.add(testRobot)
-    //   this.refreshRobotColors()
-    // }
+    if(!this.subcribedIotSignalRTypes.includes('arcsLift')){
+      this.subscribeElevators()
+    }
+  }
 
-    
-    // testRobot.visible = true
-    // testRobot.updatePositionAndRotation({x : 0 , y : 0 , angle : 0 , interval : null , timeStamp : null})
-    // let elevatorPosition = this.elevators.filter(e => e.code == '2')[0]?.position
-    // let vec = this.floorplan.getWorldPosition(elevatorPosition)
-    // let pos = mapMesh.worldToLocal(vec)
-    // testRobot.position.set( pos.x , pos.y ,15)
+  async subscribeElevators(){
+    await this.dataSrv.subscribeSignalR('arcsLift')
+    this.subcribedIotSignalRTypes.push('arcsLift')
+    this.dataSrv.signalRSubj.arcsLift.pipe( filter(v=> v!=null),takeUntil(this.$onDestroy)).subscribe((v)=>{
+      Object.keys(v).forEach(k=>{
+        const liftObj = this.elevators.filter(e=>e.liftId == k)[0]
+        const liftData = v[k]
+        const inLiftRobot = this.robotObjs.filter(r=>liftData.robotCode && r.robotCode == liftData.robotCode)[0]
+        if(inLiftRobot != null){
+          inLiftRobot.destroy()
+        }
+        if(liftObj != null){
+          liftObj.currentFloor = liftData.floor  //must in correct seq
+          liftObj.robotCode = liftData.robotCode
+        }
+      })
+    })
   }
 
   initTurnstile(){
@@ -587,6 +614,9 @@ export class ThreejsViewportComponent implements OnInit , OnDestroy{
     this.dataSrv.subscribeSignalR('arcsPoses' , mapCode)
     this.dataSrv.signalRSubj.arcsPoses.pipe(filter(v => v) , takeUntil(this.$mapCodeChanged)).subscribe(async (poseObj) => { //{mapCode : robotId : pose}
       Object.keys(poseObj[mapCode]).forEach((robotCode)=>{
+        if(this.elevators.filter(e=>e.robotCode == robotCode).length > 0){ //wont display robot on map if it is shown in a lift
+          return
+        }
         let isNewRobot = !this.getRobot(robotCode) 
         let robotData : DropListRobot = this.robotLists.filter(r=>r.robotCode == robotCode)[0]
         if(!robotData){
@@ -630,6 +660,10 @@ export class ThreejsViewportComponent implements OnInit , OnDestroy{
       this.dataSrv.unsubscribeSignalR('arcsPoses', false, this.subscribedPoseMapCode)
       this.subscribedPoseMapCode = null
     }
+  }
+
+  unsubscribeIot(){
+    this.dataSrv.unsubscribeSignalRs(this.subcribedIotSignalRTypes , true)
   }
 
    refreshRobotColors(){
@@ -991,6 +1025,10 @@ class Object3DCommon extends Object3D{
       o.opacity = opacity
     })
   }
+
+  getToolTipPos(bool: boolean = true) {
+    return new Vector3(0, 0, 0)
+  }
 }
 
 class MarkerObject3D extends Object3DCommon {
@@ -1193,7 +1231,7 @@ export class RobotObject3D extends Object3DCommon{
     if(this.frontFacePointer){
       this.frontFacePointer.visible = !v
     }
-    if(this.toolTipAlwaysOn && v){
+    if(this.toolTipAlwaysOn && v && this.robotCode){
       this.toolTipAlwaysOn = false
     }
     this._offline = v
@@ -1229,7 +1267,7 @@ export class RobotObject3D extends Object3DCommon{
     // this.master.robots = this.master.robots.filter(r=>r != this).concat(this)
     this.loader = new GLTFLoader();
     //
-    let ticket = this.master.uiSrv.loadAsyncBegin()
+    let ticket = this.robotCode ? this.master.uiSrv.loadAsyncBegin() : null
     let setting = this.importSetting 
     this.loader.load(setting.path ,(gltf : GLTF)=> {
       new GLTFLoader().load(this.alertIconPath, (alertGltf : GLTF)=>{
@@ -1271,7 +1309,9 @@ export class RobotObject3D extends Object3DCommon{
         let robotInfo = this.master.parent.robotInfos.filter(r=>r.robotCode == this.robotCode)[0]
         this.offline = !this.robotCode || robotInfo?.robotStatus == 'UNKNOWN'
         this.alert = robotInfo?.alert!= null && robotInfo.alert.length > 0 
-        this.master.uiSrv.loadAsyncDone(ticket)
+        if(ticket){
+          this.master.uiSrv.loadAsyncDone(ticket)
+        }
         if(this.destroyed){
           this.destroy()
         }
@@ -1517,63 +1557,99 @@ class Extruded2DMesh extends Mesh{
 }
 
 class ElevatorObject3D extends Object3DCommon{
+  floorplanFloor : string
   planeMesh : Mesh
   boxMesh : Mesh
   width = 60
   height = 60
   depth = 90
-  code
+  liftId
   robotDisplay : RobotObject3D
-  _displayRobotType : string
   toolTipCompRef : ComponentRef<ArcsLiftIotComponent>
 
-  get displayRobotType(){
-    return this._displayRobotType
+  _currentFloor : string
+  get currentFloor(){
+    return this._currentFloor
   }
+  set currentFloor(v){
+    this._currentFloor = v
+    this.boxMesh.visible = this.currentFloor == this.floorplanFloor
+    
+    //show at higher position if with box
+    this.toolTipSettings.position.z =  this.boxMesh.visible ? this.height * 1.3 : 0
+    if(this.toolTip){
+      this.toolTip.position.z = this.toolTipSettings.position.z
+    }
 
-  set displayRobotType(v) {
-    this._displayRobotType = v;
-    (<any>this.boxMesh).defaultOpacity = v ? 0.45 : 0.85
-    if (v &&(this._displayRobotType != v || !this.robotDisplay)) {
-      this.initDisplayRobot()
-    }else if(!v && this.robotDisplay){
+    if(!this.boxMesh.visible && this.robotDisplay){
       this.robotDisplay.destroy()
       this.robotDisplay = null
     }
   }
 
-  initDisplayRobot(){
-    if(this.robotDisplay && this.robotDisplay.robotType != this.displayRobotType){
-      this.robotDisplay.parent.remove(this.robotDisplay)
+  _robotCode : string
+  get robotCode(){
+    return this._robotCode
+  }
+
+  set robotCode(v){
+    this.setRobotCode(v)
+  }
+
+  async setRobotCode(v){
+    this._robotCode = v
+    this.displayRobotType = this.robotCode ? (await this.master.dataSrv.getRobotList()).filter(r=>r.robotCode == this.robotCode)[0]?.robotType : null
+  }
+  
+  _displayRobotType : string
+  get displayRobotType(){
+    return this._displayRobotType
+  }
+
+  set displayRobotType(type) {      
+    this._displayRobotType = type;
+    (<any>this.boxMesh).defaultOpacity = type ? 0.45 : 0.85
+    this.refreshDisplayRobot()
+  }
+
+  refreshDisplayRobot(){
+    if(this.robotDisplay && (this.displayRobotType == null || (this.robotDisplay?.robotType != this.displayRobotType))){
+      this.robotDisplay.destroy()
       this.robotDisplay = null
     }  
-    if (!this.robotDisplay) {
+    if (!this.robotDisplay &&  this.displayRobotType && this.floorplanFloor == this.currentFloor) {
       this.robotDisplay = new RobotObject3D(this.master, null , this.master.mapMeshes[0]?.robotBase, this.displayRobotType )
-      this.robotDisplay.position.set(0, 0, 15)
-      this.add(this.robotDisplay)
+      this.robotDisplay.position.set(0, 0, 15 -  this.boxMesh.position.z)
+      this.boxMesh.add(this.robotDisplay)
     }
   }
 
-  constructor(public master : ThreejsViewportComponent , _id : string ){
+  constructor(public master : ThreejsViewportComponent , _id : string , _floor : string){
     super(master)
-    this.code = _id
+    this.liftId = _id
+    this.floorplanFloor = _floor
     this.planeMesh = new Mesh(new THREE.PlaneGeometry(this.width, this.height) , new THREE.MeshBasicMaterial({ color: 0x666666, side: THREE.FrontSide , transparent : true , opacity : 0.4}))
     this.add(this.planeMesh)
     this.boxMesh = new THREE.Mesh(new THREE.BoxGeometry(this.width, this.height, this.depth),  new THREE.MeshLambertMaterial({side: THREE.DoubleSide , color: 0xAAAAAA, opacity: 0.8, transparent: true }));
     this.boxMesh.position.set(0, 0, this.depth / 2)
-    this.boxMesh.visible = this.code == '5' || this.code == '2' || this.code == '3' //testing
+    const liftData = this.master.dataSrv.signalRSubj.arcsLift.value?.[this.liftId]
+    this.boxMesh.visible = false 
     this.add(this.boxMesh)
-    this.displayRobotType = null
-    if (this.code == '2') { //testing
-      this.displayRobotType = 'PATROL'
-    }
+    this.currentFloor = liftData?.floor
+    this.robotCode = liftData?.robotCode 
+    this.initInfoToolTipEl()
   }
 
   initInfoToolTipEl() { 
     this.toolTipCompRef = this.master.vcRef.createComponent(this.master.compResolver.resolveComponentFactory(ArcsLiftIotComponent))
-    this.toolTipCompRef.instance.id = this.code
+    this.toolTipCompRef.instance.liftId = this.liftId
+    this.toolTipCompRef.instance.floorPlanFloor = this.floorplanFloor
     this.toolTipSettings.customEl = this.toolTipCompRef.instance.elRef.nativeElement 
     this.toolTipSettings.customEl.hidden = true
+  }
+
+  getToolTipPos(isMouseOver = false) {
+    return  new Vector3(0, 0, this.currentFloor == this.floorplanFloor ? this.height * 1.3 : 0)
   }
 }
 

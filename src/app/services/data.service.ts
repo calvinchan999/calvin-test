@@ -25,7 +25,7 @@ export type signalRType = 'activeMap' | 'occupancyGridMap' | 'navigationMove' | 
                     'followMeAoa' | 'digitalOutput' | 'wifi' | 'cellular' | 'ieq' | 'rfid' | 'cabinet' | 'rotaryHead' | 'nirCamera' | 'nirCameraDetection' |
                     'thermalCamera' | 'thermalCameraDetection' | 'webcam' | 'heartbeatServer' | 'heartbeatClient' | 'arcsPoses' | 'taskActive' | 'lidarStatus' |
                     'led' | 'fan' | 'pauseResume' | 'taskComplete' | 'taskDepart' | 'taskArrive' | 'destinationReached' | 'taskProgress' | 'moving' | 'lidar'| 'taskPopups'|
-                    'arcsRobotStatusChange' | 'arcsTaskInfoChange' | 'arcsSyncLog' | 'arcsRobotDestination'
+                    'arcsRobotStatusChange' | 'arcsTaskInfoChange' | 'arcsSyncLog' | 'arcsRobotDestination' | 'arcsLift' | 'arcsTurnstile'
 
 @Injectable({
   providedIn: 'root'
@@ -141,7 +141,9 @@ export class DataService {
     arcsWarningChangedRobotCode : new BehaviorSubject<string>(null),
     nextTaskAction : new BehaviorSubject<string>(null),
     arcsSyncLog : new BehaviorSubject<syncLog[]>([]),
-    arcsRobotDestination : new BehaviorSubject<string>(null),
+    arcsRobotDestination: new BehaviorSubject<string>(null),
+    arcsLift: new BehaviorSubject<{ [key: string]: { floor: string, opened: boolean, robotCode: string } }>({}),
+    arcsTurnstile: new BehaviorSubject<{ [key: string]: { opened: boolean } }>({}),
     // taskActionActiveAlias : new BehaviorSubject<any>(null)
   }
 
@@ -438,15 +440,37 @@ export class DataService {
                     },
                     api:'api/sync/log/processing/v1'
                   },
-     arcsRobotDestination : { topic: "rvautotech/fobo/ARCS/task/bo", 
-                              mapping: { arcsRobotDestination: (d : {robotCode : string , movementDTOList : TaskItem[] , currentTaskItemIndex : number})=>{ 
-                                          let ret = d.movementDTOList?.[d.currentTaskItemIndex]?.movement?.pointCode
-                                          this.updateArcsRobotDataMap(d.robotCode , 'destination', ret)
-                                          return ret
-                                        } 
-                              },
-                              api:'task/v1/executing/bo' 
-                            }
+    arcsRobotDestination: {
+      topic: "rvautotech/fobo/ARCS/task/bo",
+      mapping: {
+        arcsRobotDestination: (d: { robotCode: string, movementDTOList: TaskItem[], currentTaskItemIndex: number }) => {
+          let ret = d.movementDTOList?.[d.currentTaskItemIndex]?.movement?.pointCode
+          this.updateArcsRobotDataMap(d.robotCode, 'destination', ret)
+          return ret
+        }
+      },
+      api: 'task/v1/executing/bo'
+    },
+    arcsLift: {
+      topic: "rvautotech/fobo/lift",
+      mapping: {
+        arcsLift: (d: { liftId: string, floor: string , status: string  , robotId : string}) => {
+          let ret = this.signalRSubj.arcsLift.value ? JSON.parse(JSON.stringify(this.signalRSubj.arcsLift.value) ): {}
+          ret[d.liftId] = {floor : d.floor , opened : d.status == 'OPENED' , robotCode : d.robotId} ; 
+          return ret
+        }
+      }
+    },
+    arcsTurnstile: {
+      topic: "rvautotech/fobo/turnstile",
+      mapping: {
+        arcsTurnstile: (d: { turnstileId: string, status: string }) => {
+          let ret = this.signalRSubj.arcsTurnstile.value ? JSON.parse(JSON.stringify(this.signalRSubj.arcsTurnstile.value) ): {}
+          ret[d.turnstileId] = {opened : d.status != 'CLOSED'}
+          return ret
+        }
+      }
+    }
   }
 
   eventLog = new BehaviorSubject<eventLog[]>([])

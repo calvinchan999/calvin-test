@@ -25,6 +25,30 @@
     display: flex;
 }
 
+::ng-deep .label-3js ::ng-deep {
+    .iot-row {
+        justify-content: space-between;
+        display: flex;
+        line-height: normal !important;
+    }
+
+    .iot-content {
+        // border-top:solid 1px rgba(255,255,255,0.8);
+        margin-top: 8px;
+    }
+
+    .iot-id {
+        font-weight: 900;
+        line-height: 5px !important;
+        font-size: 12px!important;
+
+        i{
+            font-size: 14px!important;
+            margin: 1px;
+        }
+    }
+}
+
 
 
 // :host ::ng-deep .tooltip {
