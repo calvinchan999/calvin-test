@@ -42,10 +42,21 @@
         line-height: 5px !important;
         font-size: 12px!important;
 
-        i{
+        i {
             font-size: 14px!important;
             margin: 1px;
         }
+    }
+
+    .iot-circle {
+        width: 16px;
+        height: 16px;
+        margin-right: 2px;
+
+        i{
+            font-size: 12px;
+            display: block;
+        }        
     }
 }
 

@@ -1,0 +1,60 @@
+:host .iot-content {
+    cursor: pointer;
+}
+
+:host .iot-circle {
+    cursor: pointer;
+    display: block;
+    width: 7px;
+    height: 7px;
+    background-color: darkturquoise;
+    border-radius: 30px;
+    border: solid white 1px;
+    z-index: 10;
+}
+
+:host .iot-circle.small {
+    cursor: pointer;
+    display: block;
+    width: 7px;
+    height: 7px;
+    background-color: darkturquoise;
+    border-radius: 30px;
+    border: solid white 1px;
+    z-index: 10;
+}
+// box-shadow: 0 0 0 0px rgba(0, 0, 0, 0.45);
+// transition: box-shadow 0.3s;
+
+// :host .iot-circle:hover {
+//     box-shadow: 0 0 0 9px rgba(0, 0, 0, 0.45);
+// }
+
+:host .iot-tag{
+    background: rgba(0,0,0,0.45);
+    padding: 5px;
+    border-radius: 12px;
+    .iot-id{
+        line-height: 16px!important; 
+        font-weight: 900;
+        font-size: 12px!important;
+        padding-left: 1px;
+    }
+
+    .iot-circle {
+        width: 16px;
+        height: 16px;
+        margin-right: 2px;
+
+        i{
+            font-size: 12px;
+            display: block;
+        }        
+    }
+
+    .status{
+        padding: 1px;
+        font-size: 10px;
+    }
+}
+

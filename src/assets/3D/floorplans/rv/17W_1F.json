@@ -1,12 +1,17 @@
 {
- "floor" : "1F",
+ "floor" : "1/F",
+ "turnstiles" : [
+      { "turnstileId": "T-1", "position": { "x": -160, "y": -20, "z": 20 } },
+      { "turnstileId": "T-2", "position": { "x": -135, "y": -20, "z": 20 } },
+      { "turnstileId": "T-3", "position": { "x": -110, "y": -20, "z": 20 } }
+ ],
  "elevators" : [
-      { "liftId": "LIFT-1", "position": { "x": 120, "y": -20, "z": 0 }, "width": null, "height": null, "depth": null, "rotation": null },
-      { "liftId": "LIFT-2", "position": { "x": 200, "y": -20, "z": 0 }, "width": null, "height": null, "depth": null, "rotation": null },
-      { "liftId": "LIFT-3", "position": { "x": 280, "y": -20, "z": 0 }, "width": null, "height": null, "depth": null, "rotation": null },
-      { "liftId": "LIFT-4", "position": { "x": 120, "y": 125, "z": 0 }, "width": null, "height": null, "depth": null, "rotation": 3.14 },
-      { "liftId": "LIFT-5", "position": { "x": 200, "y": 125, "z": 0 }, "width": null, "height": null, "depth": null, "rotation": 3.14 },
-      { "liftId": "LIFT-6", "position": { "x": 280, "y": 125, "z": 0 }, "width": null, "height": null, "depth": null, "rotation": 3.14 }
+      { "liftId": "1", "position": { "x": 120, "y": -20, "z": 0 }, "width": null, "height": null, "depth": null, "rotation": null },
+      { "liftId": "2", "position": { "x": 200, "y": -20, "z": 0 }, "width": null, "height": null, "depth": null, "rotation": null },
+      { "liftId": "3", "position": { "x": 280, "y": -20, "z": 0 }, "width": null, "height": null, "depth": null, "rotation": null },
+      { "liftId": "4", "position": { "x": 120, "y": 125, "z": 0 }, "width": null, "height": null, "depth": null, "rotation": 3.14 },
+      { "liftId": "5", "position": { "x": 200, "y": 125, "z": 0 }, "width": null, "height": null, "depth": null, "rotation": 3.14 },
+      { "liftId": "6", "position": { "x": 280, "y": 125, "z": 0 }, "width": null, "height": null, "depth": null, "rotation": 3.14 }
  ],
  "tabletPath":"assets/3D/tablet/17W_1F.glb",
  "scale" : 26.5 ,

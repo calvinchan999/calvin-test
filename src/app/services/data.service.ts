@@ -454,22 +454,40 @@ export class DataService {
     arcsLift: {
       topic: "rvautotech/fobo/lift",
       mapping: {
-        arcsLift: (d: { liftId: string, floor: string , status: string  , robotId : string}) => {
+        arcsLift: (d : { liftList? : any [] , liftId?: string, floor?: string , status?: string  , robotId? : string} )=>{
+          console.log(d)
           let ret = this.signalRSubj.arcsLift.value ? JSON.parse(JSON.stringify(this.signalRSubj.arcsLift.value) ): {}
-          ret[d.liftId] = {floor : d.floor , opened : d.status == 'OPENED' , robotCode : d.robotId} ; 
+          let main = (l: { liftId: string, floor: string , status: string  , robotId : string}) => {
+            ret[l.liftId] = {floor : l.floor , opened : l.status == 'OPENED' , robotCode : l.robotId} ; 
+          }
+          if(d.liftList){
+            d.liftList.forEach(l=>main(l))
+          }else{
+            main(<any>d)
+          }
+          console.log(ret)
           return ret
         }
-      }
+      },
+      api:'lift/v1/null' //TBR
     },
     arcsTurnstile: {
       topic: "rvautotech/fobo/turnstile",
       mapping: {
-        arcsTurnstile: (d: { turnstileId: string, status: string }) => {
+        arcsTurnstile: (d : { turnstileList ? : any [] , turnstileId?: string, status?: string })=>{
           let ret = this.signalRSubj.arcsTurnstile.value ? JSON.parse(JSON.stringify(this.signalRSubj.arcsTurnstile.value) ): {}
-          ret[d.turnstileId] = {opened : d.status != 'CLOSED'}
+          let main = (d: { turnstileId: string, status: string }) => {         
+            ret[d.turnstileId] = {opened : d.status != 'CLOSED'}
+          }
+          if(d.turnstileList){
+            d.turnstileList.forEach(t=>main(t))
+          }else{
+            main(<any>d)
+          }
           return ret
         }
-      }
+      },
+      api:'turnstile/v1/null'  //TBR
     }
   }
 
@@ -737,7 +755,12 @@ export class DataService {
                 let resp = await this.httpSrv.get(this.signalRMaster[type].api);
                 this.signalRSubj.arcsSyncLog.next((this.getLocalStorage('syncDoneLog') ? JSON.parse(this.getLocalStorage('syncDoneLog')) : []).concat(resp))
                 this.uiSrv.loadAsyncDone(ticket)
-              }  
+              } else if(['arcsLift' , 'arcsTurnstile'].includes(type)){
+                let resp = await this.httpSrv.rvRequest('GET' , this.signalRMaster[type].api)      
+                if(resp && resp.status == 200){
+                  this.updateSignalRBehaviorSubject(type, JSON.parse(resp.body) , paramString)
+                }
+              }
             } 
         } 
       }

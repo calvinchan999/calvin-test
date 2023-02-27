@@ -208,9 +208,6 @@ export class ArcsDashboardComponent implements OnInit {
       if(this.selectedTab == 'dashboard' && ( !this.floorPlanFilter || c?.floorPlanCode == this.floorPlanFilter ) && (!this.robotTypeFilter || c?.robotType == this.robotTypeFilter?.toUpperCase())){
         this.refreshRobotStatus()
       }
-      // if(this.robotDetailCompRef){
-      //   this.robotDetailCompRef.refreshRobotStatus(false)
-      // }
       if(this.selectedTab == 'group'){
         this.tableRef?.retrieveData();
       }
@@ -220,9 +217,6 @@ export class ArcsDashboardComponent implements OnInit {
       if(this.selectedTab == 'dashboard' &&  this.robotInfos.map(r=>r.robotCode).includes(c)){
         this.refreshRobotStatus()
       }
-      // if(this.robotDetailCompRef && this.robotDetailId == c){
-      //   this.robotDetailCompRef.refreshRobotStatus(false)
-      // }
     })
 
     this.dataSrv.signalRSubj.arcsTaskInfoChange.pipe(skip(1), takeUntil(this.$onDestroy)).subscribe((c)=>{
@@ -345,6 +339,14 @@ export class ArcsDashboardComponent implements OnInit {
       let count = robotInfo.filter(r => r.floorPlanCode == o.value).length
       o.suffix = count == 0 ? undefined : count.toString()
     })
+    this.ngZone.run(()=>{
+      if(this.pixiElRef ){
+        this.pixiElRef.dropdownOptions.floorplans = JSON.parse(JSON.stringify(options))
+      }
+      if(this.threeJsElRef){
+        this.threeJsElRef.floorPlanOptions =  JSON.parse(JSON.stringify(options))
+      }
+    })
     this.uiSrv.loadAsyncDone(ticket)
   }
 
@@ -422,7 +424,11 @@ export class ArcsDashboardComponent implements OnInit {
   }
 
   async refreshTaskInfo() {
-    let data: RobotTaskInfoARCS[] = await this.dataSrv.httpSrv.rvRequest('GET', 'task/v1/taskInfo' + this.getStatusListUrlParam(), undefined, false)    
+    const filters = this.getStatusListUrlParam() 
+    let data: RobotTaskInfoARCS[] = await this.dataSrv.httpSrv.rvRequest('GET', 'task/v1/taskInfo' + filters, undefined, false)    
+    if(filters!= this.getStatusListUrlParam()){ //validate concurrency
+      return
+    }
     // data = [
     //   {
     //     robotType: 'MOBILE_CHAIR',
@@ -474,7 +480,11 @@ export class ArcsDashboardComponent implements OnInit {
     if(!this.currentFloorPlan){
       return
     }
+    const filters = this.getStatusListUrlParam()
     let data: RobotStatus[] = await this.dataSrv.httpSrv.rvRequest('GET', 'robot/v1/robotInfo' + this.getStatusListUrlParam(), undefined, false)
+    if(filters!= this.getStatusListUrlParam()){ //validate concurrency
+      return
+    }
     // data = [
     //   {
     //     robotType: 'MOBILE_CHAIR',

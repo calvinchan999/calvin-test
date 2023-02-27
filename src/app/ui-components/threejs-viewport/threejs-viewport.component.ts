@@ -30,6 +30,7 @@ import { transform } from 'typescript';
 import { DRACOLoader } from 'three/examples/jsm/loaders/DRACOLoader';
 import { ArcsDashboardRobotDetailComponent } from 'src/app/arcs/arcs-dashboard/arcs-dashboard-robot-detail/arcs-dashboard-robot-detail.component';
 import { ArcsLiftIotComponent } from 'src/app/arcs/arcs-IoT/arcs-lift-iot/arcs-lift-iot.component';
+import { ArcsTurnstileIotComponent } from 'src/app/arcs/arcs-iot/arcs-turnstile-iot/arcs-turnstile-iot.component';
 
 
 const NORMAL_ANGLE_ADJUSTMENT =  - 90 / radRatio
@@ -139,6 +140,10 @@ export class ThreejsViewportComponent implements OnInit , OnDestroy{
 
   get elevators() : ElevatorObject3D[] {
     return this.floorplan? <any>this.floorplan?.children.filter(b=>b instanceof ElevatorObject3D) : []
+  }
+
+  get turnstiles() : TurnstileObject3D[] {
+    return this.floorplan? <any>this.floorplan?.children.filter(b=>b instanceof TurnstileObject3D) : []
   }
 
   get width() {
@@ -464,7 +469,9 @@ export class ThreejsViewportComponent implements OnInit , OnDestroy{
       this.initElevators( settings.floor , settings.elevators)
     }
     //turnstile
-    this.initTurnstile()
+    if(settings?.turnstiles ){
+      this.initTurnstile( settings.turnstiles)
+    }
   }
 
   async initElevators(floor : string , elevators : { liftId : string , position? : {x : number , y : number , z : number } , rotation? : number , width? : number , height? : number , depth? : number }[]){
@@ -515,8 +522,27 @@ export class ThreejsViewportComponent implements OnInit , OnDestroy{
     })
   }
 
-  initTurnstile(){
+  initTurnstile(turnstiles: {turnstileId : string , position ? : {x : number , y : number , z : number}}[] ){
+    // const turnstiles = [
+    //   { turnstileId: "1", position: { x: -160, y: -20, z: 20 } },
+    //   { turnstileId: "2", position: { x: -135, y: -20, z: 20 } },
+    //   { turnstileId: "3", position: { x: -110, y: -20, z: 20 } }
+    // ]
+    turnstiles.forEach(t=>{
+      let turnstile = new TurnstileObject3D(this , t.turnstileId )
+      if(t.position){
+        turnstile.position.setX(t.position.x ? t.position.x : 0)
+        turnstile.position.setY(t.position.y ? t.position.y : 0)
+        turnstile.position.setZ(t.position.z ? t.position.z : 0)
+      }
+      this.floorplan.add(turnstile)
+    })
+    this.subscribeTurnstile()
+  }
 
+  async subscribeTurnstile(){
+    await this.dataSrv.subscribeSignalR('arcsTurnstile')
+    this.subcribedIotSignalRTypes.push('arcsTurnstile')
   }
 
   async getImageDimension(base64 : string) : Promise<{width : number , height : number}>{
@@ -820,8 +846,9 @@ class Object3DCommon extends Object3D{
   onClick = new Subject()
   defaultOpacity = 1
   _color: number
-  toolTipSettings: { customEl?: HTMLElement, position?: any, style?: any } = {
+  toolTipSettings: { customEl?: HTMLElement, position?: any, style?: any , staticComp? : boolean} = {
     customEl: null,
+    staticComp : false,
     position: new Vector3(0, 0, 0),
     style: {
       padding: '8px',
@@ -992,6 +1019,9 @@ class Object3DCommon extends Object3D{
     this.clickListener = this.master.ngRenderer.listen(this.master.container, 'click', () => this.onClick.next())
     this.touchListener = this.master.ngRenderer.listen(this.master.container, 'touchstart', () => this.onClick.next())
     this.contextMenuListener = this.master.ngRenderer.listen(this.master.container, 'contextmenu', () => {
+      if(this.toolTipSettings.staticComp){
+        return
+      }
       this.toolTipAlwaysOn = !this.toolTipAlwaysOn
       if (!this.toolTipAlwaysOn && this.master?.robotObjs.every(r => !r.toolTipAlwaysOn)) {
         this.master.uiToggles.showRobotStatus = false
@@ -1654,6 +1684,24 @@ class ElevatorObject3D extends Object3DCommon{
 }
 
 class TurnstileObject3D extends Object3DCommon{ 
+
+  toolTipCompRef : ComponentRef<ArcsTurnstileIotComponent>
+  turnstileId : string
+
+  constructor(public master : ThreejsViewportComponent , _id : string ){
+    super(master)
+    this.turnstileId = _id
+    this.initInfoToolTipEl()
+  }
+
+  initInfoToolTipEl() { 
+    this.toolTipSettings.style = {}
+    this.toolTipSettings.staticComp = true
+    this.toolTipCompRef = this.master.vcRef.createComponent(this.master.compResolver.resolveComponentFactory(ArcsTurnstileIotComponent))
+    this.toolTipCompRef.instance.turnstileId = this.turnstileId
+    this.toolTipSettings.customEl = this.toolTipCompRef.instance.elRef.nativeElement 
+    this.toolTipAlwaysOn = true
+  }
 
 }
 

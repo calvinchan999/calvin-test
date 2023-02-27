@@ -29,7 +29,7 @@
             <span *ngIf= "dataItem"
                   (mouseover) = "trackMouseoverOption ? mouseoverOptionChange.emit(dataItem) : null" 
                   (mouseleave) = "trackMouseoverOption ? onMouseLeaveOption(dataItem , $event) : null"
-                  style="width: 100%;height: 100%;">
+                  style="width: 100%; height: 100%;">
                   <span *ngIf= "showValue && dataItem && dataItem[valueFld]" class="value"> [{{dataItem[valueFld]}}] </span>
                   <span> {{ translateOption ? (dataItem[textFld] | label : uiSrv.langPack) : dataItem[textFld] }} </span>
             </span>
