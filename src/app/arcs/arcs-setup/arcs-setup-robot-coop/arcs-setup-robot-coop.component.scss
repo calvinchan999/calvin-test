@@ -1,0 +1,21 @@
+// :host ::ng-deep .k-filter .k-filter-item::before,
+// :host ::ng-deep .k-filter .k-filter-toolbar::before,
+// :host ::ng-deep .k-filter .k-filter-lines .k-filter-item:last-child>.k-filter-toolbar::after,
+// :host ::ng-deep .k-filter .k-filter-item::before,
+// :host ::ng-deep .k-filter .k-filter-toolbar::before,
+// :host ::ng-deep .k-filter .k-filter-lines .k-filter-item:last-child>.k-filter-toolbar::after,
+// :host ::ng-deep .k-filter .k-filter-lines .k-filter-item:last-child>*>.k-filter-toolbar::after {
+//     color: rgb(255, 255, 255, 0.5) !important;
+//     background-color: rgb(255, 255, 255, 0.5) !important;
+// }
+
+:host .robot-coop{
+    min-width: 60vw;
+    min-height: 70vh;
+}
+:host ::ng-deep .rule-tabstrip{
+    min-height: 30vh!important;
+}
+:host ::ng-deep  .execute-tabstrip{
+    min-height: 15vh!important;
+}

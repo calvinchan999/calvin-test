@@ -40,3 +40,8 @@
     position: fixed;
     backdrop-filter: blur(15px)!important;
 }
+
+:host .ts-robot-id i {
+    font-size: 1.7em;
+    line-height: 1;
+}

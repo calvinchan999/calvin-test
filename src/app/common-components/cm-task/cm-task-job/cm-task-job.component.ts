@@ -89,7 +89,7 @@ export class CmTaskJobComponent implements OnInit {
     reason : []
   }
 
-  selectedFloorPlanCode
+  selectedFloorPlanCode = 'HKSTP-5W-1F'
 
   loadingTicket
   actionViewMode = 'list'

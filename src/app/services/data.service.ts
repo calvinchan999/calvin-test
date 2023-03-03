@@ -455,7 +455,6 @@ export class DataService {
       topic: "rvautotech/fobo/lift",
       mapping: {
         arcsLift: (d : { liftList? : any [] , liftId?: string, floor?: string , status?: string  , robotId? : string} )=>{
-          console.log(d)
           let ret = this.signalRSubj.arcsLift.value ? JSON.parse(JSON.stringify(this.signalRSubj.arcsLift.value) ): {}
           let main = (l: { liftId: string, floor: string , status: string  , robotId : string}) => {
             ret[l.liftId] = {floor : l.floor , opened : l.status == 'OPENED' , robotCode : l.robotId} ; 
@@ -465,7 +464,6 @@ export class DataService {
           }else{
             main(<any>d)
           }
-          console.log(ret)
           return ret
         }
       },

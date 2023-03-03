@@ -60,6 +60,17 @@
     }
 }
 
+:host ::ng-deep .iot-icon{
+    cursor: pointer;
+    display: block;
+    width: 7px;
+    height: 7px;
+    background-color: darkturquoise;
+    border-radius: 30px;
+    border: solid white 1px;
+    z-index: 10;
+}
+
 
 
 // :host ::ng-deep .tooltip {

@@ -26,7 +26,7 @@ export class ArcsSetupBuildingComponent implements OnInit {
   frmGrp = new FormGroup({
     buildingCode : new FormControl(null , Validators.compose([Validators.required, Validators.pattern(this.dataSrv.codeRegex)])),
     siteCode : new FormControl(null),
-    name :  new FormControl(null),
+    name :  new FormControl(''),
     modifiedDateTime: new FormControl(null),
     defaultFloorPlanCode: new FormControl(null),
     defaultPerSite : new FormControl(false),

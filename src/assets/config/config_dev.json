@@ -120,7 +120,8 @@
 		"DELIVERY",
 		"PATROL",
 		"FORKLIFT",
-		"STOCKTAKING"
+		"STOCKTAKING",
+		"CONCIERGE"
 	],
 	"robot": {
 		"radius": 0.4,
@@ -171,5 +172,6 @@
 			"fillColor": "0xFF6358",
 			"highlightColor": "0xFF6358"
 		}
-	}
+	},
+	"CAMERA_STREAM_URL":"wss://calvinchan999.eastasia.cloudapp.azure.com/RV-ROBOT-418."
 }

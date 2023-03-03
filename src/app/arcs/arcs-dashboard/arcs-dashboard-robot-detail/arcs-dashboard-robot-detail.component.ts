@@ -7,7 +7,7 @@ import { UiService } from 'src/app/services/ui.service';
 import { VideoPlayerComponent } from 'src/app/ui-components/video-player/video-player.component';
 import { GeneralUtil } from 'src/app/utils/general/general.util';
 
-const testStreamUrl = 'wss://calvinchan999.eastasia.cloudapp.azure.com/RV-ROBOT-104.' //TESTING
+// const testStreamUrl = 'wss://calvinchan999.eastasia.cloudapp.azure.com/RV-ROBOT-104.' //TESTING
 @Component({
   selector: 'app-arcs-dashboard-robot-detail',
   templateUrl: './arcs-dashboard-robot-detail.component.html',
@@ -21,6 +21,7 @@ export class ArcsDashboardRobotDetailComponent implements OnInit  {
   dialogRef
   parent
   selectedTab = 'info'
+  cameraStreamUrl = ''
   tabs = [
     {id: 'info' , label : 'Info'},
   ]
@@ -29,15 +30,7 @@ export class ArcsDashboardRobotDetailComponent implements OnInit  {
     [{ id: 'mode' , col: 2 }],
     [{ id: 'speed' , col: 2 }],
   ]
-  cameraLayout = [
-    [
-      { id: '1', rowSpan: 2, colSpan: 2, col: 1, row: 1, streamingUrl: testStreamUrl + '1/ws?authorization=' + this.util.getUserAccessToken() },
-      { id: '2', col: 3, row: 1, streamingUrl: testStreamUrl + '2/ws?authorization=' + this.util.getUserAccessToken() }
-    ], 
-    [
-      { id: '3', col: 3, row: 2, streamingUrl: testStreamUrl + '3/ws?authorization=' + this.util.getUserAccessToken() }
-    ]
-  ]
+  cameraLayout = []
   ds : {status? : any , battery? : any , mode? : any , speed? :any} = {}
   @Input() robotId
   // @Input() set robotId(v){
@@ -62,11 +55,22 @@ export class ArcsDashboardRobotDetailComponent implements OnInit  {
 
   async ngOnInit() {
     this.initDataSource()
+    this.cameraStreamUrl = this.util.config.CAMERA_STREAM_URL
+    this.cameraLayout = [
+      [
+        { id: '1', rowSpan: 2, colSpan: 2, col: 1, row: 1, streamingUrl: this.cameraStreamUrl + '1/ws?authorization=' + this.util.getUserAccessToken() },
+        { id: '2', col: 3, row: 1, streamingUrl: this.cameraStreamUrl + '2/ws?authorization=' + this.util.getUserAccessToken() }
+      ], 
+      [
+        { id: '3', col: 3, row: 2, streamingUrl: this.cameraStreamUrl + '3/ws?authorization=' + this.util.getUserAccessToken() }
+      ]
+    ]
     let ticket = this.uiSrv.loadAsyncBegin()
     let robotList : DropListRobot[] = <any>(await this.dataSrv.getDropList('robots')).data
     this.uiSrv.loadAsyncDone(ticket)
     let robot = robotList.filter(r=>r.robotCode == this.robotId)[0]
     this.robotType = robot?.robotType
+    // this.robotType = 'PATROL'
     this.robotSubType = robot?.robotSubType
     this.tabs = this.tabs.concat(this.topModuleTabs[this.robotType] && !(this.robotType == 'DELIVERY' && this.robotSubType == 'NA') ? this.topModuleTabs[this.robotType ] : [])
     this.dataSrv.subscribeSignalRs(this.topics, this.robotId)

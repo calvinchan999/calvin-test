@@ -4,19 +4,19 @@
 
 export const environment = {
   production: true,
-  version: '20230223-1134',
+  version: '20230303-1655',
   app : 'arcs',
   recaptchaSiteKey : '6LdzgfUhAAAAALqOYXkFO__F3Juldg7N500ld1CM',
   routes:
   [
+    { text: "Patrol", icon: "mdi mdi-security", path: "/patrol" },
     { text: 'Delivery', icon: 'mdi mdi-truck-fast', path: '/delivery', },
     { text: 'Floor Scrub', icon: 'mdi mdi-broom', path: '/floor_scrub', },
     { text: "Mobility Chair", icon: "mdi mdi-wheelchair-accessibility", path: "/mobile_chair" },
     { text: 'Disinfection', icon: 'mdi mdi-spray', path: '/disinfection', },
-    { text: "Patrol", icon: "mdi mdi-robot", path: "/patrol" },
+    { text: 'Concierge', icon: 'mdi mdi-robot', path: '/concierge', },
     { text: 'Forklift', icon: 'mdi mdi-forklift', path: '/forklift', },
     { text: 'Stocktake', icon: 'mdi mdi-package-variant-closed', path: '/stocktaking', }, 
-    // { text: 'beverage', icon: 'mdi mdi-silverware-fork-knife', path: '/beverage', },
   ]
 };
 

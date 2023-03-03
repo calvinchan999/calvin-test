@@ -18,6 +18,7 @@ import { RobotObject3D, ThreejsViewportComponent } from 'src/app/ui-components/t
 import { ArcsRobotGroupComponent } from './arcs-robot-group/arcs-robot-group.component';
 import { truncateSync } from 'fs';
 import { CmTaskCancelComponent } from 'src/app/common-components/cm-task/cm-task-cancel/cm-task-cancel.component';
+import { environment } from 'src/environments/environment';
 
 type robotTypeInfo = { //A group can be an individual robot (when filtered by robot type) OR robot type (no filter applied) 
   robotType: string
@@ -196,9 +197,12 @@ export class ArcsDashboardComponent implements OnInit {
     }
   }
   me
-
+  iconMap = {}
   constructor(  private util :GeneralUtil , private authSrv : AuthService , private httpSrv : RvHttpService, public uiSrv : UiService , private dataSrv : DataService, private router : Router , private ngZone : NgZone ) {
     // this.chartTesting()
+    environment.routes.forEach(r=>{
+      this.iconMap [r.path.replace('/','').toUpperCase()] = r.icon
+    })
     this.me = this
     this.tabs = this.tabs.filter(t=> t.authorized === false || this.authSrv.userAccessList.includes(t.functionId))
     this.selectedTab = 'dashboard'
@@ -429,6 +433,12 @@ export class ArcsDashboardComponent implements OnInit {
     if(filters!= this.getStatusListUrlParam()){ //validate concurrency
       return
     }
+    // data = data.filter(d=>d.robotCode !=  'DUMMY-TEST-1')
+    // data.forEach(d=>{
+    //   if(d.robotCode == 'RV-ROBOT-103'){
+    //     d.robotType = 'PATROL'
+    //   }
+    // })
     // data = [
     //   {
     //     robotType: 'MOBILE_CHAIR',
@@ -485,6 +495,13 @@ export class ArcsDashboardComponent implements OnInit {
     if(filters!= this.getStatusListUrlParam()){ //validate concurrency
       return
     }
+
+    // data = data.filter(d=>d.robotCode !=  'DUMMY-TEST-1')
+    // data.forEach(d=>{
+    //   if(d.robotCode == 'RV-ROBOT-103'){
+    //     d.robotType = 'PATROL'
+    //   }
+    // })
     // data = [
     //   {
     //     robotType: 'MOBILE_CHAIR',

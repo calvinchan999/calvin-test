@@ -21,7 +21,7 @@
 	"MOVE_USING_TRANSITION" : true,
 
 	"IS_DUMMY" : false,
-	"ROBOT_TYPE":["MOBILE_CHAIR" , "DISINFECTION" , "FLOOR_SCRUB" , "DELIVERY" , "PATROL" ,  "FORKLIFT" , "STOCKTAKING"],
+	"ROBOT_TYPE":["MOBILE_CHAIR" , "DISINFECTION" , "FLOOR_SCRUB" , "DELIVERY" , "PATROL" ,  "FORKLIFT" , "STOCKTAKING" , 	"CONCIERGE"],
 	"ROBOT_1": {
 		"ID": "ROBOT-01",
 		"ROBOT_TYPE": "patrol",
@@ -81,6 +81,162 @@
 			"highlightColor": "0xFF66B9" 
 		}
     },
-	"UPLOAD_IMAGE_MAX_SIZE_KB" : 5120
-
+	"UPLOAD_IMAGE_MAX_SIZE_KB" : 5120,
+	"MAP_3D": {
+		"ROBOT": {
+			"BASE": {
+				"path": "assets/3D/robot.glb",
+				"scale": 30,
+				"position": {
+					"x": 0,
+					"y": 0,
+					"z": -12.5
+				},
+				"rotate": {
+					"x": 0,
+					"y": 0,
+					"z": 3.14
+				},
+				"toolTipPositionZ": 45
+			},
+			"FLOOR_SCRUB": {
+				"path": "assets/3D/robot_floor_scrub.glb",
+				"scale": 0.6,
+				"position": {
+					"x": 0,
+					"y": 0,
+					"z": -12.5
+				},
+				"rotate": {
+					"x": 1.57,
+					"y": 3.14,
+					"z": 0
+				},
+				"toolTipPositionZ": 45
+			},
+			"MOBILE_CHAIR": {
+				"path": "assets/3D/robot_mobile_chair.glb",
+				"scale": 0.6,
+				"position": {
+					"x": 0,
+					"y": 0,
+					"z": -12.5
+				},
+				"rotate": {
+					"x": 1.57,
+					"y": 3.14,
+					"z": 0
+				},
+				"toolTipPositionZ": 45
+			},
+			"PATROL": {
+				"path": "assets/3D/robot_patrol.glb",
+				"scale": 30,
+				"position": {
+					"x": 0,
+					"y": 0,
+					"z": -12.5
+				},
+				"rotate": {
+					"x": 0,
+					"y": 0,
+					"z": 3.14
+				},
+				"toolTipPositionZ": 55
+			},
+			"CONCIERGE": {
+				"path": "assets/3D/concierge.glb",
+				"scale": 20,
+				"position": {
+					"x": 0,
+					"y": 0,
+					"z": -12.5
+				},
+				"rotate": {
+					"x": -1.57,
+					"y": 0,
+					"z": 3.14
+				},
+				"toolTipPositionZ": 40
+			},
+			"DELIVERY": {
+				"robotBase": {
+					"MIR": {
+						"path": "assets/3D/mir100.glb",
+						"scale": 25,
+						"position": {
+							"x": 0,
+							"y": 0,
+							"z": -12.5
+						},
+						"rotate": {
+							"x": -1.57,
+							"y": 0,
+							"z": 3.14
+						},
+						"toolTipPositionZ": 40
+					}
+				},
+				"path": "assets/3D/robot_delivery.glb",
+				"scale": 0.6,
+				"position": {
+					"x": 0,
+					"y": 0,
+					"z": -12.5
+				},
+				"rotate": {
+					"x": -1.57,
+					"y": 0,
+					"z": 3.14
+				},
+				"toolTipPositionZ": 40
+			},
+			"DISINFECTION": {
+				"path": "assets/3D/robot_disinfection.glb",
+				"scale": 0.6,
+				"position": {
+					"x": 0,
+					"y": 0,
+					"z": -12.5
+				},
+				"rotate": {
+					"x": 1.57,
+					"y": 3.14,
+					"z": 0
+				},
+				"toolTipPositionZ": 40
+			},
+			"FORKLIFT": {
+				"path": "assets/3D/robot_forklift.glb",
+				"scale": 0.6,
+				"position": {
+					"x": 0,
+					"y": 0,
+					"z": -12.5
+				},
+				"rotate": {
+					"x": 1.57,
+					"y": 3.14,
+					"z": 0
+				},
+				"toolTipPositionZ": 40
+			},
+			"STOCKTAKING": {
+				"path": "assets/3D/robot_stocktaking.glb",
+				"scale": 0.6,
+				"position": {
+					"x": 0,
+					"y": 0,
+					"z": -12.5
+				},
+				"rotate": {
+					"x": 1.57,
+					"y": 3.14,
+					"z": 0
+				},
+				"toolTipPositionZ": 40
+			}
+		}
+	},
+	"CAMERA_STREAM_URL":"wss://calvinchan999.eastasia.cloudapp.azure.com/RV-ROBOT-418."
 }

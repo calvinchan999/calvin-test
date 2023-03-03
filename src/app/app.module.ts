@@ -228,6 +228,8 @@ import { ArcsAbnormalTasksComponent } from './arcs/arcs-dashboard/arcs-charts/ar
 import { CmTaskCancelComponent } from './common-components/cm-task/cm-task-cancel/cm-task-cancel.component';
 import { ArcsLiftIotComponent } from './arcs/arcs-IoT/arcs-lift-iot/arcs-lift-iot.component';
 import { ArcsTurnstileIotComponent } from './arcs/arcs-iot/arcs-turnstile-iot/arcs-turnstile-iot.component';
+import { ArcsSetupRobotCoopComponent } from './arcs/arcs-setup/arcs-setup-robot-coop/arcs-setup-robot-coop.component';
+import { FilterModule } from '@progress/kendo-angular-filter';
 
 @NgModule({
     declarations: [
@@ -321,9 +323,11 @@ import { ArcsTurnstileIotComponent } from './arcs/arcs-iot/arcs-turnstile-iot/ar
         ArcsAbnormalTasksComponent,
         CmTaskCancelComponent,
         ArcsLiftIotComponent,
-        ArcsTurnstileIotComponent        
+        ArcsTurnstileIotComponent,
+        ArcsSetupRobotCoopComponent        
     ],
     imports: [
+        FilterModule,
         PowerBIEmbedModule,
         ZXingScannerModule,
         A11yModule,

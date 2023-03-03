@@ -268,8 +268,11 @@ export class ArcsChartsComponent implements OnInit , OnDestroy {
       frDate = toDate.getMonth() == 0 ? new Date(toDate.getFullYear(), 0, 1) : new Date(toDate.getFullYear(), toDate.getMonth(), toDate.getDate());
       frDate.setMonth(frDate.getMonth() - 1);
     }
-    this.setDateRange(frDate , toDate)
+    this.setDateRange(frDate , null)
     await this.refreshChart()
+    if(this.chartType == 'utilization' && new Date().getMonth()!= 0){
+
+    }
     this.uiSrv.loadAsyncDone(ticket)
   }
 
@@ -454,7 +457,7 @@ export class ArcsChartsComponent implements OnInit , OnDestroy {
       totalExecutingHours : 0,
       daily: {
         transitions: true,
-        navigatorStep: 365 / 12,
+        navigatorStep: 30,
         categories: [],
         data: {
           charging: [],
@@ -536,7 +539,8 @@ export class ArcsChartsComponent implements OnInit , OnDestroy {
     //this.utilization.daily.min =  this.getSelectedDateRange().fromDate //fromDate ? fromDate : this.utilization.daily.categories[0]
     //this.utilization.daily.max =  this.getSelectedDateRange().toDate //toDate ? toDate : this.utilization.daily.categories[ this.utilization.daily.categories.length - 1]
     this.utilization.daily.categories.pop()
-    this.utilization.daily.navigatorStep = Math.floor(this.utilization.daily.categories.length / 12);
+    //this.utilization.daily.navigatorStep = 30// Math.floor(this.utilization.daily.categories.length / 12);
+ 
   }
 
   initUsability() {
@@ -570,7 +574,7 @@ export class ArcsChartsComponent implements OnInit , OnDestroy {
         data: [],
         categories: [],
         transitions: true,
-        navigatorStep: 365 / 12,
+        navigatorStep: 30,
         min: this.getSelectedDateRange()?.fromDate,
         max: this.getSelectedDateRange()?.toDate
       },
@@ -594,7 +598,7 @@ export class ArcsChartsComponent implements OnInit , OnDestroy {
     //to.setDate(to.getDate()+1)
     // this.usability.daily.min =  fromDate ? fromDate : this.usability.daily.categories[0]
     // this.usability.daily.max =  toDate ? toDate : to
-    this.usability.daily.navigatorStep = Math.floor(this.usability.daily.categories.length / 12);
+    //this.usability.daily.navigatorStep =  30//Math.floor(this.usability.daily.categories.length / 12);
     this.usability.daily.categories.pop()
     for (let i = 0; i < 24; i++) {
       this.usability.hourlyAvg.data.push(0)
@@ -631,7 +635,7 @@ export class ArcsChartsComponent implements OnInit , OnDestroy {
       this.utilization.total['type' + (i + 1)] = { robotType: r.category, executing: r.executing, total: r.total }
     }
     this.utilization.totalExecutingHours = this.utilizationData.filter(r=>r.type == 'ROBOT' && (!this.robotCodeFilter || this.robotCodeFilter == r.category)).reduce((acc, r) => acc + r.executing, 0)
-    this.utilization.totalRobotHours = Utilization_Status_Types.reduce((acc2, t) => acc2 + this.utilizationData.filter(r=>r.type == 'ROBOT').reduce((acc, r) => acc + r[t], 0), 0)
+    this.utilization.totalRobotHours = Utilization_Status_Types.reduce((acc2, t) => acc2 + this.utilizationData.filter(r=>r.type == 'ROBOT' && (!this.robotCodeFilter || this.robotCodeFilter == r.category)).reduce((acc, r) => acc + r[t], 0), 0)
   }
 
   fetchUsability() {    

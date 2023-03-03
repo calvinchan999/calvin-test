@@ -148,10 +148,12 @@ export class SaTopModuleComponent implements OnInit , OnDestroy {
     return this.util.arcsApp ? this.dataSrv.arcsRobotDataMap[this.arcsRobotCode].ieq : this.dataSrv.signalRSubj.ieq
   }
  
+  
  async initAirQualitySubscription() {
     if (this.robotType == 'patrol') {
       let ieqReq = await this.dataSrv.httpSrv.rvRequest('GET', this.dataSrv.signalRMaster.ieq.api + (this.util.arcsApp ?  ('/' + this.arcsRobotCode) : '') , undefined , false)
       let ieqData = this.dataSrv.signalRMaster.ieq.mapping.ieq(ieqReq)
+      // ieqData = {"co":733,"co2":405,"hcho":3,"light":4,"no2":320,"noise_moy":6,"noise_max":7,"o3":8,"p":9,"pm1":9,"pm2_5":5,"pm10":15,"rh":50,"t":19,"tvoc_mos":15,"tvoc_pid":10}
       let refreshIeq = (ieq)=>{
         let ret = null
         let levels = this.util.config.IEQ_LEVELS ? this.util.config.IEQ_LEVELS : ['Inadequate', 'Poor', 'Fair', 'Good', 'Excellent']

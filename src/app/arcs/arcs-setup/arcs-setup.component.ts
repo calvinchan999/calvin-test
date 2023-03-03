@@ -20,6 +20,7 @@ import { ArcsSetupExportMapComponent } from './arcs-setup-export/arcs-setup-expo
 import { ArcsSetupImportFloorplanComponent } from './arcs-setup-import/arcs-setup-import-floorplan/arcs-setup-import-floorplan.component';
 import { ArcsSetupImportMapComponent } from './arcs-setup-import/arcs-setup-import-map/arcs-setup-import-map.component';
 import { ArcsSetupPointTypeComponent } from './arcs-setup-point-type/arcs-setup-point-type.component';
+import { ArcsSetupRobotCoopComponent } from './arcs-setup-robot-coop/arcs-setup-robot-coop.component';
 import { ArcsSetupRobotComponent } from './arcs-setup-robot/arcs-setup-robot.component';
 import { ArcsSetupSiteComponent } from './arcs-setup-site/arcs-setup-site.component';
 import { ArcsSetupTypeComponent } from './arcs-setup-type/arcs-setup-type.component';
@@ -51,6 +52,7 @@ export class ArcsSetupComponent implements OnInit {
     { id: 'building', label: 'Building'},
     { id: 'floorplan', label: 'Floor Plan' },
     { id: 'map', label: 'Map' },
+    // { id: 'robotCoop' , label : 'Robot Collaboration'},
     { id: 'pointType', label: 'Waypoint Type'},
     { id: 'synclog', label: 'Data Sync Log' },
     { id: 'log', label: 'Event Log' , authorized : false},
@@ -143,7 +145,16 @@ export class ArcsSetupComponent implements OnInit {
         { title: "End Time", id: "endDateTime", type: "date" , width: 200 },
         { title: "Status", id: "dataSyncStatus", width: 150 , type:'pipe' , pipe :'enum' }
       ]
-    }
+    },
+    robotCoop: {
+      functionId:"ROBOT",
+      apiUrl: null,
+      columns: [
+        { title: "#", type: "button", id: "edit", width: 15, icon: 'k-icon k-i-edit iconButton', fixed: true },
+        { title: "Event Trigger", id: "eventName", width: 50 },
+        { title: "Operation Name", id: "name", width: 200 }
+      ],
+    },
   }
 
   data = []
@@ -197,6 +208,9 @@ export class ArcsSetupComponent implements OnInit {
     this.data = []
     this.changeDectector.detectChanges()
     this.router.navigate([this.router.url.split(";")[0]])
+    if(id == 'robotCoop'){
+      this.TEST_RobotCollaboration()
+    }
     // window.location.href = this.router.url.split(";")[0]
     // this.loadData()
   }
@@ -207,6 +221,7 @@ export class ArcsSetupComponent implements OnInit {
 
   showDetail(evt = null , id = null) {
     const idCompMap = {
+      robotCoop : ArcsSetupRobotCoopComponent ,
       importFloorplan : ArcsSetupImportFloorplanComponent,
       exportFloorplan : ArcsSetupExportFloorplanComponent,
       importMap : ArcsSetupImportMapComponent,
@@ -246,8 +261,9 @@ export class ArcsSetupComponent implements OnInit {
       map:'api/map/v1' , 
       pointType : 'api/customization/pointType/v1'
     }
+
    
-    let resp = await this.dataSrv.deleteRecordsV2(urlMapping[this.selectedTab] ,   this.data.filter(r => r['select'] == true))
+    let resp = await this.dataSrv.deleteRecordsV2(urlMapping[this.selectedTab] ,   this.tableElRef.selectedData)
     if (resp == true) {
       this.loadData()
     }
@@ -267,5 +283,20 @@ export class ArcsSetupComponent implements OnInit {
          return d
       })))
     }
+  }
+
+  TEST_RobotCollaboration(){
+    this.tableElRef.data = [
+      { eventName : "Air Quality", name : "Dispatch disinfection robot when IEQ is low" },
+      { eventName : "People Count", name : "Dispatch concierge robot when guest arrive" }
+    ]
+  }
+  
+  TEST_saveToLocal(){
+    
+  }
+
+  TEST_loadFromLocal(){
+
   }
 }

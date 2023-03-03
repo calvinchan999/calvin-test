@@ -59,10 +59,13 @@
     <kendo-tilelayout-item *ngIf="!robotTypeFilter" class="ts-progress" [title]="'Completed Tasks' | label: uiSrv.langPack"  [col]="1" [row]="2" [rowSpan] = "2" [colSpan] = "2" >
         <kendo-tilelayout-item-body >
             <div class="ts-resultbox">
-                <div *ngFor="let r of  robotTypeInfos; index as i" class="ts-row bar-{{i+1}} {{ r.robotType | cssClassName}}">
-                    <label class="ts-robot-id tooltip" [title]="r.robotType? r.robotType : '' "> 
+                <div *ngFor="let r of  robotTypeInfos; index as i" class="ts-row bar-{{i+1}}">
+                    <!-- {{ r.robotType | cssClassName}} -->
+                    <label class="ts-robot-id tooltip"> 
+                        <!-- [title]="r.robotType? r.robotType : '' " -->
                         <!-- (click)="openRobotDetailPopup(r.id)" -->
-                            <span>{{ r.name }} </span>
+                        <i [class]="'mdi ' + iconMap[r.robotType] "></i>
+                        <span>{{ r.name }} </span>
                     </label>
                            
                     <kendo-progressbar class="ts-progress-bar"  [max]="r.completedTaskCount + r.executingTaskCount" [value]="r.completedTaskCount">
@@ -85,8 +88,11 @@
                 <label class="ts-alert">{{'Alert' | label: uiSrv.langPack}}</label>
             </div>
             <div class="ts-resultbox"> 
-                <div  *ngFor="let r of  robotTypeInfos; index as i" class="ts-row bar-{{i+1}} {{ r.robotType | cssClassName }}">
-                    <label class="ts-robot-id" [title]="r.robotType? r.robotType : '' ">
+                <div  *ngFor="let r of  robotTypeInfos; index as i" class="ts-row bar-{{i+1}} ">
+                    <!-- {{ r.robotType | cssClassName }} -->
+                    <label class="ts-robot-id" >
+                        <!-- [title]="r.robotType? r.robotType : '' " -->
+                        <i [class]="'mdi ' + iconMap[r.robotType] "></i>
                         <span>{{ r.name }}</span>
                     </label>
                     <label class="ts-working">{{r.processCount}}</label>

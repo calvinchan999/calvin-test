@@ -1,5 +1,13 @@
 {
- "scale" : 36 ,
- "position" : { "x": 160, "y": -590, "z": 2},
- "rotate": { "x": 1.5708 , "y": 0 , "z": 0 }
+ "scale" : 35.5 ,
+ "position" : { "x": 135, "y": -580, "z": 2},
+ "rotate": { "x": 1.5708 , "y": 0 , "z": 0 },
+ "floor" : "2/F",
+ "elevators" : [
+      { "liftId": "D", "position": { "x": 490, "y": -100, "z": 5 }, "width": 100,  "height": 100, "depth": 130, "rotation": 1.57},
+      { "liftId": "E", "position": { "x": 490, "y": 20, "z": 5 }, "width": 100,  "height": 100, "depth": 130, "rotation": 1.57},
+      { "liftId": "A", "position": { "x": 250, "y": -220, "z": 5 }, "width": 100,  "height": 100, "depth": 130, "rotation": -1.57},
+      { "liftId": "B", "position": { "x": 250, "y": -100, "z": 5 }, "width": 100,  "height": 100, "depth": 130, "rotation": -1.57},
+      { "liftId": "C", "position": { "x": 250, "y": 20, "z": 5 }, "width": 100,  "height": 100, "depth": 130, "rotation": -1.57}
+ ]
 }

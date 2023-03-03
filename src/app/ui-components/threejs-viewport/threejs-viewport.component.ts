@@ -362,6 +362,7 @@ export class ThreejsViewportComponent implements OnInit , OnDestroy{
         obj.robotDisplay?.destroy()
       }
     })
+    this.orbitCtrl?.reset()
     this.scene.remove(this.floorplan)
     this.mapMeshes.forEach(m=>this.scene.remove(m))
     this.waypointMeshes.forEach(w=>w.hideToolTip())
@@ -456,9 +457,6 @@ export class ThreejsViewportComponent implements OnInit , OnDestroy{
     } else {
       (<THREE.MeshPhongMaterial>this.floorplan.material).visible = true
     }
-    // (<THREE.MeshPhongMaterial>this.floorplan.material).visible = true
-  
-    
 
     if(settings?.walls){
       this.initWalls(settings.walls , settings.wallHeight);
@@ -484,16 +482,16 @@ export class ThreejsViewportComponent implements OnInit , OnDestroy{
     //   { liftId: "LIFT-6", position: { x: 280, y: 125, z: 0 }, width: null, height: null, depth: null, rotation: 3.14 }
     // ]
     elevators.forEach(l => {
-      let elevator = new ElevatorObject3D(this , l.liftId , floor )
+      let elevator = new ElevatorObject3D(this , l.liftId , floor , l.width , l.height, l.depth)
       this.floorplan.add(elevator)
       if(l.position){
         elevator.position.setX(l.position.x ? l.position.x : 0)
         elevator.position.setY(l.position.y ? l.position.y : 0)
         elevator.position.setZ(l.position.z ? l.position.z : 0)
       }
-      elevator.width = l.width ? l.width : elevator.width
-      elevator.height = l.height ? l.height : elevator.height
-      elevator.depth = l.depth ? l.depth : elevator.depth
+      // elevator.width = l.width ? l.width : elevator.width
+      // elevator.height = l.height ? l.height : elevator.height
+      // elevator.depth = l.depth ? l.depth : elevator.depth
       if(l.rotation){
         elevator.rotateZ(l.rotation)
       }
@@ -645,6 +643,13 @@ export class ThreejsViewportComponent implements OnInit , OnDestroy{
         }
         let isNewRobot = !this.getRobot(robotCode) 
         let robotData : DropListRobot = this.robotLists.filter(r=>r.robotCode == robotCode)[0]
+
+        // if(robotData.robotCode == 'RV-ROBOT-103'){
+        //   robotData.robotType = 'PATROL'
+        // } else if(robotData.robotCode == 'DUMMY-TEST-1'){
+        //   return
+        // }
+
         if(!robotData){
           console.log(`ERROR : Robot not found : [${robotCode}`)
           return
@@ -1596,6 +1601,7 @@ class ElevatorObject3D extends Object3DCommon{
   liftId
   robotDisplay : RobotObject3D
   toolTipCompRef : ComponentRef<ArcsLiftIotComponent>
+  planeColor = 0xaaaaaa
 
   _currentFloor : string
   get currentFloor(){
@@ -1627,7 +1633,8 @@ class ElevatorObject3D extends Object3DCommon{
   }
 
   async setRobotCode(v){
-    this._robotCode = v
+    this._robotCode = v;
+    (<any>this.planeMesh.material).color.set(this.robotCode ? 0xADFF2F : this.planeColor)
     this.displayRobotType = this.robotCode ? (await this.master.dataSrv.getRobotList()).filter(r=>r.robotCode == this.robotCode)[0]?.robotType : null
   }
   
@@ -1654,13 +1661,18 @@ class ElevatorObject3D extends Object3DCommon{
     }
   }
 
-  constructor(public master : ThreejsViewportComponent , _id : string , _floor : string){
+  constructor(public master : ThreejsViewportComponent , _id : string , _floor : string , width : number = null , height  : number = null , depth  : number = null ){
     super(master)
     this.liftId = _id
     this.floorplanFloor = _floor
-    this.planeMesh = new Mesh(new THREE.PlaneGeometry(this.width, this.height) , new THREE.MeshBasicMaterial({ color: 0x666666, side: THREE.FrontSide , transparent : true , opacity : 0.4}))
+    this.width = width ? width : this.width
+    this.height = height ? height : this.height
+    this.depth = depth ? depth : this.depth
+    this.planeMesh = new Mesh(new THREE.PlaneGeometry(this.width, this.height) , new THREE.MeshBasicMaterial({ color: this.planeColor, side: THREE.FrontSide , transparent : true , opacity : 0.6}));
+    (<any> this.planeMesh).defaultOpacity = 0.6
     this.add(this.planeMesh)
     this.boxMesh = new THREE.Mesh(new THREE.BoxGeometry(this.width, this.height, this.depth),  new THREE.MeshLambertMaterial({side: THREE.DoubleSide , color: 0xAAAAAA, opacity: 0.8, transparent: true }));
+    (<any> this.boxMesh).defaultOpacity = 0.8
     this.boxMesh.position.set(0, 0, this.depth / 2)
     const liftData = this.master.dataSrv.signalRSubj.arcsLift.value?.[this.liftId]
     this.boxMesh.visible = false 

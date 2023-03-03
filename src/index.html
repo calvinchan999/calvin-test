@@ -24,7 +24,7 @@
         <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet"> -->
         <link rel="manifest" href="manifest.json">
         <meta name="theme-color" content="#1976d2">
-        <style>
+        <!-- <style>
             .whitescreen {
               display: none; /* do not display on start */
               z-index: -1000; /* move behind app-root */
@@ -65,12 +65,12 @@
               background: #fff;
               color: #000;
             }
-        </style>
+        </style> -->
     </head>
     <body class="mat-typography">
         <app-root></app-root>
         <noscript>Please enable JavaScript to continue using this application.</noscript>
-        <div id="whitescreen" class="whitescreen">
+        <!-- <div id="whitescreen" class="whitescreen">
             <div class="whitescreen-top">
                 <p class="whitescreen-icon">:-(</p>
                 <p class="whitescreen-message">
@@ -80,14 +80,13 @@
             <div class="whitescreen-bottom">
                 <p id="whitescreen-stack"></p>
             </div>
-        </div>
+        </div> -->
     </body>
 
-    <script>
+    <!-- <script>
         var WHITESCREEN_EMPTY_APP_ROOT_DELAY = 8000;
         var WHITESCREEN_ERROR_DELAY = 5000;
   
-        // Show white screen error
         function showWhitescreenError(error) {
           console.error(error);
           var whitescreen = document.getElementById("whitescreen");
@@ -98,18 +97,16 @@
           }
         }
   
-        // Handle global errors
         window.addEventListener("error", function (event) {
           setTimeout(() => {
             showWhitescreenError(event.error);
           }, WHITESCREEN_ERROR_DELAY);
         });
   
-        // Detect empty app-root
         setTimeout(function () {
           if (!document.getElementsByTagName("app-root")[0].children.length) {
             showWhitescreenError(new Error("Empty app-root"));
           }
         }, WHITESCREEN_EMPTY_APP_ROOT_DELAY);
-      </script>
+      </script> -->
 </html>

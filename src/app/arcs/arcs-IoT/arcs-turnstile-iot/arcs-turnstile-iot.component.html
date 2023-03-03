@@ -1,19 +1,18 @@
-<div class="iot-content simple" (mouseenter)="mouseOver = true" (mouseleave)= "mouseOver = false" (contextmenu) = "showDetail = !showDetail">
+<div class="iot-container" (mouseenter)="mouseOver = true" (mouseleave)= "mouseOver = false" (contextmenu) = "showDetail = !showDetail">
     <ng-container *ngIf="!mouseOver && !showDetail">
-        <span class="iot-circle small"></span>
+        <span [class]="'iot-circle small ' + (dataSrv.signalRSubj.arcsTurnstile.value && dataSrv.signalRSubj.arcsTurnstile.value[turnstileId] ?  (dataSrv.signalRSubj.arcsTurnstile.value[turnstileId].opened ? 'opened' : 'closed') : '')"></span>
     </ng-container>
 
-    <div *ngIf="mouseOver || showDetail" class="iot-tag">
-        <div class="iot-row label-3js">
-            <span class="iot-circle">
-                <i class="mdi mdi-turnstile"></i>
-            </span>
-            <span class="iot-id"> {{turnstileId}}</span>
-        </div>
-
-        <div *ngIf="dataSrv.signalRSubj.arcsTurnstile.value[turnstileId]" class="status iot-row">
-            <span> </span>  
-            <span> {{ dataSrv.signalRSubj.arcsTurnstile.value[turnstileId].opened ? 'Opened' : 'Closed' | label : uiSrv.langPack}} </span>  
+    <div class="iot label-3js" *ngIf="mouseOver || showDetail">
+        <span class="iot-id">
+            <i class="mdi mdi-turnstile"></i>
+            <span>{{turnstileId}}</span>
+        </span>   
+        <div class="iot-content" *ngIf="dataSrv.signalRSubj.arcsTurnstile.value && dataSrv.signalRSubj.arcsTurnstile.value[turnstileId]">
+            <div  class="status iot-row">
+                <i [class]="'mdi mdi-circle ' +  ( dataSrv.signalRSubj.arcsTurnstile.value[turnstileId].opened ? 'opened' : 'closed') " ></i>   
+                <span> {{ dataSrv.signalRSubj.arcsTurnstile.value[turnstileId].opened ? 'Opened' : 'Closed' | label : uiSrv.langPack}} </span>  
+            </div>
         </div>
     </div>
 </div>

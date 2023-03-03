@@ -50,6 +50,7 @@ export class UiService {
     obstacleDetected : "Obstacle Detected",
     tiltDetected : "Excess Tilt Detected"
   }
+  public browserNotifications : Notification [] = []
 
   initNotification(){
     // if(this.isIos()){
@@ -68,7 +69,24 @@ export class UiService {
     }
     try{
       if(Notification.permission === "granted"){
-        new Notification(msg , { icon: './assets/rvicon.png' , requireInteraction: true , body : this.datePipe.transform(new Date(),'hh:mm:ss aa') });
+        // console.log('granted')
+        // navigator.serviceWorker.getRegistration('./ngsw-worker.js').then((registration) => {
+        //   console.log(registration)
+        //   registration.showNotification(msg, {
+        //     icon: './assets/rvicon.png' , 
+        //     requireInteraction: true , 
+        //     body : this.datePipe.transform(new Date(),'hh:mm:ss aa') ,
+        //     actions : [{action : 'close' , title : this.translate('Close')} , {action : 'closeAll' , title : this.translate('Close All')}]
+        //   });
+        // });
+        
+        this.browserNotifications.push(new Notification(msg , { 
+          icon: './assets/rvicon.png' , 
+          requireInteraction: true , 
+          body : this.datePipe.transform(new Date(),'hh:mm:ss aa') 
+        }));
+        
+        // actions : [{action : 'close' , title : this.translate('Close')} , {action : 'closeAll' , title : this.translate('Close All')}]
        }else{
         this.initNotification()
        }
