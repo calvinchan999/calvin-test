@@ -35,6 +35,7 @@ export class SaTopModuleComponent implements OnInit , OnDestroy {
   @Input() arcsRobotSubType = null
   @Input() arcsRobotCode = null
   @Input() isPartOf3dTooltip = false
+
   @Output() onButtonClicked : EventEmitter<any> = new EventEmitter();
   patrolFlvSrc
   ds = {} //datasource
@@ -90,6 +91,7 @@ export class SaTopModuleComponent implements OnInit , OnDestroy {
   dashboardLayout = []
   loadingTicket
   robotType
+  robotSubType
   signalRSubscribedTopics = []
   signalRModuleTopic = {
     patrol: [ 'ieq' ],
@@ -119,18 +121,19 @@ export class SaTopModuleComponent implements OnInit , OnDestroy {
     if(this.util.arcsApp){
       this.robotType = this.arcsRobotType.toLowerCase()
     }else{
-      await this.dataSrv.getRobotInfo()
+      await this.dataSrv.getRobotMaster()
       this.robotType = this.dataSrv.robotMaster.robotType.toLowerCase()//data?.['robotTypeName']?.toLowerCase()//TO BE REVISED
+      this.robotSubType = this.util.arcsApp ? this.arcsRobotSubType : this.dataSrv.robotMaster.robotSubType
     }
     this.customClass += ' ' + this.robotType
-    this.arcsRobotSubType == 'CABINET_DELIVERY' //TESTING
+    // this.arcsRobotSubType == 'CABINET_DELIVERY' //TESTING
     if(this.subTypeTopicMap[this.robotType]){
-      this.signalRModuleTopic[this.robotType] = this.subTypeTopicMap[this.robotType][this.arcsRobotSubType] ?  this.subTypeTopicMap[this.robotType][this.arcsRobotSubType] : []
+      this.signalRModuleTopic[this.robotType] = this.subTypeTopicMap[this.robotType][this.robotSubType] ?  this.subTypeTopicMap[this.robotType][this.robotSubType] : []
     }
     this.signalRSubscribedTopics = this.signalRModuleTopic[this.robotType] ? this.signalRModuleTopic[this.robotType]  : []
     this.dataSrv.subscribeSignalRs(this.signalRSubscribedTopics , this.util.arcsApp ? this.arcsRobotCode : undefined)
 
-    if(this.arcsRobotSubType == 'CABINET_DELIVERY' && this.arcsRobotType == 'DELIVERY'){ //TBR !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+    if(this.robotSubType == 'CABINET_DELIVERY' && this.arcsRobotType == 'DELIVERY'){ //TBR !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
       this.dataSrv.subscribeSignalR('cabinet')
     }
 
@@ -238,11 +241,19 @@ export class SaTopModuleComponent implements OnInit , OnDestroy {
   
   async initByRobotType(){
     let ticket = this.uiSrv.loadAsyncBegin()
+    console.log(this.robotType)
+    console.log(this.dataSrv.robotMaster.robotSubType )
+    console.log(this.signalRModuleTopic.delivery)
     if(this.robotType == 'patrol'){
     
     } else if(this.robotType == 'delivery' && this.signalRModuleTopic.delivery.length > 0){ // tray API endpoint TBR 
-      let hasDoors = this.arcsRobotSubType == 'CABINET_DELIVERY'
-      let containersResp = await this.dataSrv.httpSrv.rvRequest("GET", (hasDoors ? "cabinet" : "trayRack" ) + `/v1${this.util.arcsApp? ('/' + this.arcsRobotCode) : ''}`)
+      let hasDoors = this.robotSubType == 'CABINET_DELIVERY'
+
+      let containersResp 
+  
+      containersResp =  await this.dataSrv.httpSrv.rvRequest("GET", (hasDoors ? "cabinet" : "trayRack" ) + `/v1${this.util.arcsApp? ('/' + this.arcsRobotCode) : ''}`)
+
+    
       // let containersResp = {status : 200 , body: `
       // {
       //   "robotId": "DUMMY-TEST-10",
@@ -290,7 +301,6 @@ export class SaTopModuleComponent implements OnInit , OnDestroy {
         var containers = JSON.parse(containersResp.body)?.[ hasDoors ? 'doorList' : 'levelList']
         let doorIds = containers.map(d=>d['id'])
         if(hasDoors){
-
           this.dataSrv.signalRSubj.cabinetAvail.next(this.dataSrv.signalRMaster.cabinet.mapping.cabinetAvail(JSON.parse(containersResp.body))) 
         }else{
           this.dataSrv.signalRSubj.trayRackAvail.next(this.dataSrv.signalRMaster.trayRack.mapping.trayRackAvail(JSON.parse(containersResp.body))) 

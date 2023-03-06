@@ -82,7 +82,6 @@
 		}
     },
 	"UPLOAD_IMAGE_MAX_SIZE_KB" : 5120,
-	"CAMERA_STREAM_URL":"wss://calvinchan999.eastasia.cloudapp.azure.com/RV-ROBOT-418.",
 	"MAP_3D": {
 		"ROBOT": {
 			"BASE": {
@@ -238,6 +237,6 @@
 				"toolTipPositionZ": 40
 			}
 		}
-	}
-
+	},
+	"CAMERA_STREAM_URL":"wss://calvinchan999.eastasia.cloudapp.azure.com/RV-ROBOT-418."
 }

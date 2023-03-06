@@ -81,7 +81,7 @@ export class SaHomeComponent implements OnInit {
       return
     }
     this.loadingTicket = this.uiSrv.loadAsyncBegin()
-    await this.dataSrv.getRobotInfo()
+    await this.dataSrv.getRobotMaster()
     this.robotType = this.dataSrv.robotMaster.robotType  //TO BE REVISED
     this.dataSrv.subscribeSignalRs(<any>this.signalRSubscribedTopics)
     this.initDataSource()

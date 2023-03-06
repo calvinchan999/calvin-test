@@ -270,9 +270,6 @@ export class ArcsChartsComponent implements OnInit , OnDestroy {
     }
     this.setDateRange(frDate , null)
     await this.refreshChart()
-    if(this.chartType == 'utilization' && new Date().getMonth()!= 0){
-
-    }
     this.uiSrv.loadAsyncDone(ticket)
   }
 

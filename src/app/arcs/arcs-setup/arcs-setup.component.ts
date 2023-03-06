@@ -52,7 +52,7 @@ export class ArcsSetupComponent implements OnInit {
     { id: 'building', label: 'Building'},
     { id: 'floorplan', label: 'Floor Plan' },
     { id: 'map', label: 'Map' },
-    // { id: 'robotCoop' , label : 'Robot Collaboration'},
+    { id: 'robotCoop' , label : 'Robot Collaboration'},
     { id: 'pointType', label: 'Waypoint Type'},
     { id: 'synclog', label: 'Data Sync Log' },
     { id: 'log', label: 'Event Log' , authorized : false},
@@ -152,6 +152,7 @@ export class ArcsSetupComponent implements OnInit {
       columns: [
         { title: "#", type: "button", id: "edit", width: 15, icon: 'k-icon k-i-edit iconButton', fixed: true },
         { title: "Event Trigger", id: "eventName", width: 50 },
+        { title: "Robot Type", id: "robotType", width: 50 ,  dropdownOptions:[{text : "Patrol" , value : 'PATROL'}] },
         { title: "Operation Name", id: "name", width: 200 }
       ],
     },
@@ -285,18 +286,19 @@ export class ArcsSetupComponent implements OnInit {
     }
   }
 
-  TEST_RobotCollaboration(){
-    this.tableElRef.data = [
-      { eventName : "Air Quality", name : "Dispatch disinfection robot when IEQ is low" },
-      { eventName : "People Count", name : "Dispatch concierge robot when guest arrive" }
+
+  testRobotCoopLocalStorageKey = 'robotCoop'
+  TEST_RobotCollaboration() {
+    if(!localStorage.getItem(this.testRobotCoopLocalStorageKey)){
+      localStorage.setItem(this.testRobotCoopLocalStorageKey , `[{"eventCode":"peopleCount","eventName":"People Count","robotType":"PATROL","name":"Dispatch concierge robot when guest arrive","rules":[{"name":"1","filters":[{"field":"peopleCount","title":"People Count","editor":"number","operators":["lt","gt","eq"]}],"filterValues":{"logic":"and","filters":[{"operator":"eq","value":1,"field":"peopleCount"}]},"missionId":"C-01"},{"name":"3+","filters":[{"field":"peopleCount","title":"People Count","editor":"number","operators":["lt","gt","eq"]}],"filterValues":{"logic":"and","filters":[{"operator":"gt","value":3,"field":"peopleCount"}]},"missionId":"C-02"}]},{"eventCode":"ieq","eventName":"Air Quality","robotType":"PATROL","name":"Dispatch disinfection robot when IEQ is low","rules":[{"name":"particle pollution","filters":[{"field":"pm10","title":"PM 10","editor":"number","operators":["lt","gt","eq"]},{"field":"pm25","title":"PM 2.5","editor":"number","operators":["lt","gt","eq"]},{"field":"tvoc","title":"TVOC","editor":"number","operators":["lt","gt","eq"]},{"field":"co2","title":"Carbon Dioxide","editor":"number","operators":["lt","gt","eq"]},{"field":"co","title":"Carbon Monoxide","editor":"number","operators":["lt","gt","eq"]},{"field":"o3","title":"Ozone","editor":"number","operators":["lt","gt","eq"]},{"field":"no","title":"Nitrogen Dioxide","editor":"number","operators":["lt","gt","eq"]}],"filterValues":{"logic":"and","filters":[{"operator":"gt","value":300,"field":"pm10"},{"operator":"gt","value":400,"field":"pm25"}]},"missionId":"D-01"},{"name":"tvoc pollution","filters":[{"field":"pm10","title":"PM 10","editor":"number","operators":["lt","gt","eq"]},{"field":"pm25","title":"PM 2.5","editor":"number","operators":["lt","gt","eq"]},{"field":"tvoc","title":"TVOC","editor":"number","operators":["lt","gt","eq"]},{"field":"co2","title":"Carbon Dioxide","editor":"number","operators":["lt","gt","eq"]},{"field":"co","title":"Carbon Monoxide","editor":"number","operators":["lt","gt","eq"]},{"field":"o3","title":"Ozone","editor":"number","operators":["lt","gt","eq"]},{"field":"no","title":"Nitrogen Dioxide","editor":"number","operators":["lt","gt","eq"]}],"filterValues":{"logic":"and","filters":[{"operator":"gt","value":1000,"field":"tvoc"}]},"missionId":"D-02"}]}]`)
+    }
+    let tableData  = [
+      { eventCode: "ieq", eventName: "Air Quality", robotType : 'PATROL'},
+      { eventCode: "peopleCount", eventName: "People Count", robotType : 'PATROL'}
     ]
+    let data = JSON.parse(localStorage.getItem(this.testRobotCoopLocalStorageKey))
+    data.forEach(d=>tableData.filter(d2=>d2.eventCode == d.eventCode)[0]['name'] = d.name)
+    this.tableElRef.data = tableData
   }
   
-  TEST_saveToLocal(){
-    
-  }
-
-  TEST_loadFromLocal(){
-
-  }
 }

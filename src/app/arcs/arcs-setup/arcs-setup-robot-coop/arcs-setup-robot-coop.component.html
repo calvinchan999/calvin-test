@@ -19,15 +19,14 @@
                 <uc-txtbox lab="Sub Type" [disabled]="true" [frmGrp]="frmGrp" frmCtrl="robotSubType"></uc-txtbox>
             </div> -->
         </form>
-        <kendo-tabstrip class="rule-tabstrip" #tabstrip (tabSelect)="$event.index == rules.length ? $event.preventDefault() : null ; $event.index == rules.length ? addRule() : selectedTabIndex = $event.index">
+        <kendo-tabstrip class="rule-tabstrip" #tabstrip (tabSelect)=" onTabChange() ; $event.index == rules.length ? $event.preventDefault() : null; $event.index == rules.length ? addRule() : selectedTabIndex = $event.index">
             <kendo-tabstrip-tab *ngFor="let rule of rules ; let i = index"  [selected] = " i == selectedTabIndex" [title]="rule.name">
                 <ng-template kendoTabContent>                  
                     <uc-txtbox lab="Rule Name" [(value)] = "rule.name"></uc-txtbox>
                     <!-- <span>Execute </span>  -->
                     <!-- <span>When the following Criteria is true for </span> <span> seconds </span> -->
-                    <kendo-filter  [filters]="rule.filters"  [value]="rule.filterValues"  (valueChange)="onFilterChange($event)">
-                    </kendo-filter>      
-                 
+                    <kendo-filter #kFilter [filters]="rule.filters"  [value]="rule.filterValues"  (valueChange)="onFilterChange($event)">
+                    </kendo-filter>                       
                 </ng-template>
             </kendo-tabstrip-tab>
             <kendo-tabstrip-tab title ="+" > 

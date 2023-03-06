@@ -10,7 +10,7 @@
     "e2e": "ng e2e",
     "set-prod-environment": "node ./replace.build.js",
     "build-arcs": "npm run set-prod-environment -- arcs && node --max-old-space-size=10240 ./node_modules/@angular/cli/bin/ng build --prod --base-href \"/arcs/\"",
-    "build-sa": "npm run set-prod-environment -- standalone &&  node --max-old-space-size=10240 ./node_modules/@angular/cli/bin/ng build --prod --base-href  \"/rv_standalone/\""
+    "build-sa": "npm run set-prod-environment -- standalone &&  node --max-old-space-size=10240 ./node_modules/@angular/cli/bin/ng build --prod --base-href  \"/rv_standalone/\" --source-map=false"
   },
   "private": true,
   "dependencies": {
@@ -44,6 +44,7 @@
     "@progress/kendo-angular-dropdowns": "^5.3.0",
     "@progress/kendo-angular-editor": "^2.0.2",
     "@progress/kendo-angular-excel-export": "^4.0.0",
+    "@progress/kendo-angular-filter": "^1.0.0",
     "@progress/kendo-angular-grid": "^5.0.3",
     "@progress/kendo-angular-indicators": "^1.1.0",
     "@progress/kendo-angular-inputs": "^7.0.0",

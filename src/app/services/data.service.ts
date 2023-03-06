@@ -626,7 +626,7 @@ export class DataService {
       // }
       // // APPLICABLE ONLY BEWTWEEN VERSION 20221122 - 20221201
 
-      this.getRobotInfo()
+      this.getRobotMaster()
       let lidarStatusResp = await this.httpSrv.rvRequest('GET', this.signalRMaster.lidarStatus.api, undefined, false)
       if (lidarStatusResp?.SwitchOn) {
         this.uiSrv.showWarningDialog('Lidar Sensor Turned On.')
@@ -1021,7 +1021,7 @@ export class DataService {
    return criteria? '?' + toDataSourceRequestString(criteria) : ''
   }
 
-  public async getRobotInfo() : Promise<RobotMaster>{
+  public async getRobotMaster() : Promise<RobotMaster>{
     if(!this.robotMaster?.robotCode){
       let ret = (await this.httpSrv.get("api/robot/v1"))
       this.robotMaster = JSON.parse(JSON.stringify(ret))

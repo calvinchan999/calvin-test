@@ -69,24 +69,23 @@ export class UiService {
     }
     try{
       if(Notification.permission === "granted"){
-        // console.log('granted')
-        // navigator.serviceWorker.getRegistration('./ngsw-worker.js').then((registration) => {
-        //   console.log(registration)
-        //   registration.showNotification(msg, {
-        //     icon: './assets/rvicon.png' , 
-        //     requireInteraction: true , 
-        //     body : this.datePipe.transform(new Date(),'hh:mm:ss aa') ,
-        //     actions : [{action : 'close' , title : this.translate('Close')} , {action : 'closeAll' , title : this.translate('Close All')}]
-        //   });
-        // });
-        
-        this.browserNotifications.push(new Notification(msg , { 
+        let notification =  new Notification(msg , { 
           icon: './assets/rvicon.png' , 
           requireInteraction: true , 
-          body : this.datePipe.transform(new Date(),'hh:mm:ss aa') 
-        }));
-        
-        // actions : [{action : 'close' , title : this.translate('Close')} , {action : 'closeAll' , title : this.translate('Close All')}]
+          body : this.datePipe.transform(new Date(),'hh:mm:ss aa') ,
+          
+        })        
+        this.browserNotifications.push(notification)
+        notification.onclick = (ev)=>{
+          ev.preventDefault()
+          notification.close()
+        }
+        notification.onclose = ()=>{
+          this.browserNotifications.forEach(n=>{
+            n.close()
+          })
+          this.browserNotifications = []
+        }
        }else{
         this.initNotification()
        }

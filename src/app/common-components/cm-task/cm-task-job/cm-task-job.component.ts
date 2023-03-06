@@ -89,7 +89,7 @@ export class CmTaskJobComponent implements OnInit {
     reason : []
   }
 
-  selectedFloorPlanCode = 'HKSTP-5W-1F'
+  selectedFloorPlanCode 
 
   loadingTicket
   actionViewMode = 'list'
@@ -163,7 +163,7 @@ export class CmTaskJobComponent implements OnInit {
   async ngAfterViewInit() {
     let ticket = this.uiSrv.loadAsyncBegin()
     if(!this.util.arcsApp){
-      this.robotInfo = await this.dataSrv.getRobotInfo()
+      this.robotInfo = await this.dataSrv.getRobotMaster()
     }
     await this.initDropDown()
     if (!this.isCreate) {
