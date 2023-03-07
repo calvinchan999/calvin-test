@@ -651,7 +651,7 @@ export class ThreejsViewportComponent implements OnInit , OnDestroy{
         // }
 
         if(!robotData){
-          console.log(`ERROR : Robot not found : [${robotCode}`)
+          console.log(`ERROR : Robot not found : ${robotCode}`)
           return
         }
         if (this.arcsRobotType && robotData.robotType.toUpperCase() != this.arcsRobotType.toUpperCase()) {
@@ -662,7 +662,7 @@ export class ThreejsViewportComponent implements OnInit , OnDestroy{
           console.log(`ERROR : Map not found : [${mapCode}] (ROBOT BASE [${robotData.robotBase}] , ROBOT [${robotCode}])`)
           return
         }
-        let robot = this.getRobot(robotCode) ? this.getRobot(robotCode) : new RobotObject3D(this, robotCode, robotData.robotBase, robotData.robotType)
+        let robot = this.getRobot(robotCode) ? this.getRobot(robotCode) : new RobotObject3D(this, robotCode, robotData.robotBase, robotData.robotType, robotData.robotSubType)
         let oldMapMesh = this.mapMeshes.filter(m => robot && m.robotBase != robotData.robotBase && m.children.includes(robot))[0]
         if (oldMapMesh) {
           oldMapMesh.remove(robot)
@@ -1132,6 +1132,7 @@ class MarkerObject3D extends Object3DCommon {
 }
 
 export class RobotObject3D extends Object3DCommon{
+  robotSubType
   destroyed = false
   dashboardDtlCompRef : ComponentRef<ArcsDashboardRobotDetailComponent>
   aabb = new THREE.Box3() //Axis Align Bounding Box
@@ -1155,16 +1156,24 @@ export class RobotObject3D extends Object3DCommon{
   }
   get importSetting(){
     let setting = this.robotImportSetting[this.robotType] 
-    return setting ? (setting.robotBase && setting.robotBase[this.robotBase] ? setting.robotBase[this.robotBase] : setting) : this.robotImportSetting.BASE
+    if(!setting){
+      return this.robotImportSetting.BASE
+    }else if( setting?.subType?.[this.robotSubType]){
+      return  setting.subType[this.robotSubType]
+    }else if( setting?.robotBase?.[this.robotBase]){
+      return setting.robotBase[this.robotBase]
+    }else {
+      return setting
+    }
   }
   
-  robotImportSetting = {
+  robotImportSetting :{ [key:string] : Import3DModelSettings} = {
     BASE: {
       path : ASSETS_ROOT + "/robot.glb",
       scale : 30,
       position: { x: 0, y: 0, z: -12.5 },
       rotate: { x: 0, y: 0, z: 180 / radRatio },
-      toolTipPositionZ : 45
+      toolTipPositionZ : 45 
     },
     FLOOR_SCRUB: {
       path : ASSETS_ROOT + "/robot_floor_scrub.glb",
@@ -1189,7 +1198,31 @@ export class RobotObject3D extends Object3DCommon{
       // recolorMaterials : ['0.019608_0.000000_0.000000_0.000000_0.000000']
       // replaceColors:[{r: 0 , g : 0 , b : 0 , tolerance : 0.1}], 
     },
+    CONCIERGE: {
+      path: "assets/3D/concierge.glb",
+      scale: 20,
+      position: {
+        x: 0,
+        y: 0,
+        z: -12.5
+      },
+      rotate: {
+        x: -1.57,
+        y: 0,
+        z: 3.14
+      },
+      toolTipPositionZ: 40
+    },
     DELIVERY: {
+      subType:{
+        CABINET_DELIVERY:{
+          path : ASSETS_ROOT + "/robot_cabinet_delivery.glb",
+          scale : 0.6,
+          position: { x: 0, y: 0, z: -12.5 },
+          rotate: {x : NORMAL_ANGLE_ADJUSTMENT, y: 0, z: 180 / radRatio },
+          toolTipPositionZ : 40
+        }
+      },
       robotBase : {
         MIR : {
           path : ASSETS_ROOT + "/mir100.glb",
@@ -1229,11 +1262,12 @@ export class RobotObject3D extends Object3DCommon{
 
   }
 
-  pointerSetting : Import3DModelSettings = {
+  pointerSetting : any = {
     path : null ,
     scale : 20,
     position : {x : 0 , y: 8 , z : -13 }
   }
+
   get opacity(){
     return this._opacity
   } 
@@ -1290,20 +1324,23 @@ export class RobotObject3D extends Object3DCommon{
   // mesh : Mesh  
   // readonly glbPath = ASSESTS_ROOT + "/robot.glb" // Raptor Heavy Planetary Crawler by Aaron Clifford [CC-BY] via Poly Pizza
   readonly alertIconPath = ASSETS_ROOT + '/exclamation.glb' //This work is based on "Exclamation Mark 3D icon" (https://sketchfab.com/3d-models/exclamation-mark-3d-icon-35fcb8285f134554989f822ab90ee974) by summer57 (https://sketchfab.com/summer5717) licensed under CC-BY-4.0 (http://creativecommons.org/licenses/by/4.0/)
-  constructor( master: ThreejsViewportComponent , _robotCode : string , _robotBase : string , _robotType : string ){
+  constructor( master: ThreejsViewportComponent , _robotCode : string , _robotBase : string , _robotType : string , _robotSubType : string ){
     super(master)
     this.add(this.scene)
     this.robotImportSetting = this.master.util.config.MAP_3D?.ROBOT ? this.master.util.config.MAP_3D.ROBOT : this.robotImportSetting
-    this.pointerSetting = this.master.util.config.MAP_3D?.POINTER ? this.master.util.config.MAP_3D.POINTER : this.pointerSetting
     this.robotCode = _robotCode;
     this.robotBase = _robotBase;
     this.robotType = _robotType;
+    this.robotSubType = _robotSubType;
     this.master = master;
     // this.master.robots = this.master.robots.filter(r=>r != this).concat(this)
     this.loader = new GLTFLoader();
     //
     let ticket = this.robotCode ? this.master.uiSrv.loadAsyncBegin() : null
-    let setting = this.importSetting 
+    let setting : Import3DModelSettings = this.importSetting ;
+    if(setting?.pointer){
+      Object.keys(setting?.pointer).forEach(k=> this.pointerSetting[k] = setting?.pointer[k])
+    }
     this.loader.load(setting.path ,(gltf : GLTF)=> {
       new GLTFLoader().load(this.alertIconPath, (alertGltf : GLTF)=>{
         this.gltf = gltf       
@@ -1451,17 +1488,17 @@ export class RobotObject3D extends Object3DCommon{
     } else if (this.outlinePass) {
       this.outlinePass.usePatternTexture = false
     }
-    let materials: MeshStandardMaterial[] = new Object3DCommon(this.master).getMaterials(this.gltf.scene)
-    materials.filter(m => this.importSetting.recolorMaterials?.includes(m.name) || 
-                          (this.importSetting.replaceColors && 
-                           this.importSetting.replaceColors.some(c=>
-                            c.r - c.tolerance <= m.color.r && c.r + c.tolerance >= m.color.r &&
-                            c.g - c.tolerance <= m.color.g && c.g + c.tolerance >= m.color.g &&
-                            c.b - c.tolerance <= m.color.b && c.b + c.tolerance >= m.color.b )
-                          )
-                    ).forEach(m => {
-                      m.color.set(color)
-                    });
+    // let materials: MeshStandardMaterial[] = new Object3DCommon(this.master).getMaterials(this.gltf.scene)
+    // materials.filter(m => this.importSetting.recolorMaterials?.includes(m.name) || 
+    //                       (this.importSetting.replaceColors && 
+    //                        this.importSetting.replaceColors.some(c=>
+    //                         c.r - c.tolerance <= m.color.r && c.r + c.tolerance >= m.color.r &&
+    //                         c.g - c.tolerance <= m.color.g && c.g + c.tolerance >= m.color.g &&
+    //                         c.b - c.tolerance <= m.color.b && c.b + c.tolerance >= m.color.b )
+    //                       )
+    //                 ).forEach(m => {
+    //                   m.color.set(color)
+    //                 });
     new Object3DCommon(this.master).getMaterials(this.frontFacePointer).forEach(m=>{
       m.color.set(color)
     })
@@ -1635,28 +1672,28 @@ class ElevatorObject3D extends Object3DCommon{
   async setRobotCode(v){
     this._robotCode = v;
     (<any>this.planeMesh.material).color.set(this.robotCode ? 0xADFF2F : this.planeColor)
-    this.displayRobotType = this.robotCode ? (await this.master.dataSrv.getRobotList()).filter(r=>r.robotCode == this.robotCode)[0]?.robotType : null
+    this.displayRobotData =  this.robotCode ? (await this.master.dataSrv.getRobotList()).filter(r=>r.robotCode == this.robotCode)[0] : null
   }
   
-  _displayRobotType : string
-  get displayRobotType(){
-    return this._displayRobotType
+  _displayRobotData : DropListRobot
+  get displayRobotData(){
+    return this._displayRobotData
   }
 
-  set displayRobotType(type) {      
-    this._displayRobotType = type;
-    (<any>this.boxMesh).defaultOpacity = type ? 0.45 : 0.85
+  set displayRobotData(data) {      
+    this._displayRobotData = data;
+    (<any>this.boxMesh).defaultOpacity = data ? 0.45 : 0.85
     this.refreshDisplayRobot()
   }
 
   refreshDisplayRobot(){
-    if(this.robotDisplay && (this.displayRobotType == null || (this.robotDisplay?.robotType != this.displayRobotType))){
+    if(this.robotDisplay && (this.displayRobotData == null || (this.robotDisplay?.robotCode != this.displayRobotData?.robotCode))){
       this.robotDisplay.destroy()
       this.robotDisplay = null
     }  
-    if (!this.robotDisplay &&  this.displayRobotType && this.floorplanFloor == this.currentFloor) {
-      this.robotDisplay = new RobotObject3D(this.master, null , this.master.mapMeshes[0]?.robotBase, this.displayRobotType )
-      this.robotDisplay.position.set(0, 0, 15 -  this.boxMesh.position.z)
+    if (!this.robotDisplay && this.displayRobotData && this.floorplanFloor == this.currentFloor) {
+      this.robotDisplay = new RobotObject3D(this.master, null, this.master.mapMeshes[0]?.robotBase, this.displayRobotData?.robotType, this.displayRobotData?.robotSubType)
+      this.robotDisplay.position.set(0, 0, 15 - this.boxMesh.position.z)
       this.boxMesh.add(this.robotDisplay)
     }
   }
@@ -1720,18 +1757,26 @@ class TurnstileObject3D extends Object3DCommon{
 
 class Import3DModelSettings {
   type? : string = "GLB"
-  path : string
+  path? : string
   scale? : number = 1
-  rotate ? : number = 0
+  rotate? : {
+    x : number 
+    y : number 
+    z : number
+  }
   position? : {
     x : number 
     y : number 
     z : number
   }
-  recolorMaterials?: string[]
-  replaceMaterial? : Object //key : material name  , values : image path
-  replaceColors?: {r:number , g: number , b : number , tolerance : number}[]
   toolTipPositionZ ? : number
+  subType? : {[key: string]: Import3DModelSettings }
+  robotBase? : {[key: string]: Import3DModelSettings }
+  pointer? : {
+    path? : string 
+    scale? : number
+    position? : {x : number , y: number , z : number }
+  }
 }
 
 // test16WIphoneScanned(){

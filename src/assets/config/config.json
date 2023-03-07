@@ -160,6 +160,23 @@
 				"toolTipPositionZ": 40
 			},
 			"DELIVERY": {
+				"subType":{
+					"CABINET_DELIVERY":{
+						"path": "assets/3D/robot_cabinet_delivery.glb",
+						"scale": 0.6,
+						"position": {
+							"x": 0,
+							"y": 0,
+							"z": -12.5
+						},
+						"rotate": {
+							"x": -1.57,
+							"y": 0,
+							"z": 3.14
+						},
+						"toolTipPositionZ": 40
+					}
+				},
 				"robotBase": {
 					"MIR": {
 						"path": "assets/3D/mir100.glb",
