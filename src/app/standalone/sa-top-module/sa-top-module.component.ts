@@ -123,8 +123,8 @@ export class SaTopModuleComponent implements OnInit , OnDestroy {
     }else{
       await this.dataSrv.getRobotMaster()
       this.robotType = this.dataSrv.robotMaster.robotType.toLowerCase()//data?.['robotTypeName']?.toLowerCase()//TO BE REVISED
-      this.robotSubType = this.util.arcsApp ? this.arcsRobotSubType : this.dataSrv.robotMaster.robotSubType
     }
+    this.robotSubType = this.util.arcsApp ? this.arcsRobotSubType : this.dataSrv.robotMaster.robotSubType
     this.customClass += ' ' + this.robotType
     // this.arcsRobotSubType == 'CABINET_DELIVERY' //TESTING
     if(this.subTypeTopicMap[this.robotType]){
@@ -133,9 +133,9 @@ export class SaTopModuleComponent implements OnInit , OnDestroy {
     this.signalRSubscribedTopics = this.signalRModuleTopic[this.robotType] ? this.signalRModuleTopic[this.robotType]  : []
     this.dataSrv.subscribeSignalRs(this.signalRSubscribedTopics , this.util.arcsApp ? this.arcsRobotCode : undefined)
 
-    if(this.robotSubType == 'CABINET_DELIVERY' && this.arcsRobotType == 'DELIVERY'){ //TBR !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-      this.dataSrv.subscribeSignalR('cabinet')
-    }
+    // if(this.robotSubType == 'CABINET_DELIVERY' && this.arcsRobotType == 'DELIVERY'){ //TBR !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+    //   this.dataSrv.subscribeSignalR('cabinet')
+    // }
 
     this.initAirQualitySubscription()
     this.initDataSource()
@@ -241,9 +241,7 @@ export class SaTopModuleComponent implements OnInit , OnDestroy {
   
   async initByRobotType(){
     let ticket = this.uiSrv.loadAsyncBegin()
-    console.log(this.robotType)
-    console.log(this.dataSrv.robotMaster.robotSubType )
-    console.log(this.signalRModuleTopic.delivery)
+ 
     if(this.robotType == 'patrol'){
     
     } else if(this.robotType == 'delivery' && this.signalRModuleTopic.delivery.length > 0){ // tray API endpoint TBR 
@@ -317,10 +315,10 @@ export class SaTopModuleComponent implements OnInit , OnDestroy {
           let doorId = doorIds[i]
           let dataObj =  JSON.parse(JSON.stringify(containerData))
           dataObj.containerId['content'] = doorId.toString()
-          dataObj.availability['signalR'] =  hasDoors? this.dataSrv.signalRSubj.cabinetAvail : this.dataSrv.signalRSubj.trayRackAvail
+          dataObj.availability['signalR'] = this.util.arcsApp ? this.dataSrv.arcsRobotDataMap[this.arcsRobotCode].containersAvail :(hasDoors? this.dataSrv.signalRSubj.cabinetAvail : this.dataSrv.signalRSubj.trayRackAvail)
           dataObj.availability['signalRfld'] = i
           if(hasDoors){
-            dataObj.door['signalR'] = this.dataSrv.signalRSubj.cabinetDoorStatus
+            dataObj.door['signalR'] =  this.util.arcsApp ? this.dataSrv.arcsRobotDataMap[this.arcsRobotCode].containersDoorStatus : this.dataSrv.signalRSubj.cabinetDoorStatus
             dataObj.door['signalRfld'] = i
           }
           Object.keys(dataObj).forEach(k => {
@@ -382,12 +380,12 @@ export class SaTopModuleComponent implements OnInit , OnDestroy {
     let resp    
     if(evt.id.startsWith('openContainer_')){
       evt.action = "open"
-      evt.containerId = evt.id.replace('openContainer_' , '')
-      resp = await this.dataSrv.openRobotCabinet( evt.containerId )
-    }else if(evt.id.startsWith('closeContainer_')){
+      evt.containerId = evt.id.replace('openContainer_', '')
+      resp = await this.dataSrv.openRobotCabinet(evt.containerId, this.util.arcsApp ? this.arcsRobotCode : null)
+    } else if (evt.id.startsWith('closeContainer_')) {
       evt.action = "close"
-      evt.containerId = evt.id.replace('closeContainer_' , '')
-      resp = this.dataSrv.closeRobotCabinet( evt.containerId)
+      evt.containerId = evt.id.replace('closeContainer_', '')
+      resp = this.dataSrv.closeRobotCabinet(evt.containerId, this.util.arcsApp ? this.arcsRobotCode : null)
     }
     evt['response'] = resp
     this.onButtonClicked.emit(evt)

@@ -31,6 +31,9 @@
 //     // border-top:solid 1px rgba(255,255,255,0.8);
 //     margin-top: 8px;
 // }
+:host .iot-row .status , :host .iot-row .battery{
+    margin-right: 5px;
+}
 
 :host .iot-row i.status{
     margin-right: 3px;

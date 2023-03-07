@@ -384,10 +384,13 @@ export class DataService {
                 api:'cellular/v1/signal'
               },
     cabinet: { topic: "rvautotech/fobo/cabinet" , 
-               mapping:{ cabinetAvail: (d : { robotId : string , doorList? : {trayFull? : boolean}[]})=> {
+               mapping:{ cabinetAvail: (d : { robotId : string , doorList? : {trayFull? : boolean, status? : string}[]})=> {
+                          let ret = d.doorList.map(door=> door.trayFull ? 'Occupied' : 'Available')
                           this.updateArcsRobotDataMap(d.robotId , 'totalContainersCount' , d.doorList.length)
                           this.updateArcsRobotDataMap(d.robotId , 'availContainersCount' , d.doorList.filter(l=>!l.trayFull).length)
-                          return d.doorList.map(door=> door.trayFull ? 'Occupied' : 'Available')
+                          this.updateArcsRobotDataMap(d.robotId , 'containersAvail' , ret)
+                          this.updateArcsRobotDataMap(d.robotId , 'containersDoorStatus' , d.doorList.map(door=> door.status))
+                          return ret
                         },
                          cabinetDoorStatus:  (d)=> { return d['doorList'].map(door=> door['status']) }
                        },
@@ -1066,12 +1069,12 @@ export class DataService {
   }
 
   // * * * v RV STANDALONE ACTIONS v * * * 
-  public async openRobotCabinet(id){
-    this.httpSrv.rvRequest("POST" , "cabinet/v1/open/" + id , undefined , true , this.uiSrv.translate(`Open Cabiniet [${id}]`))
+  public async openRobotCabinet(id , robotCode = null){
+    this.httpSrv.rvRequest("POST" , `cabinet/v1/open/${robotCode? robotCode + '/' : ''}` + id , undefined , true , this.uiSrv.translate(`Open Cabiniet [${id}]`))
   }
 
-  public async closeRobotCabinet(id){
-    this.httpSrv.rvRequest("POST" , "cabinet/v1/close/" + id, undefined ,  true , this.uiSrv.translate(`Close Cabiniet [${id}]`))
+  public async closeRobotCabinet(id, robotCode = null){
+    this.httpSrv.rvRequest("POST" , `cabinet/v1/close/${robotCode? robotCode + '/' : ''}` + id, undefined ,  true , this.uiSrv.translate(`Close Cabiniet [${id}]`))
   }
 
   public async connectWifi(ssid , pw){
@@ -1539,7 +1542,7 @@ export class loginResponse{
   }
 }
 
-export type ArcsRobotDetailSubjTypes = 'speed'| 'batteryRounded' | 'state' | 'ieq' |  'estop' | 'obstacleDetected' | 'tiltActive' | 'status' | 'destination' | 'availContainersCount' | 'totalContainersCount'
+export type ArcsRobotDetailSubjTypes = 'speed'| 'batteryRounded' | 'state' | 'ieq' |  'estop' | 'obstacleDetected' | 'tiltActive' | 'status' | 'destination' | 'availContainersCount' | 'totalContainersCount' | 'containersAvail' | 'containersDoorStatus'
 export class ArcsRobotDetailBehaviorSubjMap {
   speed: BehaviorSubject<any>
   batteryRounded: BehaviorSubject<any>
@@ -1557,6 +1560,8 @@ export class ArcsRobotDetailBehaviorSubjMap {
   //DELIVERY
   availContainersCount: BehaviorSubject<any>
   totalContainersCount: BehaviorSubject<any>
+  containersAvail : BehaviorSubject<string[]>
+  containersDoorStatus : BehaviorSubject<string[]>
 
   constructor() {
     this.speed = new BehaviorSubject<any>(null)
@@ -1570,6 +1575,8 @@ export class ArcsRobotDetailBehaviorSubjMap {
     this.destination = new BehaviorSubject<any>(null)
     this.availContainersCount =  new BehaviorSubject<any>(null)
     this.totalContainersCount =  new BehaviorSubject<any>(null)
+    this.containersAvail = new BehaviorSubject<string[]>([])
+    this.containersDoorStatus = new BehaviorSubject<string[]>([])
   }
 }
 
