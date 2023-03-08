@@ -3,7 +3,8 @@
 <ng-template #filterTemplate>
     <div class="form-row">
         <uc-dropdown  lab = "Robot Type" [(value)] = 'robotTypeFilter' (valueChange)="refreshRobotOptions() ; robotCodeFilter = null ; refreshChart()" [options] = "dropdownOptions.types"  [translateOption] = 'true' nullValueDesc="All"></uc-dropdown>
-        <uc-dropdown  lab = "Robot" [(value)] = 'robotCodeFilter' (valueChange)="refreshRobotTypeFilter();refreshChart()" [options] = "dropdownOptions.robots"  nullValueDesc="All"></uc-dropdown>
+        <uc-dropdown  *ngIf="_chartType!='analysis'" lab = "Robot" [(value)] = 'robotCodeFilter' (valueChange)="refreshRobotTypeFilter();refreshChart()" [options] = "dropdownOptions.robots"  nullValueDesc="All"></uc-dropdown>
+        <uc-dropdown  *ngIf="_chartType!='analysis'" lab = "Robot" [(value)] = 'robotCodeFilter' (valueChange)="refreshRobotTypeFilter();refreshChart()" [options] = "dropdownOptions.robots"  nullValueDesc="All"></uc-dropdown>
         <uc-dropdown  lab = "Year" [(value)] = 'year' (valueChange)="setDateRange();refreshChart()" [options] = "dropdownOptions.years" [allowClear]="false" ></uc-dropdown>
         <div class="date-range-label col form-group">
             <div class="col-form-label">{{'Date Range' | label: uiSrv.langPack}}</div>
@@ -16,6 +17,11 @@
                 <span >{{utilization.daily.min | date : 'dd/MM'}}</span>
                 <span> - </span>
                 <span>{{(utilization.daily.max.getTime() - 86400000) | date : 'dd/MM'}}</span>
+            </div>
+            <div *ngIf="_chartType == 'analysis' && analysis?.daily?.max" class="label">
+                <span >{{analysis.daily.min | date : 'dd/MM'}}</span>
+                <span> - </span>
+                <span>{{(analysis.daily.max.getTime() - 86400000) | date : 'dd/MM'}}</span>
             </div>
         </div>
     </div>      
@@ -365,3 +371,77 @@
         </kendo-tilelayout-item>
 </kendo-tilelayout>
 
+
+
+
+
+
+<kendo-tilelayout *ngIf="_chartType == 'analysis'"  kendoTooltip #tooltipTo="kendoTooltip" filter=".k-right-handle" showOn="none"  class="chart" [columns]="12"  [resizable]="false" [reorderable]="false">
+    <kendo-tilelayout-item class = "tile select-year" [col]="1" [row]="1"  [colSpan] = "4">
+        <ng-container *ngTemplateOutlet="filterTemplate"></ng-container>
+    </kendo-tilelayout-item>
+    <kendo-tilelayout-item  [col]="5" [row]="1"  [colSpan] = "8" >
+        
+    </kendo-tilelayout-item>
+    <kendo-tilelayout-item [col]="1" [row]="2" [rowSpan]="6" [colSpan] = "8">
+        <kendo-chart #obstacleWaypointScatter name="obstacleWaypointHour" [seriesColors] = "style.seriesColors" [style.height]="'100%important'"  (seriesClick) = "refreshAnalysisScatter($event)">
+            <kendo-chart-area background="rgba(0 ,0 ,0 ,0.25)"></kendo-chart-area>
+            <!-- <kendo-chart-title [align]="'left'" [text]="'Job Order by Type' | label: uiSrv.langPack"  [color]="style.textColor" ></kendo-chart-title>     -->
+            <ng-template kendoChartDonutCenterTemplate>
+                <div [style.color]="style.textColor">{{usability.robotType.centerText}}</div>
+            </ng-template>
+            <kendo-chart-legend [visible]="false" ></kendo-chart-legend>
+            <kendo-chart-series>
+            <kendo-chart-x-axis>
+                <kendo-chart-x-axis-item [visible] = "false" [color]="style.textColor" [majorGridLines]="{ visible : false}" [majorTicks] = "{step : 100}" 
+                                         [min] = "analysis.waypoint.minX" 
+                                         [max] = "analysis.waypoint.maxX">
+                </kendo-chart-x-axis-item>
+            </kendo-chart-x-axis>
+            <kendo-chart-y-axis>
+                <kendo-chart-y-axis-item  [visible] = "false" [color]="style.textColor" [majorGridLines]="{ visible : false}" [majorTicks] = "{step : 100}" 
+                                          [min] = "analysis.waypoint.minY" 
+                                          [max] = "analysis.waypoint.maxY" >
+                </kendo-chart-y-axis-item>
+            </kendo-chart-y-axis>
+                 <kendo-chart-series-item
+                    type="scatter"
+                    [data]="analysis.obstacle.data"
+                    xField="x"
+                    yField="y"
+                    [markers]="{type : 'cross' , size : 5}"
+                >
+                </kendo-chart-series-item>
+                <!-- <kendo-chart-series-item
+                    type="bubble"
+                    color = "#FFC000"
+                    [data]="analysis.waypoint.data"
+                    xField="x"
+                    yField="y"
+                    sizeField="count"
+                >
+                <kendo-chart-series-item-tooltip format="{3}: &nbsp {2:N0}" >
+                </kendo-chart-series-item-tooltip>
+                </kendo-chart-series-item> -->
+            <kendo-chart-series-item  [color] = "style.seriesColors[1]"
+                 type="bubble"
+                 [data]="analysis.waypoint.data"
+                 xField="x"
+                 yField="y"
+                 sizeField="count"
+                 [labels]="{visible:true , content : analysis.waypoint.labelContent , color:style.textColor , background : style.seriesColors[1] , opactiy : 1}" 
+             >       
+             <!-- [markers]="{visible:true , background : style.seriesColors[1] , size : 10 , border : {color : '#FFFFFF'}}" -->
+             <!-- [labels]="{visible:true , visual : style.labelVisual , color:style.textColor ,background : style.seriesColors[1]}" -->
+             </kendo-chart-series-item>
+            </kendo-chart-series>
+          </kendo-chart>
+    </kendo-tilelayout-item>
+    <kendo-tilelayout-item [col]="9" [row]="2" [rowSpan]="3" [colSpan] = "4">
+
+    </kendo-tilelayout-item>
+    <kendo-tilelayout-item [col]="9" [row]="5" [rowSpan]="3" [colSpan] = "4">
+
+    </kendo-tilelayout-item>
+
+</kendo-tilelayout>

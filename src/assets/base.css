@@ -26739,7 +26739,7 @@ kendo-scrollview.k-scrollview-wrap.k-scrollview-light kendo-scrollview-pager, ke
 }
 .k-chart, .k-stockchart {
   display: block;
-  height: calc(100% - 20px);
+  height: calc(100% );
 }
 .k-chart-surface {
   height: 100%;

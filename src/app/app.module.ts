@@ -230,6 +230,7 @@ import { ArcsLiftIotComponent } from './arcs/arcs-IoT/arcs-lift-iot/arcs-lift-io
 import { ArcsTurnstileIotComponent } from './arcs/arcs-iot/arcs-turnstile-iot/arcs-turnstile-iot.component';
 import { ArcsSetupRobotCoopComponent } from './arcs/arcs-setup/arcs-setup-robot-coop/arcs-setup-robot-coop.component';
 import { FilterModule } from '@progress/kendo-angular-filter';
+import { ArcsTempChartsComponent } from './arcs/arcs-dashboard/arcs-temp-charts/arcs-temp-charts.component';
 
 @NgModule({
     declarations: [
@@ -324,7 +325,8 @@ import { FilterModule } from '@progress/kendo-angular-filter';
         CmTaskCancelComponent,
         ArcsLiftIotComponent,
         ArcsTurnstileIotComponent,
-        ArcsSetupRobotCoopComponent        
+        ArcsSetupRobotCoopComponent,
+        ArcsTempChartsComponent        
     ],
     imports: [
         FilterModule,

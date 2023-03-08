@@ -173,12 +173,11 @@
     </uc-table>
 </div>
 
-<ng-container class="charts-container" *ngIf="selectedTab == 'usability' || selectedTab == 'utilization' ">
+<ng-container class="charts-container" *ngIf="selectedTab == 'usability' || selectedTab == 'utilization' || selectedTab == 'analysis' ">
     <app-arcs-charts [chartType]="selectedTab" ></app-arcs-charts>
 </ng-container>
 
 
-</div>
 
 
 <!-- <kendo-dialog *ngIf="robotDetailId!=null" [title]="robotDetailId" (close)="robotDetailId = null" >

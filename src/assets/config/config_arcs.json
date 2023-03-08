@@ -157,7 +157,10 @@
 					"y": 0,
 					"z": 3.14
 				},
-				"toolTipPositionZ": 40
+				"toolTipPositionZ": 40,
+				"pointer":{
+					"position" : {"x" : 0 , "y": 3 , "z" : -13 }
+				}
 			},
 			"DELIVERY": {
 				"subType":{
@@ -174,7 +177,10 @@
 							"y": 0,
 							"z": 3.14
 						},
-						"toolTipPositionZ": 40
+						"toolTipPositionZ": 40,
+						"pointer":{
+							"position" : {"x" : 0 , "y": 6 , "z" : -13 }
+						}
 					}
 				},
 				"robotBase": {
