@@ -1,0 +1,33 @@
+:host .floorplan{
+    height: 100%; 
+    width: 100%;
+    position: absolute;
+    background: rgba(0,0,0,0.2);
+}
+
+:host .background{
+    height: 100%; 
+    width: 100%;
+    object-fit: contain;
+    position: absolute;
+    -webkit-filter: grayscale(100%); /* Safari 6.0 - 9.0 */
+    filter: grayscale(100%);
+    filter: invert(100%);
+    filter: chrom;
+}
+
+:host .waypoint-scatter-chart{
+    align-self: center;
+}
+
+:host .analysis-count{
+    font-size: 2.3em;
+    font-weight: 300;
+    margin-right: 0.5em;
+}
+
+:host .analysis-count-wrapper{
+    display: flex;
+    justify-content: end;
+    width: 100%;
+}

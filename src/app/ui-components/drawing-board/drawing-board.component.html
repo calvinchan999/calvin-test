@@ -6,7 +6,7 @@
   <div #container class = 'drawing-board-container'
        (contextmenu)=" !uiSrv.isTablet && selectedGraphics ? selectGraphics(null) : null ; drawObj?.type ? $event.preventDefault() : null; endDraw();"
        style="width: 100%; height: 100%;" class="drawing-board" [style.cursor]="mode == 'draw'? 'crosshair':''">
-  <ng-pixi-viewport [fullScreen] = "_fullScreen">
+  <ng-pixi-viewport [fullScreen] = "_fullScreen" >
     <div class="overlay" *ngIf="dataSrv.signalRSubj.isFollowMeWithoutMap.value || (showRobot && dataSrv.signalRSubj.isMappingMode.value)  || overlayMsg "> 
       <div class="overlay-button-container">
         <button kendoButton class="pick-map" *ngIf="!dataSrv.signalRSubj.isFollowMeWithoutMap.value && showRobot && !(robots[0] && robots[0]['mapCode']) && authSrv.username && !dataSrv.signalRSubj.isMappingMode.value" 

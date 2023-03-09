@@ -21,12 +21,12 @@
                 </uc-dropdown> -->
             </form>
         </div>
-        <div class="viewport-container">
+        <!-- <div class="viewport-container">
             <uc-drawing-board #pixi [overlayMsg] = "frmGrp.controls['fileName'].value? null : ('Please upload the map file first' | label : uiSrv.langPack) " 
                               [canUploadMultiImg] = "false" [hideButton] = "{all:true}"  (fileLoad)=" frmGrp.controls['fileName'].setValue($event?.name)" 
                               [hideRelocationButton] = "true">
             </uc-drawing-board>
-        </div>
+        </div> -->
     </div>
     <div class="button-container">
         <button kendoButton (click) = "onClose()" > {{'Cancel' | label : uiSrv.langPack}}</button>

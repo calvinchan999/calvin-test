@@ -2,8 +2,9 @@
 <ng-template #toDateTpl>{{dateRangeToolTip?.to?.content}}</ng-template>
 <ng-template #filterTemplate>
     <div class="form-row">
-        <uc-dropdown  lab = "Robot Type" [(value)] = 'robotTypeFilter' (valueChange)="refreshRobotOptions() ; robotCodeFilter = null ; refreshChart()" [options] = "dropdownOptions.types"  [translateOption] = 'true' nullValueDesc="All"></uc-dropdown>
-        <uc-dropdown  *ngIf="_chartType!='analysis'" lab = "Robot" [(value)] = 'robotCodeFilter' (valueChange)="refreshRobotTypeFilter();refreshChart()" [options] = "dropdownOptions.robots"  nullValueDesc="All"></uc-dropdown>
+        <uc-dropdown  *ngIf="_chartType=='analysis'" lab = "Floor Plan" [allowClear]="false" [(value)] = 'analysis.floorplan.selected' (valueChange)="analysis.waypoint.selected = null ; refreshAnalysis() " [options] = "dropdownOptions.floorplan"  nullValueDesc="All"></uc-dropdown>
+        <uc-dropdown  *ngIf="_chartType=='analysis'" lab = "Waypoint" [(value)] = 'analysis.waypoint.selected' (valueChange)="refreshAnalysis()" [options] = "dropdownOptions.waypoint"  nullValueDesc="All"></uc-dropdown>
+        <uc-dropdown  *ngIf="_chartType!='analysis'" lab = "Robot Type" [(value)] = 'robotTypeFilter' (valueChange)="refreshRobotOptions() ; robotCodeFilter = null ; refreshChart()" [options] = "dropdownOptions.types"  [translateOption] = 'true' nullValueDesc="All"></uc-dropdown>
         <uc-dropdown  *ngIf="_chartType!='analysis'" lab = "Robot" [(value)] = 'robotCodeFilter' (valueChange)="refreshRobotTypeFilter();refreshChart()" [options] = "dropdownOptions.robots"  nullValueDesc="All"></uc-dropdown>
         <uc-dropdown  lab = "Year" [(value)] = 'year' (valueChange)="setDateRange();refreshChart()" [options] = "dropdownOptions.years" [allowClear]="false" ></uc-dropdown>
         <div class="date-range-label col form-group">
@@ -137,6 +138,7 @@
                     </kendo-chart-value-axis>
                 </kendo-chart>
     </kendo-tilelayout-item>
+
     <kendo-tilelayout-item  class="hourly" [col]="5" [row]="6" [colSpan] = "4" [rowSpan]="2" [title]="'Average Task Count By Hour' | label: uiSrv.langPack">
                 <kendo-chart [seriesColors]="style.seriesColors"  (seriesClick) = "onSeriesClick($event)">   
                     <kendo-chart-area background="transparent"></kendo-chart-area>  
@@ -161,6 +163,7 @@
                     </kendo-chart-value-axis>
                 </kendo-chart>
     </kendo-tilelayout-item>
+
     <kendo-tilelayout-item  class="type"  [col]="9" [row]="6" [colSpan] = "4"  [rowSpan]="2" [title]="'Task Count by Type' | label: uiSrv.langPack">
                 <kendo-chart #usabilityByRobotTypeChart name="robotType" [seriesColors] = "style.seriesColors"  (seriesClick) = "onSeriesClick($event)"   [transitions]="!robotTypeFilter" >
                     <kendo-chart-area background="transparent"></kendo-chart-area>
@@ -380,16 +383,50 @@
     <kendo-tilelayout-item class = "tile select-year" [col]="1" [row]="1"  [colSpan] = "4">
         <ng-container *ngTemplateOutlet="filterTemplate"></ng-container>
     </kendo-tilelayout-item>
-    <kendo-tilelayout-item  [col]="5" [row]="1"  [colSpan] = "8" >
-        
+
+    <kendo-tilelayout-item [title]="'Total Obstacle Count' | label: uiSrv.langPack"  [col]="5" [row]="1"   [colSpan] = "8 - (!analysis.total.waypoint1 ? 0 : (!analysis.total.waypoint2 ? 2 : (!analysis.total.waypoint3 ? 4 : 6 )))">
+        <kendo-tilelayout-item-body>
+            <div class="analysis-count-wrapper">
+                <label class="analysis-count">{{analysis.total.count}}</label>
+            </div>
+        </kendo-tilelayout-item-body>
     </kendo-tilelayout-item>
-    <kendo-tilelayout-item [col]="1" [row]="2" [rowSpan]="6" [colSpan] = "8">
-        <kendo-chart #obstacleWaypointScatter name="obstacleWaypointHour" [seriesColors] = "style.seriesColors" [style.height]="'100%important'"  (seriesClick) = "refreshAnalysisScatter($event)">
-            <kendo-chart-area background="rgba(0 ,0 ,0 ,0.25)"></kendo-chart-area>
-            <!-- <kendo-chart-title [align]="'left'" [text]="'Job Order by Type' | label: uiSrv.langPack"  [color]="style.textColor" ></kendo-chart-title>     -->
+
+    <kendo-tilelayout-item *ngIf = "analysis.total.waypoint1" class = "tile waypoint1" [title] = "('Top'| label: uiSrv.langPack) + ' 1 ' + ('Obstacle Count'| label: uiSrv.langPack) + ' - ' + (analysis.total.waypoint1.name | enum | label: uiSrv.langPack)" [col]="!analysis.total.waypoint2 ? 11 : (!analysis.total.waypoint3 ? 9 : 7 )" [row]="1" [colSpan] = "2">
+        <kendo-tilelayout-item-body>
+            <div class="analysis-count-wrapper">
+                <label class="analysis-count">{{analysis.total.waypoint1.count}}</label>
+            </div>
+        </kendo-tilelayout-item-body>
+    </kendo-tilelayout-item>
+
+    <kendo-tilelayout-item *ngIf = "analysis.total.waypoint2" class = "tile waypoint2" [title] = "('Top'| label: uiSrv.langPack) + ' 2 ' + ('Obstacle Count'| label: uiSrv.langPack) + ' - ' + (analysis.total.waypoint2.name | enum | label: uiSrv.langPack) "  [col]="!analysis.total.waypoint3 ? 11 : 9" [row]="1" [colSpan] = "2" >
+        <kendo-tilelayout-item-body>
+            <div class="analysis-count-wrapper">
+                <label class="analysis-count">{{analysis.total.waypoint2.count}}</label>
+            </div>
+        </kendo-tilelayout-item-body>
+    </kendo-tilelayout-item>
+
+    <kendo-tilelayout-item *ngIf = "analysis.total.waypoint3" class = "tile waypoint3"  [title]="('Top'| label: uiSrv.langPack) + ' 3 ' + ('Obstacle Count'| label: uiSrv.langPack) + ' - ' + (analysis.total.waypoint3.name | enum | label: uiSrv.langPack) "  [col]="11" [row]="1" [colSpan] = "2">
+        <kendo-tilelayout-item-body>
+            <div class="analysis-count-wrapper">
+                <label class="analysis-count">{{analysis.total.waypoint3.count}}</label>
+            </div>
+        </kendo-tilelayout-item-body>
+    </kendo-tilelayout-item>   
+
+    <kendo-tilelayout-item [col]="1" [row]="2" [rowSpan]="6" [colSpan] = "7">
+        <div class="floorplan">            
+            <img class="background" [src]="analysis.background.path">
+        </div>
+        <kendo-chart  class="waypoint-scatter-chart" #obstacleWaypointScatter name="obstacleWaypointHour" [seriesColors] = "style.seriesColors" [resizeRateLimit]="0"
+                      [style.width]="analysis.background.width + 'px'" [style.height]="analysis.background.height + 'px'"  
+                      (seriesClick) = "$event.category ? refreshAnalysis() : null ;   $event.category ? refreshAnalysisScatter($event) : null">
             <ng-template kendoChartDonutCenterTemplate>
                 <div [style.color]="style.textColor">{{usability.robotType.centerText}}</div>
             </ng-template>
+            <kendo-chart-area background="transparent"></kendo-chart-area>  
             <kendo-chart-legend [visible]="false" ></kendo-chart-legend>
             <kendo-chart-series>
             <kendo-chart-x-axis>
@@ -407,41 +444,93 @@
                  <kendo-chart-series-item
                     type="scatter"
                     [data]="analysis.obstacle.data"
+                    [color] = "style.seriesColors[2]"
                     xField="x"
                     yField="y"
                     [markers]="{type : 'cross' , size : 5}"
                 >
                 </kendo-chart-series-item>
-                <!-- <kendo-chart-series-item
-                    type="bubble"
-                    color = "#FFC000"
-                    [data]="analysis.waypoint.data"
-                    xField="x"
-                    yField="y"
-                    sizeField="count"
-                >
-                <kendo-chart-series-item-tooltip format="{3}: &nbsp {2:N0}" >
-                </kendo-chart-series-item-tooltip>
-                </kendo-chart-series-item> -->
-            <kendo-chart-series-item  [color] = "style.seriesColors[1]"
+            <kendo-chart-series-item  [color] = "style.seriesColors[0]"
                  type="bubble"
+                 [negativeValues] = "{color:style.seriesColors[1] , visible :  true}"
                  [data]="analysis.waypoint.data"
                  xField="x"
                  yField="y"
                  sizeField="count"
-                 [labels]="{visible:true , content : analysis.waypoint.labelContent , color:style.textColor , background : style.seriesColors[1] , opactiy : 1}" 
+                 [labels]="{visible:true , content : analysis.waypoint.labelContent , color:style.textColor ,  opactiy : 1}" 
              >       
-             <!-- [markers]="{visible:true , background : style.seriesColors[1] , size : 10 , border : {color : '#FFFFFF'}}" -->
-             <!-- [labels]="{visible:true , visual : style.labelVisual , color:style.textColor ,background : style.seriesColors[1]}" -->
              </kendo-chart-series-item>
             </kendo-chart-series>
           </kendo-chart>
     </kendo-tilelayout-item>
-    <kendo-tilelayout-item [col]="9" [row]="2" [rowSpan]="3" [colSpan] = "4">
 
+    
+    <kendo-tilelayout-item  [title]="'Daily Obstacle Count'| label: uiSrv.langPack" kendoTooltip #tooltipFr="kendoTooltip" filter=".k-left-handle" showOn="none" class = "tile daily" class="tile" [col]="8" [row]="2" [rowSpan]="2" [colSpan] = "5">
+        <kendo-chart  #navigatorChart [seriesColors]="style.seriesColors"   (selectStart)="onSelectStart()" (select)="onSelect($event)" (selectEnd)="onSelectEnd($event);"   >   
+            <kendo-chart-area background="transparent"></kendo-chart-area>  
+            <!-- <kendo-chart-title  [align]="'left'" [text]="'Average Job Order By Hour' | label: uiSrv.langPack" [color]="style.textColor" ></kendo-chart-title>                    -->
+            <kendo-chart-series>
+              <kendo-chart-series-item type="area" [data]="analysis.daily.data"  [markers]="{ visible: false }">
+              </kendo-chart-series-item>
+            </kendo-chart-series>
+            <kendo-chart-category-axis>
+                <kendo-chart-category-axis-item  [categories]="analysis.daily.categories"  [color]="style.textColor" [majorTicks] = "{visible : false}"
+                                                 [labels] = "{ step: analysis.daily.navigatorStep , format:'MMM' , skip: 15 , color:style.textColor}"
+                                                 [majorGridLines]="{ visible : false}"  [select]=" { from: analysis.daily.min, to: analysis.daily.max }" >
+                </kendo-chart-category-axis-item>         
+            </kendo-chart-category-axis>   
+            <kendo-chart-value-axis>
+                <kendo-chart-value-axis-item [color]="style.textColor">
+                </kendo-chart-value-axis-item>
+            </kendo-chart-value-axis>
+        </kendo-chart>
     </kendo-tilelayout-item>
-    <kendo-tilelayout-item [col]="9" [row]="5" [rowSpan]="3" [colSpan] = "4">
 
+
+    <kendo-tilelayout-item [title]="'Obstacle Count By Floor Plan'| label: uiSrv.langPack"   [col]="8" [row]="4" [rowSpan]="2" [colSpan] = "5">
+        <kendo-chart #floorplanObstacle [seriesColors]="style.seriesColors"  (seriesClick) = "onSeriesClick($event)">  
+            <kendo-chart-area background="transparent"></kendo-chart-area>   
+            <kendo-chart-tooltip format="{0}"></kendo-chart-tooltip>
+            <!-- <kendo-chart-title  [align]="'left'" [text]="'Average Job Order per Weekday' | label: uiSrv.langPack" [color]="style.textColor" ></kendo-chart-title>                    -->
+            <kendo-chart-series>
+              <kendo-chart-series-item type="column" [data]="analysis.floorplan.data" [visual]="style.seriesVisual">
+              </kendo-chart-series-item>
+            </kendo-chart-series>
+            <kendo-chart-category-axis>
+                <kendo-chart-category-axis-item  [categories]="analysis.floorplan.categories" [color]="style.textColor" 
+                                                 [majorGridLines]="{ visible : false}">
+                </kendo-chart-category-axis-item>         
+            </kendo-chart-category-axis>   
+            <kendo-chart-value-axis>
+                <kendo-chart-value-axis-item [color]="style.textColor">
+                </kendo-chart-value-axis-item>
+            </kendo-chart-value-axis>
+        </kendo-chart>                
+    </kendo-tilelayout-item>
+
+    <kendo-tilelayout-item [title]="'Average Obstacle Count By Hour'| label: uiSrv.langPack"  [col]="8" [row]="6" [rowSpan]="2" [colSpan] = "5">
+        <kendo-chart [seriesColors]="style.seriesColors"  (seriesClick) = "onSeriesClick($event)">   
+            <kendo-chart-area background="transparent"></kendo-chart-area>  
+            <!-- <kendo-chart-title  [align]="'left'" [text]="'Average Job Order By Hour' | label: uiSrv.langPack" [color]="style.textColor" ></kendo-chart-title>                    -->
+            <kendo-chart-series>
+            <kendo-chart-tooltip>
+                <!-- <ng-template kendoChartSeriesTooltipTemplate let-category="category" let-value="value" let-series="series" let-idx = "categoryIndex"> 
+                     <div> {{category | number : '2.2' | replace : '.' : ':'}} - {{usability.hourlyAvg.categories[idx == usability.hourlyAvg.categories.length - 1 ? 0 : idx + 1 ]  | number : '2.2' | replace : '.' : ':'}} ({{ value }}) </div>
+                </ng-template>                     -->
+            </kendo-chart-tooltip>  
+              <kendo-chart-series-item type="line" [data]="analysis.hourlyAvg.data"  [markers]="{ visible: false }">
+              </kendo-chart-series-item>
+            </kendo-chart-series>
+            <kendo-chart-category-axis>
+                <kendo-chart-category-axis-item  [categories]="analysis.hourlyAvg.categories"
+                                                 [majorGridLines]="{ visible : false}" [color]="style.textColor" >
+                </kendo-chart-category-axis-item>         
+            </kendo-chart-category-axis>   
+            <kendo-chart-value-axis>
+                <kendo-chart-value-axis-item [color]="style.textColor">
+                </kendo-chart-value-axis-item>
+            </kendo-chart-value-axis>
+        </kendo-chart>
     </kendo-tilelayout-item>
 
 </kendo-tilelayout>

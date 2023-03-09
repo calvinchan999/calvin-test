@@ -55,6 +55,7 @@ export class DrawingBoardComponent implements OnInit , AfterViewInit , OnDestroy
   @Input() uploadMustMatchOriginalSize = false
   @Input() showWaypointType = false
   @Input() arcsParent : ArcsDashboardComponent
+  
   get withMapLayer(){
     return Object.values(this.mapLayerStore).length > 0
   }
