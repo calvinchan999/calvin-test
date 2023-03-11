@@ -281,6 +281,7 @@ export class ArcsChartsComponent implements OnInit, OnDestroy {
       this.refreshChart()
     } else if (evt.sender == this.floorplanObstacleChart && this.analysis.floorplan.selected != evt.category) {
       this.analysis.floorplan.selected = evt.category
+      this.analysis.waypoint.selected = null
       this.refreshAnalysis()
     }
   }
@@ -403,7 +404,6 @@ export class ArcsChartsComponent implements OnInit, OnDestroy {
       this.analysis.daily.max = args.to;
       this.analysis.daily.transitions = false;
     }
-    console.log(this.analysis)
     this.refreshChart()
   }
 
@@ -771,6 +771,9 @@ export class ArcsChartsComponent implements OnInit, OnDestroy {
 
 
  // ===============================================================================================================================================
+ 
+
+
  @HostListener('window:resize', ['$event'])
   onResize() {
     let containerEl = (<any>this.waypointObstacleChart)?.element?.nativeElement?.parentElement
@@ -792,6 +795,7 @@ export class ArcsChartsComponent implements OnInit, OnDestroy {
     if( !this.analysisTestData){
       return
     }
+
     this.analysis.background = <any>this.analysisTestData.floorplan[this.analysis.floorplan.selected]
     let containerEl = (<any>this.waypointObstacleChart)?.element?.nativeElement?.parentElement
     this.refreshChartOnSizeChange(containerEl?.offsetWidth, containerEl?.offsetHeight)
@@ -828,6 +832,9 @@ export class ArcsChartsComponent implements OnInit, OnDestroy {
         }
       }       
     })
+    this.analysis.waypoint.data.forEach(d=>{
+      d.count = (d.category == this.analysis.waypoint.selected ? -1 : 1) * Math.abs(d.count)
+    })
 
     //FLOORPLAN
     this.analysis.floorplan.categories =  this.dropdownOptions.floorplan.map(f=>f.value)//[...new Set(data.map(d => d.floorplan))].sort()
@@ -846,14 +853,19 @@ export class ArcsChartsComponent implements OnInit, OnDestroy {
     }
     this.analysis.hourlyAvg.data = JSON.parse(JSON.stringify(this.analysis.hourlyAvg.data))
 
-    this.refreshAnalysisScatter()
+    //OBSTACLE SCATTER
+    this.analysis.obstacle.data = this.analysis.waypoint.selected ? this.getFilteredObstacles().filter(d => d.waypoint == this.analysis.waypoint.selected) : []
+
+    //TOTAL
+    this.analysis.total.count = this.getFilteredObstacles().length
     this.analysis.total.waypoint1 = null
     this.analysis.total.waypoint2 = null
     this.analysis.total.waypoint3 = null
-    let tmpData = JSON.parse(JSON.stringify(this.analysis.waypoint.data))
-    tmpData.sort((a,b)=>b.count - a.count)
-    for(let i = 0 ; i < Math.min(tmpData.length , 3) ; i++){
-      let d = {name : tmpData[i].category , count : tmpData[i].count }
+    
+    let tmpData = JSON.parse(JSON.stringify(this.analysis.waypoint.data.map(d=>{return {category : d.category , count : Math.abs(d.count)}})))
+    tmpData.sort((a, b) => b.count - a.count)
+    for (let i = 0; i < Math.min(tmpData.length, 3); i++) {
+      let d = { name: tmpData[i].category, count: tmpData[i].count }
       this.analysis.total['waypoint' + (i + 1)] = d
     }
   }
@@ -876,19 +888,15 @@ export class ArcsChartsComponent implements OnInit, OnDestroy {
     this.refreshAnalysis()
   }
 
-  refreshAnalysisScatter(e = null) {
-    if(e){
-      this.analysis.waypoint.selected = this.analysis.obstacle.data[0]?.waypoint == e.category ? null : e.category
-    }
-    this.analysis.waypoint.data.forEach(d=>{
-      d.count = (d.category == this.analysis.waypoint.selected? -1 : 1) * Math.abs(d.count)
-    })
-    this.analysis.waypoint.data = JSON.parse(JSON.stringify(this.analysis.waypoint.data))
-    this.analysis.obstacle.data = this.analysis.waypoint.selected ? this.getFilteredObstacles().filter(d => d.waypoint == this.analysis.waypoint.selected) : []
-    this.analysis.total.count = this.getFilteredObstacles().length
+  selectWaypoint(e) {
+    this.analysis.waypoint.selected = this.analysis.obstacle.data[0]?.waypoint == e.category ? null : e.category
+    this.refreshAnalysis()
   }
 
-  refreshChartOnSizeChange(offsetWidth : number , offsetHeight : number){    
+  refreshChartOnSizeChange(offsetWidth : number , offsetHeight : number){   
+    let tmpScatter = JSON.parse(JSON.stringify( this.analysis.obstacle.data ))
+    this.analysis.obstacle.data = []
+
     this.analysis.background.width = offsetWidth / offsetHeight < 1 ? offsetWidth  :  offsetHeight *  this.analysis.background.imageWidth  / this.analysis.background.imageHeight
     this.analysis.background.height = offsetWidth / offsetHeight < 1 ? offsetHeight  :  offsetWidth * this.analysis.background.imageHeight  / this.analysis.background.imageWidth
     this.analysis.waypoint.minX = 0 
@@ -896,6 +904,8 @@ export class ArcsChartsComponent implements OnInit, OnDestroy {
     this.analysis.waypoint.maxY = 0 
     this.analysis.waypoint.minY = - this.analysis.background.imageHeight
     this.analysis.waypoint.data = JSON.parse(JSON.stringify(this.analysis.waypoint.data))
+
+    this.analysis.obstacle.data = tmpScatter
     // return
 
     // if( offsetWidth && offsetHeight){

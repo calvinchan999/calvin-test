@@ -412,6 +412,8 @@ export class ThreejsViewportComponent implements OnInit , OnDestroy{
     let tenantCode = this.util.getTenantCode()
     let path = `${ASSETS_ROOT}/floorplans/${tenantCode}/${this.floorPlanDataset.floorPlanCode}`
     let settings = await this.dataSrv.getAssets(path + '.json')
+
+
     this.floorplan.settings = settings
     path = this.uiSrv.detectMob() && settings.tabletPath?  settings.tabletPath : (settings?.path ? settings.path : path + '.glb') 
     let transform = (obj: THREE.Group) => {
@@ -420,6 +422,7 @@ export class ThreejsViewportComponent implements OnInit , OnDestroy{
         obj.scale.set(settings?.scale, settings?.scale, settings?.scale)
       }
       obj.position.set(settings.position?.x ? settings.position?.x : 0, settings.position?.y ? settings.position?.y : 0, settings.position?.z ? settings.position?.z : 0)
+      
       obj.traverse((c) => {
         if(c instanceof Mesh){
           var prevMaterial = c.material; 

@@ -255,6 +255,7 @@ export class DataService {
                                                           api:"baseControl/v1/move",
             },
     taskActive:{topic:'rvautotech/fobo/execution',   mapping:{
+      isMovingInTask : ()=> true,
       taskItemIndex: ()=> 0 , 
       nextTaskAction : (d : {moveTask : JTask})=> d.moveTask.taskItemList.filter(t=>t.actionList?.length > 0)[0]?.actionList[0].alias ,     
       currentTaskId :  (d :  {taskId : string})=> d.taskId,
@@ -290,6 +291,7 @@ export class DataService {
    taskComplete:{topic:'rvautotech/fobo/completion', 
                    mapping:{ currentTaskId : ()=> ' - ' ,
                              taskActive : (d)=>{         
+                                               this.signalRSubj.isMovingInTask.next(false)
                                                this.signalRSubj.taskProgress.next(0)
                                                this.signalRSubj.taskItemIndex.next(0)    
                                                this.signalRSubj.nextTaskAction.next(null)
@@ -319,9 +321,9 @@ export class DataService {
                                                            }
                                  }
                        },
-    taskArrive: {topic:'rvautotech/fobo/arrival', mapping:{isMovingInTask:()=> false ,  taskItemIndex : (d)=>d['taskItemIndex']}},
+    taskArrive: {topic:'rvautotech/fobo/arrival', mapping:{isMovingInTask:()=> false ,  taskItemIndex : (d)=> d['taskItemIndex']}},
     taskDepart: {topic:'rvautotech/fobo/departure', mapping:{
-                                                               isMovingInTask : (d)=> d['taskItemIndex'] > 0,
+                                                               isMovingInTask : ()=> true, //COMMENTED　20230311 (d)=> d['taskItemIndex'] > 0
                                                                taskItemIndex : (d)=>{
                                                                 if(d['taskItemIndex']){
                                                                   return Math.min(this.signalRSubj.taskActive.value?.['taskItemList']?.length - 1 ,  d['taskItemIndex'])

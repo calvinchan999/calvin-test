@@ -1,6 +1,6 @@
 {
  "scale" : 35.5 ,
- "position" : { "x": 135, "y": -580, "z": 2},
+ "position" : { "x": 165, "y": -580, "z": 2},
  "rotate": { "x": 1.5708 , "y": 0 , "z": 0 },
  "floor" : "2/F",
  "elevators" : [

@@ -1,0 +1,6151 @@
+{
+  "floorplan": {
+    "G/F": {
+      "path": "assets/5W.png",
+      "width": 0,
+      "height": 0,
+      "imageWidth": 1112,
+      "imageHeight": 1076,
+      "waypoints": [
+        {
+          "category": "Reception",
+          "x": 598.98399483444,
+          "y": -847.86759385555,
+          "count": 0
+        },
+        {
+          "category": "Entrance",
+          "x": 508.073928204866,
+          "y": -751.844351307767,
+          "count": 0
+        },
+        {
+          "category": "Aisle",
+          "x": 233.974066697926,
+          "y": -754.307316411976,
+          "count": 0
+        },
+        {
+          "category": "Open Area",
+          "x": 454.613088722257,
+          "y": -930.237354922539,
+          "count": 0
+        },
+        {
+          "category": "Charging",
+          "x": 636.932236435755,
+          "y": -915.586284693838,
+          "count": 0
+        }
+      ]
+    },
+    "1/F": {
+      "path": "assets/17WF1.png",
+      "width": 0,
+      "height": 0,
+      "imageWidth": 1112,
+      "imageHeight": 1076,
+      "waypoints": [
+        {
+          "category": "WP-01",
+          "x": 598.98399483444,
+          "y": -847.86759385555,
+          "count": 0
+        },
+        {
+          "category": "WP-03",
+          "x": 508.073928204866,
+          "y": -751.844351307767,
+          "count": 0
+        },
+        {
+          "category": "Entrance",
+          "x": 233.974066697926,
+          "y": -754.307316411976,
+          "count": 0
+        },
+        {
+          "category": "WP-05",
+          "x": 454.613088722257,
+          "y": -930.237354922539,
+          "count": 0
+        },
+        {
+          "category": "WP-06",
+          "x": 636.932236435755,
+          "y": -915.586284693838,
+          "count": 0
+        }
+      ]
+    },
+    "2/F": {
+      "path": "assets/5W.png",
+      "width": 0,
+      "height": 0,
+      "imageWidth": 1112,
+      "imageHeight": 1076,
+      "waypoints": [
+        {
+          "category": "WP-01",
+          "x": 598.98399483444,
+          "y": -847.86759385555,
+          "count": 0
+        },
+        {
+          "category": "WP-03",
+          "x": 508.073928204866,
+          "y": -751.844351307767,
+          "count": 0
+        },
+        {
+          "category": "Entrance",
+          "x": 233.974066697926,
+          "y": -754.307316411976,
+          "count": 0
+        },
+        {
+          "category": "WP-05",
+          "x": 454.613088722257,
+          "y": -930.237354922539,
+          "count": 0
+        },
+        {
+          "category": "WP-06",
+          "x": 636.932236435755,
+          "y": -915.586284693838,
+          "count": 0
+        },
+        {
+          "category": "WP-07",
+          "x": 600.932236435755,
+          "y": -800.586284693838,
+          "count": 0
+        }
+      ]
+    }
+  },
+  "obstacles": [
+    {
+      "x": 235.468382824742,
+      "y": -769.089447158031,
+      "date": "2023-02-15",
+      "waypoint": null,
+      "floorplan": "G/F",
+      "hour": 12,
+      "minute": 59
+    },
+    {
+      "x": 231.259433829015,
+      "y": -798.431586161181,
+      "date": "2023-03-04",
+      "waypoint": null,
+      "floorplan": "G/F",
+      "hour": 12,
+      "minute": 26
+    },
+    {
+      "x": 244.530953711151,
+      "y": -768.10305786872,
+      "date": "2023-02-11",
+      "waypoint": null,
+      "floorplan": "G/F",
+      "hour": 12,
+      "minute": 15
+    },
+    {
+      "x": 195.134417517535,
+      "y": -787.768592567656,
+      "date": "2023-03-10",
+      "waypoint": null,
+      "floorplan": "G/F",
+      "hour": 12,
+      "minute": 53
+    },
+    {
+      "x": 298.177224083685,
+      "y": -766.501562845989,
+      "date": "2023-02-23",
+      "waypoint": null,
+      "floorplan": "G/F",
+      "hour": 12,
+      "minute": 17
+    },
+    {
+      "x": 206.180790144868,
+      "y": -783.935369986073,
+      "date": "2023-03-03",
+      "waypoint": null,
+      "floorplan": "G/F",
+      "hour": 12,
+      "minute": 21
+    },
+    {
+      "x": 210.970522473427,
+      "y": -783.080498012432,
+      "date": "2023-03-03",
+      "waypoint": null,
+      "floorplan": "G/F",
+      "hour": 12,
+      "minute": 24
+    },
+    {
+      "x": 212.508314911856,
+      "y": -783.474784588364,
+      "date": "2023-01-08",
+      "waypoint": null,
+      "floorplan": "G/F",
+      "hour": 12,
+      "minute": 45
+    },
+    {
+      "x": 219.092217467059,
+      "y": -783.068057974218,
+      "date": "2023-01-13",
+      "waypoint": null,
+      "floorplan": "G/F",
+      "hour": 12,
+      "minute": 25
+    },
+    {
+      "x": 162.708469973117,
+      "y": -770.485914715329,
+      "date": "2023-02-13",
+      "waypoint": null,
+      "floorplan": "G/F",
+      "hour": 12,
+      "minute": 38
+    },
+    {
+      "x": 222.287600124217,
+      "y": -782.424352088481,
+      "date": "2023-02-07",
+      "waypoint": null,
+      "floorplan": "G/F",
+      "hour": 12,
+      "minute": 42
+    },
+    {
+      "x": 268.967475831382,
+      "y": -773.657201267111,
+      "date": "2023-02-09",
+      "waypoint": null,
+      "floorplan": "G/F",
+      "hour": 12,
+      "minute": 16
+    },
+    {
+      "x": 243.128651505124,
+      "y": -789.808905883776,
+      "date": "2023-02-02",
+      "waypoint": null,
+      "floorplan": "G/F",
+      "hour": 12,
+      "minute": 50
+    },
+    {
+      "x": 231.327595341739,
+      "y": -755.713940806505,
+      "date": "2023-03-07",
+      "waypoint": null,
+      "floorplan": "G/F",
+      "hour": 12,
+      "minute": 28
+    },
+    {
+      "x": 267.790070603162,
+      "y": -784.639334858902,
+      "date": "2023-02-06",
+      "waypoint": null,
+      "floorplan": "G/F",
+      "hour": 12,
+      "minute": 35
+    },
+    {
+      "x": 226.827646456681,
+      "y": -752.579745008752,
+      "date": "2023-01-10",
+      "waypoint": null,
+      "floorplan": "G/F",
+      "hour": 12,
+      "minute": 23
+    },
+    {
+      "x": 162.263730672437,
+      "y": -775.64640532231,
+      "date": "2023-03-01",
+      "waypoint": null,
+      "floorplan": "G/F",
+      "hour": 12,
+      "minute": 52
+    },
+    {
+      "x": 162.123592814101,
+      "y": -759.291019501053,
+      "date": "2023-01-10",
+      "waypoint": null,
+      "floorplan": "G/F",
+      "hour": 12,
+      "minute": 50
+    },
+    {
+      "x": 255.717759585284,
+      "y": -760.093941154198,
+      "date": "2023-02-21",
+      "waypoint": null,
+      "floorplan": "G/F",
+      "hour": 12,
+      "minute": 57
+    },
+    {
+      "x": 210.538204236625,
+      "y": -772.538232969477,
+      "date": "2023-03-11",
+      "waypoint": null,
+      "floorplan": "G/F",
+      "hour": 12,
+      "minute": 30
+    },
+    {
+      "x": 299.164601610154,
+      "y": -749.714870762813,
+      "date": "2023-01-03",
+      "waypoint": null,
+      "floorplan": "G/F",
+      "hour": 12,
+      "minute": 19
+    },
+    {
+      "x": 238.675089980372,
+      "y": -750.243824595965,
+      "date": "2023-03-01",
+      "waypoint": null,
+      "floorplan": "G/F",
+      "hour": 12,
+      "minute": 28
+    },
+    {
+      "x": 236.228567710222,
+      "y": -767.299524211516,
+      "date": "2023-01-15",
+      "waypoint": null,
+      "floorplan": "G/F",
+      "hour": 12,
+      "minute": 50
+    },
+    {
+      "x": 197.714078596092,
+      "y": -764.857388843951,
+      "date": "2023-01-23",
+      "waypoint": null,
+      "floorplan": "G/F",
+      "hour": 12,
+      "minute": 37
+    },
+    {
+      "x": 283.506122936856,
+      "y": -800.398698979509,
+      "date": "2023-02-26",
+      "waypoint": null,
+      "floorplan": "G/F",
+      "hour": 12,
+      "minute": 49
+    },
+    {
+      "x": 258.915321599997,
+      "y": -765.720812027439,
+      "date": "2023-02-02",
+      "waypoint": null,
+      "floorplan": "G/F",
+      "hour": 12,
+      "minute": 47
+    },
+    {
+      "x": 224.866527922112,
+      "y": -753.358811564984,
+      "date": "2023-02-26",
+      "waypoint": null,
+      "floorplan": "G/F",
+      "hour": 12,
+      "minute": 27
+    },
+    {
+      "x": 173.575297147508,
+      "y": -750.946563594753,
+      "date": "2023-02-22",
+      "waypoint": null,
+      "floorplan": "G/F",
+      "hour": 12,
+      "minute": 2
+    },
+    {
+      "x": 201.215758641682,
+      "y": -784.784706191102,
+      "date": "2023-02-10",
+      "waypoint": null,
+      "floorplan": "G/F",
+      "hour": 12,
+      "minute": 12
+    },
+    {
+      "x": 206.853684765968,
+      "y": -763.555345063919,
+      "date": "2023-02-05",
+      "waypoint": null,
+      "floorplan": "G/F",
+      "hour": 12,
+      "minute": 52
+    },
+    {
+      "x": 184.257277812218,
+      "y": -789.60008748831,
+      "date": "2023-01-16",
+      "waypoint": null,
+      "floorplan": "G/F",
+      "hour": 12,
+      "minute": 40
+    },
+    {
+      "x": 256.440489494733,
+      "y": -793.204982361694,
+      "date": "2023-02-15",
+      "waypoint": null,
+      "floorplan": "G/F",
+      "hour": 12,
+      "minute": 43
+    },
+    {
+      "x": 232.305494284482,
+      "y": -790.522037339255,
+      "date": "2023-02-18",
+      "waypoint": null,
+      "floorplan": "G/F",
+      "hour": 12,
+      "minute": 52
+    },
+    {
+      "x": 175.920635817066,
+      "y": -758.721294200628,
+      "date": "2023-03-10",
+      "waypoint": null,
+      "floorplan": "G/F",
+      "hour": 12,
+      "minute": 25
+    },
+    {
+      "x": 251.07664901754,
+      "y": -767.677197396362,
+      "date": "2023-01-14",
+      "waypoint": null,
+      "floorplan": "G/F",
+      "hour": 12,
+      "minute": 36
+    },
+    {
+      "x": 197.894311462944,
+      "y": -759.753595611221,
+      "date": "2023-01-29",
+      "waypoint": null,
+      "floorplan": "G/F",
+      "hour": 12,
+      "minute": 1
+    },
+    {
+      "x": 197.353771503374,
+      "y": -786.938926293745,
+      "date": "2023-02-20",
+      "waypoint": null,
+      "floorplan": "G/F",
+      "hour": 12,
+      "minute": 28
+    },
+    {
+      "x": 239.962908218662,
+      "y": -769.854053016263,
+      "date": "2023-02-15",
+      "waypoint": null,
+      "floorplan": "G/F",
+      "hour": 12,
+      "minute": 39
+    },
+    {
+      "x": 269.72043537028,
+      "y": -797.548395684342,
+      "date": "2023-02-03",
+      "waypoint": null,
+      "floorplan": "G/F",
+      "hour": 12,
+      "minute": 10
+    },
+    {
+      "x": 253.276210943548,
+      "y": -781.41534700565,
+      "date": "2023-01-24",
+      "waypoint": null,
+      "floorplan": "G/F",
+      "hour": 12,
+      "minute": 34
+    },
+    {
+      "x": 266.813362914509,
+      "y": -777.30740765179,
+      "date": "2023-02-20",
+      "waypoint": null,
+      "floorplan": "G/F",
+      "hour": 12,
+      "minute": 44
+    },
+    {
+      "x": 250.738058055996,
+      "y": -774.11878179772,
+      "date": "2023-01-02",
+      "waypoint": null,
+      "floorplan": "G/F",
+      "hour": 12,
+      "minute": 57
+    },
+    {
+      "x": 307.170665829613,
+      "y": -767.394483151371,
+      "date": "2023-01-02",
+      "waypoint": null,
+      "floorplan": "G/F",
+      "hour": 12,
+      "minute": 19
+    },
+    {
+      "x": 189.758578253531,
+      "y": -780.925523088374,
+      "date": "2023-02-01",
+      "waypoint": null,
+      "floorplan": "G/F",
+      "hour": 12,
+      "minute": 31
+    },
+    {
+      "x": 188.076675449218,
+      "y": -779.538183928245,
+      "date": "2023-01-25",
+      "waypoint": null,
+      "floorplan": "G/F",
+      "hour": 12,
+      "minute": 28
+    },
+    {
+      "x": 186.236149575092,
+      "y": -782.011049188483,
+      "date": "2023-01-28",
+      "waypoint": null,
+      "floorplan": "G/F",
+      "hour": 12,
+      "minute": 43
+    },
+    {
+      "x": 204.776273504418,
+      "y": -781.973120704565,
+      "date": "2023-02-14",
+      "waypoint": null,
+      "floorplan": "G/F",
+      "hour": 12,
+      "minute": 58
+    },
+    {
+      "x": 293.293624511973,
+      "y": -787.937053535797,
+      "date": "2023-02-12",
+      "waypoint": null,
+      "floorplan": "G/F",
+      "hour": 12,
+      "minute": 3
+    },
+    {
+      "x": 235.108704274422,
+      "y": -785.099505147278,
+      "date": "2023-01-24",
+      "waypoint": null,
+      "floorplan": "G/F",
+      "hour": 12,
+      "minute": 13
+    },
+    {
+      "x": 267.170541039036,
+      "y": -748.09758495434,
+      "date": "2023-01-15",
+      "waypoint": null,
+      "floorplan": "G/F",
+      "hour": 12,
+      "minute": 1
+    },
+    {
+      "x": 221.440683976263,
+      "y": -752.897175904514,
+      "date": "2023-01-06",
+      "waypoint": null,
+      "floorplan": "G/F",
+      "hour": 12,
+      "minute": 10
+    },
+    {
+      "x": 209.130961220746,
+      "y": -766.123121506033,
+      "date": "2023-01-09",
+      "waypoint": null,
+      "floorplan": "G/F",
+      "hour": 12,
+      "minute": 50
+    },
+    {
+      "x": 218.367241701527,
+      "y": -759.06363478249,
+      "date": "2023-02-07",
+      "waypoint": null,
+      "floorplan": "G/F",
+      "hour": 12,
+      "minute": 40
+    },
+    {
+      "x": 226.257901091153,
+      "y": -763.018653784683,
+      "date": "2023-02-27",
+      "waypoint": null,
+      "floorplan": "G/F",
+      "hour": 12,
+      "minute": 52
+    },
+    {
+      "x": 279.140186174068,
+      "y": -753.003844228301,
+      "date": "2023-03-10",
+      "waypoint": null,
+      "floorplan": "G/F",
+      "hour": 12,
+      "minute": 23
+    },
+    {
+      "x": 234.699149819977,
+      "y": -795.127883670518,
+      "date": "2023-01-28",
+      "waypoint": null,
+      "floorplan": "G/F",
+      "hour": 12,
+      "minute": 11
+    },
+    {
+      "x": 257.102703911993,
+      "y": -789.442911234255,
+      "date": "2023-03-09",
+      "waypoint": null,
+      "floorplan": "G/F",
+      "hour": 12,
+      "minute": 22
+    },
+    {
+      "x": 203.095865762827,
+      "y": -753.676830681866,
+      "date": "2023-01-05",
+      "waypoint": null,
+      "floorplan": "G/F",
+      "hour": 12,
+      "minute": 19
+    },
+    {
+      "x": 253.070222440939,
+      "y": -760.129997679974,
+      "date": "2023-02-04",
+      "waypoint": null,
+      "floorplan": "G/F",
+      "hour": 12,
+      "minute": 53
+    },
+    {
+      "x": 282.612040054652,
+      "y": -776.841324176322,
+      "date": "2023-01-22",
+      "waypoint": null,
+      "floorplan": "G/F",
+      "hour": 12,
+      "minute": 59
+    },
+    {
+      "x": 273.586042241146,
+      "y": -777.274743780459,
+      "date": "2023-01-03",
+      "waypoint": null,
+      "floorplan": "G/F",
+      "hour": 12,
+      "minute": 42
+    },
+    {
+      "x": 208.209053928649,
+      "y": -760.230853850145,
+      "date": "2023-02-01",
+      "waypoint": null,
+      "floorplan": "G/F",
+      "hour": 12,
+      "minute": 14
+    },
+    {
+      "x": 221.028398549464,
+      "y": -783.060054092572,
+      "date": "2023-01-28",
+      "waypoint": null,
+      "floorplan": "G/F",
+      "hour": 12,
+      "minute": 40
+    },
+    {
+      "x": 231.246808158188,
+      "y": -781.354246864005,
+      "date": "2023-01-13",
+      "waypoint": null,
+      "floorplan": "G/F",
+      "hour": 12,
+      "minute": 1
+    },
+    {
+      "x": 239.760439143331,
+      "y": -793.195311002009,
+      "date": "2023-02-12",
+      "waypoint": null,
+      "floorplan": "G/F",
+      "hour": 12,
+      "minute": 35
+    },
+    {
+      "x": 224.10923402901,
+      "y": -766.548489160839,
+      "date": "2023-03-10",
+      "waypoint": null,
+      "floorplan": "G/F",
+      "hour": 12,
+      "minute": 26
+    },
+    {
+      "x": 255.840181672254,
+      "y": -786.28135777285,
+      "date": "2023-01-25",
+      "waypoint": null,
+      "floorplan": "G/F",
+      "hour": 12,
+      "minute": 39
+    },
+    {
+      "x": 237.068455464964,
+      "y": -770.96157134686,
+      "date": "2023-01-01",
+      "waypoint": null,
+      "floorplan": "G/F",
+      "hour": 12,
+      "minute": 19
+    },
+    {
+      "x": 263.030448603639,
+      "y": -764.826602069918,
+      "date": "2023-02-04",
+      "waypoint": null,
+      "floorplan": "G/F",
+      "hour": 12,
+      "minute": 32
+    },
+    {
+      "x": 271.095010291081,
+      "y": -785.254578172466,
+      "date": "2023-01-11",
+      "waypoint": null,
+      "floorplan": "G/F",
+      "hour": 12,
+      "minute": 1
+    },
+    {
+      "x": 234.100794294372,
+      "y": -788.208499795438,
+      "date": "2023-01-13",
+      "waypoint": null,
+      "floorplan": "G/F",
+      "hour": 12,
+      "minute": 59
+    },
+    {
+      "x": 232.234537797887,
+      "y": -756.604282741393,
+      "date": "2023-01-29",
+      "waypoint": null,
+      "floorplan": "G/F",
+      "hour": 12,
+      "minute": 37
+    },
+    {
+      "x": 218.165888929763,
+      "y": -769.661069547419,
+      "date": "2023-02-08",
+      "waypoint": null,
+      "floorplan": "G/F",
+      "hour": 12,
+      "minute": 39
+    },
+    {
+      "x": 189.068243544474,
+      "y": -764.98721405832,
+      "date": "2023-01-17",
+      "waypoint": null,
+      "floorplan": "G/F",
+      "hour": 13,
+      "minute": 35
+    },
+    {
+      "x": 258.14004446977,
+      "y": -768.696212479781,
+      "date": "2023-02-09",
+      "waypoint": null,
+      "floorplan": "G/F",
+      "hour": 13,
+      "minute": 10
+    },
+    {
+      "x": 234.311477535519,
+      "y": -789.22361465619,
+      "date": "2023-01-09",
+      "waypoint": null,
+      "floorplan": "G/F",
+      "hour": 13,
+      "minute": 28
+    },
+    {
+      "x": 240.089952537725,
+      "y": -757.96884046442,
+      "date": "2023-02-17",
+      "waypoint": null,
+      "floorplan": "G/F",
+      "hour": 13,
+      "minute": 26
+    },
+    {
+      "x": 295.071415723502,
+      "y": -766.943904320711,
+      "date": "2023-02-19",
+      "waypoint": null,
+      "floorplan": "G/F",
+      "hour": 13,
+      "minute": 35
+    },
+    {
+      "x": 293.002024071613,
+      "y": -781.190487132528,
+      "date": "2023-02-19",
+      "waypoint": null,
+      "floorplan": "G/F",
+      "hour": 13,
+      "minute": 11
+    },
+    {
+      "x": 268.812799110217,
+      "y": -758.194707861548,
+      "date": "2023-01-10",
+      "waypoint": null,
+      "floorplan": "G/F",
+      "hour": 13,
+      "minute": 46
+    },
+    {
+      "x": 309.572559623219,
+      "y": -803.611024601586,
+      "date": "2023-03-07",
+      "waypoint": null,
+      "floorplan": "G/F",
+      "hour": 13,
+      "minute": 52
+    },
+    {
+      "x": 253.163376431874,
+      "y": -762.11725123318,
+      "date": "2023-02-07",
+      "waypoint": null,
+      "floorplan": "G/F",
+      "hour": 13,
+      "minute": 19
+    },
+    {
+      "x": 201.45384064648,
+      "y": -790.323318451467,
+      "date": "2023-03-04",
+      "waypoint": null,
+      "floorplan": "G/F",
+      "hour": 13,
+      "minute": 55
+    },
+    {
+      "x": 155.889726812404,
+      "y": -780.551180267774,
+      "date": "2023-02-23",
+      "waypoint": null,
+      "floorplan": "G/F",
+      "hour": 13,
+      "minute": 25
+    },
+    {
+      "x": 164.558850268324,
+      "y": -767.54461382486,
+      "date": "2023-01-20",
+      "waypoint": null,
+      "floorplan": "G/F",
+      "hour": 13,
+      "minute": 26
+    },
+    {
+      "x": 227.137328395122,
+      "y": -749.992452628134,
+      "date": "2023-03-10",
+      "waypoint": null,
+      "floorplan": "G/F",
+      "hour": 13,
+      "minute": 23
+    },
+    {
+      "x": 257.841715233062,
+      "y": -765.673030742834,
+      "date": "2023-01-12",
+      "waypoint": null,
+      "floorplan": "G/F",
+      "hour": 13,
+      "minute": 44
+    },
+    {
+      "x": 159.714872883051,
+      "y": -762.170097636635,
+      "date": "2023-01-29",
+      "waypoint": null,
+      "floorplan": "G/F",
+      "hour": 13,
+      "minute": 14
+    },
+    {
+      "x": 169.091303784604,
+      "y": -799.270781961908,
+      "date": "2023-01-22",
+      "waypoint": null,
+      "floorplan": "G/F",
+      "hour": 13,
+      "minute": 42
+    },
+    {
+      "x": 238.935407485478,
+      "y": -790.0903108187,
+      "date": "2023-02-25",
+      "waypoint": null,
+      "floorplan": "G/F",
+      "hour": 13,
+      "minute": 50
+    },
+    {
+      "x": 293.536359275602,
+      "y": -787.468799679589,
+      "date": "2023-03-11",
+      "waypoint": null,
+      "floorplan": "G/F",
+      "hour": 13,
+      "minute": 18
+    },
+    {
+      "x": 304.837769037927,
+      "y": -783.421216720973,
+      "date": "2023-02-21",
+      "waypoint": null,
+      "floorplan": "G/F",
+      "hour": 13,
+      "minute": 53
+    },
+    {
+      "x": 217.232300224392,
+      "y": -792.950603854495,
+      "date": "2023-03-11",
+      "waypoint": null,
+      "floorplan": "G/F",
+      "hour": 13,
+      "minute": 36
+    },
+    {
+      "x": 221.650866016171,
+      "y": -768.299139399372,
+      "date": "2023-01-20",
+      "waypoint": null,
+      "floorplan": "G/F",
+      "hour": 13,
+      "minute": 22
+    },
+    {
+      "x": 233.579521150406,
+      "y": -784.474748646444,
+      "date": "2023-01-22",
+      "waypoint": null,
+      "floorplan": "G/F",
+      "hour": 13,
+      "minute": 36
+    },
+    {
+      "x": 239.565554934439,
+      "y": -766.438332103308,
+      "date": "2023-03-03",
+      "waypoint": null,
+      "floorplan": "G/F",
+      "hour": 13,
+      "minute": 53
+    },
+    {
+      "x": 242.703422937661,
+      "y": -770.224425542941,
+      "date": "2023-02-08",
+      "waypoint": null,
+      "floorplan": "G/F",
+      "hour": 13,
+      "minute": 29
+    },
+    {
+      "x": 241.806234773225,
+      "y": -784.823600378293,
+      "date": "2023-03-09",
+      "waypoint": null,
+      "floorplan": "G/F",
+      "hour": 13,
+      "minute": 39
+    },
+    {
+      "x": 264.749491935099,
+      "y": -785.887333183883,
+      "date": "2023-03-07",
+      "waypoint": null,
+      "floorplan": "G/F",
+      "hour": 13,
+      "minute": 47
+    },
+    {
+      "x": 295.183729243384,
+      "y": -801.623568289473,
+      "date": "2023-02-26",
+      "waypoint": null,
+      "floorplan": "G/F",
+      "hour": 13,
+      "minute": 28
+    },
+    {
+      "x": 215.450965976654,
+      "y": -774.260007777145,
+      "date": "2023-01-02",
+      "waypoint": null,
+      "floorplan": "G/F",
+      "hour": 13,
+      "minute": 31
+    },
+    {
+      "x": 231.02096331449,
+      "y": -800.157523600452,
+      "date": "2023-03-11",
+      "waypoint": null,
+      "floorplan": "G/F",
+      "hour": 13,
+      "minute": 6
+    },
+    {
+      "x": 247.17282257672,
+      "y": -764.277633981274,
+      "date": "2023-02-22",
+      "waypoint": null,
+      "floorplan": "G/F",
+      "hour": 13,
+      "minute": 32
+    },
+    {
+      "x": 281.670244381466,
+      "y": -753.531753994468,
+      "date": "2023-02-28",
+      "waypoint": null,
+      "floorplan": "G/F",
+      "hour": 13,
+      "minute": 35
+    },
+    {
+      "x": 310.925330099517,
+      "y": -771.032465163625,
+      "date": "2023-02-21",
+      "waypoint": null,
+      "floorplan": "G/F",
+      "hour": 13,
+      "minute": 40
+    },
+    {
+      "x": 242.547560792536,
+      "y": -771.430014022863,
+      "date": "2023-01-29",
+      "waypoint": null,
+      "floorplan": "G/F",
+      "hour": 13,
+      "minute": 51
+    },
+    {
+      "x": 164.053870627883,
+      "y": -777.519305844928,
+      "date": "2023-01-17",
+      "waypoint": null,
+      "floorplan": "G/F",
+      "hour": 13,
+      "minute": 46
+    },
+    {
+      "x": 208.254704554078,
+      "y": -756.18120421894,
+      "date": "2023-02-20",
+      "waypoint": null,
+      "floorplan": "G/F",
+      "hour": 13,
+      "minute": 14
+    },
+    {
+      "x": 226.527168564675,
+      "y": -782.165685261231,
+      "date": "2023-02-10",
+      "waypoint": null,
+      "floorplan": "G/F",
+      "hour": 13,
+      "minute": 24
+    },
+    {
+      "x": 277.138806062773,
+      "y": -749.458049230049,
+      "date": "2023-03-07",
+      "waypoint": null,
+      "floorplan": "G/F",
+      "hour": 13,
+      "minute": 49
+    },
+    {
+      "x": 266.661349610835,
+      "y": -763.751392174829,
+      "date": "2023-01-29",
+      "waypoint": null,
+      "floorplan": "G/F",
+      "hour": 13,
+      "minute": 30
+    },
+    {
+      "x": 240.043902690621,
+      "y": -761.815375618722,
+      "date": "2023-02-13",
+      "waypoint": null,
+      "floorplan": "G/F",
+      "hour": 13,
+      "minute": 15
+    },
+    {
+      "x": 245.529175239992,
+      "y": -765.377501833455,
+      "date": "2023-02-08",
+      "waypoint": null,
+      "floorplan": "G/F",
+      "hour": 13,
+      "minute": 51
+    },
+    {
+      "x": 303.53415738088,
+      "y": -797.893220754624,
+      "date": "2023-01-18",
+      "waypoint": null,
+      "floorplan": "G/F",
+      "hour": 13,
+      "minute": 32
+    },
+    {
+      "x": 230.090305860751,
+      "y": -778.677662587863,
+      "date": "2023-02-13",
+      "waypoint": null,
+      "floorplan": "G/F",
+      "hour": 13,
+      "minute": 39
+    },
+    {
+      "x": 225.433717480015,
+      "y": -774.453485845899,
+      "date": "2023-03-13",
+      "waypoint": null,
+      "floorplan": "G/F",
+      "hour": 13,
+      "minute": 14
+    },
+    {
+      "x": 198.111989591204,
+      "y": -757.281443333883,
+      "date": "2023-02-09",
+      "waypoint": null,
+      "floorplan": "G/F",
+      "hour": 13,
+      "minute": 14
+    },
+    {
+      "x": 195.211529631029,
+      "y": -762.401455084711,
+      "date": "2023-01-29",
+      "waypoint": null,
+      "floorplan": "G/F",
+      "hour": 13,
+      "minute": 26
+    },
+    {
+      "x": 259.807598528594,
+      "y": -774.169527214025,
+      "date": "2023-02-12",
+      "waypoint": null,
+      "floorplan": "G/F",
+      "hour": 13,
+      "minute": 36
+    },
+    {
+      "x": 251.656947142602,
+      "y": -776.204956486005,
+      "date": "2023-01-25",
+      "waypoint": null,
+      "floorplan": "G/F",
+      "hour": 13,
+      "minute": 22
+    },
+    {
+      "x": 296.504950789726,
+      "y": -751.6188489878,
+      "date": "2023-01-06",
+      "waypoint": null,
+      "floorplan": "G/F",
+      "hour": 13,
+      "minute": 43
+    },
+    {
+      "x": 249.475737507322,
+      "y": -794.868766232467,
+      "date": "2023-01-16",
+      "waypoint": null,
+      "floorplan": "G/F",
+      "hour": 13,
+      "minute": 10
+    },
+    {
+      "x": 267.051518612226,
+      "y": -755.097660778779,
+      "date": "2023-03-13",
+      "waypoint": null,
+      "floorplan": "G/F",
+      "hour": 13,
+      "minute": 54
+    },
+    {
+      "x": 222.170672509562,
+      "y": -762.069737263149,
+      "date": "2023-01-28",
+      "waypoint": null,
+      "floorplan": "G/F",
+      "hour": 13,
+      "minute": 7
+    },
+    {
+      "x": 188.477049898751,
+      "y": -770.920283740785,
+      "date": "2023-02-15",
+      "waypoint": null,
+      "floorplan": "G/F",
+      "hour": 13,
+      "minute": 19
+    },
+    {
+      "x": 267.030978818034,
+      "y": -787.527167797759,
+      "date": "2023-02-02",
+      "waypoint": null,
+      "floorplan": "G/F",
+      "hour": 13,
+      "minute": 26
+    },
+    {
+      "x": 208.866301126889,
+      "y": -778.750749526644,
+      "date": "2023-02-09",
+      "waypoint": null,
+      "floorplan": "G/F",
+      "hour": 13,
+      "minute": 41
+    },
+    {
+      "x": 233.628449774022,
+      "y": -757.745776634482,
+      "date": "2023-01-01",
+      "waypoint": null,
+      "floorplan": "G/F",
+      "hour": 13,
+      "minute": 51
+    },
+    {
+      "x": 182.509208595727,
+      "y": -797.549928400847,
+      "date": "2023-02-25",
+      "waypoint": null,
+      "floorplan": "G/F",
+      "hour": 13,
+      "minute": 54
+    },
+    {
+      "x": 212.769056338272,
+      "y": -776.931606170486,
+      "date": "2023-02-27",
+      "waypoint": null,
+      "floorplan": "G/F",
+      "hour": 13,
+      "minute": 37
+    },
+    {
+      "x": 223.834505281211,
+      "y": -763.944091414393,
+      "date": "2023-02-05",
+      "waypoint": null,
+      "floorplan": "G/F",
+      "hour": 13,
+      "minute": 25
+    },
+    {
+      "x": 308.726417941193,
+      "y": -758.848151832584,
+      "date": "2023-03-04",
+      "waypoint": null,
+      "floorplan": "G/F",
+      "hour": 13,
+      "minute": 48
+    },
+    {
+      "x": 170.827351456212,
+      "y": -750.633557535834,
+      "date": "2023-01-12",
+      "waypoint": null,
+      "floorplan": "G/F",
+      "hour": 13,
+      "minute": 32
+    },
+    {
+      "x": 210.050746380185,
+      "y": -787.825046216353,
+      "date": "2023-01-02",
+      "waypoint": null,
+      "floorplan": "G/F",
+      "hour": 13,
+      "minute": 41
+    },
+    {
+      "x": 260.104864149911,
+      "y": -788.161099587811,
+      "date": "2023-01-08",
+      "waypoint": null,
+      "floorplan": "G/F",
+      "hour": 13,
+      "minute": 7
+    },
+    {
+      "x": 179.154842303025,
+      "y": -790.040885796851,
+      "date": "2023-01-09",
+      "waypoint": null,
+      "floorplan": "G/F",
+      "hour": 13,
+      "minute": 8
+    },
+    {
+      "x": 280.389463714155,
+      "y": -783.18005001092,
+      "date": "2023-02-09",
+      "waypoint": null,
+      "floorplan": "G/F",
+      "hour": 13,
+      "minute": 3
+    },
+    {
+      "x": 294.429211250976,
+      "y": -762.846094067893,
+      "date": "2023-02-14",
+      "waypoint": null,
+      "floorplan": "G/F",
+      "hour": 13,
+      "minute": 26
+    },
+    {
+      "x": 188.014021523677,
+      "y": -773.462728823856,
+      "date": "2023-01-11",
+      "waypoint": null,
+      "floorplan": "G/F",
+      "hour": 13,
+      "minute": 32
+    },
+    {
+      "x": 266.466917058649,
+      "y": -788.665145773021,
+      "date": "2023-01-07",
+      "waypoint": null,
+      "floorplan": "G/F",
+      "hour": 13,
+      "minute": 50
+    },
+    {
+      "x": 267.721246325427,
+      "y": -799.066531179491,
+      "date": "2023-02-17",
+      "waypoint": null,
+      "floorplan": "G/F",
+      "hour": 13,
+      "minute": 38
+    },
+    {
+      "x": 239.71866258823,
+      "y": -792.53194503363,
+      "date": "2023-01-19",
+      "waypoint": null,
+      "floorplan": "G/F",
+      "hour": 13,
+      "minute": 29
+    },
+    {
+      "x": 244.243025256662,
+      "y": -795.643970738963,
+      "date": "2023-01-18",
+      "waypoint": null,
+      "floorplan": "G/F",
+      "hour": 13,
+      "minute": 11
+    },
+    {
+      "x": 253.636523886291,
+      "y": -771.522840627509,
+      "date": "2023-02-15",
+      "waypoint": null,
+      "floorplan": "G/F",
+      "hour": 13,
+      "minute": 19
+    },
+    {
+      "x": 267.746369644534,
+      "y": -796.331067935805,
+      "date": "2023-03-13",
+      "waypoint": null,
+      "floorplan": "G/F",
+      "hour": 13,
+      "minute": 34
+    },
+    {
+      "x": 226.98131671655,
+      "y": -780.163462074555,
+      "date": "2023-03-04",
+      "waypoint": null,
+      "floorplan": "G/F",
+      "hour": 13,
+      "minute": 56
+    },
+    {
+      "x": 236.609491172701,
+      "y": -771.702005208451,
+      "date": "2023-03-05",
+      "waypoint": null,
+      "floorplan": "G/F",
+      "hour": 16,
+      "minute": 24
+    },
+    {
+      "x": 306.917215373002,
+      "y": -798.182493887285,
+      "date": "2023-03-11",
+      "waypoint": null,
+      "floorplan": "G/F",
+      "hour": 15,
+      "minute": 54
+    },
+    {
+      "x": 210.721885808195,
+      "y": -772.406373966616,
+      "date": "2023-01-15",
+      "waypoint": null,
+      "floorplan": "G/F",
+      "hour": 15,
+      "minute": 59
+    },
+    {
+      "x": 252.435039315268,
+      "y": -756.792332254706,
+      "date": "2023-01-01",
+      "waypoint": null,
+      "floorplan": "G/F",
+      "hour": 14,
+      "minute": 33
+    },
+    {
+      "x": 187.508639729724,
+      "y": -768.583217112367,
+      "date": "2023-01-05",
+      "waypoint": null,
+      "floorplan": "G/F",
+      "hour": 9,
+      "minute": 39
+    },
+    {
+      "x": 271.861430181011,
+      "y": -750.233452726171,
+      "date": "2023-01-11",
+      "waypoint": null,
+      "floorplan": "G/F",
+      "hour": 15,
+      "minute": 47
+    },
+    {
+      "x": 207.198516925625,
+      "y": -774.381878512256,
+      "date": "2023-02-07",
+      "waypoint": null,
+      "floorplan": "G/F",
+      "hour": 17,
+      "minute": 13
+    },
+    {
+      "x": 250.166044335002,
+      "y": -752.185806659838,
+      "date": "2023-03-12",
+      "waypoint": null,
+      "floorplan": "G/F",
+      "hour": 12,
+      "minute": 8
+    },
+    {
+      "x": 222.390089881519,
+      "y": -783.65282185432,
+      "date": "2023-02-20",
+      "waypoint": null,
+      "floorplan": "G/F",
+      "hour": 16,
+      "minute": 7
+    },
+    {
+      "x": 150.202496507128,
+      "y": -758.128671331711,
+      "date": "2023-03-02",
+      "waypoint": null,
+      "floorplan": "G/F",
+      "hour": 13,
+      "minute": 9
+    },
+    {
+      "x": 272.677391377112,
+      "y": -787.601183445762,
+      "date": "2023-02-15",
+      "waypoint": null,
+      "floorplan": "G/F",
+      "hour": 11,
+      "minute": 14
+    },
+    {
+      "x": 198.474765816258,
+      "y": -767.226481879397,
+      "date": "2023-01-25",
+      "waypoint": null,
+      "floorplan": "G/F",
+      "hour": 9,
+      "minute": 48
+    },
+    {
+      "x": 167.179807140865,
+      "y": -792.658687043604,
+      "date": "2023-02-25",
+      "waypoint": null,
+      "floorplan": "G/F",
+      "hour": 16,
+      "minute": 27
+    },
+    {
+      "x": 259.436500218994,
+      "y": -754.960263250023,
+      "date": "2023-02-19",
+      "waypoint": null,
+      "floorplan": "G/F",
+      "hour": 14,
+      "minute": 9
+    },
+    {
+      "x": 259.666761777866,
+      "y": -756.426097017452,
+      "date": "2023-01-11",
+      "waypoint": null,
+      "floorplan": "G/F",
+      "hour": 13,
+      "minute": 39
+    },
+    {
+      "x": 216.778369244038,
+      "y": -788.744827971417,
+      "date": "2023-01-27",
+      "waypoint": null,
+      "floorplan": "G/F",
+      "hour": 16,
+      "minute": 31
+    },
+    {
+      "x": 232.936867083528,
+      "y": -771.179990716337,
+      "date": "2023-01-26",
+      "waypoint": null,
+      "floorplan": "G/F",
+      "hour": 18,
+      "minute": 37
+    },
+    {
+      "x": 242.109418599983,
+      "y": -793.786578119927,
+      "date": "2023-01-21",
+      "waypoint": null,
+      "floorplan": "G/F",
+      "hour": 15,
+      "minute": 19
+    },
+    {
+      "x": 166.930458980753,
+      "y": -791.191420145551,
+      "date": "2023-01-04",
+      "waypoint": null,
+      "floorplan": "G/F",
+      "hour": 12,
+      "minute": 39
+    },
+    {
+      "x": 189.039882907667,
+      "y": -772.420616734224,
+      "date": "2023-02-18",
+      "waypoint": null,
+      "floorplan": "G/F",
+      "hour": 10,
+      "minute": 28
+    },
+    {
+      "x": 244.730175168943,
+      "y": -776.337746189713,
+      "date": "2023-02-09",
+      "waypoint": null,
+      "floorplan": "G/F",
+      "hour": 10,
+      "minute": 25
+    },
+    {
+      "x": 238.708980489299,
+      "y": -790.110564853976,
+      "date": "2023-01-30",
+      "waypoint": null,
+      "floorplan": "G/F",
+      "hour": 10,
+      "minute": 44
+    },
+    {
+      "x": 310.28972668952,
+      "y": -777.474941050733,
+      "date": "2023-01-21",
+      "waypoint": null,
+      "floorplan": "G/F",
+      "hour": 15,
+      "minute": 33
+    },
+    {
+      "x": 242.720999526587,
+      "y": -758.111080677094,
+      "date": "2023-01-06",
+      "waypoint": null,
+      "floorplan": "G/F",
+      "hour": 14,
+      "minute": 19
+    },
+    {
+      "x": 258.657311307129,
+      "y": -782.683063636913,
+      "date": "2023-02-16",
+      "waypoint": null,
+      "floorplan": "G/F",
+      "hour": 17,
+      "minute": 52
+    },
+    {
+      "x": 278.468651327073,
+      "y": -748.060754098878,
+      "date": "2023-03-06",
+      "waypoint": null,
+      "floorplan": "G/F",
+      "hour": 10,
+      "minute": 59
+    },
+    {
+      "x": 274.118365822815,
+      "y": -750.64730894509,
+      "date": "2023-02-16",
+      "waypoint": null,
+      "floorplan": "G/F",
+      "hour": 9,
+      "minute": 57
+    },
+    {
+      "x": 258.738163529898,
+      "y": -750.479331263086,
+      "date": "2023-03-02",
+      "waypoint": null,
+      "floorplan": "G/F",
+      "hour": 10,
+      "minute": 43
+    },
+    {
+      "x": 186.914140609785,
+      "y": -759.07740606836,
+      "date": "2023-01-18",
+      "waypoint": null,
+      "floorplan": "G/F",
+      "hour": 18,
+      "minute": 20
+    },
+    {
+      "x": 187.267447272325,
+      "y": -749.559641935032,
+      "date": "2023-02-06",
+      "waypoint": null,
+      "floorplan": "G/F",
+      "hour": 14,
+      "minute": 2
+    },
+    {
+      "x": 249.947032459502,
+      "y": -760.731782324345,
+      "date": "2023-01-24",
+      "waypoint": null,
+      "floorplan": "G/F",
+      "hour": 16,
+      "minute": 29
+    },
+    {
+      "x": 264.977516393753,
+      "y": -767.434444903796,
+      "date": "2023-02-28",
+      "waypoint": null,
+      "floorplan": "G/F",
+      "hour": 14,
+      "minute": 58
+    },
+    {
+      "x": 302.183141367091,
+      "y": -800.099238304952,
+      "date": "2023-02-22",
+      "waypoint": null,
+      "floorplan": "G/F",
+      "hour": 16,
+      "minute": 27
+    },
+    {
+      "x": 192.70219949599,
+      "y": -792.743556776461,
+      "date": "2023-01-20",
+      "waypoint": null,
+      "floorplan": "G/F",
+      "hour": 15,
+      "minute": 24
+    },
+    {
+      "x": 226.415511709288,
+      "y": -776.922169904099,
+      "date": "2023-02-21",
+      "waypoint": null,
+      "floorplan": "G/F",
+      "hour": 16,
+      "minute": 49
+    },
+    {
+      "x": 235.322675127804,
+      "y": -773.406057787005,
+      "date": "2023-02-04",
+      "waypoint": null,
+      "floorplan": "G/F",
+      "hour": 14,
+      "minute": 47
+    },
+    {
+      "x": 195.128855416359,
+      "y": -768.625848530256,
+      "date": "2023-02-24",
+      "waypoint": null,
+      "floorplan": "G/F",
+      "hour": 10,
+      "minute": 52
+    },
+    {
+      "x": 254.435281314507,
+      "y": -792.643821502476,
+      "date": "2023-01-13",
+      "waypoint": null,
+      "floorplan": "G/F",
+      "hour": 16,
+      "minute": 36
+    },
+    {
+      "x": 246.894401615273,
+      "y": -765.6253240088,
+      "date": "2023-01-14",
+      "waypoint": null,
+      "floorplan": "G/F",
+      "hour": 15,
+      "minute": 43
+    },
+    {
+      "x": 273.84497836456,
+      "y": -763.574835913103,
+      "date": "2023-02-20",
+      "waypoint": null,
+      "floorplan": "G/F",
+      "hour": 13,
+      "minute": 6
+    },
+    {
+      "x": 246.490812281292,
+      "y": -790.761639157992,
+      "date": "2023-01-07",
+      "waypoint": null,
+      "floorplan": "G/F",
+      "hour": 10,
+      "minute": 1
+    },
+    {
+      "x": 154.5817868583,
+      "y": -751.43954751673,
+      "date": "2023-02-24",
+      "waypoint": null,
+      "floorplan": "G/F",
+      "hour": 13,
+      "minute": 7
+    },
+    {
+      "x": 236.630264290961,
+      "y": -782.08099311687,
+      "date": "2023-02-22",
+      "waypoint": null,
+      "floorplan": "G/F",
+      "hour": 13,
+      "minute": 45
+    },
+    {
+      "x": 215.876989931354,
+      "y": -763.435132626906,
+      "date": "2023-01-15",
+      "waypoint": null,
+      "floorplan": "G/F",
+      "hour": 13,
+      "minute": 31
+    },
+    {
+      "x": 230.335627972973,
+      "y": -766.881177691838,
+      "date": "2023-01-27",
+      "waypoint": null,
+      "floorplan": "G/F",
+      "hour": 10,
+      "minute": 32
+    },
+    {
+      "x": 311.273963802188,
+      "y": -787.5622835967,
+      "date": "2023-02-01",
+      "waypoint": null,
+      "floorplan": "G/F",
+      "hour": 16,
+      "minute": 9
+    },
+    {
+      "x": 188.574177069118,
+      "y": -789.653574719312,
+      "date": "2023-02-28",
+      "waypoint": null,
+      "floorplan": "G/F",
+      "hour": 9,
+      "minute": 37
+    },
+    {
+      "x": 159.738477726433,
+      "y": -777.324444692161,
+      "date": "2023-01-18",
+      "waypoint": null,
+      "floorplan": "G/F",
+      "hour": 15,
+      "minute": 46
+    },
+    {
+      "x": 244.879281465443,
+      "y": -795.491279176219,
+      "date": "2023-03-09",
+      "waypoint": null,
+      "floorplan": "G/F",
+      "hour": 13,
+      "minute": 12
+    },
+    {
+      "x": 233.341423189458,
+      "y": -794.366523055362,
+      "date": "2023-01-02",
+      "waypoint": null,
+      "floorplan": "G/F",
+      "hour": 9,
+      "minute": 22
+    },
+    {
+      "x": 211.855965872896,
+      "y": -784.791924978592,
+      "date": "2023-01-10",
+      "waypoint": null,
+      "floorplan": "G/F",
+      "hour": 9,
+      "minute": 34
+    },
+    {
+      "x": 205.432711921561,
+      "y": -793.11734286259,
+      "date": "2023-01-30",
+      "waypoint": null,
+      "floorplan": "G/F",
+      "hour": 14,
+      "minute": 11
+    },
+    {
+      "x": 191.81014682052,
+      "y": -793.215966852193,
+      "date": "2023-01-13",
+      "waypoint": null,
+      "floorplan": "G/F",
+      "hour": 11,
+      "minute": 48
+    },
+    {
+      "x": 264.950175665311,
+      "y": -747.600679540071,
+      "date": "2023-01-11",
+      "waypoint": null,
+      "floorplan": "G/F",
+      "hour": 13,
+      "minute": 5
+    },
+    {
+      "x": 223.262694835081,
+      "y": -765.899503813445,
+      "date": "2023-01-23",
+      "waypoint": null,
+      "floorplan": "G/F",
+      "hour": 10,
+      "minute": 44
+    },
+    {
+      "x": 185.102549153368,
+      "y": -803.179335972633,
+      "date": "2023-03-08",
+      "waypoint": null,
+      "floorplan": "G/F",
+      "hour": 18,
+      "minute": 25
+    },
+    {
+      "x": 187.247191480573,
+      "y": -758.911434090255,
+      "date": "2023-02-02",
+      "waypoint": null,
+      "floorplan": "G/F",
+      "hour": 16,
+      "minute": 58
+    },
+    {
+      "x": 217.970976414037,
+      "y": -794.500234899835,
+      "date": "2023-01-26",
+      "waypoint": null,
+      "floorplan": "G/F",
+      "hour": 11,
+      "minute": 46
+    },
+    {
+      "x": 230.107199565489,
+      "y": -763.051908948056,
+      "date": "2023-02-06",
+      "waypoint": null,
+      "floorplan": "G/F",
+      "hour": 16,
+      "minute": 6
+    },
+    {
+      "x": 310.42699458753,
+      "y": -794.727192402481,
+      "date": "2023-01-24",
+      "waypoint": null,
+      "floorplan": "G/F",
+      "hour": 16,
+      "minute": 23
+    },
+    {
+      "x": 276.726827193993,
+      "y": -748.145261013451,
+      "date": "2023-02-12",
+      "waypoint": null,
+      "floorplan": "G/F",
+      "hour": 14,
+      "minute": 22
+    },
+    {
+      "x": 186.842286957382,
+      "y": -752.764333185309,
+      "date": "2023-01-17",
+      "waypoint": null,
+      "floorplan": "G/F",
+      "hour": 18,
+      "minute": 39
+    },
+    {
+      "x": 230.030051355119,
+      "y": -755.023862627484,
+      "date": "2023-03-05",
+      "waypoint": null,
+      "floorplan": "G/F",
+      "hour": 9,
+      "minute": 18
+    },
+    {
+      "x": 170.338199905324,
+      "y": -793.967835680504,
+      "date": "2023-03-07",
+      "waypoint": null,
+      "floorplan": "G/F",
+      "hour": 14,
+      "minute": 25
+    },
+    {
+      "x": 265.335587249646,
+      "y": -774.229471613445,
+      "date": "2023-03-04",
+      "waypoint": null,
+      "floorplan": "G/F",
+      "hour": 16,
+      "minute": 31
+    },
+    {
+      "x": 196.708497876712,
+      "y": -751.439257634109,
+      "date": "2023-01-25",
+      "waypoint": null,
+      "floorplan": "G/F",
+      "hour": 11,
+      "minute": 46
+    },
+    {
+      "x": 290.388880921826,
+      "y": -787.392000790168,
+      "date": "2023-01-10",
+      "waypoint": null,
+      "floorplan": "G/F",
+      "hour": 15,
+      "minute": 35
+    },
+    {
+      "x": 213.784902748798,
+      "y": -777.028061928915,
+      "date": "2023-01-05",
+      "waypoint": null,
+      "floorplan": "G/F",
+      "hour": 9,
+      "minute": 42
+    },
+    {
+      "x": 266.280535096592,
+      "y": -765.744336657766,
+      "date": "2023-03-05",
+      "waypoint": null,
+      "floorplan": "G/F",
+      "hour": 17,
+      "minute": 48
+    },
+    {
+      "x": 201.826070159701,
+      "y": -769.070371527553,
+      "date": "2023-01-08",
+      "waypoint": null,
+      "floorplan": "G/F",
+      "hour": 14,
+      "minute": 3
+    },
+    {
+      "x": 233.37495936861,
+      "y": -788.372978577728,
+      "date": "2023-03-08",
+      "waypoint": null,
+      "floorplan": "G/F",
+      "hour": 12,
+      "minute": 57
+    },
+    {
+      "x": 184.353446048429,
+      "y": -767.721406018881,
+      "date": "2023-02-26",
+      "waypoint": null,
+      "floorplan": "G/F",
+      "hour": 12,
+      "minute": 27
+    },
+    {
+      "x": 240.852033310269,
+      "y": -791.186592248753,
+      "date": "2023-01-14",
+      "waypoint": null,
+      "floorplan": "G/F",
+      "hour": 12,
+      "minute": 8
+    },
+    {
+      "x": 309.794936962703,
+      "y": -758.534479789782,
+      "date": "2023-03-08",
+      "waypoint": null,
+      "floorplan": "G/F",
+      "hour": 9,
+      "minute": 23
+    },
+    {
+      "x": 143.367075879649,
+      "y": -800.851267097768,
+      "date": "2023-01-11",
+      "waypoint": null,
+      "floorplan": "G/F",
+      "hour": 16,
+      "minute": 42
+    },
+    {
+      "x": 261.393324400766,
+      "y": -801.571840691928,
+      "date": "2023-02-03",
+      "waypoint": null,
+      "floorplan": "G/F",
+      "hour": 12,
+      "minute": 56
+    },
+    {
+      "x": 156.512219060196,
+      "y": -756.899876620724,
+      "date": "2023-01-09",
+      "waypoint": null,
+      "floorplan": "G/F",
+      "hour": 13,
+      "minute": 47
+    },
+    {
+      "x": 261.053208133235,
+      "y": -763.425562893766,
+      "date": "2023-02-11",
+      "waypoint": null,
+      "floorplan": "G/F",
+      "hour": 9,
+      "minute": 38
+    },
+    {
+      "x": 234.174507561125,
+      "y": -757.634033367951,
+      "date": "2023-03-11",
+      "waypoint": null,
+      "floorplan": "G/F",
+      "hour": 11,
+      "minute": 46
+    },
+    {
+      "x": 279.890609851662,
+      "y": -776.548842267827,
+      "date": "2023-02-11",
+      "waypoint": null,
+      "floorplan": "G/F",
+      "hour": 9,
+      "minute": 43
+    },
+    {
+      "x": 299.391827710842,
+      "y": -764.177686616228,
+      "date": "2023-01-30",
+      "waypoint": null,
+      "floorplan": "G/F",
+      "hour": 11,
+      "minute": 26
+    },
+    {
+      "x": 299.994367125293,
+      "y": -781.25364732118,
+      "date": "2023-01-29",
+      "waypoint": null,
+      "floorplan": "G/F",
+      "hour": 10,
+      "minute": 30
+    },
+    {
+      "x": 224.690984396842,
+      "y": -754.391217171026,
+      "date": "2023-03-05",
+      "waypoint": null,
+      "floorplan": "G/F",
+      "hour": 12,
+      "minute": 32
+    },
+    {
+      "x": 208.31642658035,
+      "y": -769.219542289831,
+      "date": "2023-03-05",
+      "waypoint": null,
+      "floorplan": "G/F",
+      "hour": 11,
+      "minute": 52
+    },
+    {
+      "x": 226.867481817491,
+      "y": -781.438825005195,
+      "date": "2023-02-21",
+      "waypoint": null,
+      "floorplan": "G/F",
+      "hour": 12,
+      "minute": 54
+    },
+    {
+      "x": 238.92782505396,
+      "y": -758.063373917654,
+      "date": "2023-01-16",
+      "waypoint": null,
+      "floorplan": "G/F",
+      "hour": 14,
+      "minute": 46
+    },
+    {
+      "x": 307.751349488725,
+      "y": -773.156524680831,
+      "date": "2023-02-15",
+      "waypoint": null,
+      "floorplan": "G/F",
+      "hour": 15,
+      "minute": 47
+    },
+    {
+      "x": 253.221154929227,
+      "y": -772.862036628778,
+      "date": "2023-02-22",
+      "waypoint": null,
+      "floorplan": "G/F",
+      "hour": 12,
+      "minute": 26
+    },
+    {
+      "x": 164.422307978147,
+      "y": -755.789033050176,
+      "date": "2023-01-09",
+      "waypoint": null,
+      "floorplan": "G/F",
+      "hour": 14,
+      "minute": 17
+    },
+    {
+      "x": 249.334046849131,
+      "y": -772.319517616238,
+      "date": "2023-02-07",
+      "waypoint": null,
+      "floorplan": "G/F",
+      "hour": 11,
+      "minute": 9
+    },
+    {
+      "x": 304.869495427862,
+      "y": -765.129107105504,
+      "date": "2023-03-02",
+      "waypoint": null,
+      "floorplan": "G/F",
+      "hour": 13,
+      "minute": 9
+    },
+    {
+      "x": 264.339148724603,
+      "y": -774.264196967771,
+      "date": "2023-02-26",
+      "waypoint": null,
+      "floorplan": "G/F",
+      "hour": 14,
+      "minute": 51
+    },
+    {
+      "x": 198.07072112854,
+      "y": -774.753275168273,
+      "date": "2023-01-27",
+      "waypoint": null,
+      "floorplan": "G/F",
+      "hour": 14,
+      "minute": 41
+    },
+    {
+      "x": 241.645865157792,
+      "y": -765.621348724265,
+      "date": "2023-03-07",
+      "waypoint": null,
+      "floorplan": "G/F",
+      "hour": 16,
+      "minute": 28
+    },
+    {
+      "x": 228.667684291292,
+      "y": -779.195259104597,
+      "date": "2023-01-26",
+      "waypoint": null,
+      "floorplan": "G/F",
+      "hour": 10,
+      "minute": 20
+    },
+    {
+      "x": 223.021180991811,
+      "y": -760.501483426691,
+      "date": "2023-02-21",
+      "waypoint": null,
+      "floorplan": "G/F",
+      "hour": 17,
+      "minute": 44
+    },
+    {
+      "x": 262.218988210744,
+      "y": -781.267962295647,
+      "date": "2023-03-11",
+      "waypoint": null,
+      "floorplan": "G/F",
+      "hour": 10,
+      "minute": 49
+    },
+    {
+      "x": 596.783818938645,
+      "y": -780.659541477474,
+      "date": "2023-02-13",
+      "waypoint": null,
+      "floorplan": "G/F",
+      "hour": 9,
+      "minute": 54
+    },
+    {
+      "x": 478.575090278754,
+      "y": -790.516775861881,
+      "date": "2023-03-07",
+      "waypoint": null,
+      "floorplan": "G/F",
+      "hour": 16,
+      "minute": 3
+    },
+    {
+      "x": 508.707417850317,
+      "y": -778.288637336012,
+      "date": "2023-02-10",
+      "waypoint": null,
+      "floorplan": "G/F",
+      "hour": 18,
+      "minute": 53
+    },
+    {
+      "x": 440.684118703349,
+      "y": -786.050203258002,
+      "date": "2023-01-07",
+      "waypoint": null,
+      "floorplan": "G/F",
+      "hour": 9,
+      "minute": 44
+    },
+    {
+      "x": 419.125224559182,
+      "y": -775.6289697847,
+      "date": "2023-01-04",
+      "waypoint": null,
+      "floorplan": "G/F",
+      "hour": 18,
+      "minute": 49
+    },
+    {
+      "x": 530.317753371713,
+      "y": -750.756033499592,
+      "date": "2023-01-15",
+      "waypoint": null,
+      "floorplan": "G/F",
+      "hour": 14,
+      "minute": 33
+    },
+    {
+      "x": 514.90299552036,
+      "y": -774.382458010126,
+      "date": "2023-02-08",
+      "waypoint": null,
+      "floorplan": "G/F",
+      "hour": 14,
+      "minute": 31
+    },
+    {
+      "x": 465.310173974596,
+      "y": -758.558762483523,
+      "date": "2023-02-28",
+      "waypoint": null,
+      "floorplan": "G/F",
+      "hour": 9,
+      "minute": 33
+    },
+    {
+      "x": 542.167936013564,
+      "y": -774.666825153826,
+      "date": "2023-01-04",
+      "waypoint": null,
+      "floorplan": "G/F",
+      "hour": 13,
+      "minute": 55
+    },
+    {
+      "x": 482.157939562783,
+      "y": -751.074702481579,
+      "date": "2023-01-20",
+      "waypoint": null,
+      "floorplan": "G/F",
+      "hour": 16,
+      "minute": 17
+    },
+    {
+      "x": 568.137996681129,
+      "y": -779.524312449968,
+      "date": "2023-01-31",
+      "waypoint": null,
+      "floorplan": "G/F",
+      "hour": 15,
+      "minute": 51
+    },
+    {
+      "x": 492.871828192816,
+      "y": -787.810882341002,
+      "date": "2023-01-23",
+      "waypoint": null,
+      "floorplan": "G/F",
+      "hour": 11,
+      "minute": 18
+    },
+    {
+      "x": 511.687985283217,
+      "y": -748.648915024457,
+      "date": "2023-01-25",
+      "waypoint": null,
+      "floorplan": "G/F",
+      "hour": 15,
+      "minute": 12
+    },
+    {
+      "x": 577.711799792549,
+      "y": -761.448932007348,
+      "date": "2023-01-16",
+      "waypoint": null,
+      "floorplan": "G/F",
+      "hour": 17,
+      "minute": 48
+    },
+    {
+      "x": 519.741251986698,
+      "y": -780.938693084826,
+      "date": "2023-02-19",
+      "waypoint": null,
+      "floorplan": "G/F",
+      "hour": 11,
+      "minute": 55
+    },
+    {
+      "x": 474.271586496973,
+      "y": -760.286495608736,
+      "date": "2023-02-18",
+      "waypoint": null,
+      "floorplan": "G/F",
+      "hour": 17,
+      "minute": 34
+    },
+    {
+      "x": 542.610326716735,
+      "y": -755.598225971079,
+      "date": "2023-02-15",
+      "waypoint": null,
+      "floorplan": "G/F",
+      "hour": 15,
+      "minute": 29
+    },
+    {
+      "x": 568.048585743405,
+      "y": -760.378762580083,
+      "date": "2023-02-26",
+      "waypoint": null,
+      "floorplan": "G/F",
+      "hour": 13,
+      "minute": 22
+    },
+    {
+      "x": 494.720284481042,
+      "y": -749.190234713124,
+      "date": "2023-01-09",
+      "waypoint": null,
+      "floorplan": "G/F",
+      "hour": 16,
+      "minute": 32
+    },
+    {
+      "x": 550.763688811221,
+      "y": -791.904735328764,
+      "date": "2023-01-30",
+      "waypoint": null,
+      "floorplan": "G/F",
+      "hour": 14,
+      "minute": 10
+    },
+    {
+      "x": 477.540664219336,
+      "y": -768.584573673414,
+      "date": "2023-02-11",
+      "waypoint": null,
+      "floorplan": "G/F",
+      "hour": 13,
+      "minute": 19
+    },
+    {
+      "x": 580.932608633792,
+      "y": -792.884142745887,
+      "date": "2023-03-11",
+      "waypoint": null,
+      "floorplan": "G/F",
+      "hour": 16,
+      "minute": 26
+    },
+    {
+      "x": 564.176905533884,
+      "y": -787.017738805882,
+      "date": "2023-02-11",
+      "waypoint": null,
+      "floorplan": "G/F",
+      "hour": 9,
+      "minute": 14
+    },
+    {
+      "x": 556.672096329339,
+      "y": -764.533790521192,
+      "date": "2023-01-10",
+      "waypoint": null,
+      "floorplan": "G/F",
+      "hour": 13,
+      "minute": 54
+    },
+    {
+      "x": 476.979520446589,
+      "y": -762.139594086759,
+      "date": "2023-01-12",
+      "waypoint": null,
+      "floorplan": "G/F",
+      "hour": 10,
+      "minute": 26
+    },
+    {
+      "x": 463.870948159084,
+      "y": -768.318251657166,
+      "date": "2023-03-08",
+      "waypoint": null,
+      "floorplan": "G/F",
+      "hour": 18,
+      "minute": 38
+    },
+    {
+      "x": 493.184786259858,
+      "y": -775.225758114448,
+      "date": "2023-02-04",
+      "waypoint": null,
+      "floorplan": "G/F",
+      "hour": 9,
+      "minute": 37
+    },
+    {
+      "x": 518.223738992493,
+      "y": -773.834260882202,
+      "date": "2023-01-26",
+      "waypoint": null,
+      "floorplan": "G/F",
+      "hour": 15,
+      "minute": 19
+    },
+    {
+      "x": 509.926603362245,
+      "y": -777.156566817015,
+      "date": "2023-01-20",
+      "waypoint": null,
+      "floorplan": "G/F",
+      "hour": 14,
+      "minute": 13
+    },
+    {
+      "x": 533.806866810572,
+      "y": -768.809642463583,
+      "date": "2023-02-28",
+      "waypoint": null,
+      "floorplan": "G/F",
+      "hour": 14,
+      "minute": 17
+    },
+    {
+      "x": 562.513653456425,
+      "y": -771.313107276423,
+      "date": "2023-01-08",
+      "waypoint": null,
+      "floorplan": "G/F",
+      "hour": 13,
+      "minute": 12
+    },
+    {
+      "x": 475.699785084749,
+      "y": -754.21901040554,
+      "date": "2023-03-04",
+      "waypoint": null,
+      "floorplan": "G/F",
+      "hour": 15,
+      "minute": 34
+    },
+    {
+      "x": 483.35808699083,
+      "y": -772.016705336913,
+      "date": "2023-02-08",
+      "waypoint": null,
+      "floorplan": "G/F",
+      "hour": 9,
+      "minute": 47
+    },
+    {
+      "x": 512.745404803395,
+      "y": -747.814218746375,
+      "date": "2023-03-01",
+      "waypoint": null,
+      "floorplan": "G/F",
+      "hour": 16,
+      "minute": 11
+    },
+    {
+      "x": 567.156706183051,
+      "y": -769.666527955756,
+      "date": "2023-02-06",
+      "waypoint": null,
+      "floorplan": "G/F",
+      "hour": 15,
+      "minute": 8
+    },
+    {
+      "x": 533.767991978083,
+      "y": -760.117409470966,
+      "date": "2023-02-13",
+      "waypoint": null,
+      "floorplan": "G/F",
+      "hour": 11,
+      "minute": 54
+    },
+    {
+      "x": 487.697452123379,
+      "y": -792.650822012049,
+      "date": "2023-02-17",
+      "waypoint": null,
+      "floorplan": "G/F",
+      "hour": 17,
+      "minute": 51
+    },
+    {
+      "x": 512.286651693534,
+      "y": -753.196601133608,
+      "date": "2023-03-10",
+      "waypoint": null,
+      "floorplan": "G/F",
+      "hour": 10,
+      "minute": 38
+    },
+    {
+      "x": 508.135586300407,
+      "y": -782.131004868158,
+      "date": "2023-01-24",
+      "waypoint": null,
+      "floorplan": "G/F",
+      "hour": 14,
+      "minute": 20
+    },
+    {
+      "x": 486.066979003146,
+      "y": -774.924757544258,
+      "date": "2023-03-05",
+      "waypoint": null,
+      "floorplan": "G/F",
+      "hour": 15,
+      "minute": 39
+    },
+    {
+      "x": 477.228932760935,
+      "y": -795.929302132717,
+      "date": "2023-03-13",
+      "waypoint": null,
+      "floorplan": "G/F",
+      "hour": 16,
+      "minute": 2
+    },
+    {
+      "x": 529.196505314487,
+      "y": -791.462543305331,
+      "date": "2023-03-07",
+      "waypoint": null,
+      "floorplan": "G/F",
+      "hour": 12,
+      "minute": 25
+    },
+    {
+      "x": 509.677448389692,
+      "y": -769.611011909344,
+      "date": "2023-02-12",
+      "waypoint": null,
+      "floorplan": "G/F",
+      "hour": 15,
+      "minute": 9
+    },
+    {
+      "x": 586.84875856534,
+      "y": -753.735409274379,
+      "date": "2023-01-11",
+      "waypoint": null,
+      "floorplan": "G/F",
+      "hour": 13,
+      "minute": 25
+    },
+    {
+      "x": 541.974450629432,
+      "y": -762.366426687971,
+      "date": "2023-01-01",
+      "waypoint": null,
+      "floorplan": "G/F",
+      "hour": 15,
+      "minute": 14
+    },
+    {
+      "x": 471.156121812429,
+      "y": -770.468876055313,
+      "date": "2023-01-06",
+      "waypoint": null,
+      "floorplan": "G/F",
+      "hour": 9,
+      "minute": 18
+    },
+    {
+      "x": 479.800693305856,
+      "y": -783.804888228036,
+      "date": "2023-02-07",
+      "waypoint": null,
+      "floorplan": "G/F",
+      "hour": 12,
+      "minute": 21
+    },
+    {
+      "x": 581.11399278321,
+      "y": -789.661816815752,
+      "date": "2023-01-26",
+      "waypoint": null,
+      "floorplan": "G/F",
+      "hour": 10,
+      "minute": 2
+    },
+    {
+      "x": 498.88427288245,
+      "y": -785.119848150491,
+      "date": "2023-02-05",
+      "waypoint": null,
+      "floorplan": "G/F",
+      "hour": 16,
+      "minute": 47
+    },
+    {
+      "x": 523.631096856431,
+      "y": -756.911898075223,
+      "date": "2023-02-12",
+      "waypoint": null,
+      "floorplan": "G/F",
+      "hour": 11,
+      "minute": 41
+    },
+    {
+      "x": 428.666356536096,
+      "y": -766.484511744176,
+      "date": "2023-01-04",
+      "waypoint": null,
+      "floorplan": "G/F",
+      "hour": 11,
+      "minute": 33
+    },
+    {
+      "x": 430.748516748032,
+      "y": -752.216525163694,
+      "date": "2023-01-09",
+      "waypoint": null,
+      "floorplan": "G/F",
+      "hour": 13,
+      "minute": 54
+    },
+    {
+      "x": 564.112034143299,
+      "y": -765.801670692956,
+      "date": "2023-02-11",
+      "waypoint": null,
+      "floorplan": "G/F",
+      "hour": 11,
+      "minute": 13
+    },
+    {
+      "x": 497.649702374838,
+      "y": -766.381082865307,
+      "date": "2023-01-12",
+      "waypoint": null,
+      "floorplan": "G/F",
+      "hour": 17,
+      "minute": 53
+    },
+    {
+      "x": 466.495788084572,
+      "y": -781.819550673586,
+      "date": "2023-02-02",
+      "waypoint": null,
+      "floorplan": "G/F",
+      "hour": 12,
+      "minute": 20
+    },
+    {
+      "x": 486.783335440597,
+      "y": -744.072098623517,
+      "date": "2023-01-16",
+      "waypoint": null,
+      "floorplan": "G/F",
+      "hour": 18,
+      "minute": 9
+    },
+    {
+      "x": 503.537557241769,
+      "y": -756.920031407168,
+      "date": "2023-02-26",
+      "waypoint": null,
+      "floorplan": "G/F",
+      "hour": 11,
+      "minute": 41
+    },
+    {
+      "x": 536.686794067427,
+      "y": -754.056594889573,
+      "date": "2023-02-24",
+      "waypoint": null,
+      "floorplan": "G/F",
+      "hour": 14,
+      "minute": 37
+    },
+    {
+      "x": 431.110782027337,
+      "y": -777.353827835242,
+      "date": "2023-02-16",
+      "waypoint": null,
+      "floorplan": "G/F",
+      "hour": 11,
+      "minute": 46
+    },
+    {
+      "x": 461.696305488499,
+      "y": -776.349608312501,
+      "date": "2023-02-19",
+      "waypoint": null,
+      "floorplan": "G/F",
+      "hour": 14,
+      "minute": 22
+    },
+    {
+      "x": 488.121338031005,
+      "y": -758.992461338048,
+      "date": "2023-01-06",
+      "waypoint": null,
+      "floorplan": "G/F",
+      "hour": 11,
+      "minute": 45
+    },
+    {
+      "x": 491.993660658626,
+      "y": -757.948188676542,
+      "date": "2023-01-12",
+      "waypoint": null,
+      "floorplan": "G/F",
+      "hour": 13,
+      "minute": 31
+    },
+    {
+      "x": 496.618604379392,
+      "y": -774.094133873306,
+      "date": "2023-03-05",
+      "waypoint": null,
+      "floorplan": "G/F",
+      "hour": 11,
+      "minute": 34
+    },
+    {
+      "x": 503.352488314725,
+      "y": -774.262824458137,
+      "date": "2023-02-22",
+      "waypoint": null,
+      "floorplan": "G/F",
+      "hour": 12,
+      "minute": 47
+    },
+    {
+      "x": 483.73230248658,
+      "y": -750.556360443712,
+      "date": "2023-01-01",
+      "waypoint": null,
+      "floorplan": "G/F",
+      "hour": 13,
+      "minute": 16
+    },
+    {
+      "x": 467.807354948043,
+      "y": -784.081993145604,
+      "date": "2023-02-25",
+      "waypoint": null,
+      "floorplan": "G/F",
+      "hour": 15,
+      "minute": 28
+    },
+    {
+      "x": 485.551760022979,
+      "y": -760.302447815297,
+      "date": "2023-01-26",
+      "waypoint": null,
+      "floorplan": "G/F",
+      "hour": 17,
+      "minute": 42
+    },
+    {
+      "x": 452.004459799515,
+      "y": -788.404002120999,
+      "date": "2023-01-03",
+      "waypoint": null,
+      "floorplan": "G/F",
+      "hour": 10,
+      "minute": 2
+    },
+    {
+      "x": 560.412522749989,
+      "y": -744.49187879454,
+      "date": "2023-01-31",
+      "waypoint": null,
+      "floorplan": "G/F",
+      "hour": 18,
+      "minute": 15
+    },
+    {
+      "x": 494.482282761549,
+      "y": -786.301021035645,
+      "date": "2023-03-11",
+      "waypoint": null,
+      "floorplan": "G/F",
+      "hour": 14,
+      "minute": 28
+    },
+    {
+      "x": 486.050801229924,
+      "y": -788.647846649195,
+      "date": "2023-01-17",
+      "waypoint": null,
+      "floorplan": "G/F",
+      "hour": 10,
+      "minute": 51
+    },
+    {
+      "x": 514.262620105538,
+      "y": -763.016125219499,
+      "date": "2023-02-16",
+      "waypoint": null,
+      "floorplan": "G/F",
+      "hour": 17,
+      "minute": 31
+    },
+    {
+      "x": 508.309456889785,
+      "y": -782.125091884616,
+      "date": "2023-02-23",
+      "waypoint": null,
+      "floorplan": "G/F",
+      "hour": 14,
+      "minute": 14
+    },
+    {
+      "x": 491.152823816253,
+      "y": -763.763490168756,
+      "date": "2023-02-16",
+      "waypoint": null,
+      "floorplan": "G/F",
+      "hour": 17,
+      "minute": 12
+    },
+    {
+      "x": 467.33595414235,
+      "y": -756.176695188769,
+      "date": "2023-01-19",
+      "waypoint": null,
+      "floorplan": "G/F",
+      "hour": 17,
+      "minute": 31
+    },
+    {
+      "x": 506.941808713615,
+      "y": -785.172701824802,
+      "date": "2023-02-04",
+      "waypoint": null,
+      "floorplan": "G/F",
+      "hour": 12,
+      "minute": 59
+    },
+    {
+      "x": 510.854935873586,
+      "y": -753.128709950277,
+      "date": "2023-01-19",
+      "waypoint": null,
+      "floorplan": "G/F",
+      "hour": 15,
+      "minute": 22
+    },
+    {
+      "x": 530.571135936578,
+      "y": -797.827457425573,
+      "date": "2023-02-10",
+      "waypoint": null,
+      "floorplan": "G/F",
+      "hour": 11,
+      "minute": 11
+    },
+    {
+      "x": 551.241093269172,
+      "y": -795.501558643651,
+      "date": "2023-02-11",
+      "waypoint": null,
+      "floorplan": "G/F",
+      "hour": 15,
+      "minute": 7
+    },
+    {
+      "x": 526.637791757194,
+      "y": -758.988041914924,
+      "date": "2023-01-07",
+      "waypoint": null,
+      "floorplan": "G/F",
+      "hour": 18,
+      "minute": 16
+    },
+    {
+      "x": 533.85210774897,
+      "y": -791.110956537564,
+      "date": "2023-01-14",
+      "waypoint": null,
+      "floorplan": "G/F",
+      "hour": 16,
+      "minute": 18
+    },
+    {
+      "x": 497.520895224464,
+      "y": -755.99005780126,
+      "date": "2023-02-23",
+      "waypoint": null,
+      "floorplan": "G/F",
+      "hour": 12,
+      "minute": 46
+    },
+    {
+      "x": 468.273830258778,
+      "y": -791.399092060493,
+      "date": "2023-03-06",
+      "waypoint": null,
+      "floorplan": "G/F",
+      "hour": 11,
+      "minute": 34
+    },
+    {
+      "x": 452.718608897117,
+      "y": -772.151161057449,
+      "date": "2023-01-14",
+      "waypoint": null,
+      "floorplan": "G/F",
+      "hour": 14,
+      "minute": 29
+    },
+    {
+      "x": 545.181637833407,
+      "y": -786.724261975103,
+      "date": "2023-02-10",
+      "waypoint": null,
+      "floorplan": "G/F",
+      "hour": 16,
+      "minute": 43
+    },
+    {
+      "x": 569.707991014239,
+      "y": -768.032936480464,
+      "date": "2023-01-19",
+      "waypoint": null,
+      "floorplan": "G/F",
+      "hour": 16,
+      "minute": 20
+    },
+    {
+      "x": 505.362078190641,
+      "y": -766.736823205793,
+      "date": "2023-01-06",
+      "waypoint": null,
+      "floorplan": "G/F",
+      "hour": 15,
+      "minute": 38
+    },
+    {
+      "x": 477.052531914314,
+      "y": -763.884791604219,
+      "date": "2023-01-29",
+      "waypoint": null,
+      "floorplan": "G/F",
+      "hour": 15,
+      "minute": 11
+    },
+    {
+      "x": 532.133770478202,
+      "y": -781.931512379665,
+      "date": "2023-03-04",
+      "waypoint": null,
+      "floorplan": "G/F",
+      "hour": 11,
+      "minute": 36
+    },
+    {
+      "x": 509.769684925522,
+      "y": -751.489964591325,
+      "date": "2023-03-06",
+      "waypoint": null,
+      "floorplan": "G/F",
+      "hour": 17,
+      "minute": 4
+    },
+    {
+      "x": 501.962171880561,
+      "y": -786.040353902043,
+      "date": "2023-03-05",
+      "waypoint": null,
+      "floorplan": "G/F",
+      "hour": 15,
+      "minute": 13
+    },
+    {
+      "x": 557.824424664939,
+      "y": -771.984442326898,
+      "date": "2023-02-04",
+      "waypoint": null,
+      "floorplan": "G/F",
+      "hour": 15,
+      "minute": 41
+    },
+    {
+      "x": 516.392984774423,
+      "y": -757.723307128274,
+      "date": "2023-02-04",
+      "waypoint": null,
+      "floorplan": "G/F",
+      "hour": 10,
+      "minute": 39
+    },
+    {
+      "x": 460.69377710427,
+      "y": -783.819267330696,
+      "date": "2023-02-03",
+      "waypoint": null,
+      "floorplan": "G/F",
+      "hour": 14,
+      "minute": 51
+    },
+    {
+      "x": 541.671793483343,
+      "y": -784.934205638174,
+      "date": "2023-01-27",
+      "waypoint": null,
+      "floorplan": "G/F",
+      "hour": 10,
+      "minute": 3
+    },
+    {
+      "x": 529.482301752398,
+      "y": -766.533790078638,
+      "date": "2023-02-13",
+      "waypoint": null,
+      "floorplan": "G/F",
+      "hour": 16,
+      "minute": 25
+    },
+    {
+      "x": 526.241360849285,
+      "y": -785.83230527413,
+      "date": "2023-02-05",
+      "waypoint": null,
+      "floorplan": "G/F",
+      "hour": 9,
+      "minute": 58
+    },
+    {
+      "x": 521.769843452581,
+      "y": -760.379440455907,
+      "date": "2023-01-27",
+      "waypoint": null,
+      "floorplan": "G/F",
+      "hour": 17,
+      "minute": 30
+    },
+    {
+      "x": 505.997149029073,
+      "y": -796.454030716707,
+      "date": "2023-01-19",
+      "waypoint": null,
+      "floorplan": "G/F",
+      "hour": 14,
+      "minute": 44
+    },
+    {
+      "x": 439.170096281812,
+      "y": -783.354781227145,
+      "date": "2023-01-21",
+      "waypoint": null,
+      "floorplan": "G/F",
+      "hour": 10,
+      "minute": 28
+    },
+    {
+      "x": 521.233268052636,
+      "y": -766.076193455336,
+      "date": "2023-03-13",
+      "waypoint": null,
+      "floorplan": "G/F",
+      "hour": 15,
+      "minute": 39
+    },
+    {
+      "x": 471.386996592768,
+      "y": -777.014384394174,
+      "date": "2023-03-01",
+      "waypoint": null,
+      "floorplan": "G/F",
+      "hour": 18,
+      "minute": 20
+    },
+    {
+      "x": 497.73778642501,
+      "y": -756.334487573585,
+      "date": "2023-02-24",
+      "waypoint": null,
+      "floorplan": "G/F",
+      "hour": 13,
+      "minute": 35
+    },
+    {
+      "x": 572.715114885488,
+      "y": -796.341388421113,
+      "date": "2023-01-20",
+      "waypoint": null,
+      "floorplan": "G/F",
+      "hour": 13,
+      "minute": 15
+    },
+    {
+      "x": 546.574742892064,
+      "y": -770.896920331646,
+      "date": "2023-01-26",
+      "waypoint": null,
+      "floorplan": "G/F",
+      "hour": 10,
+      "minute": 43
+    },
+    {
+      "x": 580.611544422303,
+      "y": -773.103400535453,
+      "date": "2023-01-11",
+      "waypoint": null,
+      "floorplan": "G/F",
+      "hour": 17,
+      "minute": 59
+    },
+    {
+      "x": 585.885851047435,
+      "y": -768.553592821228,
+      "date": "2023-02-07",
+      "waypoint": null,
+      "floorplan": "G/F",
+      "hour": 16,
+      "minute": 17
+    },
+    {
+      "x": 460.791845646937,
+      "y": -747.39614751235,
+      "date": "2023-01-21",
+      "waypoint": null,
+      "floorplan": "G/F",
+      "hour": 11,
+      "minute": 33
+    },
+    {
+      "x": 552.425032204274,
+      "y": -764.341013989483,
+      "date": "2023-02-25",
+      "waypoint": null,
+      "floorplan": "G/F",
+      "hour": 17,
+      "minute": 45
+    },
+    {
+      "x": 549.620580785117,
+      "y": -764.392393079333,
+      "date": "2023-01-09",
+      "waypoint": null,
+      "floorplan": "G/F",
+      "hour": 18,
+      "minute": 11
+    },
+    {
+      "x": 520.936421583457,
+      "y": -751.738277865064,
+      "date": "2023-01-30",
+      "waypoint": null,
+      "floorplan": "G/F",
+      "hour": 11,
+      "minute": 47
+    },
+    {
+      "x": 557.611367937239,
+      "y": -786.741897186312,
+      "date": "2023-03-09",
+      "waypoint": null,
+      "floorplan": "G/F",
+      "hour": 17,
+      "minute": 46
+    },
+    {
+      "x": 487.606040596852,
+      "y": -780.801598802698,
+      "date": "2023-03-10",
+      "waypoint": null,
+      "floorplan": "G/F",
+      "hour": 10,
+      "minute": 58
+    },
+    {
+      "x": 449.884267495761,
+      "y": -785.255235496522,
+      "date": "2023-01-17",
+      "waypoint": null,
+      "floorplan": "G/F",
+      "hour": 12,
+      "minute": 27
+    },
+    {
+      "x": 475.875513234905,
+      "y": -784.986324699897,
+      "date": "2023-02-09",
+      "waypoint": null,
+      "floorplan": "G/F",
+      "hour": 18,
+      "minute": 23
+    },
+    {
+      "x": 575.415116983863,
+      "y": -769.455704356602,
+      "date": "2023-02-28",
+      "waypoint": null,
+      "floorplan": "G/F",
+      "hour": 16,
+      "minute": 25
+    },
+    {
+      "x": 516.623114060626,
+      "y": -772.579166262737,
+      "date": "2023-01-11",
+      "waypoint": null,
+      "floorplan": "G/F",
+      "hour": 10,
+      "minute": 35
+    },
+    {
+      "x": 433.023972603286,
+      "y": -786.87070055448,
+      "date": "2023-03-07",
+      "waypoint": null,
+      "floorplan": "G/F",
+      "hour": 16,
+      "minute": 2
+    },
+    {
+      "x": 493.470456062759,
+      "y": -766.420728312723,
+      "date": "2023-01-27",
+      "waypoint": null,
+      "floorplan": "G/F",
+      "hour": 11,
+      "minute": 17
+    },
+    {
+      "x": 505.42865356658,
+      "y": -752.506201524993,
+      "date": "2023-03-13",
+      "waypoint": null,
+      "floorplan": "G/F",
+      "hour": 10,
+      "minute": 1
+    },
+    {
+      "x": 522.97012338465,
+      "y": -749.154017777752,
+      "date": "2023-02-15",
+      "waypoint": null,
+      "floorplan": "G/F",
+      "hour": 16,
+      "minute": 31
+    },
+    {
+      "x": 480.39556800945,
+      "y": -799.638731517806,
+      "date": "2023-03-05",
+      "waypoint": null,
+      "floorplan": "G/F",
+      "hour": 15,
+      "minute": 54
+    },
+    {
+      "x": 569.482854957491,
+      "y": -795.960812496917,
+      "date": "2023-01-29",
+      "waypoint": null,
+      "floorplan": "G/F",
+      "hour": 16,
+      "minute": 52
+    },
+    {
+      "x": 519.082026886665,
+      "y": -767.101351445924,
+      "date": "2023-03-08",
+      "waypoint": null,
+      "floorplan": "G/F",
+      "hour": 11,
+      "minute": 41
+    },
+    {
+      "x": 466.717572889202,
+      "y": -790.281126633655,
+      "date": "2023-01-27",
+      "waypoint": null,
+      "floorplan": "G/F",
+      "hour": 18,
+      "minute": 49
+    },
+    {
+      "x": 446.2036116158,
+      "y": -780.759160229596,
+      "date": "2023-01-14",
+      "waypoint": null,
+      "floorplan": "G/F",
+      "hour": 12,
+      "minute": 13
+    },
+    {
+      "x": 510.041473891001,
+      "y": -782.899527583215,
+      "date": "2023-03-01",
+      "waypoint": null,
+      "floorplan": "G/F",
+      "hour": 14,
+      "minute": 24
+    },
+    {
+      "x": 551.951766587953,
+      "y": -779.934099939516,
+      "date": "2023-02-18",
+      "waypoint": null,
+      "floorplan": "G/F",
+      "hour": 12,
+      "minute": 26
+    },
+    {
+      "x": 484.472067353921,
+      "y": -790.269987349207,
+      "date": "2023-01-02",
+      "waypoint": null,
+      "floorplan": "G/F",
+      "hour": 11,
+      "minute": 4
+    },
+    {
+      "x": 566.764832934714,
+      "y": -766.531413632452,
+      "date": "2023-02-18",
+      "waypoint": null,
+      "floorplan": "G/F",
+      "hour": 15,
+      "minute": 40
+    },
+    {
+      "x": 511.020392036667,
+      "y": -793.626223730505,
+      "date": "2023-02-13",
+      "waypoint": null,
+      "floorplan": "G/F",
+      "hour": 13,
+      "minute": 36
+    },
+    {
+      "x": 472.427851264145,
+      "y": -782.689540260328,
+      "date": "2023-02-22",
+      "waypoint": null,
+      "floorplan": "G/F",
+      "hour": 15,
+      "minute": 22
+    },
+    {
+      "x": 476.864273258386,
+      "y": -781.641907248794,
+      "date": "2023-03-04",
+      "waypoint": null,
+      "floorplan": "G/F",
+      "hour": 11,
+      "minute": 51
+    },
+    {
+      "x": 455.512461291323,
+      "y": -798.389747126601,
+      "date": "2023-01-08",
+      "waypoint": null,
+      "floorplan": "G/F",
+      "hour": 13,
+      "minute": 25
+    },
+    {
+      "x": 523.039096168172,
+      "y": -783.689941057732,
+      "date": "2023-03-02",
+      "waypoint": null,
+      "floorplan": "G/F",
+      "hour": 13,
+      "minute": 41
+    },
+    {
+      "x": 436.434868031034,
+      "y": -776.439579334169,
+      "date": "2023-02-14",
+      "waypoint": null,
+      "floorplan": "G/F",
+      "hour": 9,
+      "minute": 17
+    },
+    {
+      "x": 510.799014413971,
+      "y": -765.079986703958,
+      "date": "2023-01-13",
+      "waypoint": null,
+      "floorplan": "G/F",
+      "hour": 15,
+      "minute": 32
+    },
+    {
+      "x": 470.271289104062,
+      "y": -759.796865276212,
+      "date": "2023-01-09",
+      "waypoint": null,
+      "floorplan": "G/F",
+      "hour": 15,
+      "minute": 43
+    },
+    {
+      "x": 481.534239104096,
+      "y": -748.317054550469,
+      "date": "2023-02-03",
+      "waypoint": null,
+      "floorplan": "G/F",
+      "hour": 16,
+      "minute": 45
+    },
+    {
+      "x": 520.331614763885,
+      "y": -745.975417177472,
+      "date": "2023-01-14",
+      "waypoint": null,
+      "floorplan": "G/F",
+      "hour": 10,
+      "minute": 22
+    },
+    {
+      "x": 538.554430596983,
+      "y": -757.208095001855,
+      "date": "2023-01-06",
+      "waypoint": null,
+      "floorplan": "G/F",
+      "hour": 16,
+      "minute": 29
+    },
+    {
+      "x": 551.917490484689,
+      "y": -749.511692618503,
+      "date": "2023-03-01",
+      "waypoint": null,
+      "floorplan": "G/F",
+      "hour": 18,
+      "minute": 15
+    },
+    {
+      "x": 562.543911929376,
+      "y": -755.012000747254,
+      "date": "2023-02-05",
+      "waypoint": null,
+      "floorplan": "G/F",
+      "hour": 16,
+      "minute": 35
+    },
+    {
+      "x": 548.194637524709,
+      "y": -793.447594632804,
+      "date": "2023-02-24",
+      "waypoint": null,
+      "floorplan": "G/F",
+      "hour": 12,
+      "minute": 38
+    },
+    {
+      "x": 503.081910506925,
+      "y": -766.374955871423,
+      "date": "2023-01-12",
+      "waypoint": null,
+      "floorplan": "G/F",
+      "hour": 14,
+      "minute": 3
+    },
+    {
+      "x": 533.352435713383,
+      "y": -775.223573016162,
+      "date": "2023-02-25",
+      "waypoint": null,
+      "floorplan": "G/F",
+      "hour": 17,
+      "minute": 47
+    },
+    {
+      "x": 458.317000799164,
+      "y": -771.011419050915,
+      "date": "2023-01-02",
+      "waypoint": null,
+      "floorplan": "G/F",
+      "hour": 15,
+      "minute": 12
+    },
+    {
+      "x": 539.578945326031,
+      "y": -779.527796890759,
+      "date": "2023-03-11",
+      "waypoint": null,
+      "floorplan": "G/F",
+      "hour": 15,
+      "minute": 58
+    },
+    {
+      "x": 454.752198145385,
+      "y": -785.579660953195,
+      "date": "2023-02-16",
+      "waypoint": null,
+      "floorplan": "G/F",
+      "hour": 11,
+      "minute": 1
+    },
+    {
+      "x": 558.202760236487,
+      "y": -780.600629780398,
+      "date": "2023-03-13",
+      "waypoint": null,
+      "floorplan": "G/F",
+      "hour": 16,
+      "minute": 22
+    },
+    {
+      "x": 497.333668379918,
+      "y": -754.152431797731,
+      "date": "2023-01-08",
+      "waypoint": null,
+      "floorplan": "G/F",
+      "hour": 11,
+      "minute": 28
+    },
+    {
+      "x": 498.228942083154,
+      "y": -787.470742741091,
+      "date": "2023-01-31",
+      "waypoint": null,
+      "floorplan": "G/F",
+      "hour": 9,
+      "minute": 43
+    },
+    {
+      "x": 563.303450979655,
+      "y": -789.622531742634,
+      "date": "2023-03-11",
+      "waypoint": null,
+      "floorplan": "G/F",
+      "hour": 9,
+      "minute": 11
+    },
+    {
+      "x": 481.118460534096,
+      "y": -756.785538541303,
+      "date": "2023-02-02",
+      "waypoint": null,
+      "floorplan": "G/F",
+      "hour": 12,
+      "minute": 41
+    },
+    {
+      "x": 501.451852492381,
+      "y": -764.759275138965,
+      "date": "2023-02-04",
+      "waypoint": null,
+      "floorplan": "G/F",
+      "hour": 15,
+      "minute": 34
+    },
+    {
+      "x": 519.772207200029,
+      "y": -793.762856485883,
+      "date": "2023-02-17",
+      "waypoint": null,
+      "floorplan": "G/F",
+      "hour": 13,
+      "minute": 39
+    },
+    {
+      "x": 458.80675270919,
+      "y": -793.512615288805,
+      "date": "2023-02-08",
+      "waypoint": null,
+      "floorplan": "G/F",
+      "hour": 18,
+      "minute": 49
+    },
+    {
+      "x": 506.944478236289,
+      "y": -792.824836445881,
+      "date": "2023-01-08",
+      "waypoint": null,
+      "floorplan": "G/F",
+      "hour": 16,
+      "minute": 48
+    },
+    {
+      "x": 562.910817683829,
+      "y": -766.907629980293,
+      "date": "2023-02-16",
+      "waypoint": null,
+      "floorplan": "G/F",
+      "hour": 17,
+      "minute": 16
+    },
+    {
+      "x": 512.200128194515,
+      "y": -750.090172357798,
+      "date": "2023-02-15",
+      "waypoint": null,
+      "floorplan": "G/F",
+      "hour": 11,
+      "minute": 39
+    },
+    {
+      "x": 535.369520895018,
+      "y": -760.68205243032,
+      "date": "2023-02-05",
+      "waypoint": null,
+      "floorplan": "G/F",
+      "hour": 14,
+      "minute": 51
+    },
+    {
+      "x": 516.222485285225,
+      "y": -759.868862448407,
+      "date": "2023-01-01",
+      "waypoint": null,
+      "floorplan": "G/F",
+      "hour": 11,
+      "minute": 17
+    },
+    {
+      "x": 548.053576238413,
+      "y": -785.343490622504,
+      "date": "2023-01-30",
+      "waypoint": null,
+      "floorplan": "G/F",
+      "hour": 18,
+      "minute": 1
+    },
+    {
+      "x": 546.358428594126,
+      "y": -753.791434265284,
+      "date": "2023-01-17",
+      "waypoint": null,
+      "floorplan": "G/F",
+      "hour": 9,
+      "minute": 49
+    },
+    {
+      "x": 492.506123310954,
+      "y": -793.87724585563,
+      "date": "2023-02-27",
+      "waypoint": null,
+      "floorplan": "G/F",
+      "hour": 9,
+      "minute": 59
+    },
+    {
+      "x": 474.123293340768,
+      "y": -770.152288494401,
+      "date": "2023-03-03",
+      "waypoint": null,
+      "floorplan": "G/F",
+      "hour": 9,
+      "minute": 45
+    },
+    {
+      "x": 550.924070395461,
+      "y": -776.41130362883,
+      "date": "2023-01-02",
+      "waypoint": null,
+      "floorplan": "G/F",
+      "hour": 12,
+      "minute": 59
+    },
+    {
+      "x": 445.848784824963,
+      "y": -770.243528924748,
+      "date": "2023-02-09",
+      "waypoint": null,
+      "floorplan": "G/F",
+      "hour": 13,
+      "minute": 20
+    },
+    {
+      "x": 444.080031205701,
+      "y": -782.011366224927,
+      "date": "2023-01-18",
+      "waypoint": null,
+      "floorplan": "G/F",
+      "hour": 17,
+      "minute": 42
+    },
+    {
+      "x": 503.469280110567,
+      "y": -757.808730942506,
+      "date": "2023-01-28",
+      "waypoint": null,
+      "floorplan": "G/F",
+      "hour": 18,
+      "minute": 2
+    },
+    {
+      "x": 493.723605570592,
+      "y": -775.430483385915,
+      "date": "2023-01-21",
+      "waypoint": null,
+      "floorplan": "G/F",
+      "hour": 17,
+      "minute": 43
+    },
+    {
+      "x": 626.823025814042,
+      "y": -849.940168702657,
+      "date": "2023-01-12",
+      "waypoint": null,
+      "floorplan": "G/F",
+      "hour": 17,
+      "minute": 37
+    },
+    {
+      "x": 606.184604082629,
+      "y": -852.09422519379,
+      "date": "2023-01-05",
+      "waypoint": null,
+      "floorplan": "G/F",
+      "hour": 18,
+      "minute": 20
+    },
+    {
+      "x": 658.015451154669,
+      "y": -879.411011902393,
+      "date": "2023-01-09",
+      "waypoint": null,
+      "floorplan": "G/F",
+      "hour": 9,
+      "minute": 1
+    },
+    {
+      "x": 602.841786028583,
+      "y": -870.867921401285,
+      "date": "2023-02-22",
+      "waypoint": null,
+      "floorplan": "G/F",
+      "hour": 17,
+      "minute": 27
+    },
+    {
+      "x": 546.402096527944,
+      "y": -849.142224352875,
+      "date": "2023-03-05",
+      "waypoint": null,
+      "floorplan": "G/F",
+      "hour": 18,
+      "minute": 41
+    },
+    {
+      "x": 521.103940476672,
+      "y": -855.546841120697,
+      "date": "2023-01-24",
+      "waypoint": null,
+      "floorplan": "G/F",
+      "hour": 9,
+      "minute": 45
+    },
+    {
+      "x": 641.122738179702,
+      "y": -853.608282068579,
+      "date": "2023-02-28",
+      "waypoint": null,
+      "floorplan": "G/F",
+      "hour": 14,
+      "minute": 38
+    },
+    {
+      "x": 545.461169092617,
+      "y": -867.164673298399,
+      "date": "2023-02-03",
+      "waypoint": null,
+      "floorplan": "G/F",
+      "hour": 15,
+      "minute": 58
+    },
+    {
+      "x": 604.923064845431,
+      "y": -875.140825539398,
+      "date": "2023-03-02",
+      "waypoint": null,
+      "floorplan": "G/F",
+      "hour": 15,
+      "minute": 56
+    },
+    {
+      "x": 603.415440107402,
+      "y": -877.680886331986,
+      "date": "2023-02-18",
+      "waypoint": null,
+      "floorplan": "G/F",
+      "hour": 10,
+      "minute": 22
+    },
+    {
+      "x": 572.298896059055,
+      "y": -853.769556084999,
+      "date": "2023-03-09",
+      "waypoint": null,
+      "floorplan": "G/F",
+      "hour": 12,
+      "minute": 18
+    },
+    {
+      "x": 653.354622085797,
+      "y": -854.303431905914,
+      "date": "2023-01-21",
+      "waypoint": null,
+      "floorplan": "G/F",
+      "hour": 17,
+      "minute": 2
+    },
+    {
+      "x": 582.487210969888,
+      "y": -850.810846570244,
+      "date": "2023-01-06",
+      "waypoint": null,
+      "floorplan": "G/F",
+      "hour": 12,
+      "minute": 5
+    },
+    {
+      "x": 540.813223710139,
+      "y": -866.164236352828,
+      "date": "2023-03-03",
+      "waypoint": null,
+      "floorplan": "G/F",
+      "hour": 17,
+      "minute": 56
+    },
+    {
+      "x": 609.791259079741,
+      "y": -847.416072528772,
+      "date": "2023-03-09",
+      "waypoint": null,
+      "floorplan": "G/F",
+      "hour": 14,
+      "minute": 2
+    },
+    {
+      "x": 583.034191541723,
+      "y": -875.003884162229,
+      "date": "2023-01-26",
+      "waypoint": null,
+      "floorplan": "G/F",
+      "hour": 18,
+      "minute": 5
+    },
+    {
+      "x": 582.941764262736,
+      "y": -879.979105149889,
+      "date": "2023-01-12",
+      "waypoint": null,
+      "floorplan": "G/F",
+      "hour": 14,
+      "minute": 13
+    },
+    {
+      "x": 588.283759789153,
+      "y": -858.882592478186,
+      "date": "2023-02-14",
+      "waypoint": null,
+      "floorplan": "G/F",
+      "hour": 14,
+      "minute": 23
+    },
+    {
+      "x": 672.28433910736,
+      "y": -880.207283021193,
+      "date": "2023-03-02",
+      "waypoint": null,
+      "floorplan": "G/F",
+      "hour": 18,
+      "minute": 32
+    },
+    {
+      "x": 536.624327392017,
+      "y": -881.546125942944,
+      "date": "2023-01-22",
+      "waypoint": null,
+      "floorplan": "G/F",
+      "hour": 13,
+      "minute": 22
+    },
+    {
+      "x": 653.683781649674,
+      "y": -869.272992946528,
+      "date": "2023-01-18",
+      "waypoint": null,
+      "floorplan": "G/F",
+      "hour": 10,
+      "minute": 9
+    },
+    {
+      "x": 587.303044435621,
+      "y": -844.122898321388,
+      "date": "2023-01-26",
+      "waypoint": null,
+      "floorplan": "G/F",
+      "hour": 12,
+      "minute": 27
+    },
+    {
+      "x": 645.708142490487,
+      "y": -859.552208904358,
+      "date": "2023-01-04",
+      "waypoint": null,
+      "floorplan": "G/F",
+      "hour": 9,
+      "minute": 38
+    },
+    {
+      "x": 588.403088076161,
+      "y": -851.778104315959,
+      "date": "2023-01-29",
+      "waypoint": null,
+      "floorplan": "G/F",
+      "hour": 15,
+      "minute": 55
+    },
+    {
+      "x": 628.322667601829,
+      "y": -876.571794528168,
+      "date": "2023-01-21",
+      "waypoint": null,
+      "floorplan": "G/F",
+      "hour": 11,
+      "minute": 35
+    },
+    {
+      "x": 648.571451325601,
+      "y": -847.342565507457,
+      "date": "2023-01-22",
+      "waypoint": null,
+      "floorplan": "G/F",
+      "hour": 13,
+      "minute": 13
+    },
+    {
+      "x": 577.8224379047,
+      "y": -853.685865695626,
+      "date": "2023-02-01",
+      "waypoint": null,
+      "floorplan": "G/F",
+      "hour": 12,
+      "minute": 54
+    },
+    {
+      "x": 607.802709104809,
+      "y": -882.455515830692,
+      "date": "2023-02-18",
+      "waypoint": null,
+      "floorplan": "G/F",
+      "hour": 15,
+      "minute": 8
+    },
+    {
+      "x": 652.220279435136,
+      "y": -866.556676905321,
+      "date": "2023-03-08",
+      "waypoint": null,
+      "floorplan": "G/F",
+      "hour": 9,
+      "minute": 37
+    },
+    {
+      "x": 508.707300999208,
+      "y": -892.91863135258,
+      "date": "2023-01-16",
+      "waypoint": null,
+      "floorplan": "G/F",
+      "hour": 12,
+      "minute": 48
+    },
+    {
+      "x": 666.922925532181,
+      "y": -867.056699685228,
+      "date": "2023-03-05",
+      "waypoint": null,
+      "floorplan": "G/F",
+      "hour": 12,
+      "minute": 45
+    },
+    {
+      "x": 548.930293461951,
+      "y": -852.640592400611,
+      "date": "2023-02-16",
+      "waypoint": null,
+      "floorplan": "G/F",
+      "hour": 17,
+      "minute": 33
+    },
+    {
+      "x": 579.776891636651,
+      "y": -859.407117836309,
+      "date": "2023-02-15",
+      "waypoint": null,
+      "floorplan": "G/F",
+      "hour": 9,
+      "minute": 21
+    },
+    {
+      "x": 581.734458705644,
+      "y": -856.947533726324,
+      "date": "2023-01-27",
+      "waypoint": null,
+      "floorplan": "G/F",
+      "hour": 9,
+      "minute": 10
+    },
+    {
+      "x": 632.688655500677,
+      "y": -840.088378548126,
+      "date": "2023-01-26",
+      "waypoint": null,
+      "floorplan": "G/F",
+      "hour": 11,
+      "minute": 49
+    },
+    {
+      "x": 565.850595102041,
+      "y": -869.431691750706,
+      "date": "2023-02-12",
+      "waypoint": null,
+      "floorplan": "G/F",
+      "hour": 9,
+      "minute": 3
+    },
+    {
+      "x": 566.576529227353,
+      "y": -871.021297582864,
+      "date": "2023-03-08",
+      "waypoint": null,
+      "floorplan": "G/F",
+      "hour": 17,
+      "minute": 58
+    },
+    {
+      "x": 585.796465400056,
+      "y": -872.351466504007,
+      "date": "2023-01-15",
+      "waypoint": null,
+      "floorplan": "G/F",
+      "hour": 10,
+      "minute": 27
+    },
+    {
+      "x": 573.540779706996,
+      "y": -892.904920731299,
+      "date": "2023-02-12",
+      "waypoint": null,
+      "floorplan": "G/F",
+      "hour": 17,
+      "minute": 25
+    },
+    {
+      "x": 604.419973427154,
+      "y": -874.015620494255,
+      "date": "2023-02-06",
+      "waypoint": null,
+      "floorplan": "G/F",
+      "hour": 11,
+      "minute": 54
+    },
+    {
+      "x": 657.715799722483,
+      "y": -873.764173535769,
+      "date": "2023-02-10",
+      "waypoint": null,
+      "floorplan": "G/F",
+      "hour": 14,
+      "minute": 19
+    },
+    {
+      "x": 548.700539685422,
+      "y": -870.547726752375,
+      "date": "2023-02-06",
+      "waypoint": null,
+      "floorplan": "G/F",
+      "hour": 17,
+      "minute": 54
+    },
+    {
+      "x": 617.82864474356,
+      "y": -844.848720042534,
+      "date": "2023-01-24",
+      "waypoint": null,
+      "floorplan": "G/F",
+      "hour": 9,
+      "minute": 33
+    },
+    {
+      "x": 610.750896586485,
+      "y": -861.559432386075,
+      "date": "2023-02-09",
+      "waypoint": null,
+      "floorplan": "G/F",
+      "hour": 11,
+      "minute": 17
+    },
+    {
+      "x": 555.898562063035,
+      "y": -850.125867541769,
+      "date": "2023-02-06",
+      "waypoint": null,
+      "floorplan": "G/F",
+      "hour": 13,
+      "minute": 42
+    },
+    {
+      "x": 601.987026077238,
+      "y": -863.531698957967,
+      "date": "2023-02-09",
+      "waypoint": null,
+      "floorplan": "G/F",
+      "hour": 17,
+      "minute": 15
+    },
+    {
+      "x": 550.705888284721,
+      "y": -860.87059576705,
+      "date": "2023-02-11",
+      "waypoint": null,
+      "floorplan": "G/F",
+      "hour": 12,
+      "minute": 30
+    },
+    {
+      "x": 588.693976049796,
+      "y": -850.850571478231,
+      "date": "2023-02-01",
+      "waypoint": null,
+      "floorplan": "G/F",
+      "hour": 18,
+      "minute": 15
+    },
+    {
+      "x": 604.357332732265,
+      "y": -884.564827575209,
+      "date": "2023-03-10",
+      "waypoint": null,
+      "floorplan": "G/F",
+      "hour": 16,
+      "minute": 11
+    },
+    {
+      "x": 366.660538886601,
+      "y": -933.391277954017,
+      "date": "2023-01-31",
+      "waypoint": null,
+      "floorplan": "G/F",
+      "hour": 11,
+      "minute": 18
+    },
+    {
+      "x": 501.89918816915,
+      "y": -966.253174695359,
+      "date": "2023-01-06",
+      "waypoint": null,
+      "floorplan": "G/F",
+      "hour": 13,
+      "minute": 18
+    },
+    {
+      "x": 376.240653710201,
+      "y": -962.378549541827,
+      "date": "2023-02-17",
+      "waypoint": null,
+      "floorplan": "G/F",
+      "hour": 9,
+      "minute": 59
+    },
+    {
+      "x": 490.096667885718,
+      "y": -955.364119081159,
+      "date": "2023-02-09",
+      "waypoint": null,
+      "floorplan": "G/F",
+      "hour": 12,
+      "minute": 14
+    },
+    {
+      "x": 491.537719958181,
+      "y": -937.022454382896,
+      "date": "2023-02-18",
+      "waypoint": null,
+      "floorplan": "G/F",
+      "hour": 9,
+      "minute": 23
+    },
+    {
+      "x": 462.292651605455,
+      "y": -945.914527778619,
+      "date": "2023-02-05",
+      "waypoint": null,
+      "floorplan": "G/F",
+      "hour": 11,
+      "minute": 17
+    },
+    {
+      "x": 514.594654737555,
+      "y": -968.073539703078,
+      "date": "2023-01-07",
+      "waypoint": null,
+      "floorplan": "G/F",
+      "hour": 13,
+      "minute": 18
+    },
+    {
+      "x": 452.199840456652,
+      "y": -952.437700396245,
+      "date": "2023-02-07",
+      "waypoint": null,
+      "floorplan": "G/F",
+      "hour": 18,
+      "minute": 38
+    },
+    {
+      "x": 436.83194945608,
+      "y": -963.022165235581,
+      "date": "2023-01-28",
+      "waypoint": null,
+      "floorplan": "G/F",
+      "hour": 17,
+      "minute": 14
+    },
+    {
+      "x": 434.588132801117,
+      "y": -941.609949521348,
+      "date": "2023-02-27",
+      "waypoint": null,
+      "floorplan": "G/F",
+      "hour": 12,
+      "minute": 12
+    },
+    {
+      "x": 497.289733719238,
+      "y": -963.269320758444,
+      "date": "2023-01-16",
+      "waypoint": null,
+      "floorplan": "G/F",
+      "hour": 18,
+      "minute": 16
+    },
+    {
+      "x": 454.893246146722,
+      "y": -961.512117979779,
+      "date": "2023-03-06",
+      "waypoint": null,
+      "floorplan": "G/F",
+      "hour": 9,
+      "minute": 5
+    },
+    {
+      "x": 625.337926534232,
+      "y": -916.739128287865,
+      "date": "2023-03-07",
+      "waypoint": null,
+      "floorplan": "G/F",
+      "hour": 14,
+      "minute": 34
+    },
+    {
+      "x": 637.676824034194,
+      "y": -929.626908738425,
+      "date": "2023-03-08",
+      "waypoint": null,
+      "floorplan": "G/F",
+      "hour": 12,
+      "minute": 27
+    },
+    {
+      "x": 649.668657648626,
+      "y": -954.82139921724,
+      "date": "2023-02-14",
+      "waypoint": null,
+      "floorplan": "G/F",
+      "hour": 16,
+      "minute": 34
+    },
+    {
+      "x": 711.089106534101,
+      "y": -923.321238424521,
+      "date": "2023-01-21",
+      "waypoint": null,
+      "floorplan": "G/F",
+      "hour": 10,
+      "minute": 15
+    },
+    {
+      "x": 654.948797242179,
+      "y": -934.009943617439,
+      "date": "2023-01-03",
+      "waypoint": null,
+      "floorplan": "G/F",
+      "hour": 15,
+      "minute": 17
+    },
+    {
+      "x": 552.11921808052,
+      "y": -924.222679962057,
+      "date": "2023-01-25",
+      "waypoint": null,
+      "floorplan": "G/F",
+      "hour": 18,
+      "minute": 22
+    },
+    {
+      "x": 656.565415854536,
+      "y": -928.805866644912,
+      "date": "2023-03-01",
+      "waypoint": null,
+      "floorplan": "G/F",
+      "hour": 10,
+      "minute": 6
+    },
+    {
+      "x": 602.654334270266,
+      "y": -939.030953990295,
+      "date": "2023-01-04",
+      "waypoint": null,
+      "floorplan": "G/F",
+      "hour": 11,
+      "minute": 23
+    },
+    {
+      "x": 620.862627783919,
+      "y": -931.25258112886,
+      "date": "2023-03-02",
+      "waypoint": null,
+      "floorplan": "G/F",
+      "hour": 16,
+      "minute": 44
+    },
+    {
+      "x": 617.867583369844,
+      "y": -927.993175691925,
+      "date": "2023-01-18",
+      "waypoint": null,
+      "floorplan": "G/F",
+      "hour": 9,
+      "minute": 58
+    },
+    {
+      "x": 590.411464735665,
+      "y": -927.104677211597,
+      "date": "2023-01-24",
+      "waypoint": null,
+      "floorplan": "G/F",
+      "hour": 17,
+      "minute": 42
+    },
+    {
+      "x": 603.70875061034,
+      "y": -964.179761436976,
+      "date": "2023-02-14",
+      "waypoint": null,
+      "floorplan": "G/F",
+      "hour": 10,
+      "minute": 34
+    },
+    {
+      "x": 616.341128319393,
+      "y": -926.218792460795,
+      "date": "2023-02-09",
+      "waypoint": null,
+      "floorplan": "G/F",
+      "hour": 13,
+      "minute": 7
+    },
+    {
+      "x": 304.585934907467,
+      "y": -778.767717536514,
+      "date": "2023-02-14",
+      "waypoint": null,
+      "floorplan": "1/F",
+      "hour": 12,
+      "minute": 46
+    },
+    {
+      "x": 214.58645301844,
+      "y": -787.132963516331,
+      "date": "2023-01-18",
+      "waypoint": null,
+      "floorplan": "1/F",
+      "hour": 12,
+      "minute": 51
+    },
+    {
+      "x": 219.447772268103,
+      "y": -757.539592574703,
+      "date": "2023-01-11",
+      "waypoint": null,
+      "floorplan": "1/F",
+      "hour": 12,
+      "minute": 15
+    },
+    {
+      "x": 279.811920748574,
+      "y": -755.049697278363,
+      "date": "2023-02-08",
+      "waypoint": null,
+      "floorplan": "1/F",
+      "hour": 12,
+      "minute": 23
+    },
+    {
+      "x": 210.649885412702,
+      "y": -764.175245811552,
+      "date": "2023-02-11",
+      "waypoint": null,
+      "floorplan": "1/F",
+      "hour": 12,
+      "minute": 54
+    },
+    {
+      "x": 216.152062434374,
+      "y": -767.802788903148,
+      "date": "2023-01-11",
+      "waypoint": null,
+      "floorplan": "1/F",
+      "hour": 12,
+      "minute": 57
+    },
+    {
+      "x": 244.705155917158,
+      "y": -794.635871038609,
+      "date": "2023-03-10",
+      "waypoint": null,
+      "floorplan": "1/F",
+      "hour": 12,
+      "minute": 9
+    },
+    {
+      "x": 247.312211028032,
+      "y": -763.157323207758,
+      "date": "2023-02-08",
+      "waypoint": null,
+      "floorplan": "1/F",
+      "hour": 12,
+      "minute": 49
+    },
+    {
+      "x": 178.42453511337,
+      "y": -794.927891530067,
+      "date": "2023-01-14",
+      "waypoint": null,
+      "floorplan": "1/F",
+      "hour": 12,
+      "minute": 48
+    },
+    {
+      "x": 250.536196815438,
+      "y": -751.367701924189,
+      "date": "2023-02-27",
+      "waypoint": null,
+      "floorplan": "1/F",
+      "hour": 12,
+      "minute": 51
+    },
+    {
+      "x": 261.764920798741,
+      "y": -773.354007831611,
+      "date": "2023-02-10",
+      "waypoint": null,
+      "floorplan": "1/F",
+      "hour": 12,
+      "minute": 50
+    },
+    {
+      "x": 167.874855057763,
+      "y": -760.990218568553,
+      "date": "2023-01-10",
+      "waypoint": null,
+      "floorplan": "1/F",
+      "hour": 12,
+      "minute": 24
+    },
+    {
+      "x": 283.550272649502,
+      "y": -775.413418059448,
+      "date": "2023-02-20",
+      "waypoint": null,
+      "floorplan": "1/F",
+      "hour": 12,
+      "minute": 42
+    },
+    {
+      "x": 272.210266382542,
+      "y": -773.600289647323,
+      "date": "2023-02-19",
+      "waypoint": null,
+      "floorplan": "1/F",
+      "hour": 12,
+      "minute": 17
+    },
+    {
+      "x": 185.166093091204,
+      "y": -764.528734835611,
+      "date": "2023-02-23",
+      "waypoint": null,
+      "floorplan": "1/F",
+      "hour": 12,
+      "minute": 59
+    },
+    {
+      "x": 231.742527483187,
+      "y": -757.204510153003,
+      "date": "2023-03-12",
+      "waypoint": null,
+      "floorplan": "1/F",
+      "hour": 12,
+      "minute": 10
+    },
+    {
+      "x": 227.251644082803,
+      "y": -773.789218390765,
+      "date": "2023-01-15",
+      "waypoint": null,
+      "floorplan": "1/F",
+      "hour": 12,
+      "minute": 4
+    },
+    {
+      "x": 203.576123690835,
+      "y": -770.409851794988,
+      "date": "2023-01-18",
+      "waypoint": null,
+      "floorplan": "1/F",
+      "hour": 12,
+      "minute": 29
+    },
+    {
+      "x": 177.16718492286,
+      "y": -772.485111295503,
+      "date": "2023-01-03",
+      "waypoint": null,
+      "floorplan": "1/F",
+      "hour": 12,
+      "minute": 18
+    },
+    {
+      "x": 264.268821134135,
+      "y": -752.81254331832,
+      "date": "2023-01-21",
+      "waypoint": null,
+      "floorplan": "1/F",
+      "hour": 12,
+      "minute": 39
+    },
+    {
+      "x": 161.520770206576,
+      "y": -784.543625316606,
+      "date": "2023-02-03",
+      "waypoint": null,
+      "floorplan": "1/F",
+      "hour": 12,
+      "minute": 56
+    },
+    {
+      "x": 190.051313012229,
+      "y": -783.300671113222,
+      "date": "2023-02-11",
+      "waypoint": null,
+      "floorplan": "1/F",
+      "hour": 12,
+      "minute": 30
+    },
+    {
+      "x": 281.891287391613,
+      "y": -762.505415345871,
+      "date": "2023-02-21",
+      "waypoint": null,
+      "floorplan": "1/F",
+      "hour": 12,
+      "minute": 51
+    },
+    {
+      "x": 253.578107240041,
+      "y": -776.588697735838,
+      "date": "2023-01-09",
+      "waypoint": null,
+      "floorplan": "1/F",
+      "hour": 12,
+      "minute": 34
+    },
+    {
+      "x": 255.090632903281,
+      "y": -777.531226946233,
+      "date": "2023-01-26",
+      "waypoint": null,
+      "floorplan": "1/F",
+      "hour": 12,
+      "minute": 20
+    },
+    {
+      "x": 180.58298032522,
+      "y": -800.038167679154,
+      "date": "2023-03-10",
+      "waypoint": null,
+      "floorplan": "1/F",
+      "hour": 12,
+      "minute": 8
+    },
+    {
+      "x": 265.105744130214,
+      "y": -790.914082620929,
+      "date": "2023-02-10",
+      "waypoint": null,
+      "floorplan": "1/F",
+      "hour": 12,
+      "minute": 37
+    },
+    {
+      "x": 227.71019210478,
+      "y": -795.175599177804,
+      "date": "2023-01-02",
+      "waypoint": null,
+      "floorplan": "1/F",
+      "hour": 12,
+      "minute": 6
+    },
+    {
+      "x": 149.139287446504,
+      "y": -793.497794339614,
+      "date": "2023-01-22",
+      "waypoint": null,
+      "floorplan": "1/F",
+      "hour": 12,
+      "minute": 17
+    },
+    {
+      "x": 178.355751698743,
+      "y": -768.664791812709,
+      "date": "2023-02-20",
+      "waypoint": null,
+      "floorplan": "1/F",
+      "hour": 12,
+      "minute": 11
+    },
+    {
+      "x": 191.231906703146,
+      "y": -791.945347443275,
+      "date": "2023-02-04",
+      "waypoint": null,
+      "floorplan": "1/F",
+      "hour": 12,
+      "minute": 57
+    },
+    {
+      "x": 198.513118179,
+      "y": -790.703758081058,
+      "date": "2023-03-04",
+      "waypoint": null,
+      "floorplan": "1/F",
+      "hour": 12,
+      "minute": 44
+    },
+    {
+      "x": 257.043848763936,
+      "y": -764.695270191666,
+      "date": "2023-01-05",
+      "waypoint": null,
+      "floorplan": "1/F",
+      "hour": 12,
+      "minute": 3
+    },
+    {
+      "x": 196.19987189118,
+      "y": -754.174793808971,
+      "date": "2023-01-20",
+      "waypoint": null,
+      "floorplan": "1/F",
+      "hour": 12,
+      "minute": 27
+    },
+    {
+      "x": 242.98727366516,
+      "y": -777.693695662949,
+      "date": "2023-01-05",
+      "waypoint": null,
+      "floorplan": "1/F",
+      "hour": 12,
+      "minute": 15
+    },
+    {
+      "x": 291.297585460116,
+      "y": -759.158407897385,
+      "date": "2023-02-27",
+      "waypoint": null,
+      "floorplan": "1/F",
+      "hour": 12,
+      "minute": 8
+    },
+    {
+      "x": 142.090443205142,
+      "y": -754.194245064705,
+      "date": "2023-01-10",
+      "waypoint": null,
+      "floorplan": "1/F",
+      "hour": 12,
+      "minute": 35
+    },
+    {
+      "x": 302.267845448437,
+      "y": -777.86616929344,
+      "date": "2023-01-23",
+      "waypoint": null,
+      "floorplan": "1/F",
+      "hour": 12,
+      "minute": 38
+    },
+    {
+      "x": 228.590741475802,
+      "y": -777.923070721414,
+      "date": "2023-02-14",
+      "waypoint": null,
+      "floorplan": "1/F",
+      "hour": 12,
+      "minute": 18
+    },
+    {
+      "x": 220.563511793046,
+      "y": -785.792032676032,
+      "date": "2023-01-10",
+      "waypoint": null,
+      "floorplan": "1/F",
+      "hour": 12,
+      "minute": 5
+    },
+    {
+      "x": 234.910131734546,
+      "y": -771.107533822062,
+      "date": "2023-02-06",
+      "waypoint": null,
+      "floorplan": "1/F",
+      "hour": 12,
+      "minute": 19
+    },
+    {
+      "x": 304.717077669514,
+      "y": -797.214873253554,
+      "date": "2023-01-22",
+      "waypoint": null,
+      "floorplan": "1/F",
+      "hour": 12,
+      "minute": 40
+    },
+    {
+      "x": 166.44268383672,
+      "y": -755.414898533078,
+      "date": "2023-02-13",
+      "waypoint": null,
+      "floorplan": "1/F",
+      "hour": 12,
+      "minute": 41
+    },
+    {
+      "x": 210.850630137891,
+      "y": -790.812324003554,
+      "date": "2023-02-08",
+      "waypoint": null,
+      "floorplan": "1/F",
+      "hour": 12,
+      "minute": 35
+    },
+    {
+      "x": 285.468339218622,
+      "y": -787.815675747923,
+      "date": "2023-03-01",
+      "waypoint": null,
+      "floorplan": "1/F",
+      "hour": 12,
+      "minute": 58
+    },
+    {
+      "x": 289.477175801036,
+      "y": -772.131384082456,
+      "date": "2023-02-14",
+      "waypoint": null,
+      "floorplan": "1/F",
+      "hour": 12,
+      "minute": 1
+    },
+    {
+      "x": 236.299982334375,
+      "y": -791.866824763573,
+      "date": "2023-02-28",
+      "waypoint": null,
+      "floorplan": "1/F",
+      "hour": 12,
+      "minute": 4
+    },
+    {
+      "x": 188.188941503834,
+      "y": -755.726731488977,
+      "date": "2023-02-08",
+      "waypoint": null,
+      "floorplan": "1/F",
+      "hour": 12,
+      "minute": 42
+    },
+    {
+      "x": 222.654243167961,
+      "y": -764.431125843802,
+      "date": "2023-01-12",
+      "waypoint": null,
+      "floorplan": "1/F",
+      "hour": 12,
+      "minute": 55
+    },
+    {
+      "x": 191.575244218189,
+      "y": -796.910304679918,
+      "date": "2023-02-07",
+      "waypoint": null,
+      "floorplan": "1/F",
+      "hour": 12,
+      "minute": 6
+    },
+    {
+      "x": 216.151948197157,
+      "y": -768.522510373792,
+      "date": "2023-03-08",
+      "waypoint": null,
+      "floorplan": "1/F",
+      "hour": 12,
+      "minute": 9
+    },
+    {
+      "x": 227.479818379523,
+      "y": -792.616907983359,
+      "date": "2023-02-07",
+      "waypoint": null,
+      "floorplan": "1/F",
+      "hour": 12,
+      "minute": 48
+    },
+    {
+      "x": 181.690851781377,
+      "y": -767.976984622186,
+      "date": "2023-02-15",
+      "waypoint": null,
+      "floorplan": "1/F",
+      "hour": 12,
+      "minute": 18
+    },
+    {
+      "x": 290.010473885317,
+      "y": -755.121191192542,
+      "date": "2023-01-27",
+      "waypoint": null,
+      "floorplan": "1/F",
+      "hour": 12,
+      "minute": 5
+    },
+    {
+      "x": 283.194535334076,
+      "y": -754.697801975197,
+      "date": "2023-03-02",
+      "waypoint": null,
+      "floorplan": "1/F",
+      "hour": 12,
+      "minute": 17
+    },
+    {
+      "x": 197.763000187815,
+      "y": -788.172796200582,
+      "date": "2023-03-02",
+      "waypoint": null,
+      "floorplan": "1/F",
+      "hour": 12,
+      "minute": 42
+    },
+    {
+      "x": 159.703594089706,
+      "y": -787.981551046546,
+      "date": "2023-01-24",
+      "waypoint": null,
+      "floorplan": "1/F",
+      "hour": 12,
+      "minute": 38
+    },
+    {
+      "x": 226.450238314555,
+      "y": -752.948420145792,
+      "date": "2023-02-27",
+      "waypoint": null,
+      "floorplan": "1/F",
+      "hour": 12,
+      "minute": 48
+    },
+    {
+      "x": 305.207169109313,
+      "y": -774.582669255744,
+      "date": "2023-01-30",
+      "waypoint": null,
+      "floorplan": "1/F",
+      "hour": 12,
+      "minute": 23
+    },
+    {
+      "x": 245.70541507631,
+      "y": -765.119510538463,
+      "date": "2023-01-02",
+      "waypoint": null,
+      "floorplan": "1/F",
+      "hour": 12,
+      "minute": 36
+    },
+    {
+      "x": 239.959600659617,
+      "y": -791.921736379972,
+      "date": "2023-01-30",
+      "waypoint": null,
+      "floorplan": "1/F",
+      "hour": 12,
+      "minute": 52
+    },
+    {
+      "x": 192.81354812026,
+      "y": -779.783684428467,
+      "date": "2023-02-15",
+      "waypoint": null,
+      "floorplan": "1/F",
+      "hour": 12,
+      "minute": 21
+    },
+    {
+      "x": 233.268804702225,
+      "y": -776.112234880156,
+      "date": "2023-01-08",
+      "waypoint": null,
+      "floorplan": "1/F",
+      "hour": 12,
+      "minute": 15
+    },
+    {
+      "x": 239.722302596659,
+      "y": -759.856411035233,
+      "date": "2023-03-02",
+      "waypoint": null,
+      "floorplan": "1/F",
+      "hour": 12,
+      "minute": 39
+    },
+    {
+      "x": 179.465121431341,
+      "y": -756.507900400213,
+      "date": "2023-02-14",
+      "waypoint": null,
+      "floorplan": "1/F",
+      "hour": 12,
+      "minute": 20
+    },
+    {
+      "x": 255.282511669876,
+      "y": -752.47622984432,
+      "date": "2023-01-07",
+      "waypoint": null,
+      "floorplan": "1/F",
+      "hour": 12,
+      "minute": 20
+    },
+    {
+      "x": 256.190575793761,
+      "y": -777.068314854757,
+      "date": "2023-02-22",
+      "waypoint": null,
+      "floorplan": "1/F",
+      "hour": 12,
+      "minute": 1
+    },
+    {
+      "x": 181.560376560606,
+      "y": -780.553155138396,
+      "date": "2023-01-02",
+      "waypoint": null,
+      "floorplan": "1/F",
+      "hour": 12,
+      "minute": 36
+    },
+    {
+      "x": 286.611618370074,
+      "y": -764.471412194586,
+      "date": "2023-02-26",
+      "waypoint": null,
+      "floorplan": "1/F",
+      "hour": 12,
+      "minute": 54
+    },
+    {
+      "x": 214.951920973782,
+      "y": -793.01937875318,
+      "date": "2023-02-13",
+      "waypoint": null,
+      "floorplan": "1/F",
+      "hour": 12,
+      "minute": 43
+    },
+    {
+      "x": 231.57889894345,
+      "y": -757.158889381417,
+      "date": "2023-02-13",
+      "waypoint": null,
+      "floorplan": "2/F",
+      "hour": 12,
+      "minute": 19
+    },
+    {
+      "x": 268.788088989076,
+      "y": -797.374515989836,
+      "date": "2023-02-28",
+      "waypoint": null,
+      "floorplan": "2/F",
+      "hour": 12,
+      "minute": 2
+    },
+    {
+      "x": 274.80987527868,
+      "y": -755.265647238574,
+      "date": "2023-02-11",
+      "waypoint": null,
+      "floorplan": "2/F",
+      "hour": 12,
+      "minute": 38
+    },
+    {
+      "x": 299.733045626202,
+      "y": -780.377851713078,
+      "date": "2023-02-04",
+      "waypoint": null,
+      "floorplan": "2/F",
+      "hour": 12,
+      "minute": 58
+    },
+    {
+      "x": 289.244101281794,
+      "y": -786.921295635299,
+      "date": "2023-01-20",
+      "waypoint": null,
+      "floorplan": "2/F",
+      "hour": 12,
+      "minute": 22
+    },
+    {
+      "x": 220.812752256638,
+      "y": -789.8405390194,
+      "date": "2023-02-09",
+      "waypoint": null,
+      "floorplan": "2/F",
+      "hour": 12,
+      "minute": 4
+    },
+    {
+      "x": 189.313237646821,
+      "y": -794.236311873641,
+      "date": "2023-01-27",
+      "waypoint": null,
+      "floorplan": "2/F",
+      "hour": 12,
+      "minute": 13
+    },
+    {
+      "x": 270.23073148219,
+      "y": -797.090049958463,
+      "date": "2023-02-17",
+      "waypoint": null,
+      "floorplan": "2/F",
+      "hour": 12,
+      "minute": 27
+    },
+    {
+      "x": 260.708861624465,
+      "y": -772.859137800354,
+      "date": "2023-01-16",
+      "waypoint": null,
+      "floorplan": "2/F",
+      "hour": 12,
+      "minute": 50
+    },
+    {
+      "x": 210.399510794608,
+      "y": -797.777858543049,
+      "date": "2023-01-06",
+      "waypoint": null,
+      "floorplan": "2/F",
+      "hour": 12,
+      "minute": 18
+    },
+    {
+      "x": 266.267194863628,
+      "y": -794.284368584651,
+      "date": "2023-03-13",
+      "waypoint": null,
+      "floorplan": "2/F",
+      "hour": 12,
+      "minute": 50
+    },
+    {
+      "x": 293.786587676033,
+      "y": -764.849041706145,
+      "date": "2023-01-20",
+      "waypoint": null,
+      "floorplan": "2/F",
+      "hour": 12,
+      "minute": 54
+    },
+    {
+      "x": 170.180354686423,
+      "y": -764.162596008403,
+      "date": "2023-02-05",
+      "waypoint": null,
+      "floorplan": "2/F",
+      "hour": 12,
+      "minute": 3
+    },
+    {
+      "x": 233.561746901497,
+      "y": -785.639728427425,
+      "date": "2023-01-27",
+      "waypoint": null,
+      "floorplan": "2/F",
+      "hour": 12,
+      "minute": 45
+    },
+    {
+      "x": 310.997105949078,
+      "y": -756.458827647386,
+      "date": "2023-01-06",
+      "waypoint": null,
+      "floorplan": "2/F",
+      "hour": 12,
+      "minute": 38
+    },
+    {
+      "x": 225.433429417336,
+      "y": -769.637175382172,
+      "date": "2023-02-08",
+      "waypoint": null,
+      "floorplan": "2/F",
+      "hour": 12,
+      "minute": 49
+    },
+    {
+      "x": 211.179435992998,
+      "y": -751.944721905466,
+      "date": "2023-01-20",
+      "waypoint": null,
+      "floorplan": "2/F",
+      "hour": 12,
+      "minute": 49
+    },
+    {
+      "x": 193.222317361631,
+      "y": -766.150531555003,
+      "date": "2023-03-05",
+      "waypoint": null,
+      "floorplan": "2/F",
+      "hour": 12,
+      "minute": 31
+    },
+    {
+      "x": 234.034897555321,
+      "y": -777.79377399501,
+      "date": "2023-01-24",
+      "waypoint": null,
+      "floorplan": "2/F",
+      "hour": 12,
+      "minute": 1
+    },
+    {
+      "x": 275.632340223114,
+      "y": -778.665039464629,
+      "date": "2023-02-01",
+      "waypoint": null,
+      "floorplan": "2/F",
+      "hour": 12,
+      "minute": 27
+    },
+    {
+      "x": 295.440577725649,
+      "y": -759.830044261925,
+      "date": "2023-03-08",
+      "waypoint": null,
+      "floorplan": "2/F",
+      "hour": 12,
+      "minute": 34
+    },
+    {
+      "x": 254.092192749536,
+      "y": -771.547375233371,
+      "date": "2023-01-20",
+      "waypoint": null,
+      "floorplan": "2/F",
+      "hour": 12,
+      "minute": 14
+    },
+    {
+      "x": 311.9784674708,
+      "y": -759.146106031655,
+      "date": "2023-01-23",
+      "waypoint": null,
+      "floorplan": "2/F",
+      "hour": 12,
+      "minute": 26
+    },
+    {
+      "x": 285.66404562884,
+      "y": -762.411606672593,
+      "date": "2023-01-11",
+      "waypoint": null,
+      "floorplan": "2/F",
+      "hour": 12,
+      "minute": 39
+    },
+    {
+      "x": 172.260932362921,
+      "y": -773.301880635666,
+      "date": "2023-01-24",
+      "waypoint": null,
+      "floorplan": "2/F",
+      "hour": 12,
+      "minute": 51
+    },
+    {
+      "x": 229.215303741894,
+      "y": -779.08947135651,
+      "date": "2023-01-22",
+      "waypoint": null,
+      "floorplan": "2/F",
+      "hour": 12,
+      "minute": 4
+    },
+    {
+      "x": 279.727065659524,
+      "y": -749.060749059378,
+      "date": "2023-01-13",
+      "waypoint": null,
+      "floorplan": "2/F",
+      "hour": 12,
+      "minute": 1
+    },
+    {
+      "x": 187.376789997201,
+      "y": -762.064923703315,
+      "date": "2023-02-21",
+      "waypoint": null,
+      "floorplan": "2/F",
+      "hour": 12,
+      "minute": 35
+    },
+    {
+      "x": 287.049304700699,
+      "y": -783.91970895733,
+      "date": "2023-01-11",
+      "waypoint": null,
+      "floorplan": "2/F",
+      "hour": 12,
+      "minute": 13
+    },
+    {
+      "x": 151.881915835345,
+      "y": -794.221150901472,
+      "date": "2023-02-14",
+      "waypoint": null,
+      "floorplan": "2/F",
+      "hour": 12,
+      "minute": 23
+    },
+    {
+      "x": 236.209419490555,
+      "y": -781.963661257563,
+      "date": "2023-01-11",
+      "waypoint": null,
+      "floorplan": "2/F",
+      "hour": 12,
+      "minute": 8
+    },
+    {
+      "x": 299.991845181326,
+      "y": -762.28745473831,
+      "date": "2023-01-23",
+      "waypoint": null,
+      "floorplan": "2/F",
+      "hour": 12,
+      "minute": 57
+    },
+    {
+      "x": 231.36940590883,
+      "y": -782.330406293457,
+      "date": "2023-01-28",
+      "waypoint": null,
+      "floorplan": "2/F",
+      "hour": 12,
+      "minute": 17
+    },
+    {
+      "x": 222.761446725923,
+      "y": -769.101407531898,
+      "date": "2023-01-29",
+      "waypoint": null,
+      "floorplan": "2/F",
+      "hour": 12,
+      "minute": 30
+    },
+    {
+      "x": 286.48217076072,
+      "y": -771.059917826405,
+      "date": "2023-02-27",
+      "waypoint": null,
+      "floorplan": "2/F",
+      "hour": 12,
+      "minute": 41
+    },
+    {
+      "x": 238.400511146155,
+      "y": -759.173364770677,
+      "date": "2023-02-13",
+      "waypoint": null,
+      "floorplan": "2/F",
+      "hour": 12,
+      "minute": 32
+    },
+    {
+      "x": 206.588774349969,
+      "y": -777.166695952123,
+      "date": "2023-01-29",
+      "waypoint": null,
+      "floorplan": "2/F",
+      "hour": 12,
+      "minute": 53
+    },
+    {
+      "x": 186.248974016406,
+      "y": -749.575642278212,
+      "date": "2023-03-10",
+      "waypoint": null,
+      "floorplan": "2/F",
+      "hour": 12,
+      "minute": 17
+    },
+    {
+      "x": 196.665675587748,
+      "y": -781.382763342403,
+      "date": "2023-02-24",
+      "waypoint": null,
+      "floorplan": "2/F",
+      "hour": 12,
+      "minute": 12
+    },
+    {
+      "x": 191.176956249806,
+      "y": -784.228822280112,
+      "date": "2023-01-10",
+      "waypoint": null,
+      "floorplan": "2/F",
+      "hour": 12,
+      "minute": 50
+    },
+    {
+      "x": 291.449713302132,
+      "y": -757.337007922303,
+      "date": "2023-02-10",
+      "waypoint": null,
+      "floorplan": "2/F",
+      "hour": 12,
+      "minute": 33
+    },
+    {
+      "x": 232.28685831951,
+      "y": -798.0673061581,
+      "date": "2023-01-29",
+      "waypoint": null,
+      "floorplan": "2/F",
+      "hour": 12,
+      "minute": 20
+    },
+    {
+      "x": 239.307329267649,
+      "y": -790.983407349899,
+      "date": "2023-01-25",
+      "waypoint": null,
+      "floorplan": "2/F",
+      "hour": 12,
+      "minute": 2
+    },
+    {
+      "x": 210.324514743316,
+      "y": -768.571086963815,
+      "date": "2023-03-07",
+      "waypoint": null,
+      "floorplan": "2/F",
+      "hour": 12,
+      "minute": 11
+    },
+    {
+      "x": 247.286518914898,
+      "y": -762.549805455815,
+      "date": "2023-02-10",
+      "waypoint": null,
+      "floorplan": "2/F",
+      "hour": 12,
+      "minute": 59
+    },
+    {
+      "x": 164.337069825297,
+      "y": -773.360349609894,
+      "date": "2023-01-28",
+      "waypoint": null,
+      "floorplan": "2/F",
+      "hour": 12,
+      "minute": 28
+    },
+    {
+      "x": 228.190702681018,
+      "y": -772.175391461137,
+      "date": "2023-02-27",
+      "waypoint": null,
+      "floorplan": "2/F",
+      "hour": 12,
+      "minute": 29
+    },
+    {
+      "x": 249.578358283347,
+      "y": -780.027326971578,
+      "date": "2023-03-08",
+      "waypoint": null,
+      "floorplan": "2/F",
+      "hour": 12,
+      "minute": 34
+    },
+    {
+      "x": 177.692711046207,
+      "y": -800.697263318441,
+      "date": "2023-03-11",
+      "waypoint": null,
+      "floorplan": "2/F",
+      "hour": 12,
+      "minute": 2
+    },
+    {
+      "x": 152.606478458508,
+      "y": -756.333183246485,
+      "date": "2023-01-04",
+      "waypoint": null,
+      "floorplan": "2/F",
+      "hour": 12,
+      "minute": 24
+    },
+    {
+      "x": 171.16569021309,
+      "y": -762.089655143054,
+      "date": "2023-02-04",
+      "waypoint": null,
+      "floorplan": "2/F",
+      "hour": 12,
+      "minute": 11
+    },
+    {
+      "x": 288.071816877237,
+      "y": -763.442625959244,
+      "date": "2023-01-10",
+      "waypoint": null,
+      "floorplan": "2/F",
+      "hour": 12,
+      "minute": 42
+    },
+    {
+      "x": 188.47015076088,
+      "y": -764.770644888214,
+      "date": "2023-01-17",
+      "waypoint": null,
+      "floorplan": "2/F",
+      "hour": 12,
+      "minute": 5
+    },
+    {
+      "x": 158.568437877332,
+      "y": -790.091150270264,
+      "date": "2023-01-07",
+      "waypoint": null,
+      "floorplan": "2/F",
+      "hour": 12,
+      "minute": 26
+    },
+    {
+      "x": 218.816966271226,
+      "y": -776.033799590499,
+      "date": "2023-03-02",
+      "waypoint": null,
+      "floorplan": "2/F",
+      "hour": 12,
+      "minute": 47
+    },
+    {
+      "x": 163.732167655683,
+      "y": -791.020041790342,
+      "date": "2023-02-24",
+      "waypoint": null,
+      "floorplan": "2/F",
+      "hour": 12,
+      "minute": 29
+    },
+    {
+      "x": 235.999435409529,
+      "y": -794.453578028915,
+      "date": "2023-01-01",
+      "waypoint": null,
+      "floorplan": "2/F",
+      "hour": 12,
+      "minute": 8
+    },
+    {
+      "x": 223.047046214435,
+      "y": -776.329959121722,
+      "date": "2023-02-15",
+      "waypoint": null,
+      "floorplan": "2/F",
+      "hour": 12,
+      "minute": 57
+    },
+    {
+      "x": 220.136491157317,
+      "y": -792.554235713123,
+      "date": "2023-02-07",
+      "waypoint": null,
+      "floorplan": "2/F",
+      "hour": 12,
+      "minute": 32
+    },
+    {
+      "x": 222.715754025173,
+      "y": -767.14956875336,
+      "date": "2023-02-26",
+      "waypoint": null,
+      "floorplan": "2/F",
+      "hour": 12,
+      "minute": 7
+    },
+    {
+      "x": 184.691876658234,
+      "y": -788.345801246922,
+      "date": "2023-02-17",
+      "waypoint": null,
+      "floorplan": "2/F",
+      "hour": 12,
+      "minute": 50
+    },
+    {
+      "x": 186.999255443831,
+      "y": -788.724434200347,
+      "date": "2023-01-22",
+      "waypoint": null,
+      "floorplan": "2/F",
+      "hour": 12,
+      "minute": 41
+    },
+    {
+      "x": 269.730301742286,
+      "y": -759.101111374827,
+      "date": "2023-01-06",
+      "waypoint": null,
+      "floorplan": "2/F",
+      "hour": 12,
+      "minute": 26
+    },
+    {
+      "x": 238.890452398519,
+      "y": -789.265730058433,
+      "date": "2023-01-25",
+      "waypoint": null,
+      "floorplan": "2/F",
+      "hour": 12,
+      "minute": 23
+    },
+    {
+      "x": 227.58133854491,
+      "y": -789.81268859564,
+      "date": "2023-02-08",
+      "waypoint": null,
+      "floorplan": "2/F",
+      "hour": 12,
+      "minute": 30
+    },
+    {
+      "x": 208.507320276374,
+      "y": -785.962198663322,
+      "date": "2023-01-11",
+      "waypoint": null,
+      "floorplan": "2/F",
+      "hour": 12,
+      "minute": 53
+    },
+    {
+      "x": 213.471992130753,
+      "y": -773.773299265696,
+      "date": "2023-02-01",
+      "waypoint": null,
+      "floorplan": "2/F",
+      "hour": 12,
+      "minute": 54
+    },
+    {
+      "x": 152.623744228991,
+      "y": -751.123447058575,
+      "date": "2023-03-10",
+      "waypoint": null,
+      "floorplan": "2/F",
+      "hour": 12,
+      "minute": 48
+    },
+    {
+      "x": 171.879128638785,
+      "y": -759.502968347644,
+      "date": "2023-02-23",
+      "waypoint": null,
+      "floorplan": "2/F",
+      "hour": 12,
+      "minute": 14
+    },
+    {
+      "x": 213.350385271517,
+      "y": -772.638014368469,
+      "date": "2023-02-15",
+      "waypoint": null,
+      "floorplan": "2/F",
+      "hour": 12,
+      "minute": 58
+    },
+    {
+      "x": 325.78849781142,
+      "y": -751.12174829472,
+      "date": "2023-01-17",
+      "waypoint": null,
+      "floorplan": "2/F",
+      "hour": 12,
+      "minute": 48
+    },
+    {
+      "x": 244.616867162891,
+      "y": -757.273445579015,
+      "date": "2023-01-15",
+      "waypoint": null,
+      "floorplan": "2/F",
+      "hour": 12,
+      "minute": 21
+    },
+    {
+      "x": 236.187185919641,
+      "y": -767.544343791453,
+      "date": "2023-02-28",
+      "waypoint": null,
+      "floorplan": "2/F",
+      "hour": 12,
+      "minute": 54
+    },
+    {
+      "x": 182.22208733215,
+      "y": -770.561778889106,
+      "date": "2023-03-04",
+      "waypoint": null,
+      "floorplan": "2/F",
+      "hour": 13,
+      "minute": 28
+    },
+    {
+      "x": 230.31399411941,
+      "y": -778.351923046802,
+      "date": "2023-01-17",
+      "waypoint": null,
+      "floorplan": "2/F",
+      "hour": 13,
+      "minute": 50
+    },
+    {
+      "x": 287.393310869622,
+      "y": -790.068358058507,
+      "date": "2023-01-12",
+      "waypoint": null,
+      "floorplan": "2/F",
+      "hour": 13,
+      "minute": 16
+    },
+    {
+      "x": 260.41954921263,
+      "y": -796.512576078714,
+      "date": "2023-03-04",
+      "waypoint": null,
+      "floorplan": "2/F",
+      "hour": 13,
+      "minute": 10
+    },
+    {
+      "x": 176.944028028285,
+      "y": -757.869113715152,
+      "date": "2023-02-21",
+      "waypoint": null,
+      "floorplan": "2/F",
+      "hour": 13,
+      "minute": 33
+    },
+    {
+      "x": 260.729145004854,
+      "y": -791.565643044854,
+      "date": "2023-01-23",
+      "waypoint": null,
+      "floorplan": "2/F",
+      "hour": 13,
+      "minute": 47
+    },
+    {
+      "x": 308.738890805264,
+      "y": -760.466512001503,
+      "date": "2023-01-09",
+      "waypoint": null,
+      "floorplan": "2/F",
+      "hour": 13,
+      "minute": 3
+    },
+    {
+      "x": 226.524567645978,
+      "y": -800.484320546388,
+      "date": "2023-01-22",
+      "waypoint": null,
+      "floorplan": "2/F",
+      "hour": 13,
+      "minute": 57
+    },
+    {
+      "x": 259.327971001748,
+      "y": -792.20489041895,
+      "date": "2023-01-21",
+      "waypoint": null,
+      "floorplan": "2/F",
+      "hour": 13,
+      "minute": 55
+    },
+    {
+      "x": 239.502200772215,
+      "y": -782.977197604507,
+      "date": "2023-01-13",
+      "waypoint": null,
+      "floorplan": "2/F",
+      "hour": 13,
+      "minute": 11
+    },
+    {
+      "x": 197.526799305244,
+      "y": -785.005789147602,
+      "date": "2023-02-23",
+      "waypoint": null,
+      "floorplan": "2/F",
+      "hour": 13,
+      "minute": 40
+    },
+    {
+      "x": 224.925303752031,
+      "y": -786.026221519977,
+      "date": "2023-01-25",
+      "waypoint": null,
+      "floorplan": "2/F",
+      "hour": 13,
+      "minute": 46
+    },
+    {
+      "x": 176.46091631461,
+      "y": -789.054655702519,
+      "date": "2023-02-23",
+      "waypoint": null,
+      "floorplan": "2/F",
+      "hour": 13,
+      "minute": 4
+    },
+    {
+      "x": 232.752055856178,
+      "y": -771.25946674679,
+      "date": "2023-03-07",
+      "waypoint": null,
+      "floorplan": "2/F",
+      "hour": 13,
+      "minute": 31
+    },
+    {
+      "x": 235.607711496046,
+      "y": -791.025640041392,
+      "date": "2023-01-11",
+      "waypoint": null,
+      "floorplan": "2/F",
+      "hour": 13,
+      "minute": 42
+    },
+    {
+      "x": 157.400790581834,
+      "y": -793.575100780242,
+      "date": "2023-02-09",
+      "waypoint": null,
+      "floorplan": "2/F",
+      "hour": 13,
+      "minute": 13
+    },
+    {
+      "x": 298.777892157238,
+      "y": -769.681972958185,
+      "date": "2023-03-02",
+      "waypoint": null,
+      "floorplan": "2/F",
+      "hour": 13,
+      "minute": 30
+    },
+    {
+      "x": 179.914953524343,
+      "y": -770.90711486334,
+      "date": "2023-01-10",
+      "waypoint": null,
+      "floorplan": "2/F",
+      "hour": 13,
+      "minute": 59
+    },
+    {
+      "x": 205.317229069061,
+      "y": -783.599012124167,
+      "date": "2023-01-29",
+      "waypoint": null,
+      "floorplan": "2/F",
+      "hour": 13,
+      "minute": 58
+    },
+    {
+      "x": 272.600406084282,
+      "y": -749.00058499474,
+      "date": "2023-02-08",
+      "waypoint": null,
+      "floorplan": "2/F",
+      "hour": 13,
+      "minute": 44
+    },
+    {
+      "x": 227.128229399427,
+      "y": -786.083965545402,
+      "date": "2023-03-07",
+      "waypoint": null,
+      "floorplan": "2/F",
+      "hour": 13,
+      "minute": 16
+    },
+    {
+      "x": 177.906139316607,
+      "y": -755.401128887966,
+      "date": "2023-01-11",
+      "waypoint": null,
+      "floorplan": "2/F",
+      "hour": 13,
+      "minute": 35
+    },
+    {
+      "x": 226.23208810204,
+      "y": -796.848634431451,
+      "date": "2023-03-05",
+      "waypoint": null,
+      "floorplan": "2/F",
+      "hour": 13,
+      "minute": 38
+    },
+    {
+      "x": 270.12474332639,
+      "y": -759.581635644359,
+      "date": "2023-02-04",
+      "waypoint": null,
+      "floorplan": "2/F",
+      "hour": 13,
+      "minute": 50
+    },
+    {
+      "x": 211.782471736236,
+      "y": -784.171362823585,
+      "date": "2023-01-13",
+      "waypoint": null,
+      "floorplan": "2/F",
+      "hour": 13,
+      "minute": 46
+    },
+    {
+      "x": 233.251841085654,
+      "y": -771.680816592718,
+      "date": "2023-02-25",
+      "waypoint": null,
+      "floorplan": "2/F",
+      "hour": 13,
+      "minute": 52
+    },
+    {
+      "x": 186.743063990682,
+      "y": -788.287362225027,
+      "date": "2023-01-12",
+      "waypoint": null,
+      "floorplan": "2/F",
+      "hour": 13,
+      "minute": 27
+    },
+    {
+      "x": 186.595172555826,
+      "y": -790.622126379283,
+      "date": "2023-01-01",
+      "waypoint": null,
+      "floorplan": "2/F",
+      "hour": 13,
+      "minute": 33
+    },
+    {
+      "x": 238.683162683452,
+      "y": -761.467923246121,
+      "date": "2023-02-01",
+      "waypoint": null,
+      "floorplan": "2/F",
+      "hour": 13,
+      "minute": 45
+    },
+    {
+      "x": 213.215192921657,
+      "y": -772.100873344033,
+      "date": "2023-02-26",
+      "waypoint": null,
+      "floorplan": "2/F",
+      "hour": 13,
+      "minute": 6
+    },
+    {
+      "x": 152.499614871885,
+      "y": -781.509714754192,
+      "date": "2023-01-18",
+      "waypoint": null,
+      "floorplan": "2/F",
+      "hour": 13,
+      "minute": 27
+    },
+    {
+      "x": 197.04748851628,
+      "y": -747.070772338884,
+      "date": "2023-01-23",
+      "waypoint": null,
+      "floorplan": "2/F",
+      "hour": 13,
+      "minute": 48
+    },
+    {
+      "x": 224.049980376932,
+      "y": -763.819901023079,
+      "date": "2023-01-10",
+      "waypoint": null,
+      "floorplan": "2/F",
+      "hour": 13,
+      "minute": 30
+    },
+    {
+      "x": 282.367403535888,
+      "y": -772.008793190257,
+      "date": "2023-02-01",
+      "waypoint": null,
+      "floorplan": "2/F",
+      "hour": 13,
+      "minute": 18
+    },
+    {
+      "x": 191.829050624501,
+      "y": -775.698980994362,
+      "date": "2023-02-06",
+      "waypoint": null,
+      "floorplan": "2/F",
+      "hour": 13,
+      "minute": 13
+    },
+    {
+      "x": 236.349441331029,
+      "y": -758.99570302311,
+      "date": "2023-03-11",
+      "waypoint": null,
+      "floorplan": "2/F",
+      "hour": 13,
+      "minute": 7
+    },
+    {
+      "x": 187.226879722778,
+      "y": -784.987704497278,
+      "date": "2023-01-06",
+      "waypoint": null,
+      "floorplan": "2/F",
+      "hour": 13,
+      "minute": 29
+    },
+    {
+      "x": 292.775402426344,
+      "y": -773.138497746248,
+      "date": "2023-02-24",
+      "waypoint": null,
+      "floorplan": "2/F",
+      "hour": 13,
+      "minute": 21
+    }
+  ]
+
+}

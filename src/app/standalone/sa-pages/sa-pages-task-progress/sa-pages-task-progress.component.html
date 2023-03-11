@@ -1,30 +1,47 @@
 
 <div *ngIf="dataSrv.signalRSubj.taskActive.value && dataSrv.signalRSubj.taskActive.value['taskItemList']" class="task-overlay">
-    <div class="header">
-     <span *ngIf="dataSrv.signalRSubj.nextTaskAction.value">
-        {{actions && actions[dataSrv.signalRSubj.nextTaskAction.value] ?actions[dataSrv.signalRSubj.nextTaskAction.value] : dataSrv.signalRSubj.nextTaskAction.value }}
-     </span>
-     <!-- *ngIf="dataSrv.signalRSubj.taskActive.value['taskItemList'][dataSrv.signalRSubj.taskItemIndex.value] &&  
-     dataSrv.signalRSubj.taskActive.value['taskItemList'][dataSrv.signalRSubj.taskItemIndex.value]['actionList'] && 
-     dataSrv.signalRSubj.taskActive.value['taskItemList'][dataSrv.signalRSubj.taskItemIndex.value]['actionList'][dataSrv.signalRSubj.taskActionIndex.value]" -->
-     <!-- {{actions[dataSrv.signalRSubj.taskActive.value['taskItemList'][dataSrv.signalRSubj.taskItemIndex.value]['actionList'][dataSrv.signalRSubj.taskActionIndex.value]['alias']]}} -->
-</div>
+    <div class="task-overlay">
+        <div class="header">
+         <span >
+            {{  dataSrv.signalRSubj.isMovingInTask.value ? 'Moving To' : 'Arrived' | label : uiSrv.langPack}}
+         </span>
+    </div> 
+    
+    <div class="content-panel">
+        <div class="progress">
+            <div class="outerCircle"></div>
+            <div class="innerCircle"></div>
+            <div class="icon"></div>
+            <div class="percent">
+                <span class="value">{{ dataSrv.signalRSubj.taskActive.value['taskItemList'][dataSrv.signalRSubj.taskItemIndex.value]['movement']['waypointName'] | waypointName}}</span>
+            </div>
+        </div>   
+    </div>
 
-<div class="content-panel">
-    <kendo-scrollview *ngIf="uiSrv.isTablet" [data]="scrollViewIndices" [arrows]="!uiSrv.isTablet" [pageable]="true">
-        <ng-template let-item="item">
-            <ng-container *ngIf="item == 2">
-                <app-sa-top-module class="top-module"></app-sa-top-module>
-            </ng-container>
-            <ng-container *ngIf="item == 1"> 
-               <ng-container *ngTemplateOutlet = "progress"></ng-container>
-            </ng-container>
-        </ng-template>
-    </kendo-scrollview>
-    <ng-container *ngIf="!uiSrv.isTablet">        
-        <ng-container *ngTemplateOutlet = "progress"></ng-container>
-    </ng-container>
-</div>
+    
+    <!-- THEY SAID : I DONT WANT TO SEE 0% ON 0314 DEMO !!! -->
+
+    <!-- <div class="header">
+        <span *ngIf="dataSrv.signalRSubj.nextTaskAction.value">
+            {{actions && actions[dataSrv.signalRSubj.nextTaskAction.value] ? actions[dataSrv.signalRSubj.nextTaskAction.value] : dataSrv.signalRSubj.nextTaskAction.value }}
+        </span>
+    </div>
+    
+    <div class="content-panel">
+        <kendo-scrollview *ngIf="uiSrv.isTablet" [data]="scrollViewIndices" [arrows]="!uiSrv.isTablet" [pageable]="true">
+            <ng-template let-item="item">
+                <ng-container *ngIf="item == 2">
+                    <app-sa-top-module class="top-module"></app-sa-top-module>
+                </ng-container>
+                <ng-container *ngIf="item == 1">
+                    <ng-container *ngTemplateOutlet="progress"></ng-container>
+                </ng-container>
+            </ng-template>
+        </kendo-scrollview>
+        <ng-container *ngIf="!uiSrv.isTablet">
+            <ng-container *ngTemplateOutlet="progress"></ng-container>
+        </ng-container>
+    </div> -->
 
 <div class="line-panel">
     <div *ngIf = "dataSrv.signalRSubj.taskActive.value['taskItemList'].length > 5" class="steps">
@@ -74,11 +91,11 @@
         </span>
     </div>
             
-    <div *ngIf = "dataSrv.signalRSubj.taskActive.value['taskItemList'].length <= 5" class="steps" >
+    <div *ngIf = "dataSrv.signalRSubj.taskActive.value['taskItemList'].length <= 5 && dataSrv.signalRSubj.taskActive.value['taskItemList'].length > 1 " class="steps" >
         <span *ngFor = "let taskItem of dataSrv.signalRSubj.taskActive.value['taskItemList'] ; let i = index" [class]="dataSrv.signalRSubj.taskItemIndex.value == i ? 'active' : ''">
             <span *ngIf="i != 0"  class="mdi mdi-chevron-right" [class]="dataSrv.signalRSubj.taskItemIndex.value == i  && dataSrv.signalRSubj.isMovingInTask.value ? 'moving' : ''"></span>
                {{taskItem['movement']['waypointName'] | waypointName}}
-            </span>
+        </span>
     </div>
 </div>
 

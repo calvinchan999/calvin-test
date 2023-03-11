@@ -1,6 +1,6 @@
 :host .floorplan{
-    height: 100%; 
-    width: 100%;
+    height: calc(100% - 10px); 
+    width: calc(100% - 10px); 
     position: absolute;
     background: rgba(0,0,0,0.2);
 }
@@ -10,10 +10,10 @@
     width: 100%;
     object-fit: contain;
     position: absolute;
-    -webkit-filter: grayscale(100%); /* Safari 6.0 - 9.0 */
-    filter: grayscale(100%);
-    filter: invert(100%);
-    filter: chrom;
+    // -webkit-filter: grayscale(100%); /* Safari 6.0 - 9.0 */
+    // filter: grayscale(100%);
+    opacity: 0.7;
+    // filter: invert(100%);
 }
 
 :host .waypoint-scatter-chart{
