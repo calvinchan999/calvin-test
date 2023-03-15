@@ -1,4 +1,8 @@
 {
+    "Operation Name" : "行動",
+    "Event Trigger" : "觸發事件",
+    "Robot Collaboration" : "機械人互動",
+    "Analysis": "分析",
     "Cabinet Avail." : "可用儲存格",
     "Tray Avail.": "可用儲存格",
     "minutes":"分鐘",
