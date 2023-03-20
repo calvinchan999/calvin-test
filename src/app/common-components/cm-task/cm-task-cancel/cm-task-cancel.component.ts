@@ -56,7 +56,7 @@ export class CmTaskCancelComponent implements OnInit {
 
   async cancelTask() {
     let ticket = this.uiSrv.loadAsyncBegin()
-    let result = await this.dataSrv.httpSrv.rvRequest('DELETE', 'task/v1/task?taskId=' + this.taskId + `&reasonCode=${this.frmGrp.controls['reasonCode'].value ? this.frmGrp.controls['reasonCode'].value : '' }&reasonMessage=${this.frmGrp.controls['reasonMessage'].value ? this.frmGrp.controls['reasonMessage'].value : '' }`, 
+    let result = await this.dataSrv.httpSrv.fmsRequest('DELETE', 'task/v1/task?taskId=' + this.taskId + `&reasonCode=${this.frmGrp.controls['reasonCode'].value ? this.frmGrp.controls['reasonCode'].value : '' }&reasonMessage=${this.frmGrp.controls['reasonMessage'].value ? this.frmGrp.controls['reasonMessage'].value : '' }`, 
                                            undefined, true, this.uiSrv.translate("Cancel Task") + ` [${this.taskId}]`
                                         )
                                         

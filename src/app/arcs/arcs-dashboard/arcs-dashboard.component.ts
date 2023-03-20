@@ -207,28 +207,28 @@ export class ArcsDashboardComponent implements OnInit {
     this.me = this
     this.tabs = this.tabs.filter(t=> t.authorized === false || this.authSrv.userAccessList.includes(t.functionId))
     this.selectedTab = 'dashboard'
-    this.dataSrv.subscribeSignalRs(['arcsRobotStatusChange' , 'arcsTaskInfoChange', 'obstacleDetection' , 'tilt' , 'estop'])
+    // this.dataSrv.subscribeSignalRs([ 'obstacleDetection' , 'tilt' , 'estop'])
 
-    this.dataSrv.signalRSubj.arcsRobotStatusChange.pipe(skip(1), takeUntil(this.$onDestroy)).subscribe((c)=>{
-      if(this.selectedTab == 'dashboard' && ( !this.floorPlanFilter || c?.floorPlanCode == this.floorPlanFilter ) && (!this.robotTypeFilter || c?.robotType == this.robotTypeFilter?.toUpperCase())){
-        this.refreshRobotStatus()
+    this.dataSrv.signalRSubj.arcsRobotStatusChange.pipe(skip(1),  filter(v=>v!=null), takeUntil(this.$onDestroy)).subscribe((c)=>{
+      if(this.selectedTab == 'dashboard' ){
+        this.refreshRobotStatus(c.filter(c=>!this.robotTypeFilter || c?.robotType == this.robotTypeFilter?.toUpperCase()))
       }
       if(this.selectedTab == 'group'){
         this.tableRef?.retrieveData();
       }
     })
 
-    this.dataSrv.signalRSubj.arcsWarningChangedRobotCode.pipe(skip(1), takeUntil(this.$onDestroy)).subscribe((c)=>{
-      if(this.selectedTab == 'dashboard' &&  this.robotInfos.map(r=>r.robotCode).includes(c)){
-        this.refreshRobotStatus()
-      }
-    })
+    // this.dataSrv.signalRSubj.arcsWarningChangedRobotCode.pipe(skip(1), takeUntil(this.$onDestroy)).subscribe((c)=>{
+    //   if(this.selectedTab == 'dashboard' &&  this.robotInfos.map(r=>r.robotCode).includes(c)){
+    //     this.refreshRobotStatus()
+    //   }
+    // })
 
-    this.dataSrv.signalRSubj.arcsTaskInfoChange.pipe(skip(1), takeUntil(this.$onDestroy)).subscribe((c)=>{
-      if(this.selectedTab == 'dashboard' &&  ( !this.floorPlanFilter || c?.floorPlanCode == this.floorPlanFilter ) && (!this.robotTypeFilter || c?.robotType == this.robotTypeFilter?.toUpperCase())){
-        this.refreshTaskInfo()
+    this.dataSrv.signalRSubj.arcsTaskInfoChange.pipe(skip(1), filter(v=>v!=null), takeUntil(this.$onDestroy)).subscribe((c)=>{
+      if(this.selectedTab == 'dashboard'){        
+        this.refreshTaskInfo(c.filter(c=>!this.robotTypeFilter || c?.robotType == this.robotTypeFilter?.toUpperCase()))
       }
-      if((!this.robotTypeFilter || c?.robotType == this.robotTypeFilter?.toUpperCase()) && this.selectedTab == 'task' && this.tableRef){
+      if(this.selectedTab == 'task' && this.tableRef){
         this.tableRef.retrieveData();
       }
     })
@@ -236,18 +236,17 @@ export class ArcsDashboardComponent implements OnInit {
   }
 
   ngOnDestroy(){
-    this.$onDestroy.next()
-    this.dataSrv.unsubscribeSignalRs(['arcsRobotStatusChange' , 'arcsTaskInfoChange'])
+    if(this.currentFloorPlan){
+      this.dataSrv.unsubscribeSignalR('arcsTaskInfoChange', false , this.currentFloorPlan.floorPlanCode)
+      this.dataSrv.unsubscribeSignalR('arcsRobotStatusChange', false , this.currentFloorPlan.floorPlanCode)
+    }
+    this.$onDestroy.next()    
   }
   
   async ngOnInit(){
-    // let robotList = <any>(await this.dataSrv.getDropList('robots')).data
     this.robotTypeFilter = this.router.url == '/home' ? null : this.router.url.replace('/', '')
     this.tabs = this.getTabs()
     this.gridSettings = this.getGridSettings()
-    // for(let i = 2000 ; i < new Date().getFullYear() ; i ++){
-    //   this.dropdownOptions.years.push({value : i , text: i.toString()})
-    // }
   }
 
   async ngAfterViewInit() {
@@ -339,7 +338,7 @@ export class ArcsDashboardComponent implements OnInit {
 
   async setFloorplanRobotCount(options :  { value: string, text: string, suffix: string }[]) {
     let ticket = this.uiSrv.loadAsyncBegin()
-    let robotInfo: RobotStatusARCS[] = await this.dataSrv.httpSrv.rvRequest('GET', 'robot/v1/robotInfo' + (this.robotTypeFilter ? `?robotType=${this.robotTypeFilter.toUpperCase()}` : ''), undefined, false)
+    let robotInfo: RobotStatusARCS[] = await this.dataSrv.httpSrv.fmsRequest('GET', 'robot/v1/robotInfo' + (this.robotTypeFilter ? `?robotType=${this.robotTypeFilter.toUpperCase()}` : ''), undefined, false)
     options.forEach((o) => {
       let count = robotInfo.filter(r => r.floorPlanCode == o.value).length
       o.suffix = count == 0 ? undefined : count.toString()
@@ -374,6 +373,10 @@ export class ArcsDashboardComponent implements OnInit {
       this.uiSrv.loadAsyncDone(ticket)
       return 
     }
+    if (this.currentFloorPlan?.floorPlanCode) {
+      this.dataSrv.unsubscribeSignalR('arcsTaskInfoChange', false , this.currentFloorPlan?.floorPlanCode)
+      this.dataSrv.unsubscribeSignalR('arcsRobotStatusChange', false , this.currentFloorPlan?.floorPlanCode)
+    }
     let floorplan = await this.dataSrv.getFloorPlanV2(code);
     this.currentFloorPlan = floorplan
     if(floorplan?.floorPlanCode){
@@ -391,8 +394,10 @@ export class ArcsDashboardComponent implements OnInit {
     }    
    
     this.floorPlanFilter = floorplan.floorPlanCode
-    await this.refreshTaskInfo()
+    // await this.refreshTaskInfo()
     await this.refreshRobotStatus()
+    this.dataSrv.subscribeSignalR('arcsTaskInfoChange' ,  floorplan.floorPlanCode )
+    this.dataSrv.subscribeSignalR('arcsRobotStatusChange' ,  floorplan.floorPlanCode )
     // this.tabs = (floorplan.mapList.length == 0 ? [] : [{ id: '3dMap', label: '3D Map', authorized: false }]).concat(<any>this.getTabs())
     this.uiSrv.loadAsyncDone(ticket)
   }
@@ -428,9 +433,9 @@ export class ArcsDashboardComponent implements OnInit {
     return ret == ''? '' : '?' + ret
   }
 
-  async refreshTaskInfo() {
+  async refreshTaskInfo(data : RobotTaskInfoARCS[] = null) {
     const filters = this.getStatusListUrlParam() 
-    let data: RobotTaskInfoARCS[] = await this.dataSrv.httpSrv.rvRequest('GET', 'task/v1/taskInfo' + filters, undefined, false)    
+    data = data == null ? await this.dataSrv.httpSrv.fmsRequest('GET', 'task/v1/taskInfo' + filters, undefined, false) : data   
     if(filters!= this.getStatusListUrlParam()){ //validate concurrency
       return
     }
@@ -487,12 +492,12 @@ export class ArcsDashboardComponent implements OnInit {
     // }
   }
 
-  async refreshRobotStatus(){
+  async refreshRobotStatus(data: RobotStatus[] = null){
     if(!this.currentFloorPlan){
       return
     }
     const filters = this.getStatusListUrlParam()
-    let data: RobotStatus[] = await this.dataSrv.httpSrv.rvRequest('GET', 'robot/v1/robotInfo' + this.getStatusListUrlParam(), undefined, false)
+    data = data == null ?  await this.dataSrv.httpSrv.fmsRequest('GET', 'robot/v1/robotInfo' + this.getStatusListUrlParam(), undefined, false) : data
     if(filters!= this.getStatusListUrlParam()){ //validate concurrency
       return
     }
@@ -564,7 +569,7 @@ export class ArcsDashboardComponent implements OnInit {
       let d = data[i];
       let robot : Robot | RobotObject3D = this.pixiElRef ? this.pixiElRef?.robots.filter(r=>r.id == d.robotCode)[0] : this.threeJsElRef?.robotObjs.filter(r=>r.robotCode == d.robotCode)[0]
       if (!robot && d.robotStatus == "UNKNOWN" && (this.pixiElRef || this.threeJsElRef)) {// STILL SHOW OFFLINE ROBOT , GET POSE FROM API
-        let pose: { x: number, y: number, angle: number } = await this.httpSrv.rvRequest('GET', 'robotStatus/v1/robotTaskStatus/pose/' + d.robotCode, undefined, false)
+        let pose: { x: number, y: number, angle: number } = await this.httpSrv.fmsRequest('GET', 'robotStatus/v1/robotTaskStatus/pose/' + d.robotCode, undefined, false)
         let mapCode = this.currentFloorPlan.mapList.map(m => m.mapCode)[0]
         let robotInfo = (await this.dataSrv.getRobotList()).filter(r => r.robotCode == d.robotCode)[0]
         let arcsPoseObj = this.dataSrv.signalRSubj.arcsPoses.value ? JSON.parse(JSON.stringify(this.dataSrv.signalRSubj.arcsPoses.value)) : {}

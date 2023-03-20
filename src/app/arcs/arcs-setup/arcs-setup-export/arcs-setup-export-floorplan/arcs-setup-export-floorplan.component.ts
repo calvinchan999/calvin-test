@@ -48,7 +48,7 @@ export class ArcsSetupExportFloorplanComponent implements OnInit {
 
   async getStandaloneFloorPlanList(robotCode : string) : Promise<AMRfloorPlanResponse[]>{
     let ticket = this.uiSrv.loadAsyncBegin()
-    let ret = await this.httpSrv.rvRequest("GET",`dataSync/v1/floorPlanList/${robotCode}` , undefined, false)
+    let ret = await this.httpSrv.fmsRequest("GET",`dataSync/v1/floorPlanList/${robotCode}` , undefined, false)
     this.uiSrv.loadAsyncDone(ticket)
     return ret
   }
@@ -88,7 +88,7 @@ export class ArcsSetupExportFloorplanComponent implements OnInit {
     let saFps = await this.getStandaloneFloorPlanList(robotCode)
     let arcsLinkedMap : DropListMap = (<DropListMap[]>(await this.dataSrv.getDropList('maps')).data).filter((m)=> m.floorPlanCode == fpCode && m.robotBase == this.frmGrp.controls['robotBase'].value)[0]
     let oldFloorPlan : AMRfloorPlanResponse = saFps.filter(m=>m.floorPlanCode == fpCode)[0]
-    let saMaps : DropListMap[] = await this.httpSrv.rvRequest("GET",`dataSync/v1/mapList/${this.frmGrp.controls['robotCode'].value}` , undefined, false)
+    let saMaps : DropListMap[] = await this.httpSrv.fmsRequest("GET",`dataSync/v1/mapList/${this.frmGrp.controls['robotCode'].value}` , undefined, false)
     let oldMap = saMaps.filter(m => arcsLinkedMap && m.mapCode == arcsLinkedMap.mapCode)[0]
     if(oldFloorPlan && !await this.uiSrv.showConfirmDialog(this.uiSrv.translate('Floor plan record already exist in the robot. Are you sure to overwrite the existing record ?'))){
       return false
@@ -104,7 +104,7 @@ export class ArcsSetupExportFloorplanComponent implements OnInit {
       return
     }
     let ticket = this.uiSrv.loadAsyncBegin()
-    let result  = await this.httpSrv.rvRequest("PUT",`dataSync/v1/floorPlanCode/export/${this.frmGrp.controls['robotCode'].value}/${this.frmGrp.controls['floorPlanCode'].value}` ,undefined , true , "Start Floor Plan Export")
+    let result  = await this.httpSrv.fmsRequest("PUT",`dataSync/v1/floorPlanCode/export/${this.frmGrp.controls['robotCode'].value}/${this.frmGrp.controls['floorPlanCode'].value}` ,undefined , true , "Start Floor Plan Export")
     if(result?.['status'] == 200){
       this.dialogRef.close()
     }

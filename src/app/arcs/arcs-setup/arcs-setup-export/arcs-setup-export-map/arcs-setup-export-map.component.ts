@@ -53,7 +53,7 @@ export class ArcsSetupExportMapComponent implements OnInit {
 
   async getStandaloneMapList(robotCode : string) : Promise<DropListMap[]>{
     let ticket = this.uiSrv.loadAsyncBegin()
-    let maps = await this.httpSrv.rvRequest("GET",`dataSync/v1/mapList/${robotCode}` , undefined, false)
+    let maps = await this.httpSrv.fmsRequest("GET",`dataSync/v1/mapList/${robotCode}` , undefined, false)
     this.uiSrv.loadAsyncDone(ticket)
     return maps
   }
@@ -103,7 +103,7 @@ export class ArcsSetupExportMapComponent implements OnInit {
       return
     }
     let ticket = this.uiSrv.loadAsyncBegin()
-    let result  = await this.httpSrv.rvRequest("PUT",`dataSync/v1/map/export/${this.frmGrp.controls['robotCode'].value}/${this.frmGrp.controls['mapCode'].value}` ,undefined , true , "Start Map Export")
+    let result  = await this.httpSrv.fmsRequest("PUT",`dataSync/v1/map/export/${this.frmGrp.controls['robotCode'].value}/${this.frmGrp.controls['mapCode'].value}` ,undefined , true , "Start Map Export")
     if(result?.['status'] == 200){
       this.dialogRef.close()
     }

@@ -202,7 +202,7 @@ export class SaControlComponent implements OnInit , OnDestroy  {
   
   async sendSafetyZoneRequestToRV(){
     let ticket = this.uiSrv.loadAsyncBegin()
-    if( await this.httpSrv.rvRequest('PUT','baseControl/v1/safetyZone/' + this.configObj.safetyZone.mode, undefined,true, "Set Safety Zone")){
+    if( await this.httpSrv.fmsRequest('PUT','baseControl/v1/safetyZone/' + this.configObj.safetyZone.mode, undefined,true, "Set Safety Zone")){
       this.configObj.type = null
       this.configObj.title = null
     }
@@ -212,7 +212,7 @@ export class SaControlComponent implements OnInit , OnDestroy  {
   
   async sendMaxSpeedRequestToRV(){
     let ticket = this.uiSrv.loadAsyncBegin()
-    if( await this.httpSrv.rvRequest('PUT','baseControl/v1/speed/' + this.configObj.maxSpeed.limit, undefined,true, "Set Maximum Speed")){
+    if( await this.httpSrv.fmsRequest('PUT','baseControl/v1/speed/' + this.configObj.maxSpeed.limit, undefined,true, "Set Maximum Speed")){
       this.configObj.type = null
       this.configObj.title = null
     }
@@ -221,7 +221,7 @@ export class SaControlComponent implements OnInit , OnDestroy  {
   
   async loadSafety(){
     let ticket = this.uiSrv.loadAsyncBegin()
-    let data : {safetyZoneMode : string , maximumSpeed : number} = await this.httpSrv.rvRequest('GET', 'baseControl/v1/safety' , undefined , false)
+    let data : {safetyZoneMode : string , maximumSpeed : number} = await this.httpSrv.fmsRequest('GET', 'baseControl/v1/safety' , undefined , false)
     if(this.configObj.type == 'safetyZone'){
       this.configObj.safetyZone.mode = data.safetyZoneMode 
     }else if(this.configObj.type == 'maxSpeed'){

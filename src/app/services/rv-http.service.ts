@@ -1,7 +1,8 @@
 import { HttpClient } from '@angular/common/http';
 import { Injectable } from '@angular/core';
+import { skip } from '@progress/kendo-data-query/dist/npm/transducers';
 import { BehaviorSubject, Observable, of, Subject, timer } from 'rxjs';
-import { catchError, map, retry, share, switchMap, takeUntil } from 'rxjs/operators';
+import { catchError, filter, map, retry, share, switchMap, take, takeUntil } from 'rxjs/operators';
 import { GeneralUtil } from 'src/app/utils/general/general.util';
 import { SignalRService } from './signal-r.service';
 import { UiService } from './ui.service';
@@ -17,16 +18,18 @@ export class RvHttpService {
 
   stopPollings = new Subject()
   pollingcontrollers = [this.stopPollings]
-  
-  public async rvRequest(method : 'POST' | 'PUT' | 'GET' | 'DELETE', rvEndpoint: string, body: object = {} , fullResponse = true, dispMsg = null , extraMsgPaths = null ,  throwErr = false ): Promise<any>{
+
+  public async fmsRequest(method : 'POST' | 'PUT' | 'GET' | 'DELETE', rvEndpoint: string, body: object = {} , fullResponse = true, dispMsg = null , extraMsgPaths = null ,  throwErr = false ): Promise<any>{
     try{
-      
-      let resp = await this.http.request('post', this.generalUtil.getRvApiUrl() + '/rv', 
-                                     { body: {
-                                       method:method,
-                                       parameter:'/' + rvEndpoint,
-                                       data:body
-                                     } , observe: fullResponse ? 'response' : 'body'}).toPromise()
+      let resp = await this.http.request('post', `${this.generalUtil.getRvApiUrl()}/fms/restApi?method=${method}&endpoint=%2F${rvEndpoint.split("/").join("%2F")}`,
+        {
+          body: {
+            // method: method,
+            // parameter: '/' + rvEndpoint,
+            data: body
+          }, observe: fullResponse ? 'response' : 'body'
+        }).toPromise()
+
       if (dispMsg && resp?.status == 200) {
         let getResultFromPath = (resp , paths)=>{
           return paths.length == 0 ? resp : getResultFromPath(resp[paths.shift()], paths)

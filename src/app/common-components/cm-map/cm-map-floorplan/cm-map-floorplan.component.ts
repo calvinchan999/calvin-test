@@ -442,7 +442,7 @@ export class CmMapFloorplanComponent implements OnInit {
   }
 
   async getPoseAndAddWaypoint_SA(){
-    let resp: { x: number, y: number, angle : number , mapName: string } = await this.httpSrv.rvRequest('GET', 'localization/v1/pose', undefined, false)
+    let resp: { x: number, y: number, angle : number , mapName: string } = await this.httpSrv.fmsRequest('GET', 'localization/v1/pose', undefined, false)
     if (this.mapCode != resp.mapName) {
       this.uiSrv.showMsgDialog('Current map not match with selected map')
     } else if (this.pixiElRef) {

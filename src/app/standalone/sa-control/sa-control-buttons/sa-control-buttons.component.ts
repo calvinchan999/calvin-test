@@ -160,7 +160,7 @@ export class SaControlButtonsComponent implements OnInit ,  OnDestroy {
             })
           }          
         }
-        await this.httpSrv.rvRequest(requestMap[id]['method'].toUpperCase(), requestMap[id]['url'] , ( requestMap[id]['body'] ? requestMap[id]['body'] : null) , true, label)
+        await this.httpSrv.fmsRequest(requestMap[id]['method'].toUpperCase(), requestMap[id]['url'] , ( requestMap[id]['body'] ? requestMap[id]['body'] : null) , true, label)
       }
       catch(err){
         console.log(err)
@@ -184,7 +184,7 @@ export class SaControlButtonsComponent implements OnInit ,  OnDestroy {
     this.uiSrv.awaitSignalRBegin(this.dataSrv.signalRSubj.isFollowMeMode)
     let ticket = this.uiSrv.loadAsyncBegin()
     let mapCode = (<DropListMap[]>this.dropdownData.maps).filter((d)=> d.mapCode == this.optionObj.followMe.map)[0]?.mapCode
-    let resp = await this.httpSrv.rvRequest("POST", "mode/v1/followMe" + (this.optionObj.followMe.withMap ? `/${mapCode}` : ''), undefined, true, "Follow Me")
+    let resp = await this.httpSrv.fmsRequest("POST", "mode/v1/followMe" + (this.optionObj.followMe.withMap ? `/${mapCode}` : ''), undefined, true, "Follow Me")
     if(resp.status == 200){
       this.optionObj.type  = null
       // let resp2 = await this.httpSrv.rvRequest("POST", "followMe/v1/pairing/pair" , undefined, true, "Follow Me")
@@ -197,10 +197,10 @@ export class SaControlButtonsComponent implements OnInit ,  OnDestroy {
 
   async sendStopRequestToRV(){
     let ticket = this.uiSrv.loadAsyncBegin()
-    let resp = await this.httpSrv.rvRequest("DELETE", "task/v1/move?finishMovement=" + this.optionObj.stop.finishMovement.toString())
+    let resp = await this.httpSrv.fmsRequest("DELETE", "task/v1/move?finishMovement=" + this.optionObj.stop.finishMovement.toString())
     let resp2 = null
     if(!this.optionObj.stop.finishMovement){
-        resp2 = await this.httpSrv.rvRequest("DELETE", "navigation/v1" ) 
+        resp2 = await this.httpSrv.fmsRequest("DELETE", "navigation/v1" ) 
     }
     this.uiSrv.loadAsyncDone(ticket)
     if(resp.status == 200 && (resp2 == null || resp2.status == 200)){
@@ -218,7 +218,7 @@ export class SaControlButtonsComponent implements OnInit ,  OnDestroy {
       upperLimit: this.optionObj.charge.upperLimit / 100 , 
       duration: this.optionObj.charge.duration * 60000, 
     }
-    let resp = await this.httpSrv.rvRequest("POST", "docking/v1/charging" , body )
+    let resp = await this.httpSrv.fmsRequest("POST", "docking/v1/charging" , body )
     if (resp.status == 200 && resp.body && JSON.parse(resp.body)?.status == 'SUCCEEDED') {
       this.optionObj.type = null
       this.uiSrv.showNotificationBar(this.uiSrv.translate("Operation Successs") + '- ' + this.uiSrv.translate('Charge'), 'success')

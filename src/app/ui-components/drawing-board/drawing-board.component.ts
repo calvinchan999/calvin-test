@@ -28,6 +28,7 @@ import { PositionService } from '@progress/kendo-angular-popup';
 import { toJSON } from '@progress/kendo-angular-grid/dist/es2015/filtering/operators/filter-operator.base';
 import { ArcsDashboardComponent } from 'src/app/arcs/arcs-dashboard/arcs-dashboard.component';
 import { ConfigService } from 'src/app/services/config.service';
+import {AdjustmentFilter} from '@pixi/filter-adjustment';
 
 // adapted from
 // http://jsfiddle.net/eZQdE/43/
@@ -154,7 +155,8 @@ export class DrawingBoardComponent implements OnInit , AfterViewInit , OnDestroy
     showRosMap : true,
     showWaypoint : true,
     showWaypointName : true,
-    showPath : false
+    showPath : false,
+    darkMode : true
   }
 
   @Input() set fullScreen(b) {
@@ -266,6 +268,7 @@ export class DrawingBoardComponent implements OnInit , AfterViewInit , OnDestroy
     polygon : { color : "#000000" , opacity: 1 },
     arrow : {color : "#1e90ff" , opacity: 1 },
     marker : {color : "#5f259f" , opacity: 1 },
+    markerLight : {color : "#cbacec" , opacity: 1 },
   }
   point = {type : 'waypoint'}
 
@@ -492,6 +495,7 @@ export class DrawingBoardComponent implements OnInit , AfterViewInit , OnDestroy
 
   constructor(public util: GeneralUtil, public changeDetector: ChangeDetectorRef,private renderer: Renderer2 , public dataSrv : DataService, public configSrv : ConfigService,
               public uiSrv : UiService,  public httpSrv : RvHttpService, public elRef : ElementRef, public ngZone : NgZone , public authSrv : AuthService) {
+                
 
   }
 
@@ -510,6 +514,16 @@ export class DrawingBoardComponent implements OnInit , AfterViewInit , OnDestroy
       this.uiSrv.drawingBoardComponents.push(this)
     }
     this.overlayMsg = this.isDashboard && this.util.standaloneApp ? this.uiSrv.translate("Initializing ...") : this.overlayMsg 
+    this.uitoggle.darkMode = this.isDashboard
+    if(this.isDashboard && this.dataSrv.getLocalStorage('uitoggle')){
+      let storedToggle =  JSON.parse(this.dataSrv.getLocalStorage('uitoggle')) //SHARED by 2D & 3D viewport
+      Object.keys(storedToggle).forEach(k=> {
+        if(Object.keys(this.uitoggle).includes(k)){
+          this.uitoggle[k] = storedToggle[k] 
+        }
+      })
+      // this.uitoggle = JSON.parse(this.dataSrv.getlocalStorage('uitoggle'))
+    }
   }
 
   async ngAfterViewInit() {
@@ -537,6 +551,10 @@ export class DrawingBoardComponent implements OnInit , AfterViewInit , OnDestroy
       this.endEdit();
       this.endDraw();
       this._ngPixi.viewport.on('zoomed',()=>this.onViewportZoomed.next(true))
+
+      this._ngPixi.app.renderer.transparent = false
+      this._ngPixi.app.renderer.backgroundColor = 0xFFFFFF
+
       this.onViewportZoomed.pipe(filter(v=>v!=null), takeUntil(this.onDestroy)).subscribe(()=>{
         this.refreshRobotScale()
       })
@@ -984,7 +1002,7 @@ export class DrawingBoardComponent implements OnInit , AfterViewInit , OnDestroy
       let base64 = (<DropListPointIcon[]>this.dropdownData.iconTypes).filter(t=>t.code == pointType)[0]?.base64Image
       iconUrl = base64 && base64 != "" ? base64 : null
     }
-    option.fillColor = Number(this.selectedStyle.marker.color.replace("#", "0x"))
+    option.fillColor = Number((this._ngPixi.app.renderer.transparent ? this.selectedStyle.markerLight : this.selectedStyle.marker).color.replace("#", "0x"))
     option.lineColor = option.fillColor
     option.opacity = this.selectedStyle.marker.opacity
     if(text == null){
@@ -1845,6 +1863,7 @@ export class DrawingBoardComponent implements OnInit , AfterViewInit , OnDestroy
   }
 
   async loadFloorPlanDatasetV2(dataset: JFloorPlan, readonly = false, locationOnly = null, showFloorPlanName = true, setCamera = true) {
+    this.toggleDarkMode(this.uitoggle.darkMode)
     let ret = new Subject()
     let ticket
     this.ngZone.runOutsideAngular(async () => {
@@ -1962,15 +1981,6 @@ export class DrawingBoardComponent implements OnInit , AfterViewInit , OnDestroy
         pixiArrow.visible = false
       }
     })
-    if(this.isDashboard && this.dataSrv.getLocalStorage('uitoggle')){
-      let storedToggle =  JSON.parse(this.dataSrv.getLocalStorage('uitoggle')) //SHARED by 2D & 3D viewport
-      Object.keys(storedToggle).forEach(k=> {
-        if(Object.keys(this.uitoggle).includes(k)){
-          this.uitoggle[k] = storedToggle[k] 
-        }
-      })
-      // this.uitoggle = JSON.parse(this.dataSrv.getlocalStorage('uitoggle'))
-    }
     this.toggleWaypoint(this.uitoggle.showWaypoint)
     this.togglePath()
     return ret
@@ -2123,16 +2133,16 @@ export class DrawingBoardComponent implements OnInit , AfterViewInit , OnDestroy
     let resp
     // let waypointDispName 
     if(this.pickLocObj.enable){
-      resp = await this.httpSrv.rvRequest('POST', 'navigation/v1/pose', {
+      resp = await this.httpSrv.fmsRequest('POST', 'navigation/v1/pose', {
          x : this.pickLocObj.rosX,
          y : this.pickLocObj.rosY,
          angle :  trimAngle( 90 - this.pickLocObj.angle ) / radRatio
       })  
     }else{
-      await this.httpSrv.rvRequest('POST', 'mode/v1/navigation')
+      await this.httpSrv.fmsRequest('POST', 'mode/v1/navigation')
       // let waypointName = this.selectedLocation
       // waypointDispName = new PixiCommon().getWayPointDispName(waypointName)
-      resp = await this.httpSrv.rvRequest('POST', 'navigation/v1', {
+      resp = await this.httpSrv.fmsRequest('POST', 'navigation/v1', {
         waypointName:  this.selectedLocation,
         navigationMode: "AUTONOMY",
         orientationIgnored: false,
@@ -2166,10 +2176,10 @@ export class DrawingBoardComponent implements OnInit , AfterViewInit , OnDestroy
     let ticket = this.uiSrv.loadAsyncBegin()
     if(changeMap){
       if (!this.dataSrv.signalRSubj.isFollowMeMode) {
-        await this.httpSrv.rvRequest('POST', 'mode/v1/navigation')
+        await this.httpSrv.fmsRequest('POST', 'mode/v1/navigation')
       }
       // let targetMap = (<DropListMap[]>this.dropdownData.maps).filter(m => m.mapId == this.spawnPointObj.selectedMap)[0].mapCode
-      await this.httpSrv.rvRequest('POST', 'map/v1/change', { mapName: this.spawnPointObj.selectedMap, useInitialPose: false, waypointName: null })
+      await this.httpSrv.fmsRequest('POST', 'map/v1/change', { mapName: this.spawnPointObj.selectedMap, useInitialPose: false, waypointName: null })
       Object.values(this.mapContainerStore).filter(v => v).forEach(v => (<any>v).visible = true)
       this.uiSrv.showNotificationBar("Map changed successfully" , 'success')
       this.spawnPointObj.rosX = 0
@@ -2177,7 +2187,7 @@ export class DrawingBoardComponent implements OnInit , AfterViewInit , OnDestroy
       this.spawnPointObj.rotation =  0
     } else {
       await this.getDropList()
-      let poseResp: { x: number, y: number, mapName: string, angle: number } = await this.httpSrv.rvRequest('GET', 'localization/v1/pose', undefined, false)
+      let poseResp: { x: number, y: number, mapName: string, angle: number } = await this.httpSrv.fmsRequest('GET', 'localization/v1/pose', undefined, false)
       //let poseResp  = {x : 0 , y:0 , mapName : "5W_0429" , angle : 0}
       this.spawnPointObj.rotation = trimAngle(poseResp.angle * radRatio)
       this.spawnPointObj.rosX = poseResp.x
@@ -2200,7 +2210,7 @@ export class DrawingBoardComponent implements OnInit , AfterViewInit , OnDestroy
     // this.initRoundSlider()    
     this.spawnPointObj.x = this.spawnPointObj.markerGraphic?.position.x
     this.spawnPointObj.y = this.spawnPointObj.markerGraphic?.position.y
-    let lidarResp = await this.httpSrv.rvRequest('GET' , 'lidar/v1',undefined,false)
+    let lidarResp = await this.httpSrv.fmsRequest('GET' , 'lidar/v1',undefined,false)
     // let lidarResp = JSON.parse(`
     // {
     //   "robotId": "J6-RV-FR-001",
@@ -2619,13 +2629,13 @@ export class DrawingBoardComponent implements OnInit , AfterViewInit , OnDestroy
     // }
     // await this.httpSrv.rvRequest('POST' , 'map/v1/change' , { mapName: this.spawnPointObj.selectedMap, useInitialPose: false,  waypointName: null})
     if(this.spawnPointObj.markerGraphic){
-      await this.httpSrv.rvRequest('PUT' , 'localization/v1/initialPose' , 
+      await this.httpSrv.fmsRequest('PUT' , 'localization/v1/initialPose' , 
         { x: this.calculateRosX(this.spawnPointObj.x) , 
           y : this.calculateRosY(this.spawnPointObj.y) ,
           angle: this.util.trimNum((this.spawnPointObj.rotation) /radRatio) 
         },undefined, this.uiSrv.translate('Localize'))
     }else{
-      await this.httpSrv.rvRequest('PUT' , 'localization/v1/' + ((<DropListLocation[]> this.dropdownData.locations).filter(l=>l.pointCode == this.selectedLocation)[0]).pointCode,undefined,undefined, this.uiSrv.translate('Localize'))    
+      await this.httpSrv.fmsRequest('PUT' , 'localization/v1/' + ((<DropListLocation[]> this.dropdownData.locations).filter(l=>l.pointCode == this.selectedLocation)[0]).pointCode,undefined,undefined, this.uiSrv.translate('Localize'))    
     }
     this.resetLidarLayer()
   }
@@ -2790,6 +2800,56 @@ export class DrawingBoardComponent implements OnInit , AfterViewInit , OnDestroy
     })    
     if(toggleFloorplan){
       this.backgroundSprite.visible = !this.uitoggle.showRosMap 
+    }
+  }
+
+  toggleDarkMode(on) {
+    this.uitoggle.darkMode =  on
+    const vertexShader = null;
+    const fragmentShader = [
+      "varying vec2 vTextureCoord;",
+
+      "uniform float thresholdSensitivity;",
+      "uniform float smoothing;",
+      "uniform vec3 colorToReplace;",
+      "uniform sampler2D uSampler;",
+
+      "void main() {",
+      "vec4 textureColor = texture2D(uSampler, vTextureCoord);",
+
+      "float maskY = 0.2989 * colorToReplace.r + 0.5866 * colorToReplace.g + 0.1145 * colorToReplace.b;",
+      "float maskCr = 0.7132 * (colorToReplace.r - maskY);",
+      "float maskCb = 0.5647 * (colorToReplace.b - maskY);",
+
+      "float Y = 0.2989 * textureColor.r + 0.5866 * textureColor.g + 0.1145 * textureColor.b;",
+      "float Cr = 0.7132 * (textureColor.r - Y);",
+      "float Cb = 0.5647 * (textureColor.b - Y);",
+
+      "float blendValue = smoothstep(thresholdSensitivity, thresholdSensitivity + smoothing, distance(vec2(Cr, Cb), vec2(maskCr, maskCb)));",
+      "gl_FragColor = vec4(textureColor.rgb, textureColor.a * blendValue);",
+      "}"
+    ].join('\n');  
+    this._ngPixi.app.renderer.transparent =  this.uitoggle.darkMode 
+    this._ngPixi.app.renderer.backgroundColor = this._ngPixi.app.renderer.transparent ? 0x000000 : 0xFFFFFF
+    if( this.backgroundSprite){
+      const colorMatrix = new PIXI.filters.ColorMatrixFilter();
+      colorMatrix.brightness(0.7, true);  
+      colorMatrix.negative(true);     
+      const chroma = new PIXI.Filter(vertexShader, fragmentShader);
+      chroma.uniforms.thresholdSensitivity = 0.2
+      chroma.uniforms.smoothing = 0.05
+      chroma.uniforms.colorToReplace = [(0 / 255), (0 / 255), (0 / 255)]
+
+      this.backgroundSprite.filters = this._ngPixi.app.renderer.transparent ? [colorMatrix, chroma ] : null;
+      this.allPixiPoints.forEach((p:PixiLocPoint)=>{
+        p.option.fillColor = new PixiCommon().hexToNumColor(this._ngPixi.app.renderer.transparent ? this.selectedStyle.markerLight.color : this.selectedStyle.marker.color)
+        p.option.lineColor = p.option.fillColor 
+        p.draw();
+      })
+      // this.backgroundSprite.alpha = this._ngPixi.app.renderer.transparent ? 0.85 : 1     
+    }
+    if(this.isDashboard){
+      this.updateUiToggleLocalStorage()
     }
   }
 
@@ -3044,7 +3104,7 @@ export class DrawingBoardComponent implements OnInit , AfterViewInit , OnDestroy
 
   async subscribeLiveLidar_SA(){
     let ticket = this.uiSrv.loadAsyncBegin()
-    await this.httpSrv.rvRequest("POST","lidar/v1/laserScanToPointCloud/start")
+    await this.httpSrv.fmsRequest("POST","lidar/v1/laserScanToPointCloud/start")
     await this.dataSrv.subscribeSignalRs(['lidar','lidarStatus']);
     if(this.liveLidarObj.statusSubscription){
       this.liveLidarObj.statusSubscription.unsubscribe()
@@ -3052,7 +3112,7 @@ export class DrawingBoardComponent implements OnInit , AfterViewInit , OnDestroy
     this.liveLidarObj.statusSubscription = this.dataSrv.signalRSubj.lidarSwitchedOn.pipe(skip(1), filter(on => !on)).subscribe(() => {
       if (this.liveLidarObj.show) {
         console.log('lidar turned off . restarting ...')
-        this.httpSrv.rvRequest("POST", "lidar/v1/laserScanToPointCloud/start")
+        this.httpSrv.fmsRequest("POST", "lidar/v1/laserScanToPointCloud/start")
       }
     })    
     this.liveLidarObj.show = true
@@ -3065,7 +3125,7 @@ export class DrawingBoardComponent implements OnInit , AfterViewInit , OnDestroy
 
   async unsubscribeLiveLidar_SA(){
     let ticket = this.uiSrv.loadAsyncBegin()
-    await this.httpSrv.rvRequest("POST","lidar/v1/laserScanToPointCloud/stop")
+    await this.httpSrv.fmsRequest("POST","lidar/v1/laserScanToPointCloud/stop")
     await this.dataSrv.unsubscribeSignalRs(['lidar' , 'lidarStatus']);
     this.liveLidarObj.show = false
     this.toggleRosMap(false)
@@ -4672,6 +4732,7 @@ export class PixiLocPoint extends PixiCommon {
     this.inputBg.clear()
     this.input.disabled = this.uiSrv?.isTablet || !selected  || this.readonly
     this.input.text = this.text
+    let bgColor = Math.abs(0xffffff - this.option.fillColor) < Math.abs(0x000000 - this.option.fillColor)  ? 0x444444 : 0xffffff
     if(!useInput){
       this.input.visible = false
       this.readOnlyPixiText.visible = this.getMasterComponent()?.uitoggle.showWaypointName
@@ -4682,11 +4743,11 @@ export class PixiLocPoint extends PixiCommon {
         this.addChild(this.readOnlyPixiText)
       }
       this.readOnlyPixiText.text = this.text?.length > 15 ? this.text?.substring(0 , 15) + '...' : this.text
-      this.inputBg.lineStyle(0).beginFill(0xffffff, 0.7).drawRect(-this.readOnlyPixiText.width / 2 - 10 , this.readOnlyPixiText.height - 7, this.readOnlyPixiText.width + 20, this.readOnlyPixiText.height + 10 ).endFill()
+      this.inputBg.lineStyle(0).beginFill(bgColor, 0.7).drawRect(-this.readOnlyPixiText.width / 2 - 10 , this.readOnlyPixiText.height - 7, this.readOnlyPixiText.width + 20, this.readOnlyPixiText.height + 10 ).endFill()
     } else {
       this.input.visible = true
       this.readOnlyPixiText.visible = false
-      this.inputBg.lineStyle(0).beginFill(0xffffff, 0.7).drawRect(this.input.position.x, this.input.position.y, this.input.width, this.input.height).endFill()
+      this.inputBg.lineStyle(0).beginFill(bgColor, 0.7).drawRect(this.input.position.x, this.input.position.y, this.input.width, this.input.height).endFill()
     }
     setTxtColor()  
   }

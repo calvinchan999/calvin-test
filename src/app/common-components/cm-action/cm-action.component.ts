@@ -105,7 +105,7 @@ export class CmActionComponent implements OnInit {
     let typeDropObj = await this.dataSrv.getDropList("types");
     this.dropdownData.types = typeDropObj.data
     this.dropdownOptions.types =  typeDropObj.options
-    let aliases = await this.httpSrv.rvRequest("GET","action/v1/alias",undefined,false)
+    let aliases = await this.httpSrv.fmsRequest("GET","action/v1/alias",undefined,false)
     this.dropdownData.alias = aliases.map(a=>{return {text: a , value : a}})
     this.dropdownOptions.alias = JSON.parse(JSON.stringify(this.dropdownData.alias))
     console.log( this.dropdownOptions)
@@ -132,7 +132,7 @@ export class CmActionComponent implements OnInit {
     let alias = this.frmGrp.controls['actionAlias'].value
     if(alias!=null && !Object.keys(this.aliasParas).includes(alias)){
       let ticket = this.uiSrv.loadAsyncBegin()
-      let params = (await this.httpSrv.rvRequest("GET","action/v1/parameter/" + alias,undefined,false))
+      let params = (await this.httpSrv.fmsRequest("GET","action/v1/parameter/" + alias,undefined,false))
       this.aliasParas[alias] = params.map(p=>{return {key: p.name ,  datatype: p.type ,  form: new FormGroup({label : new FormControl()})}})
       this.uiSrv.loadAsyncDone(ticket)
     }

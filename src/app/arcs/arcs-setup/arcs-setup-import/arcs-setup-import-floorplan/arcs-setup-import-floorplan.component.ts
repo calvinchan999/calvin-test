@@ -55,7 +55,7 @@ export class ArcsSetupImportFloorplanComponent implements OnInit {
     }
     this.dropdown.options.floorplans = []
     let ticket = this.uiSrv.loadAsyncBegin()
-    this.dropdown.data.floorplans =  await this.httpSrv.rvRequest("GET",`dataSync/v1/floorPlanList/${robotCode}` , undefined, false)
+    this.dropdown.data.floorplans =  await this.httpSrv.fmsRequest("GET",`dataSync/v1/floorPlanList/${robotCode}` , undefined, false)
     this.dropdown.options.floorplans = this.dataSrv.getDropListOptions('floorplans' , this.dropdown.data.floorplans)
     this.uiSrv.loadAsyncDone(ticket)
   }
@@ -111,7 +111,7 @@ export class ArcsSetupImportFloorplanComponent implements OnInit {
       return
     }
     let ticket = this.uiSrv.loadAsyncBegin()
-    let result  = await this.httpSrv.rvRequest("PUT",`dataSync/v1/floorPlanCode/import/${this.frmGrp.controls['robotCode'].value}/${this.frmGrp.controls['floorPlanCode'].value}` ,undefined , true , "Start Floor Plan Import")
+    let result  = await this.httpSrv.fmsRequest("PUT",`dataSync/v1/floorPlanCode/import/${this.frmGrp.controls['robotCode'].value}/${this.frmGrp.controls['floorPlanCode'].value}` ,undefined , true , "Start Floor Plan Import")
     if(result?.['status'] == 200){
       this.dialogRef.close()
     }

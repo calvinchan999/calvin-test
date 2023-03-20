@@ -3,7 +3,7 @@
 </ng-container>
 
 <ng-template #pixiTpl>
-  <div #container class = 'drawing-board-container'
+  <div #container 
        (contextmenu)=" !uiSrv.isTablet && selectedGraphics ? selectGraphics(null) : null ; drawObj?.type ? $event.preventDefault() : null; endDraw();"
        style="width: 100%; height: 100%;" class="drawing-board" [style.cursor]="mode == 'draw'? 'crosshair':''">
   <ng-pixi-viewport [fullScreen] = "_fullScreen" >
@@ -62,8 +62,13 @@
       </button>
       
       <button *ngIf="isDashboard && util.arcsApp && arcsLocationTree.currentLevel == 'floorplan'" kendoButton class="3d-switch" [matTooltip]="'3D Map' | label : uiSrv.langPack"  
-                (click)="dataSrv.setLocalStorage('dashboardMapType' , '3D');to3D.emit()" >
+                (click)="dataSrv.setLocalStorage('dashboardMapType' , '3D'); to3D.emit()" >
           <span [class]="'mdi mdi-video-3d'"></span>
+      </button>
+
+      <button *ngIf="isDashboard && util.arcsApp && arcsLocationTree.currentLevel == 'floorplan'" kendoButton class="dark-mode-switch" [matTooltip]="'Light / Dark Map' | label : uiSrv.langPack"  
+                (click)="toggleDarkMode(!uitoggle.darkMode)"  [ngClass]="{'btn-active': uitoggle.darkMode}">
+          <span [class]="'mdi mdi-theme-light-dark'"></span>
       </button>
 
       <ng-container *ngIf="!hideButton.all">       

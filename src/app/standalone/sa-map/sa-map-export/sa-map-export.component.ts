@@ -37,7 +37,7 @@ export class SaMapExportComponent implements OnInit {
   async initMapOptions(){
     let ticket = this.uiSrv.loadAsyncBegin()
     this.mapDropdownOptions = <any>(await this.dataSrv.getDropList('maps')).options
-    let amrMapsResp : {name : string}[] = await this.dataSrv.httpSrv.rvRequest("GET" , 'map/v1', null , false)
+    let amrMapsResp : {name : string}[] = await this.dataSrv.httpSrv.fmsRequest("GET" , 'map/v1', null , false)
     let amrMaps =  amrMapsResp.filter(m=>!this.mapDropdownOptions.map(o=>o.value).includes(m.name)).map( m=>{return {value : m.name , text : `${m.name} (AMR)`}})
     this.mapDropdownOptions = amrMaps.concat(this.mapDropdownOptions)
     this.uiSrv.loadAsyncDone(ticket)

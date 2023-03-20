@@ -136,8 +136,8 @@ export class DataService {
     speed: new BehaviorSubject<any>(' - '),
     lidarSwitchedOn : new BehaviorSubject<any>(null),
     taskPopupRequest: new BehaviorSubject<{guiId : string , invisible : boolean}>(null),
-    arcsRobotStatusChange : new BehaviorSubject<{robotType : string , floorPlanCode : string}>(null),
-    arcsTaskInfoChange : new BehaviorSubject<{robotType : string , floorPlanCode : string}>(null),
+    arcsRobotStatusChange : new BehaviorSubject<RobotStatusARCS[]>(null),
+    arcsTaskInfoChange : new BehaviorSubject<RobotTaskInfoARCS[]>(null),
     arcsWarningChangedRobotCode : new BehaviorSubject<string>(null),
     nextTaskAction : new BehaviorSubject<string>(null),
     arcsSyncLog : new BehaviorSubject<syncLog[]>([]),
@@ -428,7 +428,7 @@ export class DataService {
                   }
                },
     arcsRobotStatusChange :{ topic : 'rvautotech/fobo/ARCS/robot/info' ,mapping: { arcsRobotStatusChange : null}},
-    arcsTaskInfoChange :{ topic : 'rvautotech/fobo/ARCS/task/info' ,mapping: { arcsTaskInfoChange : null}},
+    arcsTaskInfoChange :{ topic : 'rvautotech/fobo/ARCS/task/info' ,mapping: { arcsTaskInfoChange : null} , api : 'task/v1/taskInfo'},
     arcsSyncLog : { topic: "rvautotech/fobo/ARCS/data/sync/log" , mapping : {arcsSyncLog : (d:syncLog)=>{
                         var ret :syncLog[] = this.signalRSubj.arcsSyncLog.value ? JSON.parse(JSON.stringify(this.signalRSubj.arcsSyncLog.value))  : [] 
                         if(ret.filter(l=>l.dataSyncId != d.dataSyncId || l.dataSyncStatus != d.dataSyncStatus).length > 0 ){
@@ -612,31 +612,21 @@ export class DataService {
     if(this.getLocalStorage("lang")){
       this.uiSrv.changeLang(this.getLocalStorage("lang"))
     }
-    // this.codeRegex = this.util.config.
     if(!this.util.getCurrentUser()){
       return
     }
     let ticket = this.uiSrv.loadAsyncBegin()
 
     if (this.util.standaloneApp) {
-      let profile : {serviceList : {name : string , enabled : boolean}[]} = await this.httpSrv.rvRequest('GET', 'baseControl/v1/profile' , undefined, false)
+      let profile : {serviceList : {name : string , enabled : boolean}[]} = await this.httpSrv.fmsRequest('GET', 'baseControl/v1/profile' , undefined, false)
       profile.serviceList.forEach(s=> this.configSrv.disabledModule_SA[s.name] = !s.enabled) 
-      // // APPLICABLE ONLY BEWTWEEN VERSION 20221122 - 20221201
-      // if(this.util.config.DISABLED_FUNCTIONS){
-      //   let keys : string[]= this.util.config.DISABLED_FUNCTIONS.filter(f=>Object.keys(this.disabledModule_SA).includes(f))
-      //   keys.forEach(k=> this.disabledModule_SA[k] = true)
-      //   if(keys.length > 0){
-      //     console.log(`DISABLED FUNCTION (from UI config.json) : ${keys}`)
-      //   }
-      // }
-      // // APPLICABLE ONLY BEWTWEEN VERSION 20221122 - 20221201
-
       this.getRobotMaster()
-      let lidarStatusResp = await this.httpSrv.rvRequest('GET', this.signalRMaster.lidarStatus.api, undefined, false)
+      let lidarStatusResp = await this.httpSrv.fmsRequest('GET', this.signalRMaster.lidarStatus.api, undefined, false)
       if (lidarStatusResp?.SwitchOn) {
         this.uiSrv.showWarningDialog('Lidar Sensor Turned On.')
       }
     } else {
+      await this.getSite()
       this.updateFloorPlansAlert_ARCS()
       if (!this.getSessionStorage("arcsDefaultBuilding")) {
         await this.getArcsDefaultBuilding()
@@ -648,26 +638,6 @@ export class DataService {
       this.pubsubSrv.makeWebSocketConnection()   
     }
     await this.subscribeSignalRs(<any>this.signalRGeneralConfig.backgroundSubscribeTypes)
-    // else{
-    //   await this.subscribeSignalRs(<any>this.signalRGeneralConfig.backgroundSubscribeTypes)
-    //   this.signalRSrv.onConnected.subscribe(()=>{
-    //     Object.keys(this.signalRSubj).forEach(k=>{
-    //       let cnt = this.signalRMaster[k]?.['subscribedCount']
-    //       if(cnt && typeof cnt === 'object' ){
-    //         Object.keys(this.signalRMaster[k]['subscribedCount']).filter(k2=>this.getSubscribedCount(<any>k, k2) > 0).forEach(k2 => {
-    //           console.log(k2)
-    //           this.subscribeSignalR(<any>k, k2, true)
-    //           this.setSubscribedCount(<any>k, this.getSubscribedCount(<any>k, k2) - 1, k2) //I only want to subcribe but not increasing the count, so add this counter weight
-    //         })
-    //       } else if (cnt) {
-    //         this.subscribeSignalR(<any>k, undefined, true)
-    //         if (!isNaN(Number(this.signalRMaster[k]?.['subscribedCount']))) {
-    //           this.signalRMaster[k]['subscribedCount'] = this.signalRMaster[k]['subscribedCount'] - 1
-    //         }
-    //       }
-    //     })
-    //   })
-    // }
     this.uiSrv.loadAsyncDone(ticket)
    }
 
@@ -722,7 +692,7 @@ export class DataService {
   }
   
   public async refreshTaskStatus(){
-    let resp = await this.httpSrv.rvRequest('GET' ,'task/v1/status')
+    let resp = await this.httpSrv.fmsRequest('GET' ,'task/v1/status')
     this.updateTaskStatus(JSON.parse(resp.body))
   }
 
@@ -740,16 +710,24 @@ export class DataService {
       if (mapping != undefined && mapping != null) {
         if (this.util.standaloneApp && this.signalRMaster[type].api) {
           if(this.getSubscribedCount(type, paramString) == 0){    
-              let resp = await this.httpSrv.rvRequest('GET' , this.signalRMaster[type].api)      
+              let resp = await this.httpSrv.fmsRequest('GET' , this.signalRMaster[type].api)      
               if(resp && resp.status == 200){
                 this.updateSignalRBehaviorSubject(type, JSON.parse(resp.body) , paramString)
               }
           }
         } else if(this.util.arcsApp){       
             if(this.getSubscribedCount(type, paramString) == 0){      
-              const signalRTypesRequiredApiByRobot : signalRType[] = ['ieq' , 'arcsRobotDestination']
+              const signalRTypesRequiredApiByRobot : signalRType[] = ['ieq' , 'arcsRobotDestination' ];
+              const signalRTypesQueryParamMap : {[key: string] : string}  = {
+                arcsTaskInfoChange : 'floorPlanCode'
+              }
               if(signalRTypesRequiredApiByRobot.includes(type)){
-                let resp = await this.httpSrv.rvRequest('GET' , this.signalRMaster[type].api + '/' + paramString)
+                let resp = await this.httpSrv.fmsRequest('GET' , this.signalRMaster[type].api + '/' + paramString)
+                if(resp && resp.status == 200 && resp.body?.length > 0){
+                  this.updateSignalRBehaviorSubject(type, JSON.parse(resp.body), paramString)
+                }
+              }else if(signalRTypesQueryParamMap[type]){
+                let resp = await this.httpSrv.fmsRequest('GET' , this.signalRMaster[type].api + `?${signalRTypesQueryParamMap[type]}=` + paramString)
                 if(resp && resp.status == 200 && resp.body?.length > 0){
                   this.updateSignalRBehaviorSubject(type, JSON.parse(resp.body), paramString)
                 }
@@ -759,7 +737,7 @@ export class DataService {
                 this.signalRSubj.arcsSyncLog.next((this.getLocalStorage('syncDoneLog') ? JSON.parse(this.getLocalStorage('syncDoneLog')) : []).concat(resp))
                 this.uiSrv.loadAsyncDone(ticket)
               } else if(['arcsLift' , 'arcsTurnstile'].includes(type)){
-                let resp = await this.httpSrv.rvRequest('GET' , this.signalRMaster[type].api)      
+                let resp = await this.httpSrv.fmsRequest('GET' , this.signalRMaster[type].api)      
                 if(resp && resp.status == 200){
                   this.updateSignalRBehaviorSubject(type, JSON.parse(resp.body) , paramString)
                 }
@@ -866,7 +844,7 @@ export class DataService {
   public async getDropList(type : dropListType) : Promise<{data:object[] , options:object[]}>{
     let ret= {data: null ,options: null}
     let apiMap = this.dropListApiMap
-    var resp = apiMap[type].fromRV? await this.httpSrv.rvRequest("GET", apiMap[type].url , undefined, false) :  await this.httpSrv.get(apiMap[type].url)
+    var resp = apiMap[type].fromRV? await this.httpSrv.fmsRequest("GET", apiMap[type].url , undefined, false) :  await this.httpSrv.get(apiMap[type].url)
     if(this.util.arcsApp && type == 'floorplans'){
       await this.getSite()
     }
@@ -900,9 +878,10 @@ export class DataService {
     // return await this.httpSrv.get("api/map/plan/v1")
   }
 
-  public async getSite(forceRefresh = false){
-    if(!this.arcsDefaultSite || forceRefresh){
+  public async getSite(forceRefresh = false){ 
+    if(this.arcsDefaultSite === undefined || forceRefresh){
       this.arcsDefaultSite = await this.httpSrv.get('api/site/v1')
+      this.arcsDefaultSite  = this.arcsDefaultSite === undefined ? null : this.arcsDefaultSite 
     }
     return this.arcsDefaultSite
   }
@@ -934,7 +913,7 @@ export class DataService {
     if(blockUI){
       ticket = this.uiSrv.loadAsyncBegin()
     }
-    let data = await this.httpSrv.rvRequest('GET','floorPlan/v1/pointTypeList',undefined,false)
+    let data = await this.httpSrv.fmsRequest('GET','floorPlan/v1/pointTypeList',undefined,false)
     if(blockUI){
       this.uiSrv.loadAsyncDone(ticket)
     }
@@ -1072,18 +1051,18 @@ export class DataService {
 
   // * * * v RV STANDALONE ACTIONS v * * * 
   public async openRobotCabinet(id , robotCode = null){
-    this.httpSrv.rvRequest("POST" , `cabinet/v1/open/${robotCode? robotCode + '/' : ''}` + id , undefined , true , this.uiSrv.translate(`Open Cabiniet [${id}]`))
+    this.httpSrv.fmsRequest("POST" , `cabinet/v1/open/${robotCode? robotCode + '/' : ''}` + id , undefined , true , this.uiSrv.translate(`Open Cabiniet [${id}]`))
   }
 
   public async closeRobotCabinet(id, robotCode = null){
-    this.httpSrv.rvRequest("POST" , `cabinet/v1/close/${robotCode? robotCode + '/' : ''}` + id, undefined ,  true , this.uiSrv.translate(`Close Cabiniet [${id}]`))
+    this.httpSrv.fmsRequest("POST" , `cabinet/v1/close/${robotCode? robotCode + '/' : ''}` + id, undefined ,  true , this.uiSrv.translate(`Close Cabiniet [${id}]`))
   }
 
   public async connectWifi(ssid , pw){
-    this.httpSrv.rvRequest('POST', 'wifi/v1/connection', {ssid :ssid , password : pw},  true , this.uiSrv.translate('Connected to [SSID] Successfully').replace('[SSID]' , ('[' + ssid + ']')))
+    this.httpSrv.fmsRequest('POST', 'wifi/v1/connection', {ssid :ssid , password : pw},  true , this.uiSrv.translate('Connected to [SSID] Successfully').replace('[SSID]' , ('[' + ssid + ']')))
   }
   public async stopManualMode(){
-    return this.httpSrv.rvRequest('PUT', 'baseControl/v1/manual/OFF'  ,  null , true, 'Manual OFF')  
+    return this.httpSrv.fmsRequest('PUT', 'baseControl/v1/manual/OFF'  ,  null , true, 'Manual OFF')  
   }
   public async getAssets(url: string): Promise<any> {
     try{      

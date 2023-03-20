@@ -48,6 +48,8 @@ export class NgPixiViewportComponent implements OnInit, AfterViewInit, OnDestroy
         this.resizeViewport(value.width, value.height)
     }
 
+    @Input() transparent = false
+
     @Input() set background(color: number | undefined) {
         if (!!color) {
             this.app.renderer.backgroundColor = color;
@@ -67,8 +69,7 @@ export class NgPixiViewportComponent implements OnInit, AfterViewInit, OnDestroy
                 antialias: true,
                 resolution: window.devicePixelRatio || 1,
                 autoDensity: true,
-                transparent: false,
-                backgroundColor: 0xFFFFFF //0x052041 //0xFFFFFF //0xAED5F8
+                transparent: true     
             });
 
             this.viewport = new Viewport({

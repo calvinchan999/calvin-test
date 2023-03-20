@@ -213,8 +213,8 @@ export class CmMapDetailComponent implements OnInit {
   async changeBackModeToNavigation(){
     if (this.startedScanning && !this.backedtoNavigationMode) {
       this.backedtoNavigationMode = true
-      await this.httpSrv.rvRequest('POST', 'mode/v1/navigation')
-      await this.httpSrv.rvRequest('PUT','baseControl/v1/manual/OFF')
+      await this.httpSrv.fmsRequest('POST', 'mode/v1/navigation')
+      await this.httpSrv.fmsRequest('PUT','baseControl/v1/manual/OFF')
     }
   }
 
@@ -222,8 +222,8 @@ export class CmMapDetailComponent implements OnInit {
     //TBD : post rv 
 
     this.uiSrv.awaitSignalRBegin(this.dataSrv.signalRSubj.occupancyGridMap)
-    await this.httpSrv.rvRequest('POST','mode/v1/mapping')
-    await this.httpSrv.rvRequest('PUT','baseControl/v1/manual/ON')
+    await this.httpSrv.fmsRequest('POST','mode/v1/mapping')
+    await this.httpSrv.fmsRequest('PUT','baseControl/v1/manual/ON')
     // await this.httpSrv.rvRequest('POST','map/v1/startTrajectory')
     this.startedScanning = true
   }

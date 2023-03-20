@@ -105,7 +105,7 @@ export class ArcsDashboardRobotDetailComponent implements OnInit  {
     if (blockUI) {
       ticket = this.uiSrv.loadAsyncBegin()
     }
-    let robotDetail: RobotDetailARCS = await this.dataSrv.httpSrv.rvRequest("GET", "robot/v1/robotDetail/" + this.robotId, undefined, false)
+    let robotDetail: RobotDetailARCS = await this.dataSrv.httpSrv.fmsRequest("GET", "robot/v1/robotDetail/" + this.robotId, undefined, false)
     //let robotDetail = { robotCode: this.robotId, robotStatus: "IDLE", modeState: "NAVIGATION", batteryPercentage: 0.46965376, speed: 0.023951124 }
     this.ds.status.robotStatus = robotDetail.robotStatus
     this.ds.status.content = ARCS_STATUS_MAP[robotDetail.robotStatus]
@@ -123,7 +123,7 @@ export class ArcsDashboardRobotDetailComponent implements OnInit  {
   async reserveRobot() {
     if (await this.uiSrv.showConfirmDialog("Are you sure to reserve the robot ?")) {
       let ticket = this.uiSrv.loadAsyncBegin()
-      await this.dataSrv.httpSrv.rvRequest("PUT", `robot/v1/hold?robotCode=${this.robotId}&hold=true`, undefined, true, this.uiSrv.translate("Robot reserved sucessfully - ") + this.robotId)
+      await this.dataSrv.httpSrv.fmsRequest("PUT", `robot/v1/hold?robotCode=${this.robotId}&hold=true`, undefined, true, this.uiSrv.translate("Robot reserved sucessfully - ") + this.robotId)
       this.uiSrv.loadAsyncDone(ticket)
       // this.refreshRobotStatus()
     }
@@ -132,7 +132,7 @@ export class ArcsDashboardRobotDetailComponent implements OnInit  {
   async releaseRobot(){
     if(await this.uiSrv.showConfirmDialog("Are you sure to release the robot ?")){
       let ticket = this.uiSrv.loadAsyncBegin()
-      await this.dataSrv.httpSrv.rvRequest("PUT",`robot/v1/hold?robotCode=${this.robotId}&hold=false`, undefined, true, this.uiSrv.translate("Robot released sucessfully - ") + this.robotId)
+      await this.dataSrv.httpSrv.fmsRequest("PUT",`robot/v1/hold?robotCode=${this.robotId}&hold=false`, undefined, true, this.uiSrv.translate("Robot released sucessfully - ") + this.robotId)
       this.uiSrv.loadAsyncDone(ticket)
       // this.refreshRobotStatus()
     }

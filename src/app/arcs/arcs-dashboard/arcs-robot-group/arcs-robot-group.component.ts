@@ -58,7 +58,7 @@ export class ArcsRobotGroupComponent implements OnInit {
   }
 
   async loadData(){
-    let data: RobotGroupDto = await this.dataSrv.httpSrv.rvRequest('GET', 'robotGroup/v1/' + this.parentRow[this.key], undefined, false)
+    let data: RobotGroupDto = await this.dataSrv.httpSrv.fmsRequest('GET', 'robotGroup/v1/' + this.parentRow[this.key], undefined, false)
     this.frmGrp.controls['groupName'].setValue(data.groupName)
     this.frmGrp.controls['masterRobotCode'].setValue(data.pairingRobotList.filter(r=>r.master)[0]?.robotCode)
     this.editableGrid.loadData(data.pairingRobotList.filter(r=>!r.master).map(r => { return { robotCode: r.robotCode } })) 

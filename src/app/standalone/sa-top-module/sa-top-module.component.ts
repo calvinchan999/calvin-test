@@ -154,7 +154,7 @@ export class SaTopModuleComponent implements OnInit , OnDestroy {
   
  async initAirQualitySubscription() {
     if (this.robotType == 'patrol') {
-      let ieqReq = await this.dataSrv.httpSrv.rvRequest('GET', this.dataSrv.signalRMaster.ieq.api + (this.util.arcsApp ?  ('/' + this.arcsRobotCode) : '') , undefined , false)
+      let ieqReq = await this.dataSrv.httpSrv.fmsRequest('GET', this.dataSrv.signalRMaster.ieq.api + (this.util.arcsApp ?  ('/' + this.arcsRobotCode) : '') , undefined , false)
       let ieqData = this.dataSrv.signalRMaster.ieq.mapping.ieq(ieqReq)
       // ieqData = {"co":733,"co2":405,"hcho":3,"light":4,"no2":320,"noise_moy":6,"noise_max":7,"o3":8,"p":9,"pm1":9,"pm2_5":5,"pm10":15,"rh":50,"t":19,"tvoc_mos":15,"tvoc_pid":10}
       let refreshIeq = (ieq)=>{
@@ -249,7 +249,7 @@ export class SaTopModuleComponent implements OnInit , OnDestroy {
 
       let containersResp 
   
-      containersResp =  await this.dataSrv.httpSrv.rvRequest("GET", (hasDoors ? "cabinet" : "trayRack" ) + `/v1${this.util.arcsApp? ('/' + this.arcsRobotCode) : ''}`)
+      containersResp =  await this.dataSrv.httpSrv.fmsRequest("GET", (hasDoors ? "cabinet" : "trayRack" ) + `/v1${this.util.arcsApp? ('/' + this.arcsRobotCode) : ''}`)
 
     
       // let containersResp = {status : 200 , body: `
