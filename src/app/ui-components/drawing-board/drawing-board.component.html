@@ -66,7 +66,7 @@
           <span [class]="'mdi mdi-video-3d'"></span>
       </button>
 
-      <button *ngIf="isDashboard && util.arcsApp && arcsLocationTree.currentLevel == 'floorplan'" kendoButton class="dark-mode-switch" [matTooltip]="'Light / Dark Map' | label : uiSrv.langPack"  
+      <button *ngIf="isDashboard && (util.arcsApp && arcsLocationTree.currentLevel == 'floorplan')" kendoButton class="dark-mode-switch" [matTooltip]="'Light / Dark Map' | label : uiSrv.langPack"  
                 (click)="toggleDarkMode(!uitoggle.darkMode)"  [ngClass]="{'btn-active': uitoggle.darkMode}">
           <span [class]="'mdi mdi-theme-light-dark'"></span>
       </button>
@@ -191,6 +191,10 @@
                 (click)=" uitoggle.showWaypointName = !(uitoggle.showWaypoint && uitoggle.showWaypointName); uitoggle.showWaypoint = !(uitoggle.showWaypoint && uitoggle.showWaypointName) ; toggleWaypoint()"  
                 [ngClass]="{'btn-intermediate': uitoggle.showWaypoint && !uitoggle.showWaypointName , 'btn-active': uitoggle.showWaypoint && uitoggle.showWaypointName , 'show-waypoint-fullscreen' : _fullScreen}">
           <span class="mdi mdi-map-marker"></span>
+        </button>
+         <button *ngIf="isDashboard" kendoButton class="dark-mode-switch" [matTooltip]="'Light / Dark Map' | label : uiSrv.langPack"  
+                (click)="toggleDarkMode(!uitoggle.darkMode)"  [ngClass]="{'btn-active': uitoggle.darkMode}">
+             <span [class]="'mdi mdi-theme-light-dark'"></span>
         </button>
       </ng-container>
     </div>

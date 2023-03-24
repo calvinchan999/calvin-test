@@ -21,6 +21,9 @@ import { filter, map, skip, take, takeUntil } from 'rxjs/operators';
 import { mixin } from 'pixi-viewport';
 import { DataService } from 'src/app/services/data.service';
 import { SignalRService } from 'src/app/services/signal-r.service';
+import { SaPagesLockCabinetComponent } from '../sa-pages/sa-pages-lock-cabinet/sa-pages-lock-cabinet.component';
+import { DialogRef } from '@progress/kendo-angular-dialog';
+import { SaPagesUnlockCabinetComponent } from '../sa-pages/sa-pages-unlock-cabinet/sa-pages-unlock-cabinet.component';
 
 @Component({
   selector: 'app-sa-top-module',
@@ -149,6 +152,10 @@ export class SaTopModuleComponent implements OnInit , OnDestroy {
       this.dataSrv.initArcsRobotDataMap(this.arcsRobotCode)
     }
     return this.util.arcsApp ? this.dataSrv.arcsRobotDataMap[this.arcsRobotCode].ieq : this.dataSrv.signalRSubj.ieq
+  }
+
+  getPins(){
+
   }
  
   
@@ -372,23 +379,90 @@ export class SaTopModuleComponent implements OnInit , OnDestroy {
       }else{
         this.uiSrv.showNotificationBar("Error : GET [cabinet/v1] failed")
       }
+      this.updateCabinetAvailabilityIcon()
     }
     this.uiSrv.loadAsyncDone(ticket)
   }
 
+  
   async buttonClicked(evt : cabinetToggleEvent){
-    let resp    
+    let resp   
     if(evt.id.startsWith('openContainer_')){
-      evt.action = "open"
-      evt.containerId = evt.id.replace('openContainer_', '')
-      resp = await this.dataSrv.openRobotCabinet(evt.containerId, this.util.arcsApp ? this.arcsRobotCode : null)
+      let containerId = evt?.id?.replace('openContainer_', '')
+      let callOpenContainerApi = async()=>{
+        evt.action = "open"
+        resp = await this.dataSrv.openRobotCabinet(containerId, this.util.arcsApp ? this.arcsRobotCode : null)
+        this.updateCabinetAvailabilityIcon()
+      }
+      let pin = localStorage.getItem('pin_' + containerId )
+
+      if(pin){
+        let onPinInput = (v , errmsg)=>{
+          if(v == pin){ // TBR : validation move to fobo amr api
+            dialog.close()
+            localStorage.removeItem('pin_' + containerId)
+            callOpenContainerApi()
+          }else{
+            this.uiSrv.showNotificationBar(errmsg , 'warning')
+          }
+        }
+        const dialog: DialogRef = this.uiSrv.openKendoDialog({
+          content: SaPagesUnlockCabinetComponent,
+          height:'750px',
+          width:'800px'
+        });
+        const content :SaPagesUnlockCabinetComponent  = dialog.content.instance;
+        content.dialogRef = dialog
+        content.title =  this.uiSrv.translate(`Unlock Cabinet [${containerId}]`),
+          content.qrResult.pipe(filter(v => v != null), takeUntil(content.$onDestroy)).subscribe(v => {
+            onPinInput(v, this.uiSrv.translate('QR code not matching'))
+          })
+        content.enterPin.pipe(filter(v => v != null), takeUntil(content.$onDestroy)).subscribe(v => {
+          onPinInput(v, this.uiSrv.translate('PIN not matching'))
+        })
+
+      }else{
+        callOpenContainerApi()
+      }
     } else if (evt.id.startsWith('closeContainer_')) {
+      let containerId = evt?.id?.replace('closeContainer_', '')
+      let oldPin = localStorage.getItem('pin_' + containerId )
+      if(oldPin!=null){
+        this.uiSrv.showNotificationBar('The cabinet is locked already' , 'warning')
+        return
+      }
+      const dialog: DialogRef = this.uiSrv.openKendoDialog({
+        content: SaPagesLockCabinetComponent,
+        width:'800px'
+      });
+
+      const content :SaPagesLockCabinetComponent  = dialog.content.instance;
+      content.dialogRef = dialog
+      content.title = this.uiSrv.translate(`Set Locker Password (Cabinet [${containerId}])`);
+      let pin = await content.setPin.pipe(take(1)).toPromise()
+
+      if(pin!=null){ // TBR : send pin to fobo amr api
+        localStorage.setItem('pin_' + containerId , pin)
+      }else{
+        localStorage.removeItem('pin_' + containerId)
+      }
+      dialog.close()
+
       evt.action = "close"
-      evt.containerId = evt.id.replace('closeContainer_', '')
-      resp = this.dataSrv.closeRobotCabinet(evt.containerId, this.util.arcsApp ? this.arcsRobotCode : null)
+      resp = this.dataSrv.closeRobotCabinet(containerId, this.util.arcsApp ? this.arcsRobotCode : null)
+      this.updateCabinetAvailabilityIcon()
     }
     evt['response'] = resp
     this.onButtonClicked.emit(evt)
+  }
+
+  updateCabinetAvailabilityIcon(){
+     Object.keys(this.ds).filter(k=>k.startsWith('availability_')).forEach(k=>{
+      let containerId = k.replace('availability_' , '')
+      let withPin = localStorage.getItem('pin_' + containerId)!=null
+      this.ds[k]['icon'] = withPin ?  'mdi mdi-lock' : 'mdi mdi-tray-alert' 
+      this.ds = JSON.parse(JSON.stringify(this.ds))
+     })
   }
 
   ngOnDestroy(){
@@ -405,6 +479,5 @@ export class SaTopModuleComponent implements OnInit , OnDestroy {
 export class cabinetToggleEvent{
   id? : string
   action? : 'open' | 'close'
-  containerId? : string
   response ? : any
 }

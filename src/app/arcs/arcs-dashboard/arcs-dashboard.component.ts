@@ -224,8 +224,9 @@ export class ArcsDashboardComponent implements OnInit {
     //   }
     // })
 
-    this.dataSrv.signalRSubj.arcsTaskInfoChange.pipe(skip(1), filter(v=>v!=null), takeUntil(this.$onDestroy)).subscribe((c)=>{
+    this.dataSrv.signalRSubj.arcsTaskInfoChange.pipe(filter(v=>v!=null), takeUntil(this.$onDestroy)).subscribe((c)=>{
       if(this.selectedTab == 'dashboard'){        
+        console.log(c)
         this.refreshTaskInfo(c.filter(c=>!this.robotTypeFilter || c?.robotType == this.robotTypeFilter?.toUpperCase()))
       }
       if(this.selectedTab == 'task' && this.tableRef){

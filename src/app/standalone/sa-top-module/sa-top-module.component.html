@@ -53,7 +53,10 @@
                 </div>   
             </ng-container>
             <ng-container  *ngIf="item['type']=='button'">
-                <button kendoButton (click) = "buttonClicked(item)" >{{ds[item['id']]?.title | label : uiSrv.langPack}}</button>
+                <button kendoButton (click) = "buttonClicked(item)" >
+             
+                    <span>{{ds[item['id']]?.title | label : uiSrv.langPack}}</span>
+                </button>
             </ng-container>
             <ng-container  *ngIf="item['type']=='textbox'">
                 <uc-txtbox [lab] = "item.label" [(value)] = "ngModelObj[item['id']].value"></uc-txtbox>

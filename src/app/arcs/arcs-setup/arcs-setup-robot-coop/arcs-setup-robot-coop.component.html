@@ -3,7 +3,9 @@
         <div>{{'Robot Collaboration' | label: uiSrv.langPack}}</div>
     </kendo-dialog-titlebar>
 
-    <div class="form-container">
+    <uc-workflow-designer></uc-workflow-designer>
+
+    <!-- <div class="form-container">
         <form [formGroup]="frmGrp" class="content">
             <div class="form-row">
                 <uc-txtbox lab="Event Trigger" [disabled]="true" [frmGrp]="frmGrp" frmCtrl="eventName"></uc-txtbox>
@@ -13,18 +15,11 @@
                 <uc-dropdown lab="Robot Type" [frmGrp]="frmGrp" frmCtrl="robotType" [options]="dropdownOptions.types" [disabled]="true">
                 </uc-dropdown>
             </div>
-            <!-- <div class="form-row">
-                <uc-dropdown lab="Type" [frmGrp]="frmGrp" frmCtrl="robotType" [options]="dropdownOptions.types" (valueChange) = "refreshSubTypeOptions()" [disabled]="true">
-                </uc-dropdown>
-                <uc-txtbox lab="Sub Type" [disabled]="true" [frmGrp]="frmGrp" frmCtrl="robotSubType"></uc-txtbox>
-            </div> -->
         </form>
         <kendo-tabstrip class="rule-tabstrip" #tabstrip (tabSelect)=" onTabChange() ; $event.index == rules.length ? $event.preventDefault() : null; $event.index == rules.length ? addRule() : selectedTabIndex = $event.index">
             <kendo-tabstrip-tab *ngFor="let rule of rules ; let i = index"  [selected] = " i == selectedTabIndex" [title]="rule.name">
                 <ng-template kendoTabContent>                  
                     <uc-txtbox lab="Rule Name" [(value)] = "rule.name"></uc-txtbox>
-                    <!-- <span>Execute </span>  -->
-                    <!-- <span>When the following Criteria is true for </span> <span> seconds </span> -->
                     <kendo-filter #kFilter [filters]="rule.filters"  [value]="rule.filterValues"  (valueChange)="onFilterChange($event)">
                     </kendo-filter>                       
                 </ng-template>
@@ -40,7 +35,7 @@
                 </ng-template>
             </kendo-tabstrip-tab>
         </kendo-tabstrip>
-    </div>
+    </div> -->
     
     <div class="button-container">
         <button kendoButton (click)="onClose()"> {{'Cancel' | label : uiSrv.langPack}}</button>

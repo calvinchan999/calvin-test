@@ -1,0 +1,33 @@
+:host ::ng-deep  .video-container{
+    img{
+        visibility: hidden;
+        width: 0px;
+    }
+    #qr-code-reader__dashboard{
+        visibility: hidden;
+        height: 0px;
+    }
+    width: 700px;
+    height: auto;
+   #qr-code-reader__scan_region{
+    margin-top: 0px!important;
+   }
+}
+:host  .unlock-cabinet{
+    display: flex;
+    justify-content: center;
+}
+
+:host ::ng-deep .k-tabstrip .k-content{
+    height: 580px!important;
+    width:100%!important
+}
+
+:host ::ng-deep .k-tabstrip {
+    width:100%!important
+}
+
+:host .main-container{
+    display: flex;
+    justify-content: center;
+}

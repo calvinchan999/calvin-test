@@ -1,32 +1,44 @@
-import { Component, OnInit, ViewChild } from '@angular/core';
+import { Component, OnInit, ViewChild , EventEmitter , Output } from '@angular/core';
+import { DialogRef } from '@progress/kendo-angular-dialog';
 import { Html5QrcodeScanner } from 'html5-qrcode';
+import { BehaviorSubject, Subject } from 'rxjs';
 import { UiService } from 'src/app/services/ui.service';
-
 @Component({
-  selector: 'app-sa-pages-scan-qr',
-  templateUrl: './sa-pages-scan-qr.component.html',
-  styleUrls: ['./sa-pages-scan-qr.component.scss']
+  selector: 'app-sa-pages-unlock-cabinet',
+  templateUrl: './sa-pages-unlock-cabinet.component.html',
+  styleUrls: ['./sa-pages-unlock-cabinet.component.scss']
 })
-export class SaPagesScanQrComponent implements OnInit  {
+export class SaPagesUnlockCabinetComponent implements OnInit  {
   isLoading = false
   scannerInitTicket 
   @ViewChild('scanner') scanner
   qrElId = 'qr-code-reader'
   html5QrcodeScanner : Html5QrcodeScanner
+  qrResult = new BehaviorSubject<string>(null)
+  $onDestroy = new Subject()
+  title 
+  dialogRef : DialogRef
+  @Output() enterPin = new EventEmitter()
 
   constructor(public uiSrv: UiService) { }
-  ngAfterViewInit() {
 
-  }
 
   ngOnDestroy(){
+    this.$onDestroy.next()
     this.html5QrcodeScanner.clear()
   }
 
   ngOnInit(): void {
+
+  }
+
+  ngAfterViewInit(){
     this.initQrScanner()
   }
   
+  onClose(){
+    this.dialogRef.close()
+  }
 
   initQrScanner(){
     setTimeout(()=>{
@@ -41,13 +53,14 @@ export class SaPagesScanQrComponent implements OnInit  {
   }
 
   get scanQRtoggleEl(){
-    return <any>document.getElementById(this.qrElId + '__dashboard_section_csr').getElementsByTagName("BUTTON")[0]
+    return <any>document.getElementById(this.qrElId + '__dashboard_section_csr')?.getElementsByTagName("BUTTON")[0]
   }
 
   onScanSuccess(decodedText, decodedResult) {
     this.handleQrCodeResult(decodedText)
-    // handle the scanned code as you like, for example:
-    console.log(decodedResult);
+
+    // // handle the scanned code as you like, for example:
+    // console.log(decodedResult);
   }
 
   scannerInitDone(){
@@ -60,11 +73,11 @@ export class SaPagesScanQrComponent implements OnInit  {
     }
     this.isLoading = true
     let ticket = this.uiSrv.loadAsyncBegin()
-    this.uiSrv.showNotificationBar("QR Code content : " + evt)
     setTimeout(() => {
+      this.qrResult.next(evt)
       this.isLoading = false
       this.uiSrv.loadAsyncDone(ticket)
-    }, 3000)
+    }, 500)
   }
 
 }

@@ -6,8 +6,8 @@
             {{  dataSrv.signalRSubj.isMovingInTask.value ? 'Moving To' : 'Arrived' | label : uiSrv.langPack}}
          </span>
     </div> 
-    
-    <div class="content-panel">
+
+    <div class="content-panel" *ngIf="dataSrv.signalRSubj.taskActive.value['taskItemList'][dataSrv.signalRSubj.taskItemIndex.value]">
         <div class="progress">
             <div class="outerCircle"></div>
             <div class="innerCircle"></div>
@@ -97,6 +97,8 @@
                {{taskItem['movement']['waypointName'] | waypointName}}
         </span>
     </div>
+</div>
+
 </div>
 
 </div>

@@ -88,7 +88,7 @@ export class RvHttpService {
 
   //^ * * * call proxy API to get result from RV API * * * ^
 
-  //v * * * internal API , mainly for schmidt DB CRUD * * * v
+  //v * * * internal API , mainly for rv DB CRUD * * * v
 
   public async get(endpoint: string, body: object = {}, queryParm = null, header = null, apiUrl: string = this.generalUtil.getAPIUrl(), throwErr = false , suppressErrorNoti = false , returnDataPartOnly = true ): Promise<any> {
     try{

@@ -1,0 +1,6 @@
+<div class="dialog-content lock-cabinet">
+    <kendo-dialog-titlebar (close) = "onClose()">
+        <div>{{title | label: uiSrv.langPack}}</div>
+    </kendo-dialog-titlebar>
+    <uc-pin-keypad (done)="setPin.emit($event)"></uc-pin-keypad>
+</div>

@@ -1,0 +1,24 @@
+<div class="dialog-content unlock-cabinet">
+    <kendo-dialog-titlebar (close) = "onClose()">
+        <div>{{title | label: uiSrv.langPack}}</div>
+    </kendo-dialog-titlebar>
+    <kendo-tabstrip #tabstrip (tabSelect)="$event.index == 0 ? initQrScanner() :  html5QrcodeScanner.clear()">
+        <kendo-tabstrip-tab [title]="'QR Code' | label : uiSrv.langPack " [selected]="true" >
+            <ng-template kendoTabContent>
+                <div class="main-container">
+                    <div class = "video-container" >
+                        <div [id]="qrElId" ></div>
+                        <!-- <zxing-scanner #scanner (scanSuccess)="handleQrCodeResult($event)"  (deviceChange) = "scannerInitDone()"></zxing-scanner>  -->
+                    </div>    
+                </div>
+            </ng-template>
+        </kendo-tabstrip-tab>
+        <kendo-tabstrip-tab [title]="'PIN' | label : uiSrv.langPack">
+            <ng-template kendoTabContent>
+                <uc-pin-keypad [autoSubmit]="true" (done)="enterPin.emit($event)"></uc-pin-keypad>
+            </ng-template>
+        </kendo-tabstrip-tab>
+    </kendo-tabstrip>
+
+</div>
+    

@@ -1,6 +1,6 @@
 import { BrowserModule, Title } from '@angular/platform-browser';
 import { Router, RouterModule } from '@angular/router';
-import { NgModule, LOCALE_ID } from '@angular/core';
+import { NgModule, LOCALE_ID ,CUSTOM_ELEMENTS_SCHEMA} from '@angular/core';
 import { BrowserAnimationsModule } from '@angular/platform-browser/animations';
 import { HttpClientModule, HTTP_INTERCEPTORS } from '@angular/common/http';
 import { FormsModule, ReactiveFormsModule } from '@angular/forms';
@@ -9,6 +9,7 @@ import { CommonModule, LocationStrategy, HashLocationStrategy, DatePipe } from '
 import { AppComponent } from './app.component';
 import { ConfigModule, ConfigService } from './services/config.service';
 import { HeaderComponent } from './common-components/header/header.component';
+import { BarcodesModule } from '@progress/kendo-angular-barcodes';
 
 // import { RatingComponent } from './components/team/rating.component';
 // import { DashboardComponent } from './components/dashboard/dashboard.component';
@@ -178,9 +179,9 @@ import { ArcsSetupBuildingComponent } from './arcs/arcs-setup/arcs-setup-buildin
 import { ZXingScannerModule } from '@zxing/ngx-scanner';
 import { ArcsDashboardComponent } from './arcs/arcs-dashboard/arcs-dashboard.component';
 import { PowerBiComponent } from './ui-components/power-bi/power-bi.component';
-import { SaPagesScanQrComponent } from './standalone/sa-pages/sa-pages-scan-qr/sa-pages-scan-qr.component';
+import { SaPagesUnlockCabinetComponent } from './standalone/sa-pages/sa-pages-unlock-cabinet/sa-pages-unlock-cabinet.component';
 import { SaPagesCommonMessageComponent } from './standalone/sa-pages/sa-pages-common-message/sa-pages-common-message.component';
-import { SaPagesPinComponent } from './standalone/sa-pages/sa-pages-pin/sa-pages-pin.component';
+import { SaPagesLockCabinetComponent } from './standalone/sa-pages/sa-pages-lock-cabinet/sa-pages-lock-cabinet.component';
 import { WifiComponent } from './common-components/header/wifi/wifi.component';
 import { TestSignalRComponent } from './common-components/test-signalR/test-signalR.component';
 import { CmMapComponent } from './common-components/cm-map/cm-map.component';
@@ -230,7 +231,10 @@ import { ArcsLiftIotComponent } from './arcs/arcs-IoT/arcs-lift-iot/arcs-lift-io
 import { ArcsTurnstileIotComponent } from './arcs/arcs-iot/arcs-turnstile-iot/arcs-turnstile-iot.component';
 import { ArcsSetupRobotCoopComponent } from './arcs/arcs-setup/arcs-setup-robot-coop/arcs-setup-robot-coop.component';
 import { FilterModule } from '@progress/kendo-angular-filter';
-import { ArcsTempChartsComponent } from './arcs/arcs-dashboard/arcs-temp-charts/arcs-temp-charts.component';
+import { WorkflowDesignerComponent } from './ui-components/workflow-designer/workflow-designer.component';
+import { PinKeypadComponent } from './ui-components/pin-keypad/pin-keypad.component';
+// import { WorkflowComponent } from './ui-components/workflow/workflow.component';
+// import { SequentialWorkflowDesignerModule } from 'sequential-workflow-designer-angular';
 
 @NgModule({
     declarations: [
@@ -276,8 +280,8 @@ import { ArcsTempChartsComponent } from './arcs/arcs-dashboard/arcs-temp-charts/
         ArcsDashboardComponent,
         PowerBiComponent,
         SaPagesCommonMessageComponent,
-        SaPagesPinComponent,
-        SaPagesScanQrComponent,
+        SaPagesLockCabinetComponent,
+        SaPagesUnlockCabinetComponent,
         WifiComponent,
         TestSignalRComponent,
         CmMapComponent,
@@ -326,9 +330,12 @@ import { ArcsTempChartsComponent } from './arcs/arcs-dashboard/arcs-temp-charts/
         ArcsLiftIotComponent,
         ArcsTurnstileIotComponent,
         ArcsSetupRobotCoopComponent,
-        ArcsTempChartsComponent        
+        WorkflowDesignerComponent,
+        PinKeypadComponent,
+        // WorkflowComponent        
     ],
     imports: [
+        BarcodesModule,
         FilterModule,
         PowerBIEmbedModule,
         ZXingScannerModule,
@@ -380,7 +387,7 @@ import { ArcsTempChartsComponent } from './arcs/arcs-dashboard/arcs-temp-charts/
         CommonModule,
         HttpClientModule,
         FormsModule,
-
+        // SequentialWorkflowDesignerModule,
         BrowserAnimationsModule,
         ReactiveFormsModule,
         GridModule,

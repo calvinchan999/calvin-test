@@ -1,5 +1,4 @@
 import { Component, OnInit, ViewChild , NgZone, HostListener, EventEmitter, Renderer2, Output , Input , HostBinding, ElementRef , OnDestroy, ViewContainerRef, ComponentFactoryResolver, ComponentRef} from '@angular/core';
-import { ThCamera, ThCanvas, ThDragControls, ThObject3D , ThOrbitControls, ThScene } from 'ngx-three';
 import { UiService } from 'src/app/services/ui.service';
 import * as THREE from 'three';
 import { GLTF, GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader';

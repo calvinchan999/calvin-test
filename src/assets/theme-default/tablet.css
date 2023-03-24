@@ -349,9 +349,11 @@
   height: 100%;
   justify-content: center;
   margin-top: 6%;
+  max-width: 800px;
+  /* align-self: center; */
 }
 .tablet app-sa-pages-pin .pin-input-container .pin-row {
-  width: 30%;
+  width: 45%;
   height: 68px;
   padding: 2em 0;
   display: flex;
@@ -359,6 +361,7 @@
   gap: 15px;
 }
 .tablet app-sa-pages-pin .pin-input-container .pin-digit-container {
+  height: 64px;
   width: 100%;
   font-size: 2em;
 }
@@ -367,19 +370,21 @@
   border-color: #ccc;
 }
 .tablet app-sa-pages-pin .pin-input-container .keypad-container {
-  width: 30%;
+  width: 35%;
   display: flex;
-  height: 100%;
+  height: 80%;
   flex-direction: column;
   gap: 30px;
 }
 .tablet app-sa-pages-pin .pin-input-container .keypad-button-row {
   display: flex;
   justify-content: space-between;
-  height: 100px;
+  height: 80px;
+  gap: 15px;
 }
 .tablet app-sa-pages-pin .pin-input-container .keypad-button-container {
   width: 100px;
+  /* margin: 5px; */
 }
 .tablet app-sa-pages-pin .pin-input-container .keypad-button {
   height: 100%;
@@ -392,7 +397,7 @@
 /* Page Template - Scan QR code*/
 .tablet app-sa-pages-scan-qr .video-container {
   overflow: hidden;
-  height: 100%;
+  /* height: 91%; */
   width: 100%;
   border: 1px solid #ccc;
 }

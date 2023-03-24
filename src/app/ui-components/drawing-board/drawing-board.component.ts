@@ -570,6 +570,7 @@ export class DrawingBoardComponent implements OnInit , AfterViewInit , OnDestroy
           }
         }     
       })
+      
       ret.next(true)
     })
     return <any> ret.pipe(filter(v => ![null,undefined].includes(v)), take(1)).toPromise()
@@ -2804,7 +2805,7 @@ export class DrawingBoardComponent implements OnInit , AfterViewInit , OnDestroy
   }
 
   toggleDarkMode(on) {
-    this.uitoggle.darkMode =  on
+    this.uitoggle.darkMode =  on 
     const vertexShader = null;
     const fragmentShader = [
       "varying vec2 vTextureCoord;",
@@ -2831,6 +2832,7 @@ export class DrawingBoardComponent implements OnInit , AfterViewInit , OnDestroy
     ].join('\n');  
     this._ngPixi.app.renderer.transparent =  this.uitoggle.darkMode 
     this._ngPixi.app.renderer.backgroundColor = this._ngPixi.app.renderer.transparent ? 0x000000 : 0xFFFFFF
+    console.log( this._ngPixi.app.renderer.backgroundColor)
     if( this.backgroundSprite){
       const colorMatrix = new PIXI.filters.ColorMatrixFilter();
       colorMatrix.brightness(0.7, true);  
