@@ -73,13 +73,13 @@ export class SaControlComponent implements OnInit , OnDestroy  {
   id
 
   frmGrpRobot = new FormGroup({
-    robotId: new FormControl(null),
+    // robotId: new FormControl(null),
     robotCode: new FormControl('', Validators.required),
     name: new FormControl(''),
-    robotTypeName:new FormControl(''),
-    robotType: new FormControl(null),
-    robotStatus: new FormControl(null),
-    robotIPAddress: new FormControl(null),
+    robotSubType:new FormControl(''),
+    robotType: new FormControl(''),
+    // robotStatus: new FormControl(null),
+    // robotIPAddress: new FormControl(null),
 
     robotMaxSpeed: new FormControl(null),
     robotSafetyZone: new FormControl(null),
@@ -175,7 +175,7 @@ export class SaControlComponent implements OnInit , OnDestroy  {
   async loadData() {
     let ticket = this.uiSrv.loadAsyncBegin()
     if(this.selectedTab == 'robot'){
-      let data = await this.httpSrv.get("api/robot/v1")
+      let data = await this.dataSrv.getRobotMaster()
       this.util.loadToFrmgrp(this.frmGrpRobot , data)
     }else if(this.selectedTab == 'type'){
       

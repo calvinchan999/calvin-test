@@ -199,6 +199,11 @@ export class TestSignalRComponent implements OnInit {
   }
 
   sampleData = {
+    poseDeviation:{
+      seriesInterval: 0,
+      topic: 'rvautotech/fobo/poseDeviation',
+      content:`{"robotId":"RV-ROBOT-100", "poseValid": false ,  "translationDeviation" : 0.8 , "angleDeviation":0.7}`
+    },
     lift:{
       seriesInterval: 1,
       topic: 'rvautotech/fobo/lift',
@@ -630,7 +635,7 @@ export class TestSignalRComponent implements OnInit {
     pose:{
       seriesInterval: 0.5,
       topic: 'rvautotech/fobo/pose',
-      content : `[{"robotId":"J6-RV-FR-001","mapName":"5W_0429","x":-0.005500810045392157,"y":-0.0028780331186872843,"angle":-0.0016407569922452046}]`
+      content : `[{"robotId":"J6-RV-FR-001","mapName":"5W_2022","x":-0.005500810045392157,"y":-0.0028780331186872843,"angle":-0.0016407569922452046}]`
     },
     lidar:{
       seriesInterval: 0.5,

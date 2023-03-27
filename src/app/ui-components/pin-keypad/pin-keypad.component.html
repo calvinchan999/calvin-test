@@ -17,7 +17,7 @@
         </div>
     </div>
     
-    <kendo-qrcode *ngIf="!autoSubmit && myPin.length == 6" [value]="myPin" errorCorrection="Q">
+    <kendo-qrcode *ngIf="!autoSubmit && myPin.length == 6" [value]="myPin" errorCorrection="Q" [size]="350">
     </kendo-qrcode>
     
     <div *ngIf="!autoSubmit" class="button-container">

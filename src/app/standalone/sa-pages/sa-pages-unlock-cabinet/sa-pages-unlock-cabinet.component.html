@@ -2,7 +2,7 @@
     <kendo-dialog-titlebar (close) = "onClose()">
         <div>{{title | label: uiSrv.langPack}}</div>
     </kendo-dialog-titlebar>
-    <kendo-tabstrip #tabstrip (tabSelect)="$event.index == 0 ? initQrScanner() :  html5QrcodeScanner.clear()">
+    <kendo-tabstrip #tabstrip (tabSelect)="$event.index == 0 ? initQrScanner() :  html5QrcodeScanner?.stop()">
         <kendo-tabstrip-tab [title]="'QR Code' | label : uiSrv.langPack " [selected]="true" >
             <ng-template kendoTabContent>
                 <div class="main-container">

@@ -43,7 +43,7 @@ export class SaTopModuleComponent implements OnInit , OnDestroy {
   patrolFlvSrc
   ds = {} //datasource
   ngModelObj = {}
-  onDestroy = new Subject()
+  $onDestroy = new Subject()
   airQualitySubj = new BehaviorSubject<any>(null)
   topModule = {
     patrol: [
@@ -109,8 +109,9 @@ export class SaTopModuleComponent implements OnInit , OnDestroy {
 
   constructor( public util : GeneralUtil, public uiSrv : UiService ,  public authSrv : AuthService,
                public router: Router , public dataSrv :  DataService ,  private configSrv : GeneralUtil) { }
-
-  async ngOnInit(){
+               
+  async ngOnInit(){}
+  async ngAfterViewInit(){
     this.patrolFlvSrc = this.configSrv.config.IP_CAMERA_URL
     // if(this.authSrv.isGuestMode){
     //   this.router.navigate(['/login'])
@@ -210,7 +211,7 @@ export class SaTopModuleComponent implements OnInit , OnDestroy {
       }
       // refreshIeq(ieqData)
       const ieqSubj = this.getIeqSubj()
-      ieqSubj.pipe(skip(1),takeUntil(this.onDestroy),filter(ieq=>ieq!=null)).subscribe(ieq => refreshIeq(ieq))
+      ieqSubj.pipe(skip(1),takeUntil(this.$onDestroy),filter(ieq=>ieq!=null)).subscribe(ieq => refreshIeq(ieq))
       ieqSubj.next(ieqData)
     }
   }
@@ -305,17 +306,21 @@ export class SaTopModuleComponent implements OnInit , OnDestroy {
       if(containersResp.status == 200 && containersResp?.body){
         var containers = JSON.parse(containersResp.body)?.[ hasDoors ? 'doorList' : 'levelList']
         let doorIds = containers.map(d=>d['id'])
+        // if(this.util.arcsApp){
+
+        // }
         if(hasDoors){
           this.dataSrv.signalRSubj.cabinetAvail.next(this.dataSrv.signalRMaster.cabinet.mapping.cabinetAvail(JSON.parse(containersResp.body))) 
         }else{
           this.dataSrv.signalRSubj.trayRackAvail.next(this.dataSrv.signalRMaster.trayRack.mapping.trayRackAvail(JSON.parse(containersResp.body))) 
         }
+
         let containerData = {
           containerId: { title: 'Container ID', icon: 'mdi mdi-package-variant-closed', class: 'container' },
           availability: { title: 'Available / Occupied', icon: 'mdi mdi-tray-alert', class: 'availibility' },
-          door: { title: 'Door', icon: 'mdi mdi-door', class: 'door' },
+          door: { title: 'Door', icon: 'mdi mdi-door', class: 'door'},
           openContainer: { title: 'Open', class: 'open' },
-          closeContainer: { title: 'Close', class: 'close' },
+          closeContainer: { title: 'Close', class: 'close'  , disabled : true},
         }
         
         for(let i = 0 ; i< doorIds.length ; i++){
@@ -376,6 +381,14 @@ export class SaTopModuleComponent implements OnInit , OnDestroy {
             }]) 
           }
         }
+        
+        this.dataSrv.signalRSubj.cabinetDoorStatus.pipe(filter(v=>v),takeUntil(this.$onDestroy)).subscribe(v=>{
+          for(let i = 0 ; i < v.length ; i ++){
+            this.ds['closeContainer_' + doorIds[i]].disabled = v[i] == 'CLOSED'
+            this.ds['openContainer_' + doorIds[i]].disabled = v[i] == 'OPENED'
+          }
+        })
+
       }else{
         this.uiSrv.showNotificationBar("Error : GET [cabinet/v1] failed")
       }
@@ -413,7 +426,7 @@ export class SaTopModuleComponent implements OnInit , OnDestroy {
         });
         const content :SaPagesUnlockCabinetComponent  = dialog.content.instance;
         content.dialogRef = dialog
-        content.title =  this.uiSrv.translate(`Unlock Cabinet [${containerId}]`),
+        content.title =  this.uiSrv.translate(`Unlock Cabinet`) + `[${containerId}]`,
           content.qrResult.pipe(filter(v => v != null), takeUntil(content.$onDestroy)).subscribe(v => {
             onPinInput(v, this.uiSrv.translate('QR code not matching'))
           })
@@ -438,7 +451,7 @@ export class SaTopModuleComponent implements OnInit , OnDestroy {
 
       const content :SaPagesLockCabinetComponent  = dialog.content.instance;
       content.dialogRef = dialog
-      content.title = this.uiSrv.translate(`Set Locker Password (Cabinet [${containerId}])`);
+      content.title = this.uiSrv.translate(`Set Locker Password - Cabinet `) + `[${containerId}]`;
       let pin = await content.setPin.pipe(take(1)).toPromise()
 
       if(pin!=null){ // TBR : send pin to fobo amr api
@@ -461,12 +474,11 @@ export class SaTopModuleComponent implements OnInit , OnDestroy {
       let containerId = k.replace('availability_' , '')
       let withPin = localStorage.getItem('pin_' + containerId)!=null
       this.ds[k]['icon'] = withPin ?  'mdi mdi-lock' : 'mdi mdi-tray-alert' 
-      this.ds = JSON.parse(JSON.stringify(this.ds))
      })
   }
 
   ngOnDestroy(){
-    this.onDestroy.next()
+    this.$onDestroy.next()
     if(this.arcsRobotSubType == 'CABINET_DELIVERY' && this.arcsRobotType == 'DELIVERY'){ //TBR !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
       this.dataSrv.unsubscribeSignalR('cabinet')
     }

@@ -156,7 +156,8 @@ export class DrawingBoardComponent implements OnInit , AfterViewInit , OnDestroy
     showWaypoint : true,
     showWaypointName : true,
     showPath : false,
-    darkMode : true
+    darkMode : true,
+    showPoseDeviation : false
   }
 
   @Input() set fullScreen(b) {
@@ -582,6 +583,7 @@ export class DrawingBoardComponent implements OnInit , AfterViewInit , OnDestroy
       this.uiSrv.drawingBoardComponents = this.uiSrv.drawingBoardComponents.filter(c => c != this)
       this.subscriptions.forEach(s=>s.unsubscribe())
       if(this.signalRPoseSubscribed){
+        this.dataSrv.unsubscribeSignalR('poseDeviation')
         this.dataSrv.unsubscribeSignalR('pose')
       }
       this.unsubscribePose_ARCS()
@@ -660,6 +662,8 @@ export class DrawingBoardComponent implements OnInit , AfterViewInit , OnDestroy
       this.overlayMsg = this.uiSrv.translate("Select Starting Postion")
       this.dataSrv.unsubscribeSignalR('pose')
       this.dataSrv.subscribeSignalR('pose')
+      this.dataSrv.unsubscribeSignalR('poseDeviation')
+      this.dataSrv.subscribeSignalR('poseDeviation')
       this.signalRPoseSubscribed = true
       // await this.pixiElRef.loadFloorPlanFullDataset(await this.dataSrv.getFloorplanFullDs(fpId) , true , true)
       this.addRobot(this.dataSrv.robotMaster?.robotCode , null);
@@ -2805,7 +2809,7 @@ export class DrawingBoardComponent implements OnInit , AfterViewInit , OnDestroy
   }
 
   toggleDarkMode(on) {
-    this.uitoggle.darkMode =  on 
+    this.uitoggle.darkMode = this._fullScreen? false : on
     const vertexShader = null;
     const fragmentShader = [
       "varying vec2 vTextureCoord;",
@@ -2832,7 +2836,6 @@ export class DrawingBoardComponent implements OnInit , AfterViewInit , OnDestroy
     ].join('\n');  
     this._ngPixi.app.renderer.transparent =  this.uitoggle.darkMode 
     this._ngPixi.app.renderer.backgroundColor = this._ngPixi.app.renderer.transparent ? 0x000000 : 0xFFFFFF
-    console.log( this._ngPixi.app.renderer.backgroundColor)
     if( this.backgroundSprite){
       const colorMatrix = new PIXI.filters.ColorMatrixFilter();
       colorMatrix.brightness(0.7, true);  

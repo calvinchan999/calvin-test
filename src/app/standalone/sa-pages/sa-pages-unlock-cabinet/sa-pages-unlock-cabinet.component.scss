@@ -31,3 +31,7 @@
     display: flex;
     justify-content: center;
 }
+
+:host ::ng-deep video {
+    transform: scaleX(-100%);
+}

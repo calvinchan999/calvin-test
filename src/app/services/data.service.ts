@@ -20,7 +20,7 @@ export type dropListType =  'floorplans' | 'buildings' | 'sites' | 'maps' | 'act
 export type localStorageKey = 'lang' | 'uitoggle' | 'lastLoadedFloorplanCode' | 'eventLog' | 'unreadNotificationCount' | 'unreadSyncMsgCount' | 'syncDoneLog' | 'dashboardMapType'
 export type sessionStorageKey = 'arcsLocationTree' | 'dashboardFloorPlanCode'| 'isGuestMode' | 'userAccess' | 'arcsDefaultBuilding' | 'userId' | 'currentUser' 
 export type eventLog = {datetime? : string , type? : string , message : string  , robotCode?: string }
-export type signalRType = 'activeMap' | 'occupancyGridMap' | 'navigationMove' | 'chargingResult' | 'chargingFeedback' | 'state' | 'battery' | 'pose' | 'speed'|
+export type signalRType = 'activeMap' | 'occupancyGridMap' | 'navigationMove' | 'chargingResult' | 'chargingFeedback' | 'state' | 'battery' | 'pose' | 'speed'| 'poseDeviation' |
                     'obstacleDetection' | 'estop' | 'brake' | 'tilt' | 'departure' | 'arrival' | 'completion' | 'timeout' | 'exception' | 'followMePair' |
                     'followMeAoa' | 'digitalOutput' | 'wifi' | 'cellular' | 'ieq' | 'rfid' | 'cabinet' | 'rotaryHead' | 'nirCamera' | 'nirCameraDetection' |
                     'thermalCamera' | 'thermalCameraDetection' | 'webcam' | 'heartbeatServer' | 'heartbeatClient' | 'arcsPoses' | 'taskActive' | 'lidarStatus' |
@@ -144,6 +144,7 @@ export class DataService {
     arcsRobotDestination: new BehaviorSubject<string>(null),
     arcsLift: new BehaviorSubject<{ [key: string]: { floor: string, opened: boolean, robotCode: string } }>({}),
     arcsTurnstile: new BehaviorSubject<{ [key: string]: { opened: boolean } }>({}),
+    poseDeviation : new BehaviorSubject<{poseValid : boolean , translationDeviation : boolean , angleDeviation : boolean}>(null),
     // taskActionActiveAlias : new BehaviorSubject<any>(null)
   }
 
@@ -262,7 +263,7 @@ export class DataService {
         taskActive: (d :  {taskId : string , moveTask : JTask}) => {
           let ret =  d.taskId!= null ? d : d.moveTask
           this.signalRSubj.taskProgress.next(0)
-          if (this.uiSrv.isTablet && ret) {
+          if (this.uiSrv.isTablet && ret ) {
             this.router.navigate(['taskProgress'])
           }
           return ret
@@ -392,6 +393,7 @@ export class DataService {
                           this.updateArcsRobotDataMap(d.robotId , 'availContainersCount' , d.doorList.filter(l=>!l.trayFull).length)
                           this.updateArcsRobotDataMap(d.robotId , 'containersAvail' , ret)
                           this.updateArcsRobotDataMap(d.robotId , 'containersDoorStatus' , d.doorList.map(door=> door.status))
+                          console.log(ret)
                           return ret
                         },
                          cabinetDoorStatus:  (d)=> { return d['doorList'].map(door=> door['status']) }
@@ -491,6 +493,10 @@ export class DataService {
         }
       },
       api:'turnstile/v1/null'  //TBR
+    },
+    poseDeviation:{
+      topic : "rvautotech/fobo/poseDeviation",
+      mapping:{poseDeviation : null}
     }
   }
 
@@ -618,9 +624,11 @@ export class DataService {
     let ticket = this.uiSrv.loadAsyncBegin()
 
     if (this.util.standaloneApp) {
-      let profile : {serviceList : {name : string , enabled : boolean}[]} = await this.httpSrv.fmsRequest('GET', 'baseControl/v1/profile' , undefined, false)
+      let profile : {robotId: string , robotType : string , robotSubtype:string, serviceList : { name : string , enabled : boolean}[]} = await this.httpSrv.fmsRequest('GET', 'baseControl/v1/profile' , undefined, false)
+      this.robotMaster = { robotCode: profile.robotId, robotType: profile.robotType, robotSubType: profile.robotSubtype }
+
       profile.serviceList.forEach(s=> this.configSrv.disabledModule_SA[s.name] = !s.enabled) 
-      this.getRobotMaster()
+      // this.getRobotMaster(profile)
       let lidarStatusResp = await this.httpSrv.fmsRequest('GET', this.signalRMaster.lidarStatus.api, undefined, false)
       if (lidarStatusResp?.SwitchOn) {
         this.uiSrv.showWarningDialog('Lidar Sensor Turned On.')
@@ -1007,8 +1015,9 @@ export class DataService {
 
   public async getRobotMaster() : Promise<RobotMaster>{
     if(!this.robotMaster?.robotCode){
-      let ret = (await this.httpSrv.get("api/robot/v1"))
-      this.robotMaster = JSON.parse(JSON.stringify(ret))
+      //let ret = (await this.httpSrv.get("api/robot/v1"))
+      let ret : {robotId: string , robotType : string , robotSubtype:string} = ( await this.httpSrv.fmsRequest('GET', 'baseControl/v1/profile' , undefined, false))
+      this.robotMaster = {robotCode : ret.robotId , robotType : ret.robotType , robotSubType : ret.robotSubtype}
     }
     this.withDashboard = this.robotTypesWithDashboard.includes(this.robotMaster?.robotType?.toUpperCase())
     return  this.robotMaster 
@@ -1222,7 +1231,7 @@ export class SaveRecordResp {
 
 export class RobotMaster{
   robotCode
-  name
+  name?
   robotType
   robotSubType
 }

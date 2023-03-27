@@ -45,9 +45,12 @@
       </span>
     </div>
     
-
+    <div class="debug-info-container" *ngIf="util.standaloneApp && uitoggle.showPoseDeviation">
+        <span> {{'Translation Deviation'}}: {{dataSrv.signalRSubj.poseDeviation.value?.translationDeviation}}</span>
+        <span> {{'Angle Deviation'}} : {{dataSrv.signalRSubj.poseDeviation.value?.angleDeviation}}</span>
+    </div>
+    
     <div class="buttons-container t1" [ngClass]="{'tablet': uiSrv.isTablet}">
-
        <button *ngIf="util.arcsApp && isDashboard && arcsLocationTree.currentLevel == 'floorplan'" kendoButton class="show-waypoint" [matTooltip]="((uitoggle.showWaypoint && uitoggle.showWaypointName) ? 'Hide Waypoint Name' : ((uitoggle.showWaypoint && !uitoggle.showWaypointName) ? 'Hide Waypoint' : 'Show Waypoint'))| label : uiSrv.langPack"  
                 [disabled]="disableButton['showWaypoint']" matTooltipPosition="right" 
                 (click)=" uitoggle.showWaypointName = !(uitoggle.showWaypoint && uitoggle.showWaypointName); uitoggle.showWaypoint = !(uitoggle.showWaypoint && uitoggle.showWaypointName) ; toggleWaypoint()"  
@@ -169,6 +172,9 @@
       <button *ngIf="isDashboard && !util.arcsApp  &&  !hideButton['tools']" kendoButton class="engineer-mode"  [matTooltip]="'More Options'| label : uiSrv.langPack" (click)="engineerMode = !engineerMode" [ngClass]="{'btn-active': engineerMode}">
         <span class="mdi mdi-eye"></span>
       </button>
+      <button  *ngIf="isDashboard && !_fullScreen && dataSrv.signalRSubj.poseDeviation.value?.poseValid == false " kendoButton class="relocation-reminder" [style.background]="'red'"  [matTooltip]="'Poor Positioning Detected. Relocation Required'| label : uiSrv.langPack">
+        <span  class="mdi mdi-reload-alert"></span>
+      </button>
       <ng-container  *ngIf="_fullScreen || engineerMode || showRosToggle">
         <button *ngIf="engineerMode && showRobot" kendoButton class="lidar" [matTooltip]="'Show Lidar Point Cloud'| label : uiSrv.langPack" [disabled]="disableButton['lidar']"   matTooltipPosition="right" 
                 [ngClass]="{'btn-active':liveLidarObj.show}" (click)=" liveLidarObj.show ? unsubscribeLiveLidar_SA() : subscribeLiveLidar_SA()">
@@ -192,9 +198,13 @@
                 [ngClass]="{'btn-intermediate': uitoggle.showWaypoint && !uitoggle.showWaypointName , 'btn-active': uitoggle.showWaypoint && uitoggle.showWaypointName , 'show-waypoint-fullscreen' : _fullScreen}">
           <span class="mdi mdi-map-marker"></span>
         </button>
-         <button *ngIf="isDashboard" kendoButton class="dark-mode-switch" [matTooltip]="'Light / Dark Map' | label : uiSrv.langPack"  
+         <button *ngIf="isDashboard && !_fullScreen" kendoButton class="dark-mode-switch" [matTooltip]="'Light / Dark Map' | label : uiSrv.langPack"  
                 (click)="toggleDarkMode(!uitoggle.darkMode)"  [ngClass]="{'btn-active': uitoggle.darkMode}">
              <span [class]="'mdi mdi-theme-light-dark'"></span>
+        </button>
+         <button *ngIf="engineerMode && isDashboard && !_fullScreen " kendoButton class="show-ros" [matTooltip]="'Show Positioning Accuracy'| label : uiSrv.langPack"   
+                matTooltipPosition="right" (click) = "uitoggle.showPoseDeviation = !uitoggle.showPoseDeviation; updateUiToggleLocalStorage()"  [ngClass]="{'btn-active': uitoggle.showPoseDeviation }">
+          <span class="mdi mdi-crosshairs-question"></span>
         </button>
       </ng-container>
     </div>

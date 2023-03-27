@@ -48,12 +48,13 @@
                                                ( ds[item['id']]?.signalRfld!=null &&  ds[item['id']]?.signalRfld!=undefined && ds[item['id']].signalR?.value? 
                                                  ds[item['id']].signalR?.value[ds[item['id']].signalRfld] : 
                                                  ds[item['id']]?.signalR?.value ) 
-                                              )  }}</span>
+                                              )  }}
+                    </span>             
                     <span class="bl-unit">{{ (ds[item['id']]?.suffixSignalR && ds[item['id']]?.suffixSignalR.value ?  ds[item['id']]?.suffixSignalR.value : ds[item['id']]?.suffix ) | label : uiSrv.langPack }}</span>
                 </div>   
             </ng-container>
             <ng-container  *ngIf="item['type']=='button'">
-                <button kendoButton (click) = "buttonClicked(item)" >
+                <button kendoButton [disabled]="ds[item['id']]?.disabled" (click) = "buttonClicked(item)" >
              
                     <span>{{ds[item['id']]?.title | label : uiSrv.langPack}}</span>
                 </button>

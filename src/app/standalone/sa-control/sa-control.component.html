@@ -41,11 +41,12 @@
         <div class="form-container">
             <form [formGroup]="frmGrpRobot" class="content">
                 <div class="form-row">
-                    <uc-txtbox lab="Code" [frmGrp]="frmGrpRobot" frmCtrl="robotCode"  [disabled]="true"></uc-txtbox>
-                    <uc-txtbox lab="Robot Name" [frmGrp]="frmGrpRobot" frmCtrl="name"  [disabled]="true"></uc-txtbox>
+                    <uc-txtbox lab="Robot Code" [frmGrp]="frmGrpRobot" frmCtrl="robotCode"  [disabled]="true"></uc-txtbox>
+                    <!-- <uc-txtbox lab="Robot Name" [frmGrp]="frmGrpRobot" frmCtrl="name"  [disabled]="true"></uc-txtbox> -->
                 </div>
                 <div class="form-row">
-                    <uc-txtbox lab="Type" [frmGrp]="frmGrpRobot" frmCtrl="robotType"  [disabled]="true"></uc-txtbox>
+                    <uc-txtbox lab="Robot Type" [frmGrp]="frmGrpRobot" frmCtrl="robotType"  [disabled]="true"></uc-txtbox>
+                    <uc-txtbox lab="Robot Sub Type" [frmGrp]="frmGrpRobot" frmCtrl="robotSubType"  [disabled]="true"></uc-txtbox>
                     <!-- <uc-dropdown lab="Status" [frmGrp]="frmGrpRobot" frmCtrl="robotStatus"></uc-dropdown> -->
                 </div>
                 <ng-container *ngIf="!readonly.robot && (!configSrv.disabledModule_SA.maxSpeed || !configSrv.disabledModule_SA.safetyZone)">
