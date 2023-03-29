@@ -7,9 +7,10 @@ import { filter, take } from 'rxjs/operators';
 import { DataService, DropListFloorplan, JBuilding, JSite, ShapeJData, Site } from 'src/app/services/data.service';
 import { RvHttpService } from 'src/app/services/rv-http.service';
 import { UiService } from 'src/app/services/ui.service';
-import { DrawingBoardComponent, DRAWING_STYLE, PixiCommon, PixiPolygon, Robot } from 'src/app/ui-components/drawing-board/drawing-board.component';
+import { DrawingBoardComponent, PixiCommon, PixiPolygon, Robot } from 'src/app/ui-components/drawing-board/drawing-board.component';
 import { GeneralUtil } from 'src/app/utils/general/general.util';
 import { centroidOfPolygon as centroidOfPolygon, inside } from 'src/app/utils/math/functions';
+import { DRAWING_STYLE } from 'src/app/utils/ng-pixi/ng-pixi-viewport/ng-pixi-styling-util';
 
 
 @Component({

@@ -1,6 +1,6 @@
 import { Component, OnInit, ViewChild, ElementRef , Input , Output , EventEmitter} from '@angular/core';
-import { NgPixiViewportComponent, PixiGraphics } from 'src/app/utils/ng-pixi/ng-pixi-viewport/ng-pixi-viewport.component';
-import { PixiCircle } from '../drawing-board/drawing-board.component';
+import { NgPixiViewportComponent } from 'src/app/utils/ng-pixi/ng-pixi-viewport/ng-pixi-viewport.component';
+import { PixiCircle , PixiGraphics } from 'src/app/utils/ng-pixi/ng-pixi-viewport/ng-pixi-base-graphics';
 
 
 
@@ -27,7 +27,7 @@ export class WorkflowDesignerComponent implements OnInit {
 
   onViewportMouseUp(event){
     if(this.newNode){
-      this._ngPixi.viewport.addChild(new PixiCircle())
+      // this._ngPixi.viewport.addChild(new PixiCircle(this._ngPixi.v))
     }
     this.newNode = null
   }

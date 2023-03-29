@@ -10,7 +10,6 @@
   WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY
   WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 -- END LICENSE BLOCK ------------------------------------------------*/
-
 import {
     AfterViewInit,
     Component,
@@ -22,14 +21,26 @@ import {
     OnInit,
     ViewChild,
     Output,
-    EventEmitter
+    EventEmitter,
+    Inject
 } from '@angular/core';
 import { ease } from 'pixi-ease';
 import * as Viewport from 'pixi-viewport';
 import * as PIXI from 'pixi.js';
-import { Subject, Subscription } from 'rxjs';
+import { BehaviorSubject, Subject, Subscription } from 'rxjs';
 import { debounceTime, filter, takeUntil } from 'rxjs/operators';
+import {PixiGraphicStyle} from './ng-pixi-styling-util'
 
+export class PixiViewport extends Viewport{
+    cursorMove = new BehaviorSubject<any>(null)
+    clickEnd =new BehaviorSubject<any>(null)
+    zoomed = new BehaviorSubject<any>(null)
+    onDestroy = new Subject()
+    constructor(arg , onDestroy ){
+        super(arg)
+        this.onDestroy = onDestroy
+    }
+}
 
 
 @Component({
@@ -39,6 +50,7 @@ import { debounceTime, filter, takeUntil } from 'rxjs/operators';
     providers: [
     ]
 })
+
 export class NgPixiViewportComponent implements OnInit, AfterViewInit, OnDestroy {
     @ViewChild('stageWrapper') wrapper: ElementRef;
     @ViewChild('stageDiv') stageDiv: ElementRef;
@@ -51,8 +63,9 @@ export class NgPixiViewportComponent implements OnInit, AfterViewInit, OnDestroy
     clickEndEvts = ['touchend', 'mouseup']
 
     private _size = null;
-    public viewport: Viewport;
+    public viewport: PixiViewport;
     public app: PIXI.Application;
+    
 
     @Input() set size(value: { width: number, height: number }) {
         this._size = Object.assign({}, value);
@@ -83,15 +96,15 @@ export class NgPixiViewportComponent implements OnInit, AfterViewInit, OnDestroy
                 transparent: true     
             });
 
-            this.viewport = new Viewport({
+            this.viewport = new PixiViewport({
                 screenWidth: 400,
                 screenHeight: 400,
                 worldHeight: 400,
                 worldWidth: 400,
                 interaction: this.app.renderer.plugins.interaction,
                 passiveWheel: true,
-            });
-            this.viewport.on('zoomed',()=>this.zoomed.next(true))
+            } , this.onDestroy );
+            this.viewport.onDestroy = this.onDestroy
         });
     }
 
@@ -139,9 +152,10 @@ export class NgPixiViewportComponent implements OnInit, AfterViewInit, OnDestroy
         this.viewport.decelerate();
         this.viewport.wheel({ smooth: 3 });
         this.stageDiv.nativeElement.appendChild(this.app.view);
-        // this.viewport.interactive = true
-        // this.moveEvts.forEach(t => this.viewport.on(<any>t, (evt) => this.cursorMove.emit(evt)))
-        // this.clickEndEvts.forEach(t => this.viewport.on(<any>t, (evt) => this.clickEnd.emit(evt)))
+        this.viewport.interactive = true
+        this.moveEvts.forEach(t => this.viewport.on(<any>t, (evt) => this.cursorMove.emit(evt)))
+        this.clickEndEvts.forEach(t => this.viewport.on(<any>t, (evt) => this.clickEnd.emit(evt)))
+        this.viewport.zoomed.pipe(takeUntil(this.onDestroy)).subscribe(e=>this.zoomed.emit(e))
     }
 
     resizeViewport(width: number, height: number) {
@@ -173,109 +187,4 @@ export class NgPixiViewportComponent implements OnInit, AfterViewInit, OnDestroy
     }
 }
 
-const DEFAULT_STYLE = {
-    position : new PIXI.Point(0, 0),
-    fillColor : 0x0000000 ,
-    zIndex : 1,
-    opacity : 1,
-    lineColor : 0x0000000 , 
-    lineThickness : 2
-}
-
-export class PixiGraphicStyle{
-    public baseGraphics : PIXI.Graphics
-    public opacity : number;
-    public fillColor: number;
-    public position : PIXI.Point;
-    public zIndex : number;
-    public lineThickness : number;
-    public lineColor : number;
-
-    constructor(parentGraphics = new PIXI.Graphics(), pos = new PIXI.Point(0, 0), fillColor = DEFAULT_STYLE.fillColor, zIndex = DEFAULT_STYLE.zIndex, alpha = DEFAULT_STYLE.opacity, lineColor = DEFAULT_STYLE.lineColor, lineThickness = DEFAULT_STYLE.lineThickness, clone = false) {
-        this.baseGraphics = parentGraphics
-        this.opacity = alpha
-        this.fillColor = fillColor
-        this.position = pos
-        this.zIndex = zIndex
-        this.lineColor = lineColor
-        this.lineThickness = lineThickness
-        if (!clone) {
-            this.baseGraphics['graphicStyle'] = this
-        }
-    }
-
-    set(property : 'baseGraphics' | 'opacity' | 'fillColor' | 'position' | 'zIndex' | 'lineThickness' | 'lineColor' , value : any){
-        this[property] = <any>value  === undefined ? DEFAULT_STYLE[property] : <any>value 
-        // console.log( <any>value )
-        // console.log(property)
-        // console.log(this)
-        return this
-    }
-
-    setProperties(properties: { baseGraphics?: PIXI.Graphics, opacity?: number, fillColor?: number, position?: PIXI.Point, zIndex?: number, lineThickness?: number, lineColor?: number }) {
-        Object.keys(properties).forEach(k=>{            
-            this[k] = properties[k]  === undefined ? 
-                (k == 'baseGraphics' ? new PIXI.Graphics() : 
-                    ( k == 'position' ? new PIXI.Point(0, 0): 
-                        DEFAULT_STYLE[k])) :
-                <any>properties[k] ;
-        })
-        return this
-    }
-
-    clone(){
-      return new PixiGraphicStyle(this.baseGraphics , new PIXI.Point(this.position.x, this.position.y) , this.fillColor , this.zIndex , this.opacity , this.lineColor , this.lineThickness , true)
-    }
-}
-  
-
-export class PixiGraphics extends PIXI.Graphics {
-    _isRelativeScale
-    _refreshScaleSubscription : Subscription
-    public style : PixiGraphicStyle;
-    set isRelativeScale(v){
-        if(!this._isRelativeScale && v){
-            this._refreshScaleSubscription = this.viewport.zoomed.pipe(filter(v => v != null), takeUntil(this.viewport.onDestroy), debounceTime(25)).subscribe(() => {
-                this.refreshScale()
-            })
-        }else if(this._refreshScaleSubscription && !v){
-            this._refreshScaleSubscription.unsubscribe()
-        }
-        this._isRelativeScale = v
-    }
-    get isRelativeScale(){
-        return this._isRelativeScale
-    }
-    draggable
-    viewport
-    constructor(viewport: NgPixiViewportComponent) {
-        super()
-        this.viewport = viewport
-    }
-    refreshScale(){
-        this.scale.set( 1/ ((this.parent? this.parent.scale.x : 1) *   this.viewport ._ngPixi.viewport.scale.x ))
-    } 
-}
-
-export class PixiGeometry extends PixiGraphics{
-    public vertices : PIXI.Point[]
-    public type : 'circle' | 'line'
-}
-
-export class PixiCircle extends PixiGeometry{
-    public radius : number
-    public center : PIXI.Point
-    constructor(p: PIXI.Point, radiusPx = 20, style = null , viewport : NgPixiViewportComponent = null , isRelativeScale = false){
-        super(viewport)
-        this.isRelativeScale = isRelativeScale
-        this.style = style
-        this.lineStyle(style.lineThickness, style.lineColor).beginFill(style.fillColor, style.opacity).drawCircle(p.x, p.y, radiusPx).endFill();
-        this.type = 'circle'
-        this.center = p
-        this.vertices = this.vertices ? this.vertices : [p];
-        this.radius = this.radius ? this.radius : radiusPx;
-        this.zIndex = style.zIndex;
-        this.isRelativeScale = isRelativeScale
-    }
-}
 

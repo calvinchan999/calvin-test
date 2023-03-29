@@ -1,5 +1,6 @@
 import { Component, AfterViewInit, Input, ViewChild, ElementRef, EventEmitter, Injectable, Inject, Output, ChangeDetectorRef, Renderer2, HostListener, NgZone, OnInit , OnDestroy } from '@angular/core';
-import { PixiGraphicStyle, NgPixiViewportComponent } from 'src/app/utils/ng-pixi/ng-pixi-viewport/ng-pixi-viewport.component';
+import { NgPixiViewportComponent } from 'src/app/utils/ng-pixi/ng-pixi-viewport/ng-pixi-viewport.component';
+import { PixiGraphicStyle } from 'src/app/utils/ng-pixi/ng-pixi-viewport/ng-pixi-styling-util';
 import { GeneralUtil } from 'src/app/utils/general/general.util';
 import * as PIXI from 'pixi.js';
 import * as PixiTextInput from 'pixi-text-input';
@@ -30,6 +31,8 @@ import { ArcsDashboardComponent } from 'src/app/arcs/arcs-dashboard/arcs-dashboa
 import { ConfigService } from 'src/app/services/config.service';
 import {AdjustmentFilter} from '@pixi/filter-adjustment';
 import { GetImageDimensions} from 'src/app/utils/graphics/image';
+import { ConvertColorToHexadecimal , ConvertColorToDecimal} from 'src/app/utils/graphics/style';
+import { DRAWING_STYLE } from 'src/app/utils/ng-pixi/ng-pixi-viewport/ng-pixi-styling-util';
 
 // adapted from
 // http://jsfiddle.net/eZQdE/43/
@@ -222,7 +225,6 @@ export class DrawingBoardComponent implements OnInit , AfterViewInit , OnDestroy
 
   robots: Robot[] = [];
   handleRadius = 10 * DRAWING_STYLE.arrowHeadScale * (this.uiSrv.isTablet? 2 : 1)
-  lineWidth = 3
   arrowTypes = ['arrow','arrow_bi','arrow_bi_curved' , 'arrow_curved']
   curveTypes = ['arrow_bi_curved' , 'arrow_curved']
   pointTypes = ['location','waypoint']
@@ -936,13 +938,9 @@ export class DrawingBoardComponent implements OnInit , AfterViewInit , OnDestroy
     // }
     Object.keys(this._arcsRobotColors).forEach(robotCode=>{
       if(this._arcsRobotColors[robotCode]){
-        let pixiRobot : PixiCommon =  this.robots.filter(r=>r.id == robotCode)[0]?.pixiGraphics
-        if(pixiRobot){
-          let oldAngle = pixiRobot.icon.angle
-          pixiRobot.removeChild(pixiRobot.icon)
-          pixiRobot.icon = new PixiCommon(this._ngPixi.viewport).viewport.getRobotIcon(Number(this._arcsRobotColors[robotCode]))
-          pixiRobot.icon.angle = oldAngle
-          pixiRobot.addChild(pixiRobot.icon)
+        let robotMarker : PixiRobotMarker =  this.robots.filter(r=>r.id == robotCode)[0]?.pixiGraphics
+        if(robotMarker){
+         robotMarker.color = this._arcsRobotColors[robotCode] 
         }
       }
     })
@@ -1124,8 +1122,8 @@ export class DrawingBoardComponent implements OnInit , AfterViewInit , OnDestroy
   getArrow(verts , type , opt = null) : PixiArrow{
     if(opt == null){
       opt = new PixiGraphicStyle().setProperties(
-        {lineColor : new PixiCommon(this._ngPixi.viewport).hexToNumColor(this.selectedStyle.arrow.color), 
-        fillColor :  new PixiCommon(this._ngPixi.viewport).hexToNumColor(this.selectedStyle.arrow.color), 
+        {lineColor : ConvertColorToDecimal(this.selectedStyle.arrow.color), 
+        fillColor :  ConvertColorToDecimal(this.selectedStyle.arrow.color), 
         opacity :  this.selectedStyle.arrow.opacity,
         zIndex : 10
       })
@@ -1226,7 +1224,7 @@ export class DrawingBoardComponent implements OnInit , AfterViewInit , OnDestroy
       let polygon = this.getPolygon(vertices , new PixiGraphicStyle().setProperties(
         {
          baseGraphics :   new PixiCommon(this._ngPixi.viewport), 
-         fillColor : this.selectedStyle.polygon.color ?  new PixiCommon(this._ngPixi.viewport).hexToNumColor(this.selectedStyle.polygon.color)  :  DRAWING_STYLE.mouseOverColor ,
+         fillColor : this.selectedStyle.polygon.color ?  ConvertColorToDecimal(this.selectedStyle.polygon.color)  :  DRAWING_STYLE.mouseOverColor ,
          zIndex : -1
         }
       ))
@@ -1363,7 +1361,7 @@ export class DrawingBoardComponent implements OnInit , AfterViewInit , OnDestroy
             opt.zIndex = -1
             opt.baseGraphics = this.drawObj.graphics
             opt.opacity = this.selectedStyle.brush.opacity
-            opt.fillColor = new PixiCommon(this._ngPixi.viewport).hexToNumColor(this.selectedStyle.brush.color)// Number(this.selectedStyle.brush.color.replace("#",'0x'))
+            opt.fillColor = ConvertColorToDecimal(this.selectedStyle.brush.color)// Number(this.selectedStyle.brush.color.replace("#",'0x'))
             opt.lineColor = opt.fillColor
             opt.lineThickness = this.selectedStyle.brush.size
             this.drawLine( this.drawObj.startVertex, mousePos , opt)
@@ -1422,7 +1420,7 @@ export class DrawingBoardComponent implements OnInit , AfterViewInit , OnDestroy
           this.drawObj.draftLine = null          
           this.selectGraphics(null)
         }
-        let line = new PixiCommon(this._ngPixi.viewport).getLine(this.drawObj.startVertex ,  event.data.getLocalPosition(this._mainContainer), new PixiGraphicStyle().setProperties({lineColor : new PixiCommon(this._ngPixi.viewport).hexToNumColor(this.selectedStyle.line.color) , lineThickness :this.selectedStyle.line.width ,  opacity : this.selectedStyle.line.opacity}))
+        let line = new PixiCommon(this._ngPixi.viewport).getLine(this.drawObj.startVertex ,  event.data.getLocalPosition(this._mainContainer), new PixiGraphicStyle().setProperties({lineColor : ConvertColorToDecimal(this.selectedStyle.line.color) , lineThickness :this.selectedStyle.line.width ,  opacity : this.selectedStyle.line.opacity}))
         line.zIndex = -1
         this._mainContainer.addChild(line);
         this.drawingsCreated.push(line)
@@ -1455,7 +1453,7 @@ export class DrawingBoardComponent implements OnInit , AfterViewInit , OnDestroy
       this.drawObj.startVertex = newPos
       let opt = new PixiGraphicStyle()
       opt.opacity = this.selectedStyle.brush.opacity
-      opt.fillColor = new PixiCommon(this._ngPixi.viewport).hexToNumColor(this.selectedStyle.brush.color)//Number(this.selectedStyle.brush.color.replace("#",'0x'))
+      opt.fillColor = ConvertColorToDecimal(this.selectedStyle.brush.color)//Number(this.selectedStyle.brush.color.replace("#",'0x'))
       this.drawObj.graphics.drawCircle(newPos.x , newPos.y , this.selectedStyle.brush.size / 40 , opt)
       this.clickEndEvts.forEach(t => {
         this.mouseUpListenerObj[t] = this.renderer.listen(document,t,()=>{
@@ -2176,7 +2174,7 @@ export class DrawingBoardComponent implements OnInit , AfterViewInit , OnDestroy
 
   initLocalizerGraphic() {
     if (!this.spawnPointObj.markerGraphic) {
-      this.spawnPointObj.markerGraphic = new PixiCommon(this._ngPixi.viewport).getRobotMarker(this.highlightColor, 0, 0, this.spawnPointObj.rotation)
+      this.spawnPointObj.markerGraphic =new PixiRobotMarker(this.highlightColor, 0, 0, this.spawnPointObj.rotation)
       this.spawnPointObj.markerGraphic['interval'] = setInterval(() => {
         this.spawnPointObj.markerGraphic.alpha = this.spawnPointObj.markerGraphic.alpha == 1 ? 0.4 : 1
       }, 1000)
@@ -2857,7 +2855,7 @@ export class DrawingBoardComponent implements OnInit , AfterViewInit , OnDestroy
 
       this.backgroundSprite.filters = this._ngPixi.app.renderer.transparent ? [colorMatrix, chroma ] : null;
       this.allPixiPoints.forEach((p:PixiLocPoint)=>{
-        p.option.fillColor = new PixiCommon(this._ngPixi.viewport).hexToNumColor(this._ngPixi.app.renderer.transparent ? this.selectedStyle.markerLight.color : this.selectedStyle.marker.color)
+        p.option.fillColor = ConvertColorToDecimal(this._ngPixi.app.renderer.transparent ? this.selectedStyle.markerLight.color : this.selectedStyle.marker.color)
         p.option.lineColor = p.option.fillColor 
         p.draw();
       })
@@ -3426,7 +3424,7 @@ export class Robot {
   public id: string;
   public rosPose  = { position: { x: null, y: null }, angleRad: 0, frame_id: '' , timeStamp : null};
   public pose = { position: { x: null, y: null }, angle: 0, frame_id: '' };
-  public pixiGraphics
+  public pixiGraphics : PixiRobotMarker
   public clicked = new EventEmitter();
   public tapped = new EventEmitter();
   private _enabled = true
@@ -3498,19 +3496,15 @@ export class Robot {
     this.robotBase = robotBase
     this.util = generalUtils;
     this.parent = masterComp;
-    this.pixiGraphics = new PixiCommon(this.parent._ngPixi.viewport)
+    //this.pixiGraphics = new PixiCommon(this.parent._ngPixi.viewport)
     this.mapCode = mapCode
     this.robotCfg = this.util.config.robot;
-    this.refreshStatus();
-    this.pixiGraphics = this.getPIXIGrahics()
+    this.pixiGraphics =  new PixiRobotMarker(ConvertColorToDecimal(this.visualCfg.fillColor) , 0 , 0 , 0)
     this.pixiGraphics.on("mouseover", (evt: PIXI.interaction.InteractionEvent) => this.pixiGraphics.showToolTip(this.id + ` ${this.offline ? this.parent.uiSrv.translate(' (Offline)') : ""}` ,evt))
     this.pixiGraphics.on("mouseout", () => this.pixiGraphics.hideToolTip())
+    this.refreshStatus();
 
-    this.pixiGraphics.on('added',()=>{
-      this.pixiGraphics.parent.sortableChildren = true
-      this.pixiGraphics.parent.zIndex = 1000
-      this.pixiGraphics.zIndex = 1000
-    })
+
     this.pixiGraphics.interactive = this.util.arcsApp;
     ["click" , "tap"].forEach(trigger=>{
       this.pixiGraphics.on(trigger, (evt) => {
@@ -3532,9 +3526,6 @@ export class Robot {
     (<PixiCommon>this.pixiGraphics.pixiAlertBadge.icon).scale.set(scale * 1.2)
   }
 
-  public getPIXIGrahics(fillColor = this.visualCfg.fillColor , x = 0 , y = 0 , angle = 0){
-    return new PixiCommon(this.pixiGraphics.viewport).getRobotMarker(new PixiCommon(this.pixiGraphics.viewport).hexToNumColor(fillColor) , x , y , angle)
-  }
 
   public hideFromMap() {
     this.pixiGraphics.visible = false;
@@ -3695,19 +3686,6 @@ export class PixiTaskPath extends PixiLine{
 
 //#######################################################################################################################################################
 
-export const DRAWING_STYLE = {
-  imgEditHandleSize : 5,
-  highlightColor: 0xFE9802,
-  secondaryHighlightColor : 0xFF6358,
-  mouseOverColor : 0x00CED1,
-  arrowTypes : ['arrow','arrow_bi','arrow_bi_curved','arrow_curved'],
-  pointTypes : ['location','waypoint'],
-  curveTypes : ['arrow_bi_curved' , 'arrow_curved'],  
-  markerScale : 0.45 ,
-  arrowHeadScale : 0.45 ,
-  arrowThicknessScale : 0.8 ,
-  arrowHeadLength :  17.5 * 0.45
-}
 
 export class PixiCommon extends PIXI.Graphics{
   dataObj
@@ -3734,75 +3712,6 @@ export class PixiCommon extends PIXI.Graphics{
     border.draw()
   }  
 
-  public getRobotMarker(fillColor , x = 0 , y = 0 , angle = 0){
-    let pivot  = [150, 200]// TO BE RETRIEVED FROM config
-    let robot = this
-    // let svgUrl = 'assets/icons/robot.svg'
-
-    robot.position.set(x,y)
-    robot.icon = this.getRobotIcon(fillColor)
-    robot.icon.angle = angle
-    robot.addChild(robot.icon)
-    robot.pivot.set(pivot[0] , pivot[1])
-    this.pixiAlertBadge = new PixiCommon(this.viewport)
-    this.pixiAlertBadge.icon = new PixiCommon(this.viewport)
-    this.pixiAlertBadge.addChild(this.pixiAlertBadge.icon)
-    let badgeOffset = {x : 0 , y : -200}
-    this.pixiAlertBadge.icon.beginFill(0xFF0000).drawCircle(0 + badgeOffset.x , 0 + badgeOffset.y , 75).endFill()
-    this.pixiAlertBadge.icon.beginFill(0xFFFFFF).drawRect(-10 + badgeOffset.x , -50 + badgeOffset.y , 20 , 60).endFill()
-    this.pixiAlertBadge.icon.beginFill(0xFFFFFF).drawRect(-10 + badgeOffset.x , 30 + badgeOffset.y , 20 , 20).endFill()
-    this.pixiAlertBadge.icon.angle = -90
-    //this.pixiAlertBadge.addChild(new PIXI.Sprite(PIXI.Texture.from('assets/icons/alert.svg')))
-    this.pixiAlertBadge.visible = false
-    robot.addChild(this.pixiAlertBadge)
-    this.pixiAlertBadge.position.set(robot.pivot.x, robot.pivot.y)
-    this.pixiAlertBadge.zIndex = 2
-    robot.sortableChildren = true
-    // robot.icon = icon
-    robot.zIndex = 100//20220611
-    return robot
-  }
-
-  public getRobotIcon(fillColor){
-    let filters = this.getRobotColorFilters(fillColor)
-    let svgUrl = 'assets/icons/robot.svg'
-    let pivot  = [150, 200]// TO BE RETRIEVED FROM config
-    let icon
-    try {
-      icon = new PIXI.Sprite(PIXI.Texture.from(svgUrl))
-    } catch (err) {
-      console.log('An Error has occurred when loading ' + svgUrl)
-      console.log(err)
-      throw err
-    }
-    icon.filters = filters.defaultFilters
-    icon.pivot.set(pivot[0] , pivot[1])
-    icon.position.set(pivot[0] , pivot[1])
-    icon.scale.set(new PixiCommon(this.viewport).robotIconScale)
-    icon.interactive = true
-    icon.cursor = 'pointer'
-    icon.on("mouseover" , ()=> icon.filters = filters.mouseOverFilters)
-    icon.on("mouseout" , ()=> icon.filters = filters.defaultFilters)
-    return icon
-  }
-
-
-  public getRobotColorFilters(fillColor){
-    return {
-      defaultFilters : [
-        <any>new ColorReplaceFilter(0x000000, 0xEEEEEE, 0.8),
-        <any>new ColorOverlayFilter(fillColor, 0.4) , 
-        new OutlineFilter(2.5 , fillColor , 0.5),
-        new GlowFilter({color: fillColor , distance: 50, outerStrength: 0 })
-      ],
-      mouseOverFilters : [
-        <any>new ColorReplaceFilter(0x000000, 0xEEEEEE, 0.8),
-        <any>new ColorOverlayFilter(fillColor, 0.6) , 
-        new OutlineFilter(3.5 , fillColor , 0.5),
-        new GlowFilter({color: fillColor , distance: 50, outerStrength: 1 })
-      ]
-    }
-  }
 
   public getLine(p1: PIXI.Point, p2: PIXI.Point, option : PixiGraphicStyle = new PixiGraphicStyle() , masterComponent : null | DrawingBoardComponent = null , tint = false) : PixiLine{
     let ret : PixiLine = <PixiLine> option.baseGraphics;
@@ -3946,14 +3855,6 @@ export class PixiCommon extends PIXI.Graphics{
     ret.drawPolygon(points);
     ret.endFill();
     return ret
-  }
-
-  public hexToNumColor(hexString : string){
-    return Number( hexString.replace("#",'0x'))
-  }
-
-  public numToHexColor(color : number){
-    return "#"+ color.toString(16).padStart(6,'0')
   }
 
   getMasterComponent() : DrawingBoardComponent{
@@ -4375,8 +4276,9 @@ export class PixiChildPoint extends PixiCommon {
       this.icon?.parent?.removeChild(this.icon)
       this.icon = new PIXI.Graphics()
       let iconSprite = new PIXI.Sprite(this.pixiPointGroup.iconSprite.texture)
+      console.log(iconSprite)
       if(!this.pixiPointGroup.iconSpriteDimension){
-        this.pixiPointGroup.iconSpriteDimension = GetImageDimensions(this.pixiPointGroup.svgUrl) 
+        this.pixiPointGroup.iconSpriteDimension = await GetImageDimensions(this.pixiPointGroup.svgUrl) 
       }
       iconSprite.scale.set(this.actualLengthPx /  this.pixiPointGroup.iconSpriteDimension[0], this.actualLengthPx /  this.pixiPointGroup.iconSpriteDimension[1])
       this.icon.addChild(iconSprite)
@@ -4672,11 +4574,11 @@ export class PixiLocPoint extends PixiCommon {
     let setTxtColor = (focused = false)=>{
       let color =  this.txtInputCfg.input.color   
       if(isMouseOver){
-        color = this.numToHexColor( DRAWING_STYLE.mouseOverColor)
+        color = ConvertColorToHexadecimal( DRAWING_STYLE.mouseOverColor)
       }else if(this.taskSeq?.length>0){
-        color = this.numToHexColor(this.seqMarkerColor)
+        color = ConvertColorToHexadecimal(this.seqMarkerColor)
       }else if( selected && !focused){
-        color = this.numToHexColor( DRAWING_STYLE.highlightColor)
+        color = ConvertColorToHexadecimal( DRAWING_STYLE.highlightColor)
       }
       if(!useInput){
         this.readOnlyPixiText.style.fill = color
@@ -4684,7 +4586,7 @@ export class PixiLocPoint extends PixiCommon {
         this.input.setInputStyle( "color" , color)
       }
     }
-    this.txtInputCfg.input.color = new PixiCommon(this.viewport).numToHexColor(this.option.fillColor)
+    this.txtInputCfg.input.color = ConvertColorToHexadecimal(this.option.fillColor)
     let cfg = JSON.parse(JSON.stringify(this.txtInputCfg))
     let getInputWidth = ()=> Math.min(300 , Math.max(120 ,  this.text ?  this.text.length * 17.5 : 120))
     cfg.input.textAlign = getInputWidth()  >= 300  ? 'left' : 'center'
@@ -5125,7 +5027,7 @@ export class PixiMapLayer extends PixiCommon implements PixiMap {
   addRectangularBorder(width , height , lineColor = DRAWING_STYLE.highlightColor) {
     width = width/this.scale.x
     height = height / this.scale.y 
-    let borderWidth = this.getMasterComponent().lineWidth/ (this.scale.x * this.getViewport().scale.x)
+    let borderWidth = DRAWING_STYLE.lineWidth/ (this.scale.x * this.getViewport().scale.x)
     let points = [
       new PIXI.Point(borderWidth/2 , borderWidth/2),
       new PIXI.Point(width  - borderWidth/2, borderWidth/2),
@@ -5191,7 +5093,7 @@ export class PixiBorder extends PIXI.Graphics{
     let opt = new PixiGraphicStyle().setProperties({
       baseGraphics : this,
       lineColor : this.lineColor , 
-      lineThickness : this.parent.getMasterComponent().lineWidth/(this.parent.scale.x * this.parent.getViewport().scale.x)
+      lineThickness : DRAWING_STYLE.lineWidth/(this.parent.scale.x * this.parent.getViewport().scale.x)
     })
     // opt.baseGraphics = this
     // opt.lineColor = this.lineColor
@@ -5427,6 +5329,93 @@ export class PixiPolygon extends PixiCommon{
     }
   }
 
+}
+
+export class PixiRobotMarker extends PixiCommon{
+  _color
+  get color(){
+    return this._color
+  }
+  set color(v){
+    this._color = v
+    let oldAngle = this.icon.angle
+    this.removeChild(this.icon)
+    this.icon = this.getAvatar(ConvertColorToDecimal(v))
+    this.icon.angle = oldAngle
+    this.addChild(this.icon) 
+  }
+
+  constructor(viewport , fillColor , x = 0 , y = 0 , angle = 0){
+    super(viewport)
+    let pivot  = [150, 200]// TO BE RETRIEVED FROM config 
+    this.position.set(x,y)
+    this.icon = this.getAvatar(fillColor)
+    this.icon.angle = angle
+    this.addChild(this.icon)
+    this.pivot.set(pivot[0] , pivot[1])
+    this.pixiAlertBadge = new PixiCommon(this.viewport)
+    this.pixiAlertBadge.icon = new PixiCommon(this.viewport)
+    this.pixiAlertBadge.addChild(this.pixiAlertBadge.icon)
+    let badgeOffset = {x : 0 , y : -200}
+    this.pixiAlertBadge.icon.beginFill(0xFF0000).drawCircle(0 + badgeOffset.x , 0 + badgeOffset.y , 75).endFill()
+    this.pixiAlertBadge.icon.beginFill(0xFFFFFF).drawRect(-10 + badgeOffset.x , -50 + badgeOffset.y , 20 , 60).endFill()
+    this.pixiAlertBadge.icon.beginFill(0xFFFFFF).drawRect(-10 + badgeOffset.x , 30 + badgeOffset.y , 20 , 20).endFill()
+    this.pixiAlertBadge.icon.angle = -90
+    //this.pixiAlertBadge.addChild(new PIXI.Sprite(PIXI.Texture.from('assets/icons/alert.svg')))
+    this.pixiAlertBadge.visible = false
+    this.addChild(this.pixiAlertBadge)
+    this.pixiAlertBadge.position.set(this.pivot.x, this.pivot.y)
+    this.pixiAlertBadge.zIndex = 2
+    this.sortableChildren = true
+    // this.icon = icon
+    this.zIndex = 100//20220611
+    this.on('added',()=>{
+      this.parent.sortableChildren = true
+      this.parent.zIndex = 1000
+      this.zIndex = 1000
+    })
+  }
+
+  public getAvatar(fillColor){
+    let filters = this.getAvatarFilters(fillColor)
+    let svgUrl = 'assets/icons/robot.svg'
+    let pivot  = [150, 200]// TO BE RETRIEVED FROM config
+    let icon
+    try {
+      icon = new PIXI.Sprite(PIXI.Texture.from(svgUrl))
+    } catch (err) {
+      console.log('An Error has occurred when loading ' + svgUrl)
+      console.log(err)
+      throw err
+    }
+    icon.filters = filters.defaultFilters
+    icon.pivot.set(pivot[0] , pivot[1])
+    icon.position.set(pivot[0] , pivot[1])
+    icon.scale.set(new PixiCommon(this.viewport).robotIconScale)
+    icon.interactive = true
+    icon.cursor = 'pointer'
+    icon.on("mouseover" , ()=> icon.filters = filters.mouseOverFilters)
+    icon.on("mouseout" , ()=> icon.filters = filters.defaultFilters)
+    return icon
+  }
+
+  
+  public getAvatarFilters(fillColor){
+    return {
+      defaultFilters : [
+        <any>new ColorReplaceFilter(0x000000, 0xEEEEEE, 0.8),
+        <any>new ColorOverlayFilter(fillColor, 0.4) , 
+        new OutlineFilter(2.5 , fillColor , 0.5),
+        new GlowFilter({color: fillColor , distance: 50, outerStrength: 0 })
+      ],
+      mouseOverFilters : [
+        <any>new ColorReplaceFilter(0x000000, 0xEEEEEE, 0.8),
+        <any>new ColorOverlayFilter(fillColor, 0.6) , 
+        new OutlineFilter(3.5 , fillColor , 0.5),
+        new GlowFilter({color: fillColor , distance: 50, outerStrength: 1 })
+      ]
+    }
+  }
 }
 
 export class PixiRobotCountTag extends PixiCommon{

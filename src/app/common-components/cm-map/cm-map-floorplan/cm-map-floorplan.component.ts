@@ -5,7 +5,7 @@ import { filter, retry, take } from 'rxjs/operators';
 import { DataService, DropListBuilding, DropListMap, JFloorPlan, JMap, MapJData, ShapeJData } from 'src/app/services/data.service';
 import { RvHttpService } from 'src/app/services/rv-http.service';
 import { UiService } from 'src/app/services/ui.service';
-import { DrawingBoardComponent, DRAWING_STYLE, PixiCommon, PixiLocPoint, PixiMapLayer, radRatio} from 'src/app/ui-components/drawing-board/drawing-board.component';
+import { DrawingBoardComponent, PixiCommon, PixiLocPoint, PixiMapLayer, radRatio} from 'src/app/ui-components/drawing-board/drawing-board.component';
 import { GeneralUtil } from 'src/app/utils/general/general.util';
 import * as PIXI from 'pixi.js';
 import { TabStripComponent } from '@progress/kendo-angular-layout';
@@ -14,7 +14,7 @@ import { SaMapComponent } from 'src/app/standalone/sa-map/sa-map.component';
 import { toJSON } from '@progress/kendo-angular-grid/dist/es2015/filtering/operators/filter-operator.base';
 import { trimAngle } from 'src/app/utils/math/functions';
 import { Observable, of } from 'rxjs';
-import { PixiGraphicStyle } from 'src/app/utils/ng-pixi/ng-pixi-viewport/ng-pixi-viewport.component';
+import { PixiGraphicStyle , DRAWING_STYLE} from 'src/app/utils/ng-pixi/ng-pixi-viewport/ng-pixi-styling-util';
 
 @Component({
   selector: 'app-cm-map-floorplan',
