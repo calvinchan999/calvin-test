@@ -42,7 +42,7 @@
                 </ng-template>
                 <div #footerRow class="new-row">
                     <ng-container *ngTemplateOutlet = "rowTemplate; context:{row: newRow}"></ng-container> 
-                    <div *ngIf="rowDetailCfg.parentRowKey && newRow[rowDetailCfg.parentRowKey]" class = "new-row-detail" >
+                    <div *ngIf="rowDetailCfg.parentRowKey && newRow[rowDetailCfg.parentRowKey] && newRow[rowDetailCfg.parentRowKey].length > 0" class = "new-row-detail" >
                         <div class="form-row">
                             <ng-container *ngFor="let detail of newRow[rowDetailCfg.parentRowKey]">
                                 <uc-txtbox *ngIf="!detail['struct'] || ((detail['struct']['parameterType'] == 'STRING' || detail['struct']['parameterType'] == 'NUMBER') &&  detail['struct']['enumList'].length == 0)" 

@@ -3,7 +3,30 @@
         <div>{{'Robot Collaboration' | label: uiSrv.langPack}}</div>
     </kendo-dialog-titlebar>
 
-    <uc-workflow-designer></uc-workflow-designer>
+    <div class="container">
+        <div class="node-list" cdkDropList>
+            <div *ngFor = "let node of nodes" class="node-box" cdkDrag (cdkDragStarted)="selectedNode = node">
+                {{node.name}}
+                <div class="node-placeholder" *cdkDragPlaceholder></div> 
+            </div>
+            <!-- <div class="node-box" cdkDrag>
+                Test 1
+                <div class="node-placeholder" *cdkDragPlaceholder></div> 
+            </div>
+            <div class="node-box" cdkDrag>
+                Test 2
+                <div class="node-placeholder" *cdkDragPlaceholder></div> 
+            </div>
+            <div class="node-box" cdkDrag>
+                Test 3
+                <div class="node-placeholder" *cdkDragPlaceholder></div> 
+            </div> -->
+        </div>
+        <div class="flowchart-container" cdkDropList>
+            <uc-workflow-designer [(newNode)] = "selectedNode"></uc-workflow-designer>
+        </div>
+    </div>
+
 
     <!-- <div class="form-container">
         <form [formGroup]="frmGrp" class="content">

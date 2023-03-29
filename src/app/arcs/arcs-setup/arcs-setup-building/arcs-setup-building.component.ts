@@ -7,7 +7,7 @@ import { filter, take } from 'rxjs/operators';
 import { DataService, DropListFloorplan, JBuilding, JSite, ShapeJData, Site } from 'src/app/services/data.service';
 import { RvHttpService } from 'src/app/services/rv-http.service';
 import { UiService } from 'src/app/services/ui.service';
-import { DrawingBoardComponent, PixiCommon, PixiPolygon, Robot } from 'src/app/ui-components/drawing-board/drawing-board.component';
+import { DrawingBoardComponent, DRAWING_STYLE, PixiCommon, PixiPolygon, Robot } from 'src/app/ui-components/drawing-board/drawing-board.component';
 import { GeneralUtil } from 'src/app/utils/general/general.util';
 import { centroidOfPolygon as centroidOfPolygon, inside } from 'src/app/utils/math/functions';
 
@@ -175,8 +175,8 @@ export class ArcsSetupBuildingComponent implements OnInit {
 
   onBuildingShapeAdded(gr : PixiPolygon){
     if(this.pixiElRef?.drawingsCreated.filter(d=>d['type'] == 'polygon').length == 1){
-      gr.graphicOption.opacity = 0.8
-      gr.graphicOption.fillColor = new PixiCommon().mouseOverColor
+      gr.graphicStyle.opacity = 0.8
+      gr.graphicStyle.fillColor = DRAWING_STYLE.mouseOverColor
       gr.alpha = 0.8
       let tagPos = centroidOfPolygon(gr.vertices)
       if(!inside(tagPos, gr.vertices)){

@@ -30,7 +30,7 @@ import { DRACOLoader } from 'three/examples/jsm/loaders/DRACOLoader';
 import { ArcsDashboardRobotDetailComponent } from 'src/app/arcs/arcs-dashboard/arcs-dashboard-robot-detail/arcs-dashboard-robot-detail.component';
 import { ArcsLiftIotComponent } from 'src/app/arcs/arcs-IoT/arcs-lift-iot/arcs-lift-iot.component';
 import { ArcsTurnstileIotComponent } from 'src/app/arcs/arcs-iot/arcs-turnstile-iot/arcs-turnstile-iot.component';
-
+import {GetImageDimensions} from 'src/app/utils/graphics/image'
 
 const NORMAL_ANGLE_ADJUSTMENT =  - 90 / radRatio
 const ASSETS_ROOT = 'assets/3D'
@@ -370,7 +370,8 @@ export class ThreejsViewportComponent implements OnInit , OnDestroy{
 
   async loadFloorPlan(floorplan: JFloorPlan, subscribePoses = true) {
     this.resetScene()
-    let dimension =  await this.getImageDimension(floorplan.base64Image)
+    let tmpDims = await GetImageDimensions(floorplan.base64Image)
+    let dimension = {width : tmpDims[0] , height : tmpDims[1]}
     this.initFloorPlan(floorplan , dimension.width , dimension.height);
     this.initROSmaps(floorplan.mapList)
     this.initWaypoints(floorplan.pointList)
@@ -545,11 +546,7 @@ export class ThreejsViewportComponent implements OnInit , OnDestroy{
     this.subcribedIotSignalRTypes.push('arcsTurnstile')
   }
 
-  async getImageDimension(base64 : string) : Promise<{width : number , height : number}>{
-    let ret = new Subject()
-    THREE.ImageUtils.loadTexture(base64 , undefined , (texture)=> ret.next({width : texture.image.width , height : texture.image.height}))
-    return await <any>ret.pipe(filter(v => ![null, undefined].includes(v)), take(1)).toPromise()
-  }
+
 
   async getRobotList(){
     let ticket = this.uiSrv.loadAsyncBegin()

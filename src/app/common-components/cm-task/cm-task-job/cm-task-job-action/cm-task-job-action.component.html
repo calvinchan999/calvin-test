@@ -9,7 +9,8 @@
                                            $event.id == parent.actionRowCfg.parentRowKey ? parent.showActionDetailDialog($event) : null;"  
                             [rowDetailCfg] = "parent.actionRowCfg"
                             [(data)]="actionListData" (dataChange) = "refreshSeq()" [(newRow)] = "actionNewRow" 
-                            (valueChange)="$event.id == 'actionAlias'? parent.refreshActionParameter($event.row , $event.oldValue) : null "> 
+                            (valueChange)="$event.id == 'actionAlias'? parent.refreshActionParameter($event.row , $event.oldValue) : null "
+                            (focusChange)="$event.id == 'actionAlias' ? parent.refreshActionDropdown($event , actionListDef) : null"> 
                 </uc-listview>
             </div>
             

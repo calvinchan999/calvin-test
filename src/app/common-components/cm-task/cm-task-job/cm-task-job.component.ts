@@ -6,7 +6,7 @@ import { filter, take, takeUntil } from 'rxjs/operators';
 import { DataService, DropListAction, DropListDataset, DropListLocation, FloorPlanDataset, RobotMaster, ShapeJData, JTask, ActionParameter, TaskStateOptions } from 'src/app/services/data.service';
 import { RvHttpService } from 'src/app/services/rv-http.service';
 import { TranslatePipe, UiService } from 'src/app/services/ui.service';
-import { DrawingBoardComponent, GraphicOptions, PixiCommon, PixiLocPoint } from 'src/app/ui-components/drawing-board/drawing-board.component';
+import { DrawingBoardComponent, PixiCommon, PixiLocPoint } from 'src/app/ui-components/drawing-board/drawing-board.component';
 import { ListviewComponent, listViewFocusChangeEvent } from 'src/app/ui-components/listview/listview.component';
 import { GeneralUtil } from 'src/app/utils/general/general.util';
 import { CmTaskJobActionComponent } from './cm-task-job-action/cm-task-job-action.component';
@@ -22,7 +22,7 @@ import { ConfigService } from 'src/app/services/config.service';
   styleUrls: ['./cm-task-job.component.scss']
 })
 export class CmTaskJobComponent implements OnInit {
-  onDestroy = new Subject()
+  $onDestroy = new Subject()
   @ViewChild('tabstrip') tabstrip : TabStripComponent
   @ViewChild('listview') listview : ListviewComponent
   @ViewChild('mapContainer') pixiElRef : DrawingBoardComponent
@@ -140,6 +140,7 @@ export class CmTaskJobComponent implements OnInit {
     return this.parentRow == null || this.parentRow == undefined
   }
   parentRow
+  defaultRobotType = null
 
   //TBD : POLLING / SIGNALR AUTO REFRESH TASK STATUS
   ngOnInit(): void {
@@ -174,11 +175,12 @@ export class CmTaskJobComponent implements OnInit {
     if(this.util.arcsApp || this.robotInfo){
       this.uiSrv.loadAsyncDone(ticket)
     } 
+
   }
 
   
   ngOnDestroy(){
-    this.onDestroy.next()
+    this.$onDestroy.next()
   }
 
 
@@ -233,8 +235,8 @@ export class CmTaskJobComponent implements OnInit {
     this.dropdownData = <any> dropListData.data
     this.dropdownOptions = JSON.parse(JSON.stringify(<any> dropListData.option))
     this.dropdownOptions.navigationMode = [{value :'AUTONOMY' , text:'Automatic'}, {value :'PATH_FOLLOWING' , text:'Path Follow'}]
-    this.dropdownData.actions = this.dropdownData.actions
-    this.dropdownOptions.actions = this.dropdownOptions.actions
+    // this.dropdownData.actions = this.dropdownData.actions
+    // this.dropdownOptions.actions = this.dropdownOptions.actions
     this.dropdownOptions.taskState = TaskStateOptions
     let tableColOptMap = {
       actionAlias : 'actions',
@@ -245,6 +247,10 @@ export class CmTaskJobComponent implements OnInit {
       tableColOptMap['floorPlanCode'] = 'floorplans'
     }
     Object.keys(tableColOptMap).forEach(k=> this.jobListDef.filter(d => d['id'] == k)[0]['options'] = this.dropdownOptions[tableColOptMap[k]])
+    if(!this.parentRow && this.defaultRobotType){
+      this.frmGrp.controls['robotType'].setValue(this.defaultRobotType)
+      this.refreshRobotOptions()
+    }
   }
 
 
@@ -274,6 +280,47 @@ export class CmTaskJobComponent implements OnInit {
     this.jobListData = []
     if(this.actionViewMode == 'map'){  
       this.refreshMapView()
+    }
+  }
+
+  refreshRobotOptions(){
+    if(!this.parentRow){
+      this.dropdownOptions.robots = this.dataSrv.getDropListOptions('robots',this.dropdownData.robots , this.frmGrp.controls['robotType'].value ? {robotType : this.frmGrp.controls['robotType'].value}: null)
+      if(!this.dropdownOptions.robots.map(v=>v.value).includes(this.frmGrp.controls['robotCode'].value)){
+        this.frmGrp.controls['robotCode'].setValue(null)
+      }
+    }
+  }
+
+  refreshRobotType(){
+     if(this.frmGrp.controls['robotCode'].value){
+      this.frmGrp.controls['robotType'].setValue(this.dropdownData.robots.filter(r=>r.robotCode == this.frmGrp.controls['robotCode'].value)[0]?.robotType)
+     }    
+  }
+  
+  getActionDropListData(row){
+    let pointType = this.dropdownData.locations.filter(l=>l.pointCode == row?.pointCode)[0]?.pointType
+    let robotType = this.frmGrp.controls['robotType'].value ? this.frmGrp.controls['robotType'].value : this.dropdownData.robots.filter(r=> r.robotCode == this.frmGrp.controls['robotCode'].value)[0]?.robotType
+    return this.dropdownData.actions.filter(a => {
+      if((this.frmGrp.controls['robotType'].value && !a.allowedRobotTypes.includes(robotType)) || 
+         (pointType && !a.allowedPointTypes.includes(pointType))){
+        return false
+      }else {
+        return true
+      }
+    })
+  }
+
+  refreshActionDropdown(evt: { options: { value: string, text: string }[], row: any } , defs = null) { 
+    let options = this.dataSrv.getDropListOptions('actions', this.getActionDropListData(evt.row))
+    if (defs) {
+      let col = defs.filter(c=>c['id'] == 'actionAlias')[0]
+      col['newRow'] = [null , undefined].includes(col['newRow']) ? JSON.parse(JSON.stringify(col)) : col['newRow']
+      col['newRow']['options'] = options
+    } else if (evt.row == this.actionNewRow) {
+      this.setColumnDefNewRowProperty('actionAlias', 'options', options)
+    } else {
+      evt.options = options
     }
   }
 
@@ -437,6 +484,12 @@ export class CmTaskJobComponent implements OnInit {
         setTimeout(()=> this.listview.setErrors(i, 'pointCode' , 'Please input location'))
         return false
       }
+      
+      if(!this.getActionDropListData(row).map(r=>r.alias).includes(row?.actionAlias)){
+        this.listview.setErrors(i, 'actionAlias', 'Action not match with the selected robot type / location')
+        return false
+      }
+
       if(row.actionProperties?.length > 0){
         row.actionProperties.forEach(p=>{
             if(p.struct &&  p.struct.regex.length > 0 &&  !new RegExp(p.struct.regex).test(p.value)){
@@ -600,9 +653,11 @@ export class CmTaskJobComponent implements OnInit {
 
   async refreshMapView() {
     if(this.validateFloorplan()){
-      await this.getFloorplanDs(this.selectedFloorPlanCode)
-      await this.pixiElRef.loadFloorPlanDatasetV2(this.floorplanStore[this.selectedFloorPlanCode], true, true)
-      this.refreshMapDrawings()
+      setTimeout(async()=>{
+        await this.getFloorplanDs(this.selectedFloorPlanCode)
+        await this.pixiElRef.loadFloorPlanDatasetV2(this.floorplanStore[this.selectedFloorPlanCode], true, true)
+        this.refreshMapDrawings()
+      })
       return
     } 
   }
@@ -638,7 +693,9 @@ export class CmTaskJobComponent implements OnInit {
       dialog.result.subscribe(() => {
         this.jobListData = this.jobListDataMassage(false)
         this.pixiElRef._ngPixi.viewport.resumePlugin('wheel')
-        this.refreshMapDrawings()
+        setTimeout(() => {
+          this.refreshMapDrawings()
+        })
       })
     })
   }
@@ -672,11 +729,11 @@ export class CmTaskJobComponent implements OnInit {
   }
 
   refreshMapDrawings() { //TBR : mouseover animation function should be provided in drawing board
-    setTimeout(() => {
+
       // let tmpPIXI = new PixiCommonGeometry()
       let actionLocations = this.getAggregatedActions()
       this.pixiElRef.drawTaskPathsV2(actionLocations)
-    })
+    
   }
 }
 

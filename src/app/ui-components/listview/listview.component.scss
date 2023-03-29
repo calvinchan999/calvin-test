@@ -193,5 +193,9 @@
   100%{background: transparent}
 }
 
-
+:host cdk-virtual-scroll-viewport .focused-cell uc-dropdown{
+  margin-left: -8px;
+  margin-top: -2px;
+  margin-right: 2px;
+}
 

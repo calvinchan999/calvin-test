@@ -625,6 +625,7 @@ export class ArcsDashboardComponent implements OnInit {
       content.isTemplate = this.selectedTab == 'template' 
       content.isExecuteTemplate = evt?.column == 'execute'
       content.readonly = this.selectedTab == 'task' && content.id != null;
+      content.defaultRobotType = this.robotTypeFilter?.toUpperCase()
     }
     content.parent = this
     content.parentRow = evt?.row

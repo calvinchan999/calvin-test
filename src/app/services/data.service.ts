@@ -1251,14 +1251,16 @@ export class DropListDataset {
 export class DropListLocation {
   floorPlanCode
   pointCode
-  shapeCode
-  shapeType
+  pointType
+  // shapeCode
+  // shapeType
 }
 
 export class DropListAction {
   alias: string
   name: string
   allowedRobotTypes: string[]
+  allowedPointTypes : string[]
   parameterList: ActionParameter[]
 }
 

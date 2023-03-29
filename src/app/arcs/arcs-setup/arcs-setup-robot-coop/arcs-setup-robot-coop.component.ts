@@ -17,6 +17,8 @@ export class ArcsSetupRobotCoopComponent implements OnInit {
   windowRef
   parent
   parentRow
+  selectedNode 
+  nodes = [{name : 'test 1'} , {name : 'test 2'}  , {name : 'test 3'} ]
   // @ViewChild('kFilter') kFilter : FilterComponent
   // @ViewChild('tabstrip') tabstrip : TabStripComponent
   // @ViewChild("template", { static: true })

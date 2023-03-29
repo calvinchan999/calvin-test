@@ -12,7 +12,7 @@ import { UiService } from 'src/app/services/ui.service';
 import { SaMapComponent } from 'src/app/standalone/sa-map/sa-map.component';
 import { DrawingBoardComponent, PixiCommon, PixiPolygon, Robot } from 'src/app/ui-components/drawing-board/drawing-board.component';
 import { GeneralUtil } from 'src/app/utils/general/general.util';
-
+import { GetImageDimensions} from 'src/app/utils/graphics/image';
 
 @Component({
   selector: 'app-cm-map-detail',
@@ -133,7 +133,7 @@ export class CmMapDetailComponent implements OnInit {
   async validate() {
     //TBD : check if map resolution == original map resolution if update
     if(!this.isCreate){
-      let currDimension = await new PixiCommon().getImageDimensionFromUrl('data:image/png;base64,' + await this.pixiElRef?.getMainContainerImgBase64())
+      let currDimension = await GetImageDimensions('data:image/png;base64,' + await this.pixiElRef?.getMainContainerImgBase64())
       if(currDimension[0] != this.orginalWidth || currDimension[1] != this.orginalHeight){
         this.uiSrv.showMsgDialog("Map dimemsion changed. Drawing is out of boundary")
         return false

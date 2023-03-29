@@ -46,10 +46,10 @@
         </div>
         <div class="form-row" *ngIf="util.arcsApp">        
             <uc-dropdown #fpdropdown lab="Robot Type" [frmGrp]="frmGrp" frmCtrl="robotType" [disabled] = 'readonly' [translateOption]="true"
-                         [options]="dropdownOptions.types" (change) = "frmGrp.controls['robotSubtype'].setValue(null); frmGrp.controls['robotCode'].setValue(null);">
+                         [options]="dropdownOptions.types" (change) = "refreshRobotOptions()">
             </uc-dropdown>
             <uc-dropdown #fpdropdown *ngIf="util.arcsApp" lab="Robot" [frmGrp]="frmGrp" frmCtrl="robotCode"  [disabled] = 'readonly' [showValue]="true"
-                        [options]="dropdownOptions.robots" (change) = "frmGrp.controls['robotType'].setValue(null); frmGrp.controls['robotSubtype'].setValue(null);">
+                        [options]="dropdownOptions.robots" (change) = "refreshRobotType()">
             </uc-dropdown>
             <uc-dropdown *ngIf="!isCreate && !isTemplate" lab="Task Status" [frmGrp]="frmGrp" frmCtrl="state" [disabled] = "parentRow" [options]="dropdownOptions.taskState"></uc-dropdown>
         </div>
@@ -74,6 +74,7 @@
                                     $event.id == 'pointCode' &&  $event.newValue == null? $event.row['planCode'] = null : null;
                                     $event.id ==  'actionAlias'? refreshActionParameter($event.row , $event.oldValue) : null"
                      (focusChange)="cleanseAllRows() ;
+                                    $event.id == 'actionAlias' ? refreshActionDropdown($event) :
                                     $event.id == 'pointCode' && !util.standaloneApp? refreshGridLocationOptions_ARCS($event) : 
                                     $event.id == 'navigationMode' ? refreshGridNavigationOption($event) :
                                     null ">
