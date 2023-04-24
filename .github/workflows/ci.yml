@@ -12,7 +12,7 @@ jobs:
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        node-version: [16.13.0]
+        node-version: [12.14.1]
         # See supported Node.js release schedule at https://nodejs.org/en/about/releases/
 
     steps:
@@ -29,7 +29,7 @@ jobs:
         env:
           KENDO_UI_LICENSE: ${{ secrets.KENDO_UI_LICENSE }}
       - name: Build Application
-        run: npm run ng build -- --prod --aot
+        run: npm run build-arcs
       - name: Azure Static Web Apps Deploy
         uses: Azure/static-web-apps-deploy@v1
         with:
