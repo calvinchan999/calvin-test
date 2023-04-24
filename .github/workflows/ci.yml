@@ -22,7 +22,7 @@ jobs:
         with:
           node-version: ${{ matrix.node-version }}
           cache: "npm"
-      - run: npm ci
+      - run: npm install
       - run: npm install -g @angular/cli
       - name: Activate Kendo UI License
         run: npx kendo-ui-license activate
