@@ -23,7 +23,6 @@ import { GetPixiAngleDescription } from './ng-pixi-functions';
 const ROBOT_ACTUAL_LENGTH_METER = 1
 
 
-
 export class PixiMapGraphics extends PixiGraphics {
   public type: 'circle' | 'line' | 'curve' | 'dashed_line' | 'polygon' | 'border' | 'arrow_curved' | 'arrow_bi_curved' | 'imgEditHandle' |
     'arrow_bi' | 'arrow' | 'mapLayer' | 'pointGroup' | 'waypoint' | 'childPoint' | 'mapContainer' | 'origin' | 'brush' | 'tag'
