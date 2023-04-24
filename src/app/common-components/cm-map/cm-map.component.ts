@@ -5,7 +5,7 @@ import { filter, take } from 'rxjs/operators';
 import { DataService, MapJData } from 'src/app/services/data.service';
 import { RvHttpService } from 'src/app/services/rv-http.service';
 import { UiService } from 'src/app/services/ui.service';
-import { DrawingBoardComponent } from 'src/app/ui-components/drawing-board/drawing-board.component';
+import { Map2DViewportComponent } from 'src/app/ui-components/map-2d-viewport/map-2d-viewport.component';
 import { TableComponent } from 'src/app/ui-components/table/table.component';
 import { CmMapDetailComponent } from './cm-map-detail/cm-map-detail.component';
 import { CmMapFloorplanComponent } from './cm-map-floorplan/cm-map-floorplan.component';
@@ -17,7 +17,7 @@ import { CmMapFloorplanComponent } from './cm-map-floorplan/cm-map-floorplan.com
 })
 export class CmMapComponent implements OnInit {
 @ViewChild('table') ucTableRef : TableComponent
-@ViewChild('pixi') pixiElRef: DrawingBoardComponent
+@ViewChild('pixi') pixiElRef: Map2DViewportComponent
 @HostBinding('class') customClass = 'setup-map'
 
   constructor(public windowSrv: DialogService, public uiSrv : UiService , public http: RvHttpService , private changeDectector : ChangeDetectorRef,

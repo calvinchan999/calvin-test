@@ -10,7 +10,8 @@ import { RvHttpService } from 'src/app/services/rv-http.service';
 import { SignalRService } from 'src/app/services/signal-r.service';
 import { UiService } from 'src/app/services/ui.service';
 import { SaMapComponent } from 'src/app/standalone/sa-map/sa-map.component';
-import { DrawingBoardComponent, PixiCommon, PixiPolygon, Robot } from 'src/app/ui-components/drawing-board/drawing-board.component';
+import { Map2DViewportComponent,  Robot } from 'src/app/ui-components/map-2d-viewport/map-2d-viewport.component';
+import { calculateMapOrigin } from 'src/app/ui-components/map-2d-viewport/pixi-ros-conversion';
 import { GeneralUtil } from 'src/app/utils/general/general.util';
 import { GetImageDimensions} from 'src/app/utils/graphics/image';
 
@@ -22,7 +23,7 @@ import { GetImageDimensions} from 'src/app/utils/graphics/image';
 export class CmMapDetailComponent implements OnInit {
   readonly = false
   @HostBinding('class') customClass = 'setup-map'
-  @ViewChild('pixi') pixiElRef : DrawingBoardComponent
+  @ViewChild('pixi') pixiElRef : Map2DViewportComponent
   constructor(public uiSrv : UiService , public dialogSrv: DialogService, public ngZone : NgZone, public httpSrv : RvHttpService,
               public signalRSrv : SignalRService , public util : GeneralUtil , public dataSrv : DataService , public authSrv : AuthService) { 
               }
@@ -120,7 +121,7 @@ export class CmMapDetailComponent implements OnInit {
     this.orginalHeight = data.imageHeight
     await this.pixiElRef.loadToMainContainer( data.base64Image , undefined , undefined , undefined, undefined, true)
     let resolution = data.resolution ?  data.resolution : 1 /  this.util.config.METER_TO_PIXEL_RATIO
-    let origin = this.pixiElRef.calculateMapOrigin(data.originX , data.originY , data.imageHeight *  resolution ,  1 / resolution)
+    let origin = calculateMapOrigin(data.originX , data.originY , data.imageHeight *  resolution ,  1 / resolution)
     this.pixiElRef.setMapOrigin(origin[0] , origin[1])
     this.util.loadToFrmgrp(this.frmGrp , data)
     this.uiSrv.loadAsyncDone(ticket)
@@ -241,8 +242,8 @@ export class CmMapDetailComponent implements OnInit {
         await this.pixiElRef.loadToMainContainer(this.latestBase64image, undefined, undefined, undefined, undefined, !this.occupancyGridReceived)
       }
       if(!this.occupancyGridReceived){
-        robot = this.pixiElRef.addRobot(this.dataSrv.robotMaster.robotCode)  
-        this.pixiElRef.refreshRobotScale()        
+        robot = this.pixiElRef.robotModule.addRobot(this.dataSrv.robotMaster.robotCode)  
+        // this.pixiElRef.refreshRobotScale()        
       }
      
       let metaData : {x : number |null , y :  number |null , angle :  number |null ,width: number |null , height :  number |null} = o['mapMetadata']
@@ -250,7 +251,7 @@ export class CmMapDetailComponent implements OnInit {
       this.frmGrp.controls['imageHeight'].setValue(metaData.height)
       this.frmGrp.controls['originX'].setValue(metaData.x)
       this.frmGrp.controls['originY'].setValue(metaData.y)
-      let guiOrigin =  this.pixiElRef.calculateMapOrigin(metaData.x , metaData.y, metaData.height /this.util.config.METER_TO_PIXEL_RATIO , this.util.config.METER_TO_PIXEL_RATIO)
+      let guiOrigin = calculateMapOrigin(metaData.x , metaData.y, metaData.height /this.util.config.METER_TO_PIXEL_RATIO , this.util.config.METER_TO_PIXEL_RATIO)
       this.pixiElRef.setMapOrigin(guiOrigin[0] , guiOrigin[1])
       this.pixiElRef.pixiRosMapOriginMarker.resize()
       this.pixiElRef.overlayMsg = null

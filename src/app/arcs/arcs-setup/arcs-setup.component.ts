@@ -11,7 +11,7 @@ import { AuthService } from 'src/app/services/auth.service';
 import { DataService } from 'src/app/services/data.service';
 import { RvHttpService } from 'src/app/services/rv-http.service';
 import { UiService } from 'src/app/services/ui.service';
-import { DrawingBoardComponent } from 'src/app/ui-components/drawing-board/drawing-board.component';
+import { Map2DViewportComponent } from 'src/app/ui-components/map-2d-viewport/map-2d-viewport.component';
 import { TableComponent } from 'src/app/ui-components/table/table.component';
 import { GeneralUtil } from 'src/app/utils/general/general.util';
 import { ArcsSetupBuildingComponent } from './arcs-setup-building/arcs-setup-building.component';
@@ -32,7 +32,7 @@ import { ArcsSetupTypeComponent } from './arcs-setup-type/arcs-setup-type.compon
 })
 export class ArcsSetupComponent implements OnInit {
   @ViewChild('table') tableElRef: TableComponent
-  @ViewChild('pixi') pixiElRef: DrawingBoardComponent
+  @ViewChild('pixi') pixiElRef: Map2DViewportComponent
   constructor(public windowSrv: DialogService, public dataSrv : DataService, public uiSrv: UiService, public http: RvHttpService, private location : Location, private router : Router,
               private changeDectector: ChangeDetectorRef, private route : ActivatedRoute, private util: GeneralUtil, private ngZone: NgZone , private authSrv : AuthService) { 
       this.tabs = this.tabs.filter(t=> t.authorized === false || this.authSrv.hasRight(this.gridSettings[t.id].functionId?.toUpperCase()))

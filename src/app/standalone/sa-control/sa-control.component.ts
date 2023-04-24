@@ -9,7 +9,7 @@ import { AuthService } from 'src/app/services/auth.service';
 import { ActionParameter, DataService, DropListAction, DropListMap, signalRType } from 'src/app/services/data.service';
 import { RvHttpService } from 'src/app/services/rv-http.service';
 import { UiService } from 'src/app/services/ui.service';
-import { DrawingBoardComponent } from 'src/app/ui-components/drawing-board/drawing-board.component';
+import { Map2DViewportComponent } from 'src/app/ui-components/map-2d-viewport/map-2d-viewport.component';
 import { TableComponent } from 'src/app/ui-components/table/table.component';
 import { GeneralUtil } from 'src/app/utils/general/general.util';
 import { ConfigService } from 'src/app/services/config.service';

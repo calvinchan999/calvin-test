@@ -9,7 +9,7 @@ import { RvHttpService } from 'src/app/services/rv-http.service';
 import { SignalRService } from 'src/app/services/signal-r.service';
 import { UiService } from 'src/app/services/ui.service';
 import { SaMapComponent } from 'src/app/standalone/sa-map/sa-map.component';
-import { DrawingBoardComponent, PixiCommon, PixiPolygon, Robot } from 'src/app/ui-components/drawing-board/drawing-board.component';
+import { Map2DViewportComponent, Robot } from 'src/app/ui-components/map-2d-viewport/map-2d-viewport.component';
 import { GeneralUtil } from 'src/app/utils/general/general.util';
 
 @Component({

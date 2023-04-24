@@ -47,7 +47,6 @@ export class SaPagesTaskProgressComponent implements OnInit , OnDestroy {
     }
     await this.dataSrv.refreshTaskStatus()
     this.uiSrv.loadAsyncDone(ticket)
-    console.log(this.dataSrv.signalRSubj.taskActive.value )
   }
 
   ngOnDestroy(){

@@ -6,7 +6,7 @@ import { filter, take, takeUntil } from 'rxjs/operators';
 import { DataService, DropListAction, DropListDataset, DropListLocation, FloorPlanDataset, RobotMaster, ShapeJData, JTask, ActionParameter, TaskStateOptions } from 'src/app/services/data.service';
 import { RvHttpService } from 'src/app/services/rv-http.service';
 import { TranslatePipe, UiService } from 'src/app/services/ui.service';
-import { DrawingBoardComponent, PixiCommon, PixiLocPoint } from 'src/app/ui-components/drawing-board/drawing-board.component';
+import { Map2DViewportComponent } from 'src/app/ui-components/map-2d-viewport/map-2d-viewport.component';
 import { ListviewComponent, listViewFocusChangeEvent } from 'src/app/ui-components/listview/listview.component';
 import { GeneralUtil } from 'src/app/utils/general/general.util';
 import { CmTaskJobActionComponent } from './cm-task-job-action/cm-task-job-action.component';
@@ -15,6 +15,7 @@ import { of, Subject } from 'rxjs';
 import { AuthService } from 'src/app/services/auth.service';
 import { TabStripComponent } from '@progress/kendo-angular-layout';
 import { ConfigService } from 'src/app/services/config.service';
+import { PixiWayPoint } from 'src/app/utils/ng-pixi/ng-pixi-viewport/ng-pixi-map-graphics';
 
 @Component({
   selector: 'app-cm-task-job',
@@ -25,7 +26,7 @@ export class CmTaskJobComponent implements OnInit {
   $onDestroy = new Subject()
   @ViewChild('tabstrip') tabstrip : TabStripComponent
   @ViewChild('listview') listview : ListviewComponent
-  @ViewChild('mapContainer') pixiElRef : DrawingBoardComponent
+  @ViewChild('mapContainer') pixiElRef : Map2DViewportComponent
   constructor(public util: GeneralUtil, public uiSrv: UiService, public dialogService: DialogService, public ngZone: NgZone, public httpSrv: RvHttpService,
     public changeDetector: ChangeDetectorRef, private dataSrv: DataService, public dialogSrv: DialogService, public authSrv: AuthService , public configSrv : ConfigService) {
     this.jobListDef = this.jobListDef.filter(d => d.id != 'floorPlanCode' || !this.util.standaloneApp)
@@ -655,7 +656,7 @@ export class CmTaskJobComponent implements OnInit {
     if(this.validateFloorplan()){
       setTimeout(async()=>{
         await this.getFloorplanDs(this.selectedFloorPlanCode)
-        await this.pixiElRef.loadFloorPlanDatasetV2(this.floorplanStore[this.selectedFloorPlanCode], true, true)
+        await this.pixiElRef.loadDataset(this.floorplanStore[this.selectedFloorPlanCode], true, true)
         this.refreshMapDrawings()
       })
       return
@@ -664,12 +665,12 @@ export class CmTaskJobComponent implements OnInit {
 
   async getFloorplanDs(fpCode : string) : Promise<FloorPlanDataset>{
     if(!this.floorplanStore[fpCode]){
-      this.floorplanStore[fpCode] = await this.dataSrv.getFloorPlanV2(fpCode) 
+      this.floorplanStore[fpCode] = await this.dataSrv.getFloorPlan(fpCode) 
     }
     return this.floorplanStore[fpCode.toString()]
   }
 
-  onMapPointSelected(pixiPt : PixiLocPoint) {
+  onMapPointSelected(pixiPt : PixiWayPoint) {
     this.ngZone.run(() => {
       if (!this.pixiElRef) {
         return
@@ -732,7 +733,7 @@ export class CmTaskJobComponent implements OnInit {
 
       // let tmpPIXI = new PixiCommonGeometry()
       let actionLocations = this.getAggregatedActions()
-      this.pixiElRef.drawTaskPathsV2(actionLocations)
+      this.pixiElRef.module.task.drawTaskPaths(actionLocations)
     
   }
 }

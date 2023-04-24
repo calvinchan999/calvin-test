@@ -1,6 +1,6 @@
 import { Component, OnInit, ViewChild, ElementRef , Input , Output , EventEmitter} from '@angular/core';
 import { NgPixiViewportComponent } from 'src/app/utils/ng-pixi/ng-pixi-viewport/ng-pixi-viewport.component';
-import { PixiCircle , PixiGraphics } from 'src/app/utils/ng-pixi/ng-pixi-viewport/ng-pixi-base-graphics';
+import { PixiCircle, PixiGraphics  } from 'src/app/utils/ng-pixi/ng-pixi-viewport/ng-pixi-base-graphics';
 
 
 

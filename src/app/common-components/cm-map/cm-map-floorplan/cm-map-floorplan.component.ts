@@ -5,7 +5,7 @@ import { filter, retry, take } from 'rxjs/operators';
 import { DataService, DropListBuilding, DropListMap, JFloorPlan, JMap, MapJData, ShapeJData } from 'src/app/services/data.service';
 import { RvHttpService } from 'src/app/services/rv-http.service';
 import { UiService } from 'src/app/services/ui.service';
-import { DrawingBoardComponent, PixiCommon, PixiLocPoint, PixiMapLayer, radRatio} from 'src/app/ui-components/drawing-board/drawing-board.component';
+import { Map2DViewportComponent,   radRatio} from 'src/app/ui-components/map-2d-viewport/map-2d-viewport.component';
 import { GeneralUtil } from 'src/app/utils/general/general.util';
 import * as PIXI from 'pixi.js';
 import { TabStripComponent } from '@progress/kendo-angular-layout';
@@ -15,6 +15,7 @@ import { toJSON } from '@progress/kendo-angular-grid/dist/es2015/filtering/opera
 import { trimAngle } from 'src/app/utils/math/functions';
 import { Observable, of } from 'rxjs';
 import { PixiGraphicStyle , DRAWING_STYLE} from 'src/app/utils/ng-pixi/ng-pixi-viewport/ng-pixi-styling-util';
+import { PixiEditableMapImage, PixiWayPoint } from 'src/app/utils/ng-pixi/ng-pixi-viewport/ng-pixi-map-graphics';
 
 @Component({
   selector: 'app-cm-map-floorplan',
@@ -23,7 +24,7 @@ import { PixiGraphicStyle , DRAWING_STYLE} from 'src/app/utils/ng-pixi/ng-pixi-v
 })
 export class CmMapFloorplanComponent implements OnInit {
   readonly = false
-  @ViewChild('pixi') pixiElRef : DrawingBoardComponent
+  @ViewChild('pixi') pixiElRef : Map2DViewportComponent
   @ViewChild('pixiContainer') pixiContainer : ElementRef
   @ViewChild('container') mainContainer : ElementRef
   @ViewChild('tabStrip') tabStripRef : TabStripComponent
@@ -143,7 +144,7 @@ export class CmMapFloorplanComponent implements OnInit {
     // data = JSON.parse(testDs4)
     this.mapCode = data.mapList[0]?.mapCode
     this.mapTree.refreshExpandedKeys()
-    await this.pixiElRef.loadFloorPlanDatasetV2(data, undefined, undefined, false)
+    await this.pixiElRef.loadDataset(data, undefined, undefined, false)
     if (this.mapCode) {
       await this.getMapsData(this.mapCode)
       await this.loadMapsToPixi(this.mapCode, false)
@@ -156,7 +157,7 @@ export class CmMapFloorplanComponent implements OnInit {
     //   }
     // } 
     this.util.loadToFrmgrp(this.frmGrp ,  data);
-    (<any>this.pixiElRef.allPixiPoints).concat((<any>this.pixiElRef.allPixiArrows)).forEach(gr=>gr.visible = this.selectedTab == 'locations');
+    (<any>this.pixiElRef.viewport.allPixiWayPoints).concat((<any>this.pixiElRef.viewport.allPixiPaths)).forEach(gr=>gr.visible = this.selectedTab == 'locations');
     // (<any>this.pixiElRef.allPixiPoints).concat((<any>this.pixiElRef.allPixiArrows)).forEach(gr=>this.pixiElRef.removeGraphics(gr))
     // JSON.parse(RNR_1110).forEach(w => {
     //   this.add_UserTrainingWaypoint(w['name'].toUpperCase(), w['x'], w['y'] , w['angle'])
@@ -203,38 +204,29 @@ export class CmMapFloorplanComponent implements OnInit {
     this.uiSrv.loadAsyncDone(ticket)
   }
 
-  async onPointUpsert(evt , unselect = true) {
+
+
+  async onPointUnselected(gr : PixiWayPoint){
     if(this._validatingWaypointName){
       return
     }
-    let gr = evt.graphics
-    if (!await this.validateWaypointName(evt.id , gr)) {
-      if(!this.uiSrv.isTablet){
-        this.pixiElRef.endDraw()
-        this.pixiElRef.endEdit()
-        this.pixiElRef.selectGraphics(gr)
-        // gr.detailButton.visible = false
-        gr.input.disabled = false
-        gr.input.focus()
-        // setTimeout(() => gr.detailButton.visible = false);
-      }else{
-        this.pixiElRef.selectGraphics(evt.graphics)
-        this.pixiElRef.ucPointTextBox.focusTextbox()
-      }
-    }else if(this.uiSrv.isTablet && unselect){
-      this.pixiElRef.selectGraphics(null)
-    } 
-  }
-
-  onPointUnselected(evt){
-    this.onPointUpsert(evt , false)
+    if (!await this.validateWaypointName(gr.text , gr)) {
+      this.pixiElRef.viewport.mode = null      
+      this.pixiElRef.viewport.selectedGraphics =  gr     
+      setTimeout(()=>{
+        gr.focusInput()
+      })
+    }
+    // else if(this.uiSrv.isTablet && unselect){
+    //   this.pixiElRef.viewport.selectedGraphics = null
+    // } 
   }
 
   _validatingWaypointName = false
   async validateWaypointName(code, gr) {
     this._validatingWaypointName = true
     let ret = true
-    if (!code || code.toString().trim() == '' || this.pixiElRef.allPixiPoints.filter(g => g.code == code && g != gr).length > 0) {
+    if (!code || code.toString().trim() == '' || this.pixiElRef.viewport.allPixiWayPoints.filter(g => g.code == code && g != gr).length > 0) {
       await this.uiSrv.showMsgDialog(!code || code.toString().trim() == '' ? 'Please enter location name' : `Location Name Duplicated [${code}]`)
       ret = false
     } else if (!new RegExp(/^[A-Z0-9-_]+$/).test(code)) {
@@ -249,8 +241,8 @@ export class CmMapFloorplanComponent implements OnInit {
   }
 
   async validate() {
-    for (let i = 0; i < this.pixiElRef.allPixiPoints.length ; i++) {
-      if (! await this.validateWaypointName(this.pixiElRef.allPixiPoints[i].text, this.pixiElRef.allPixiPoints[i])) {
+    for (let i = 0; i < this.pixiElRef.viewport.allPixiWayPoints.length ; i++) {
+      if (! await this.validateWaypointName(this.pixiElRef.viewport.allPixiWayPoints[i].text, this.pixiElRef.viewport.allPixiWayPoints[i])) {
         return false
       }
     }
@@ -274,7 +266,7 @@ export class CmMapFloorplanComponent implements OnInit {
 
   getSubmitDataset() {
     let ret = new JFloorPlan();
-    let pixiDs = this.pixiElRef.getSubmitDatasetV2(this.frmGrp.controls['floorPlanCode'].value)
+    let pixiDs = this.pixiElRef.getDataset(this.frmGrp.controls['floorPlanCode'].value)
     Object.keys(this.frmGrp.controls).forEach(k=>ret[k] = this.frmGrp.controls[k].value)
     Object.keys(pixiDs).forEach(k => {
       ret[k] = pixiDs[k]
@@ -321,7 +313,7 @@ export class CmMapFloorplanComponent implements OnInit {
       await this.getMapsData(this.mapCode)
       await this.loadMapsToPixi()
       this.pixiElRef.robotBasesOptions = this.mapsStore.get(this.mapCode).map(m=>{return {value : m.robotBase , text : m.robotBase}})
-      this.pixiElRef.allPixiPoints.forEach(p=>p.robotBases = this.mapsStore.get(this.mapCode).map(m=>m.robotBase))
+      this.pixiElRef.viewport.allPixiWayPoints.forEach(p=>p.robotBases = this.mapsStore.get(this.mapCode).map(m=>m.robotBase))
     }   
     await this.changeTab(originalTab)
   }
@@ -329,18 +321,18 @@ export class CmMapFloorplanComponent implements OnInit {
   async loadMapsToPixi(mapCode : string = this.mapCode , select = true){
     let maps = this.mapsStore.get(this.mapCode)
     for (let i = 0; i < maps.length ; i++) {
-      var map = await this.pixiElRef.loadMapV2(maps[i])
+      var map = await this.pixiElRef.loadMap(maps[i])
       if(select && !this.readonly && i == maps.length - 1){
         setTimeout(()=>{
           if(this.selectedTab == 'maps'){         
-            this.pixiElRef.selectGraphics(map)  
+            this.pixiElRef.viewport.selectedGraphics = map 
           }else if(this.pixiElRef.selectedGraphics == map){
-            this.pixiElRef.selectGraphics(null)
+            this.pixiElRef.viewport.selectedGraphics = null
           }
         })
       }
       if (!this.readonly && i == maps.length - 1) {
-        this.pixiElRef.selectGraphics(map)
+        this.pixiElRef.viewport.selectedGraphics = map
       }
     } 
   }
@@ -356,10 +348,10 @@ export class CmMapFloorplanComponent implements OnInit {
     this.mapsStore.set(code ,resp ) 
   }
 
-  refreshSelectedShape(dataItem : DropListMap){
-    if(this.selectedTab == 'maps' &&  dataItem?.robotBase && this.pixiElRef.mapLayerStore[dataItem?.robotBase]){
-      this.pixiElRef.selectGraphics(this.pixiElRef.mapLayerStore[dataItem?.robotBase] )
-      this.selectedPixiShape = this.pixiElRef.mapLayerStore[dataItem?.robotBase] 
+  refreshselectedGraphics(dataItem : DropListMap){
+    if(this.selectedTab == 'maps' &&  dataItem?.robotBase && this.pixiElRef.viewport.mapLayerStore[dataItem?.robotBase]){
+      this.pixiElRef.viewport.selectedGraphics = this.pixiElRef.viewport.mapLayerStore[dataItem?.robotBase] 
+      this.selectedPixiShape = this.pixiElRef.viewport.mapLayerStore[dataItem?.robotBase] 
     }
   }
 
@@ -378,31 +370,30 @@ export class CmMapFloorplanComponent implements OnInit {
 
     }
     // this.pixiElRef.toggleRosMap(false)
-    this.pixiElRef.selectGraphics(null)
+    this.pixiElRef.viewport.selectedGraphics = null
     this.pixiElRef.hideButton =  this.selectedTab == 'maps' || this.readonly? {all : true} : { polygon : true , brush : true , line : true , export : true};
     this.mapTree.data.filter(m=>this.mapCode == m.mapCode).forEach(m=>{
       m.robotBases.forEach(b => this.toggleMapVisibility(<DropListMap>b, this.selectedTab == 'maps'))
     });
-    // Object.values(this.pixiElRef.mapLayerStore).filter((v : PixiMapLayer) => v && v.ROS).forEach((c: PixiMapLayer) =>{
+    // Object.values(this.pixiElRef.viewport.mapLayerStore).filter((v : PixiMapLayer) => v && v.ROS).forEach((c: PixiMapLayer) =>{
     //   c.interactive =  this.selectedTab == 'maps'
     //   c.ROS.alpha = this.selectedTab == 'maps' ? 0.5 : 0
     // });
-    (<any>this.pixiElRef.allPixiPoints).concat((<any>this.pixiElRef.allPixiArrows)).forEach(gr=>gr.visible = this.selectedTab == 'locations')
+    (<any>this.pixiElRef.viewport.allPixiWayPoints).concat((<any>this.pixiElRef.viewport.allPixiPaths)).forEach(gr=>gr.visible = this.selectedTab == 'locations')
     if(this.selectedTab == 'maps'){
       this.pixiMapBorders.forEach(g=>g.parent.removeChild(g))
       this.pixiMapBorders = []
-      if(this.mapCode){
-        this.pixiElRef.selectGraphics(this.pixiElRef.mapLayerStore[this.mapCode])
-      }      
-      Object.values(this.pixiElRef.mapLayerStore).forEach((m: PixiMapLayer) =>{
+      this.pixiElRef.viewport.selectedGraphics = this.selectedPixiShape ? this.selectedPixiShape : Object.values(this.pixiElRef.viewport.mapLayerStore)[0]
+
+      Object.values(this.pixiElRef.viewport.mapLayerStore).forEach((m: PixiEditableMapImage) =>{
         m.interactive = true
-        if(m.border){
-          m.border.visible = true
-        }
+        // if(m.border){
+        //   m.border.visible = true
+        // }
       })
     }else if(this.selectedTab == 'locations'){
       this.renderMapBordersOnPixi()
-      Object.values(this.pixiElRef.mapLayerStore).forEach((m: PixiMapLayer) =>{
+      Object.values(this.pixiElRef.viewport.mapLayerStore).forEach((m: PixiEditableMapImage) =>{
         m.interactive = false
         if(m.border){
           m.border.visible = false
@@ -412,12 +403,12 @@ export class CmMapFloorplanComponent implements OnInit {
   }
 
   toggleMapVisibility(item : DropListMap , visible = undefined){
-    let pixiMap : PixiMapLayer = this.pixiElRef?.mapLayerStore[item.robotBase]
+    let pixiMap : PixiEditableMapImage = this.pixiElRef?.viewport.mapLayerStore[item.robotBase]
     if(pixiMap){
       let originalVisible = pixiMap.ROS.alpha;
       visible = visible === undefined ? !originalVisible : visible
       if(originalVisible && this.pixiElRef?.selectedGraphics == pixiMap){
-        this.pixiElRef.selectGraphics(null)
+        this.pixiElRef.viewport.selectedGraphics = null
       }
       pixiMap.ROS.alpha = visible ? 0.5 : 0
       pixiMap.interactive = this.selectedTab == 'maps' && visible
@@ -428,7 +419,7 @@ export class CmMapFloorplanComponent implements OnInit {
   renderMapBordersOnPixi(){
     this.pixiMapBorders.forEach(g=>g.parent.removeChild(g))
     this.pixiMapBorders = []
-    Object.values(this.pixiElRef.mapLayerStore).forEach((m:PixiMapLayer)=>{
+    Object.values(this.pixiElRef.viewport.mapLayerStore).forEach((m:PixiEditableMapImage)=>{
       let border = new PIXI.Graphics()
       this.pixiMapBorders.push(border)
       border.position.set(m.position.x , m.position.y)
@@ -437,7 +428,7 @@ export class CmMapFloorplanComponent implements OnInit {
       border.scale.set(m.scale.x , m.scale.y);
       let pts = [[0,0] , [m.width / m.scale.x , 0] , [m.width / m.scale.x , m.height / m.scale.y] , [0 , m.height / m.scale.y]]
       let opt = new PixiGraphicStyle(border).set('lineColor' , DRAWING_STYLE.mouseOverColor )
-      new PixiCommon(m.viewport).getLines(pts.map(p=>new PIXI.Point(p[0] , p[1])) , opt , true , this.pixiElRef , m)
+      //########## new PixiCommon(m.viewport).getLines(pts.map(p=>new PIXI.Point(p[0] , p[1])) , opt , true , this.pixiElRef , m)
       this.pixiElRef.mainContainer.addChild(border)
     })  
   }
@@ -447,87 +438,39 @@ export class CmMapFloorplanComponent implements OnInit {
     if (this.mapCode != resp.mapName) {
       this.uiSrv.showMsgDialog('Current map not match with selected map')
     } else if (this.pixiElRef) {
-      let map : PixiMapLayer = this.pixiElRef.mapLayerStore[this.mapCode]
-      let mapPosition = { x: this.pixiElRef.calculateMapX(resp.x, map.guiOriginX), y: this.pixiElRef.calculateMapY(resp.y, map.guiOriginY) }
-      let position = this.pixiElRef.mainContainer.toLocal(this.pixiElRef.mapLayerStore[this.mapCode].toGlobal(mapPosition))
-      let gr = this.pixiElRef.createWayPoint(position.x, position.y)
+      let map : PixiEditableMapImage = this.pixiElRef.viewport.mapLayerStore[this.mapCode]
+      let mapPosition = { x: map.calculateMapX(resp.x), y: map.calculateMapY(resp.y) }
+      let position = this.pixiElRef.mainContainer.toLocal(this.pixiElRef.viewport.mapLayerStore[this.mapCode].toGlobal(new PIXI.Point(mapPosition.x , mapPosition.y)))
+      let gr = new PixiWayPoint(this.pixiElRef.viewport , undefined , new PixiGraphicStyle() , true)
+      gr.position.set(position.x , position.y)
+
       if(gr.angleIndicator){
-        let angle = 90 - resp.angle * radRatio + this.pixiElRef.mapLayerStore[resp.mapName].angle
+        let angle = 90 - resp.angle * radRatio + this.pixiElRef.viewport.mapLayerStore[resp.mapName].angle
         gr.angleIndicator.angle = trimAngle(angle)
       }
-      this.pixiElRef.endDraw()
-      this.pixiElRef.selectGraphics(gr)
-      this.pixiElRef.onWayPointMouseDown(gr)
+      this.pixiElRef.viewport.mode = null
+      this.pixiElRef.viewport.selectedGraphics = gr
+      gr.focusInput()
     }    
   }
 
   add_UserTrainingWaypoint(name , x , y , rad){ //for HKAA user training only
-      let map : PixiMapLayer = <any>Object.values(this.pixiElRef.mapLayerStore)[0]
-      let origin = this.pixiElRef.getGuiOrigin(map)
-      let mapPosition = { x: this.pixiElRef.calculateMapX(x, origin[0]), y: this.pixiElRef.calculateMapY(y, origin[1]) }
+      let map : PixiEditableMapImage = <any>Object.values(this.pixiElRef.viewport.mapLayerStore)[0]
+      // let origin = this.pixiElRef.getGuiOrigin(map)
+      let mapPosition = { x: map.calculateMapX(x), y: map.calculateMapY(y) }
       let position = this.pixiElRef.mainContainer.toLocal((<any>map).toGlobal(mapPosition))
-      let gr = this.pixiElRef.createWayPoint(position.x, position.y)
+      let gr = new PixiWayPoint(this.pixiElRef.viewport , undefined , new PixiGraphicStyle() , true)
+      gr.position.set(position.x , position.y)
       if(gr.angleIndicator){
         let angle = 90 - rad * 57.2958 + map.angle
         gr.angleIndicator.angle = trimAngle(angle)
       }
       gr.text = name
-      this.pixiElRef.endDraw()
-      this.pixiElRef.selectGraphics(gr)
+      this.pixiElRef.viewport.mode = null
+      this.pixiElRef.viewport.selectedGraphics = gr
     // this.pixiElRef.onWayPointMouseDown(gr)
   }
-  // async getRvRequestBody_SA() {
-  //   let ds = this.getSubmitDataset()
-  //   let mapId = this.selectedMapIds[0]
-  //   if(!mapId){
-  //     return {}
-  //   }
-  //   let mapName = this.dropdownData.maps.filter((m:DropListMap)=>m.mapId == mapId)[0]?.mapCode
-  //   this.pixiElRef.mapContainerStore[mapId.toString()] = this.pixiElRef.mapContainerStore[mapId.toString()] ? this.pixiElRef.mapContainerStore[mapId.toString()] : {}
-  //   this.pixiElRef.mapContainerStore[mapId.toString()]['RV_originX'] = this.mapDetailsObj[mapId.toString()]?.['originX']
-  //   this.pixiElRef.mapContainerStore[mapId.toString()]['RV_originY'] = this.mapDetailsObj[mapId.toString()]?.['originY']
-  //   let ret = {
-  //     mapName: mapName,
-  //     locationList: ds.maps[0]? ds.maps[0].shapes.filter((s: ShapeJData) => this.pixiElRef.pointTypes.includes(s.shapeType)).map((s: ShapeJData) => {
-  //       return {
-  //         name: s.shapeCode,
-  //         mapName: mapName,
-  //         x: this.pixiElRef.calculateRosX(s.posX, mapId),
-  //         y: this.pixiElRef.calculateRosY(s.posY, mapId),
-  //         angle: (90 - s.rotation) / 57.2958
-  //       }
-  //     }) : [],
-  //     pathList: []
-  //   }
 
-  //   let locations = JSON.parse(JSON.stringify(ret.locationList))
-  //   let getPath =(s: ShapeJData)=>{
-  //     let vertices = JSON.parse(s.vertices)
-  //     let midpt = {x: (vertices[0].x + vertices[3].x) / 2 , y : (vertices[0].y + vertices[3].y) / 2}
-  //     vertices = ['arrow', 'arrow_bi'].includes(s.shapeType) ? 
-  //                [vertices[0], midpt, midpt, vertices[3]] :
-  //                [vertices[0] , vertices[1] , vertices[2] , vertices[3]]
-  //     return {
-  //       direction: s.pathDirection?.toUpperCase(),
-  //       velocityLimit: s.pathVelocity,
-  //       beginLocation: locations.filter(l => l.name == s.fromCode)[0],
-  //       endLocation: locations.filter(l => l.name == s.toCode)[0],
-  //       controlPointList: vertices.map(v => { return { x: this.pixiElRef.calculateRosX(v.x, mapId), y: this.pixiElRef.calculateRosY(v.y, mapId) } })
-  //     }
-  //   }
-  //   ret.pathList = ds.maps[0]? ds.maps[0].shapes.filter((s: ShapeJData) => this.pixiElRef.arrowTypes.includes(s.shapeType)).map((s: ShapeJData) => getPath(s)) : []
-  //   let twoDirPathJdata = ds.maps[0]? ds.maps[0].shapes.filter((s:ShapeJData)=>s.shapeType == 'arrow_bi' || s.shapeType == 'arrow_bi_curved') : []
-  //   twoDirPathJdata.forEach(s => {
-  //     let tmp = s.fromCode
-  //     let verts = JSON.parse(s.vertices)
-  //     s.fromCode = s.toCode
-  //     s.toCode = tmp
-  //     s.vertices = JSON.stringify([verts[3],verts[2],verts[1],verts[0]])
-  //   });
-  //   ret.pathList = ret.pathList.concat(twoDirPathJdata.map(s=>getPath(s)))
-  //   //await this.http.rvRequest('POST','resource/v1',ret)
-  //   return [ret]
-  // }
 }
 
 const RNR_1110 = `

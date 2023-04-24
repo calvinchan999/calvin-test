@@ -1,7 +1,7 @@
 import { ChangeDetectorRef, Component, NgZone, OnInit, ViewChild } from '@angular/core';
 import { RvHttpService } from 'src/app/services/rv-http.service';
 import { UiService } from 'src/app/services/ui.service';
-import { DrawingBoardComponent, PixiCommon, Robot } from 'src/app/ui-components/drawing-board/drawing-board.component';
+import { Map2DViewportComponent, Robot } from 'src/app/ui-components/map-2d-viewport/map-2d-viewport.component';
 import { GeneralUtil } from 'src/app/utils/general/general.util';
 import { DataService, DropListBuilding, DropListFloorplan, DropListType, FloorPlanDataset, JFloorPlan, JSite, RobotStatusARCS as RobotStatus, RobotStatusARCS, RobotTaskInfoARCS, ShapeJData, TaskStateOptions } from 'src/app/services/data.service';
 import { Router } from '@angular/router';
@@ -19,6 +19,8 @@ import { ArcsRobotGroupComponent } from './arcs-robot-group/arcs-robot-group.com
 import { truncateSync } from 'fs';
 import { CmTaskCancelComponent } from 'src/app/common-components/cm-task/cm-task-cancel/cm-task-cancel.component';
 import { environment } from 'src/environments/environment';
+import { PixiBuildingPolygon } from 'src/app/utils/ng-pixi/ng-pixi-viewport/ng-pixi-map-graphics';
+import * as PIXI from 'pixi.js';
 
 type robotTypeInfo = { //A group can be an individual robot (when filtered by robot type) OR robot type (no filter applied) 
   robotType: string
@@ -51,7 +53,7 @@ type robotInfo = { //A group can be an individual robot (when filtered by robot 
   styleUrls: ['./arcs-dashboard.component.scss']
 })
 export class ArcsDashboardComponent implements OnInit {
-  @ViewChild('pixi') pixiElRef: DrawingBoardComponent
+  @ViewChild('pixi') pixiElRef: Map2DViewportComponent
   @ViewChild('threeJs')threeJsElRef : ThreejsViewportComponent
   @ViewChild('mainContainer') mainContainer 
   @ViewChild('table') tableRef : TableComponent
@@ -226,7 +228,6 @@ export class ArcsDashboardComponent implements OnInit {
 
     this.dataSrv.signalRSubj.arcsTaskInfoChange.pipe(filter(v=>v!=null), takeUntil(this.$onDestroy)).subscribe((c)=>{
       if(this.selectedTab == 'dashboard'){        
-        console.log(c)
         this.refreshTaskInfo(c.filter(c=>!this.robotTypeFilter || c?.robotType == this.robotTypeFilter?.toUpperCase()))
       }
       if(this.selectedTab == 'task' && this.tableRef){
@@ -272,8 +273,8 @@ export class ArcsDashboardComponent implements OnInit {
     var data = (await this.dataSrv.getDropList('floorplans')).data
     this.dropdownOptions.floorplans = this.dataSrv.getDropListOptions('floorplans', data, this.locationTree?.building?.code ? { buildingCode: this.locationTree?.building?.code } : undefined)
     if (this.pixiElRef) {
-      this.pixiElRef.dropdownData.floorplans = data
-      this.pixiElRef.dropdownOptions.floorplans = this.dropdownOptions.floorplans
+      this.pixiElRef.module.data.dropdownData.floorplans = data
+      this.pixiElRef.module.data.dropdownOptions.floorplans = this.dropdownOptions.floorplans
     }
   }
 
@@ -305,35 +306,55 @@ export class ArcsDashboardComponent implements OnInit {
       this.locationTree.currentLevel = 'site'
       this.locationTree.site.code = this.site.siteCode
       this.locationTree.site.name = this.site.name
+      this.pixiElRef.viewport.pixiApp.renderer.transparent = false
+      this.pixiElRef.viewport.pixiApp.renderer.backgroundColor = 0xFFFFFF
       await this.pixiElRef.loadToMainContainer( this.site.base64Image )  
-      this.pixiElRef.loadArcsBuildings()
+      this.pixiElRef.backgroundSprite.filters = null
+      this.loadBuildingPolygons()
+      
       this.pixiElRef.setViewportCamera(this.site.viewX, this.site.viewY, this.site.viewZoom)
     }
     this.refreshTaskInfo()
     this.refreshRobotStatus()
   }
 
-  refreshBuildingRobotCountTag(robotList : {floorPlanCode : string}[]){
-    this.pixiElRef.dropdownData.floorplans.map((b:DropListBuilding)=> b.buildingCode).filter(b=>this.pixiElRef.allPixiPolygon.map(p=>p.arcsBuildingCode).includes(b)).forEach(buildingCode=>{
-      let floorPlanList = (<DropListFloorplan[]>this.pixiElRef.dropdownData.floorplans).filter((fp) => fp.buildingCode == buildingCode).map(fp=>fp.floorPlanCode)
-      this.pixiElRef.setBuildingRobotCount(buildingCode , robotList.filter(r=> floorPlanList.includes(r.floorPlanCode)).length)
+  async loadBuildingPolygons(){
+    let ticket = this.uiSrv.loadAsyncBegin()
+    let ddl = await this.dataSrv.getDropList('buildings')
+    this.pixiElRef.module.data.dropdownData.buildings = ddl.data
+    let buildings: DropListBuilding[] = <any>ddl.data
+    buildings.filter(b=>b.polygonCoordinates && b.polygonCoordinates.length > 0).forEach(b => {
+      let polygon = new PixiBuildingPolygon(this.pixiElRef.viewport , b.polygonCoordinates.map(c=>new PIXI.Point(c.x , c.y)))
+      //this.getBuildingPolygon(b.polygonCoordinates , {x : b.labelX , y : b.labelY} , true)
+      polygon.buildingCode = `${b.buildingCode}`
+      polygon.buildingName = `${b.name}`
+      polygon.setTagPosition( new PIXI.Point(b.labelX , b.labelY))
+      this.pixiElRef.mainContainer.addChild(polygon)      
+      polygon.events.click.pipe(takeUntil(polygon.events.removedOrDestroyed)).subscribe(()=>{
+        this.ngZone.run(async()=>{
+          let floorplans : DropListFloorplan[] = <any>this.pixiElRef.module.data.dropdownData.floorplans
+          let fpCode = floorplans.filter(fp=>fp.buildingCode == b.buildingCode && fp.defaultPerBuilding)[0]?.floorPlanCode
+          fpCode = fpCode ? fpCode : floorplans.filter(fp=>fp.buildingCode == b.buildingCode)[0]?.floorPlanCode
+          this.pixiElRef.module.site.locationTree.building.code = b.buildingCode
+          this.pixiElRef.module.site.locationTree.building.name = b.name
+          if (fpCode) {
+            await this.refreshFloorPlanOptions()
+            this.locationTree.currentLevel = 'floorplan'
+            this.use3DMap = this.dataSrv.getLocalStorage('dashboardMapType') == '3D'
+            await this.loadFloorPlan(fpCode)
+          } else {
+            this.uiSrv.showNotificationBar(`No available floor plans found for the selected building [${b.buildingCode}]`)
+          }
+        })
+      })
     })
+    this.uiSrv.loadAsyncDone(ticket)
   }
 
-  async onPixiBuildingSelected(buildingCode : string){
-    this.ngZone.run(async()=>{
-      let floorplans : DropListFloorplan[] = <any>this.pixiElRef.dropdownData.floorplans
-      let fpCode = floorplans.filter(fp=>fp.buildingCode == buildingCode && fp.defaultPerBuilding)[0]?.floorPlanCode
-      fpCode = fpCode ? fpCode : floorplans.filter(fp=>fp.buildingCode == buildingCode)[0]?.floorPlanCode
-
-      if (fpCode) {
-        await this.refreshFloorPlanOptions()
-        this.locationTree.currentLevel = 'floorplan'
-        this.use3DMap = this.dataSrv.getLocalStorage('dashboardMapType') == '3D'
-        await this.loadFloorPlan(fpCode)
-      } else {
-        this.uiSrv.showNotificationBar(`No available floor plans found for the selected building [${buildingCode}]`)
-      }
+  refreshBuildingRobotCountTag(robotList : {floorPlanCode : string}[]){
+    this.pixiElRef.module.data.dropdownData.floorplans.map((b:DropListBuilding)=> b.buildingCode).filter(b=>this.pixiElRef.viewport.allPixiPolygons.map(p=>p.buildingCode).includes(b)).forEach(buildingCode=>{
+      let floorPlanList = (<DropListFloorplan[]>this.pixiElRef.module.data.dropdownData.floorplans).filter((fp) => fp.buildingCode == buildingCode).map(fp=>fp.floorPlanCode)
+      this.pixiElRef.setBuildingRobotCount(buildingCode , robotList.filter(r=> floorPlanList.includes(r.floorPlanCode)).length)
     })
   }
 
@@ -346,7 +367,7 @@ export class ArcsDashboardComponent implements OnInit {
     })
     this.ngZone.run(()=>{
       if(this.pixiElRef ){
-        this.pixiElRef.dropdownOptions.floorplans = JSON.parse(JSON.stringify(options))
+        this.pixiElRef.module.data.dropdownOptions.floorplans = JSON.parse(JSON.stringify(options))
       }
       if(this.threeJsElRef){
         this.threeJsElRef.floorPlanOptions =  JSON.parse(JSON.stringify(options))
@@ -378,15 +399,15 @@ export class ArcsDashboardComponent implements OnInit {
       this.dataSrv.unsubscribeSignalR('arcsTaskInfoChange', false , this.currentFloorPlan?.floorPlanCode)
       this.dataSrv.unsubscribeSignalR('arcsRobotStatusChange', false , this.currentFloorPlan?.floorPlanCode)
     }
-    let floorplan = await this.dataSrv.getFloorPlanV2(code);
+    let floorplan = await this.dataSrv.getFloorPlan(code);
     this.currentFloorPlan = floorplan
     if(floorplan?.floorPlanCode){
       this.dataSrv.setSessionStorage('dashboardFloorPlanCode', floorplan.floorPlanCode);  
     }
     this.selectedFloorPlanCode = floorplan.floorPlanCode
     if(this.pixiElRef){
-      await this.pixiElRef.loadFloorPlanDatasetV2(floorplan, true, true);
-      this.pixiElRef.subscribeRobotsPose_ARCS([... new Set(floorplan.mapList.map(m => m.mapCode))])
+      await this.pixiElRef.loadDataset(floorplan, true, true);
+      this.pixiElRef.module.robot.subscribeRobotPose([... new Set(floorplan.mapList.map(m => m.mapCode))])
     }
     this.dataSrv.setSessionStorage('arcsLocationTree' , JSON.stringify(this.locationTree))      
     if(this.threeJsElRef){
@@ -488,9 +509,9 @@ export class ArcsDashboardComponent implements OnInit {
     })    
     this.executingTaskCount = data.map(t=> t.executingTaskCount ).reduce((acc, i)=>  acc += i , 0)
     this.totalTaskCount =  data.map(t=> t.executingTaskCount + t.completedTaskCount).reduce((acc, i)=>  acc += i , 0)
-    // if(this.pixiElRef && this.pixiElRef.arcsLocationTree.currentLevel == 'site'){
-    //   this.refreshBuildingRobotCountTag((<any>data))
-    // }
+    if(this.pixiElRef && this.pixiElRef.module.site.locationTree.currentLevel == 'site'){
+      this.refreshBuildingRobotCountTag((<any>data))
+    }
   }
 
   async refreshRobotStatus(data: RobotStatus[] = null){
@@ -537,7 +558,7 @@ export class ArcsDashboardComponent implements OnInit {
       this.threeJsElRef.robotObjs.filter(r=>! data.map(r2=>r2.robotCode).includes(r.robotCode)).forEach(r=>r.destroy())
     }
     if(this.pixiElRef){
-      this.pixiElRef.robots.filter(r => !data.map(r2 => r2.robotCode).includes(r.id)).forEach(r => this.pixiElRef.removeRobot(r))
+      this.pixiElRef.robots.filter(r => !data.map(r2 => r2.robotCode).includes(r.id)).forEach(r => this.pixiElRef.robotModule.removeRobot(r))
     }
 
     let robotStatusCssClassMap = {
@@ -582,7 +603,7 @@ export class ArcsDashboardComponent implements OnInit {
           interval: 0
         }
         if (this.pixiElRef && this.pixiElRef.getMapContainer(mapCode, robotInfo.robotBase)) {
-          robot = this.pixiElRef.addRobot(d.robotCode, mapCode, robotInfo.robotBase)
+          robot = this.pixiElRef.robotModule.addRobot(d.robotCode, mapCode, robotInfo.robotBase)
           // robot.observed = true
         } else if (this.threeJsElRef && this.threeJsElRef.getMapMesh(robotInfo.robotBase)) {
           robot = this.threeJsElRef.getRobot(d.robotCode) ? this.threeJsElRef.getRobot(d.robotCode) : new RobotObject3D(this.threeJsElRef, d.robotCode, robotInfo.robotBase, robotInfo.robotType , robotInfo.robotSubType)

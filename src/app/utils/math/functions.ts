@@ -16,6 +16,11 @@ import {GraphBuilder, DijkstraStrategy} from "js-shortest-path"
 import { Bezier} from "bezier-js/dist/bezier.js";
 import { Vector2 } from 'three';
 
+export function trimNum(value , decimalPlaces = 3){
+  return isNaN(Number(value))? 0 : Number(Number(value).toFixed(decimalPlaces))
+}
+
+
 export function mod(n: number, m: number) {
   return ((n % m) + m) % m;
 }
@@ -24,16 +29,34 @@ export function trimAngle(angle){
   return  angle < 0 ? 360 + angle  :  (angle > 360 ? angle - 360 :angle)
 }
 
+// Converts from degrees to radians.
+export function toRadians(degrees) {
+  return degrees * Math.PI / 180;
+};
+ 
+// Converts from radians to degrees.
+export function toDegrees(radians) {
+  return radians * 180 / Math.PI;
+}
+
+
 export function getAngle(A,B,C){  
   var AB = Math.sqrt(Math.pow(B.x - A.x, 2) + Math.pow(B.y - A.y, 2));
   var BC = Math.sqrt(Math.pow(B.x - C.x, 2) + Math.pow(B.y - C.y, 2));
   var AC = Math.sqrt(Math.pow(C.x - A.x, 2) + Math.pow(C.y - A.y, 2));
-  return Math.acos((BC * BC + AB * AB - AC * AC) / (2 * BC * AB)) * 180 / Math.PI;
+  if(AC == 0){
+    return 0
+  }else{
+    return Math.acos((BC * BC + AB * AB - AC * AC) / (2 * BC * AB)) * 180 / Math.PI;
+  }
 }
 
-export function getOrientation(origin : PIXI.Point , obj :  PIXI.Point) : 'N' | 'S' | 'E' | 'W' | 'NE' | 'NW' | 'SE' | 'SW' {
-  let angle = getAngle(new PIXI.Point (origin.x , 0) , origin , obj)
-  angle = obj.x > origin.x ? angle : 360 - angle
+export function getOrientation(origin : PIXI.Point , target :  PIXI.Point) : 'N' | 'S' | 'E' | 'W' | 'NE' | 'NW' | 'SE' | 'SW' {
+  const deltaX = target.x - origin.x;
+  const deltaY = target.y - origin.y;
+  const radian = Math.atan2(deltaY, deltaX);
+  const degree = radian * (180 / Math.PI);
+  const angle = (degree < 0 ? 360 + degree : degree) - 90;
   return getOrientationByAngle(angle)
 }
 
@@ -46,6 +69,10 @@ export function getOrientationByAngle(angle) : 'N' | 'S' | 'E' | 'W' | 'NE' | 'N
   if(angle > 202.5 &&  angle <= 247.5) return 'SW'
   if(angle > 247.5 &&  angle <= 292.5) return 'W'
   if(angle > 292.5 &&  angle <= 337.5) return 'NW'
+}
+
+export function distance(p1: PIXI.Point, p2: PIXI.Point) {
+  return Math.sqrt((p2.y - p1.y) * (p2.y - p1.y) + (p2.x - p1.x) * (p2.x - p1.x))
 }
 
 export function getBezierSectionPoints(vertices: PIXI.Point[], ctrlPts: PIXI.Point[], t0, t1) {
@@ -81,43 +108,43 @@ export function getBezierSectionPoints(vertices: PIXI.Point[], ctrlPts: PIXI.Poi
   return { xa: xa, ya: ya, xb: xb, yb: yb, xc: xc, yc: yc, xd: xd, yd: yd }
 }
 
- export function intersectionsOfCircles(c1, c2) {
-   /**
- * @description Get information about the intersection points of a circle.
- * Adapted from: https://stackoverflow.com/a/12221389/5553768.
- * @param {Object} c1 An object describing the first circle.
- * @param {float} c1.x The x coordinate of the circle.
- * @param {float} c1.y The y coordinate of the circle.
- * @param {float} c1.r The radius of the circle.
- * @param {Object} c2 An object describing the second circle.
- * @param {float} c2.x The x coordinate of the circle.
- * @param {float} c2.y The y coordinate of the circle.
- * @param {float} c2.r The radius of the circle.
- * @returns {Object} Data about the intersections of the circles.
- * intersection(
-    {x: 1, y: 1, r: 2},
-    {x: 0, y: -1, r: 1}
+export function intersectionsOfCircles(c1, c2): { intersect_count: number, intersect_occurs: boolean, one_is_in_other: boolean, are_equal: boolean, point_1: { x: number, y: number }, point_2: { x: number, y: number }, } {
+  /**
+* @description Get information about the intersection points of a circle.
+* Adapted from: https://stackoverflow.com/a/12221389/5553768.
+* @param {Object} c1 An object describing the first circle.
+* @param {float} c1.x The x coordinate of the circle.
+* @param {float} c1.y The y coordinate of the circle.
+* @param {float} c1.r The radius of the circle.
+* @param {Object} c2 An object describing the second circle.
+* @param {float} c2.x The x coordinate of the circle.
+* @param {float} c2.y The y coordinate of the circle.
+* @param {float} c2.r The radius of the circle.
+* @returns {Object} Data about the intersections of the circles.
+* intersection(
+   {x: 1, y: 1, r: 2},
+   {x: 0, y: -1, r: 1}
 )
 
 // Result
 result = {
-    intersect_count: 2,
+   intersect_count: 2,
+   intersect_occurs: true,
+   one_is_in_other: false,
+   are_equal: false,
+   point_1: { x: 1, y: -1 },
+   point_2: { x: -0.6, y: -0.2 },
+}
+* 
+*/
+  // Start constructing the response object.
+  const result = {
+    intersect_count: 0,
     intersect_occurs: true,
     one_is_in_other: false,
     are_equal: false,
-    point_1: { x: 1, y: -1 },
-    point_2: { x: -0.6, y: -0.2 },
-}
- * 
- */
-  // Start constructing the response object.
-  const result = {
-      intersect_count: 0,
-      intersect_occurs: true,
-      one_is_in_other: false,
-      are_equal: false,
-      point_1: { x: null, y: null },
-      point_2: { x: null, y: null },
+    point_1: { x: null, y: null },
+    point_2: { x: null, y: null },
   };
 
   // Get vertical and horizontal distances between circles.
@@ -129,53 +156,53 @@ result = {
 
   // Check if circles intersect.
   if (dist > c1.r + c2.r) {
-      result.intersect_occurs = false;
+    result.intersect_occurs = false;
   }
 
   // Check one circle isn't inside the other.
   if (dist < Math.abs(c1.r - c2.r)) {
-      result.intersect_occurs = false;
-      result.one_is_in_other = true;
+    result.intersect_occurs = false;
+    result.one_is_in_other = true;
   }
 
   // Check if circles are the same.
   if (c1.x === c2.x && c1.y === c2.y && c1.r === c2.r) {
-      result.are_equal = true;
-      result.are_equal = true;
+    result.are_equal = true;
+    result.are_equal = true;
   }
 
   // Find the intersection points
   if (result.intersect_occurs) {
-      // Centroid is the pt where two lines cross. A line between the circle centers
-      // and a line between the intersection points.
-      const centroid = (c1.r * c1.r - c2.r * c2.r + dist * dist) / (2.0 * dist);
+    // Centroid is the pt where two lines cross. A line between the circle centers
+    // and a line between the intersection points.
+    const centroid = (c1.r * c1.r - c2.r * c2.r + dist * dist) / (2.0 * dist);
 
-      // Get the coordinates of centroid.
-      const x2 = c1.x + (dx * centroid) / dist;
-      const y2 = c1.y + (dy * centroid) / dist;
+    // Get the coordinates of centroid.
+    const x2 = c1.x + (dx * centroid) / dist;
+    const y2 = c1.y + (dy * centroid) / dist;
 
-      // Get the distance from centroid to the intersection points.
-      const h = Math.sqrt(c1.r * c1.r - centroid * centroid);
+    // Get the distance from centroid to the intersection points.
+    const h = Math.sqrt(c1.r * c1.r - centroid * centroid);
 
-      // Get the x and y dist of the intersection points from centroid.
-      const rx = -dy * (h / dist);
-      const ry = dx * (h / dist);
+    // Get the x and y dist of the intersection points from centroid.
+    const rx = -dy * (h / dist);
+    const ry = dx * (h / dist);
 
-      // Get the intersection points.
-      result.point_1.x = Number((x2 + rx).toFixed(15));
-      result.point_1.y = Number((y2 + ry).toFixed(15));
+    // Get the intersection points.
+    result.point_1.x = Number((x2 + rx).toFixed(15));
+    result.point_1.y = Number((y2 + ry).toFixed(15));
 
-      result.point_2.x = Number((x2 - rx).toFixed(15));
-      result.point_2.y = Number((y2 - ry).toFixed(15));
+    result.point_2.x = Number((x2 - rx).toFixed(15));
+    result.point_2.y = Number((y2 - ry).toFixed(15));
 
-      // Add intersection count to results
-      if (result.are_equal) {
-          result.intersect_count = null;
-      } else if (result.point_1.x === result.point_2.x && result.point_1.y === result.point_2.y) {
-          result.intersect_count = 1;
-      } else {
-          result.intersect_count = 2;
-      }
+    // Add intersection count to results
+    if (result.are_equal) {
+      result.intersect_count = null;
+    } else if (result.point_1.x === result.point_2.x && result.point_1.y === result.point_2.y) {
+      result.intersect_count = 1;
+    } else {
+      result.intersect_count = 2;
+    }
   }
   return result;
 }

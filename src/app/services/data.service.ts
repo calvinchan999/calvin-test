@@ -2,13 +2,12 @@ import { Injectable, NgZone } from '@angular/core';
 import { DataStateChangeEvent } from '@progress/kendo-angular-grid';
 import { RvHttpService } from './rv-http.service';
 import { EnumNamePipe, UiService } from './ui.service';
-import { GeneralUtil } from 'src/app/utils/general/general.util';
+import { GeneralUtil, getLocalStorage, getSessionStorage, setLocalStorage, setSessionStorage } from 'src/app/utils/general/general.util';
 import { toDataSourceRequestString, toODataString } from '@progress/kendo-data-query';
 import { SignalRService } from './signal-r.service';
 import { BehaviorSubject , Observable, Subject , pipe, of} from 'rxjs';
 import { filter, skip, takeUntil , map ,  take , catchError} from 'rxjs/operators';
 import { ticker } from 'pixi.js';
-import { PixiCommon } from '../ui-components/drawing-board/drawing-board.component';
 import { Router } from '@angular/router';
 import { AzurePubsubService } from './azure-pubsub.service';
 import { DatePipe } from '@angular/common'
@@ -34,7 +33,7 @@ export class DataService {
   public alertFloorPlans :{type : string ,floorPlanCode : string , mapCode : string , robotBases : string[]}[] = []
   public unreadNotificationCount = new BehaviorSubject<number>(0)
   public unreadSyncMsgCount = new BehaviorSubject<number>(0)
-  public arcsDefaultSite = null
+  public arcsDefaultSite 
   public arcsDefaultBuilding = null
   public codeRegex
   public codeRegexErrorMsg
@@ -592,19 +591,19 @@ export class DataService {
   }
 
   setLocalStorage(key : localStorageKey , value : string){ //Manage All LocalStorage Keys here!!!
-    localStorage.setItem(key, value)
+    setLocalStorage(key, value)
   }
 
   getLocalStorage(key : localStorageKey ){ 
-    return localStorage.getItem(key)
+    return getLocalStorage(key)
   }
 
   setSessionStorage(key : sessionStorageKey , value : string){ //Manage All SessionStorage Keys here!!!
-    sessionStorage.setItem(key, value)
+    setSessionStorage(key, value)
   }
 
   getSessionStorage(key : sessionStorageKey ){
-    return sessionStorage.getItem(key)
+    return  getSessionStorage(key)
   }
 
 
@@ -1024,7 +1023,7 @@ export class DataService {
   }
 
 
-  public async getFloorPlanV2(code : string = null, blockUI = true): Promise<JFloorPlan>{
+  public async getFloorPlan(code : string = null, blockUI = true): Promise<JFloorPlan>{
     let ticket
     code = code ? code : Object.keys(this.dataStore.floorPlan).filter(k=>this.dataStore.floorPlan[k]?.data?.isDefault)[0]
     if(blockUI){

@@ -12,7 +12,6 @@ import { process } from '@progress/kendo-data-query';
 
 //import utils
 import { GeneralUtil } from 'src/app/utils/general/general.util';
-import { DrawingBoardComponent, PixiLocPoint } from 'src/app/ui-components/drawing-board/drawing-board.component';
 import { UiService } from 'src/app/services/ui.service';
 import { RvHttpService } from 'src/app/services/rv-http.service';
 import { BehaviorSubject, fromEventPattern, Observable, pipe, Subject } from 'rxjs';

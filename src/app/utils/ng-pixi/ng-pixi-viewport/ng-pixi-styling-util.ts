@@ -2,18 +2,20 @@ import * as Viewport from 'pixi-viewport';
 import * as PIXI from 'pixi.js';
 
 export const DRAWING_STYLE = {
-    lineWidth : 3,
+    lineWidth : 2,
     imgEditHandleSize: 5,
     highlightColor: 0xFE9802,
     secondaryHighlightColor: 0xFF6358,
     mouseOverColor: 0x00CED1,
+    outlineColor : 0xFF6358,
     arrowTypes: ['arrow', 'arrow_bi', 'arrow_bi_curved', 'arrow_curved'],
     pointTypes: ['location', 'waypoint'],
     curveTypes: ['arrow_bi_curved', 'arrow_curved'],
     markerScale: 0.45,
     arrowHeadScale: 0.45,
     arrowThicknessScale: 0.8,
-    arrowHeadLength: 17.5 * 0.45
+    arrowHeadLength: 12.5, //17.5 * 0.45
+    robotAvatarScale : 0.1
 }
 
 const DEFAULT_STYLE = {

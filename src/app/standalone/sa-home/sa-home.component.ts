@@ -12,7 +12,7 @@ import { process } from '@progress/kendo-data-query';
 
 //import utils
 import { GeneralUtil } from 'src/app/utils/general/general.util';
-import { DrawingBoardComponent, PixiLocPoint } from 'src/app/ui-components/drawing-board/drawing-board.component';
+import { Map2DViewportComponent } from 'src/app/ui-components/map-2d-viewport/map-2d-viewport.component';
 import { UiService } from 'src/app/services/ui.service';
 import { RvHttpService } from 'src/app/services/rv-http.service';
 import { Observable, Subject } from 'rxjs';
@@ -54,14 +54,14 @@ export class SaHomeComponent implements OnInit {
 
   ds = {} //datasource
 
-  @ViewChild("mapContainer") pixiElRef : DrawingBoardComponent
+  @ViewChild("mapContainer") pixiElRef : Map2DViewportComponent
 
   taskList = []
   onDestroy = new Subject()
   status$ : Observable<any> = null
   loadingTicket 
   get locationPixiGraphics(){
-    return this.pixiElRef?.allPixiPoints
+    return this.pixiElRef?.viewport.allPixiWayPoints
   }
   mouseoverLocationOption = null
   locationAlwaysVisible = true

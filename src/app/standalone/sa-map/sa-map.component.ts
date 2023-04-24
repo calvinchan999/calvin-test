@@ -9,7 +9,8 @@ import { AuthService } from 'src/app/services/auth.service';
 import { DataService, JMap, MapJData } from 'src/app/services/data.service';
 import { RvHttpService } from 'src/app/services/rv-http.service';
 import { UiService } from 'src/app/services/ui.service';
-import { DrawingBoardComponent } from 'src/app/ui-components/drawing-board/drawing-board.component';
+import { Map2DViewportComponent } from 'src/app/ui-components/map-2d-viewport/map-2d-viewport.component';
+import { calculateMapOrigin } from 'src/app/ui-components/map-2d-viewport/pixi-ros-conversion';
 import { TableComponent } from 'src/app/ui-components/table/table.component';
 import { GeneralUtil } from 'src/app/utils/general/general.util';
 import { SaMapExportComponent } from './sa-map-export/sa-map-export.component';
@@ -23,7 +24,7 @@ import { SaMapImportComponent } from './sa-map-import/sa-map-import.component';
 })
 export class SaMapComponent implements OnInit {
 @ViewChild('table') ucTableRef : TableComponent
-@ViewChild('pixi') pixiElRef: DrawingBoardComponent
+@ViewChild('pixi') pixiElRef: Map2DViewportComponent
 @ViewChild('mapDetailComp') mapDetailComp : CmMapDetailComponent
 @ViewChild('floorplanComp') floorplanComp : CmMapFloorplanComponent
 @ViewChild('buttonGroup') buttonGroupRef : ButtonGroup
@@ -223,7 +224,7 @@ export class SaMapComponent implements OnInit {
     let ticket = this.uiSrv.loadAsyncBegin()
     let data : JMap = await this.dataSrv.httpSrv.get('api/map/v1/' + this.selectedMapKeySet['mapCode'] + '/' +this.selectedMapKeySet['robotBase'])
     await this.pixiElRef.loadToMainContainer(data.base64Image , undefined , undefined , undefined, undefined, true)
-    let origin = this.pixiElRef.calculateMapOrigin(data.originX , data.originY , data.imageHeight / this.util.config.METER_TO_PIXEL_RATIO, this.util.config.METER_TO_PIXEL_RATIO)
+    let origin = calculateMapOrigin(data.originX , data.originY , data.imageHeight / this.util.config.METER_TO_PIXEL_RATIO, this.util.config.METER_TO_PIXEL_RATIO)
     this.pixiElRef.setMapOrigin(origin[0] , origin[1])
     this.uiSrv.loadAsyncDone(ticket)
     // this.pixiElRef.loadMapObject((await this.dataSrv.getMapDs([this.selectedMapId])).maps[0] , false)
@@ -234,7 +235,7 @@ export class SaMapComponent implements OnInit {
     if (!this.pixiElRef || this.pixiElRef.mainContainerId == this.selectedFloorplanCode) {
       return
     }
-    this.pixiElRef.loadFloorPlanDatasetV2(await this.dataSrv.getFloorPlanV2(this.selectedFloorplanCode),true , true)
+    this.pixiElRef.loadDataset(await this.dataSrv.getFloorPlan(this.selectedFloorplanCode),true , true)
   }
   // ^ *** for tablet mode *** ^
 }

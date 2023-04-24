@@ -22,10 +22,10 @@
         <!-- [style.minWidth] = "selectedTab == 'locations'? '100%' : ''" -->
         <div class="viewport-container" #pixiContainer > 
             <uc-drawing-board #pixi [overlayMsg] = "frmGrp.controls['fileName'].value? null : ('Please upload the floor plan file first' | label : uiSrv.langPack) " 
-                              (pointRename) = "onPointUpsert($event)" [readonly] = "readonly" [waypointEditable] = "true" [showWaypointType] = "showWaypointType"
-                              (pointUnselected) = "onPointUnselected($event)" 
+                              [readonly] = "readonly" [waypointEditable] = "true" [showWaypointType] = "showWaypointType"
+                              (graphicsUnselected) = "$event.type == 'waypoint' ? onPointUnselected($event) : null" 
                               [showRosToggle] = "util.standaloneApp" (addLocalWayPointClicked) = "getPoseAndAddWaypoint_SA()"
-                              [canUploadMultiImg] = "false" [hideButton] = "{all:true}" [(selectedShape)] = "selectedPixiShape" [hideRelocationButton] = "true"
+                              [canUploadMultiImg] = "false" [hideButton] = "{all:true}" [(selectedGraphics)] = "selectedPixiShape" [hideRelocationButton] = "true"
                               (fileLoad)=" frmGrp.controls['fileName'].setValue($event?.name)">
             </uc-drawing-board>
         </div>      
@@ -76,7 +76,7 @@
                                                                                          mapTree.refreshExpandedKeys() ;
                                                                                          onMapCodeSelected() "/>
                             <a *ngIf="dataItem.robotBase && mapCode == dataItem.mapCode" [class]="'mdi mdi-eye' + (dataItem['hidden']? ' invisible' : ' visible')"  (click)="toggleMapVisibility(dataItem)"></a>
-                            <a *ngIf="dataItem.robotBase && mapCode == dataItem.mapCode" class="name" (click)="refreshSelectedShape(dataItem)">{{ dataItem.name }}</a>
+                            <a *ngIf="dataItem.robotBase && mapCode == dataItem.mapCode" class="name" (click)="refreshselectedGraphics(dataItem)">{{ dataItem.name }}</a>
                             <span *ngIf="!(dataItem.robotBase && mapCode == dataItem.mapCode)" class="name">{{ dataItem.name }}</span>
                             <span *ngIf="dataItem.robotBase && mapCode == dataItem.mapCode && dataItem.alert" class="mdi mdi-exclamation-thick" [matTooltip]="'Please save the floor plan to enable this map'| label: uiSrv.langPack">
 
@@ -102,7 +102,7 @@
                         [class]="selectedMapIds.includes(map['mapCode'])? 'checked' :''">
                         <input type="checkbox" [checked]="selectedMapIds.includes(map['mapCode'])"
                             (change)="toggleMap(map['mapCode'], $event.target.checked , $event.target)" kendoCheckBox />
-                        <span (click)="refreshSelectedShape(map['mapCode'])"
+                        <span (click)="refreshselectedGraphics(map['mapCode'])"
                             [class]="selectedPixiShape?.id == map['mapCode']? 'selected-map-id map-name' :'map-name'">{{map['name']}}</span>
                     </div>
                 </div>

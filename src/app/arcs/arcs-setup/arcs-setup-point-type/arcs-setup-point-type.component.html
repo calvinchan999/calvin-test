@@ -24,7 +24,7 @@
             <label>{{'Waypoint Preview' | label : uiSrv.langPack}}</label>
             <uc-drawing-board #pixi [setupWayPointIcon] = "true" (demoWaypointLoaded)="frmGrp.controls['base64Image'].setValue($event?.iconBase64);"
                                     [canUploadMultiImg]="false"  [hideButton]="{all : true}"  [hideRelocationButton]="true" 
-                                    [testWayPointName] = "frmGrp.controls['code'].value" [readonly]="true">
+                                    [testWayPointName] = "frmGrp.controls['code'].value" [readonly]="true" [background]="background">
             </uc-drawing-board>   
         </div>       
     </div>

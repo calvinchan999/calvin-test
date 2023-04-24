@@ -6,6 +6,7 @@ import {Pipe, PipeTransform} from "@angular/core";
 import { FormGroup } from '@angular/forms';
 import { BehaviorSubject, Subject } from 'rxjs';
 import { filter, take } from 'rxjs/operators';
+import { localStorageKey, sessionStorageKey } from 'src/app/services/data.service';
 import { environment } from 'src/environments/environment';
 
 @Injectable({
@@ -334,3 +335,20 @@ export class GeneralUtil {
 		}, {}); // empty object is the initial value for result object
 	}
 }
+
+export function setLocalStorage(key: localStorageKey, value: string) { //Manage All LocalStorage Keys here!!!
+	localStorage.setItem(key, value)
+}
+
+export function getLocalStorage(key: localStorageKey) {
+	return localStorage.getItem(key)
+}
+
+export function setSessionStorage(key: sessionStorageKey, value: string) { //Manage All SessionStorage Keys here!!!
+	sessionStorage.setItem(key, value)
+}
+
+export function getSessionStorage(key: sessionStorageKey) {
+	return sessionStorage.getItem(key)
+}
+

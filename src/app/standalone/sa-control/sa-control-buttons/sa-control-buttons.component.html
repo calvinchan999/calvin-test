@@ -25,12 +25,13 @@
     <uc-drawing-board #mapContainer [fullScreen]="true" [hideButton]="{all:true}"  [readonly] = "true" (cancelFullScreen) = "showLocalizePopup = false ; showChangeMapPopup = false;" 
                       (confirmSpawnPick) = "uiSrv.loadAsyncDone(pixiElRef.loadingTicket); showLocalizePopup = false ; showChangeMapPopup = false" 
                       [uitoggle] = " {showRosMap : true, showWaypoint : false}"
-                      [showRobot] = "false"  [showNavigationDropdown] = "true" [pickSpawnPoint]="true">
+                      [showDropdown] = "true"> 
     </uc-drawing-board>
+    <!-- [pickSpawnPoint]="true" -->
 </div>
 
 <div *ngIf="showManualModePopup" class="viewport-container">
-    <uc-drawing-board #mapContainer [fullScreen]="true" [hideButton]="{all:true}"  [isDashboard] = "true"  [readonly] = "true" [showRobot] = "true"
+    <uc-drawing-board #mapContainer [fullScreen]="true" [hideButton]="{all:true}"  [showRobot] = "true"  [readonly] = "true"
                       [uitoggle] = " {showRosMap : true, showWaypoint : false}"
                       [remoteControl] = "true" (terminateRemoteControl) = "showManualModePopup = false ">
     </uc-drawing-board>

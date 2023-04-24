@@ -7,7 +7,7 @@ import { CmMapFloorplanComponent } from 'src/app/common-components/cm-map/cm-map
 import { DataService, MapJData } from 'src/app/services/data.service';
 import { RvHttpService } from 'src/app/services/rv-http.service';
 import { UiService } from 'src/app/services/ui.service';
-import { DrawingBoardComponent } from 'src/app/ui-components/drawing-board/drawing-board.component';
+import { Map2DViewportComponent } from 'src/app/ui-components/map-2d-viewport/map-2d-viewport.component';
 import { TableComponent } from 'src/app/ui-components/table/table.component';
 import { CmUserGroupComponent } from './cm-user-group/cm-user-group.component';
 import { CmUserDetailComponent } from './cm-user-detail/cm-user-detail.component';
@@ -22,7 +22,7 @@ import { GeneralUtil } from 'src/app/utils/general/general.util';
 })
 export class CmUserComponent implements OnInit {
 @ViewChild('table') ucTableRef : TableComponent
-@ViewChild('pixi') pixiElRef: DrawingBoardComponent
+@ViewChild('pixi') pixiElRef: Map2DViewportComponent
   constructor(public windowSrv: DialogService, public uiSrv : UiService , public http: RvHttpService , private changeDectector : ChangeDetectorRef,
               private dataSrv : DataService , private ngZone : NgZone, public authSrv : AuthService , public util : GeneralUtil) { 
               this.tabs = this.tabs.filter(t=>this.authSrv.hasRight(t.functionId.toUpperCase()) && (t.id!='passwordPolicy' || this.util.arcsApp))

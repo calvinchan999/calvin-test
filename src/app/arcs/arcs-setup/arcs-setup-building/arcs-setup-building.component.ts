@@ -7,10 +7,12 @@ import { filter, take } from 'rxjs/operators';
 import { DataService, DropListFloorplan, JBuilding, JSite, ShapeJData, Site } from 'src/app/services/data.service';
 import { RvHttpService } from 'src/app/services/rv-http.service';
 import { UiService } from 'src/app/services/ui.service';
-import { DrawingBoardComponent, PixiCommon, PixiPolygon, Robot } from 'src/app/ui-components/drawing-board/drawing-board.component';
+import { Map2DViewportComponent,  Robot } from 'src/app/ui-components/map-2d-viewport/map-2d-viewport.component';
 import { GeneralUtil } from 'src/app/utils/general/general.util';
 import { centroidOfPolygon as centroidOfPolygon, inside } from 'src/app/utils/math/functions';
+import { PixiBuildingPolygon } from 'src/app/utils/ng-pixi/ng-pixi-viewport/ng-pixi-map-graphics';
 import { DRAWING_STYLE } from 'src/app/utils/ng-pixi/ng-pixi-viewport/ng-pixi-styling-util';
+import * as PIXI from 'pixi.js';
 
 
 @Component({
@@ -19,7 +21,7 @@ import { DRAWING_STYLE } from 'src/app/utils/ng-pixi/ng-pixi-viewport/ng-pixi-st
   styleUrls: ['./arcs-setup-building.component.scss']
 })
 export class ArcsSetupBuildingComponent implements OnInit {
-  @ViewChild('pixi') pixiElRef : DrawingBoardComponent
+  @ViewChild('pixi') pixiElRef : Map2DViewportComponent
   @HostBinding('class') customClass = 'setup-map'
 
   constructor(public uiSrv : UiService , public dataSrv : DataService, public dialogSrv: DialogService,
@@ -37,6 +39,7 @@ export class ArcsSetupBuildingComponent implements OnInit {
   parent
   parentRow
   primaryKeyColumn = 'buildingCode'
+  readonly = false
   // dropdownData = {
   //   sites : [],
   //   floorplans:[]
@@ -105,10 +108,15 @@ export class ArcsSetupBuildingComponent implements OnInit {
                                    )
     this.refreshFloorPlanOptions()
     this.util.loadToFrmgrp(this.frmGrp , data)
-    if(this.site ){ // && this.site.siteCode == data.siteCode
-      if(data.polygonCoordinates && data.polygonCoordinates.length > 0){
-        this.pixiElRef.getBuildingPolygon(data.polygonCoordinates , {x : data.labelX , y: data.labelY} , false)
-      }
+    if (this.site && data.polygonCoordinates && data.polygonCoordinates.length > 0) { // && this.site.siteCode == data.siteCode
+      let polygon = new PixiBuildingPolygon(this.pixiElRef.viewport, data.polygonCoordinates.map(c => new PIXI.Point(c.x, c.y)))
+      polygon.buildingCode = `${data.buildingCode}`
+      polygon.buildingName = `${data.name}`
+      polygon.setTagPosition(new PIXI.Point(data.labelX, data.labelY))
+      polygon.readonly = this.readonly
+      this.pixiElRef.viewport.mainContainer.addChild(polygon)
+      this.pixiElRef.viewport.createdGraphics.polygon.push(polygon)
+      this.pixiElRef.viewport.selectedGraphics = polygon
     }
     this.setViewportCamera()
     this.uiSrv.loadAsyncDone(ticket)
@@ -138,7 +146,7 @@ export class ArcsSetupBuildingComponent implements OnInit {
   }
   
   async validate() {
-    if(this.site && this.pixiElRef.allPixiPolygon.length == 0){
+    if(this.site && this.pixiElRef.viewport.allPixiPolygons.length == 0){
       this.uiSrv.showMsgDialog("Please specify the location of the building on the site map")
       return false
     }
@@ -150,7 +158,7 @@ export class ArcsSetupBuildingComponent implements OnInit {
     Object.keys(this.frmGrp.controls).forEach(k=> ret[k] = this.frmGrp.controls[k].value)
     ret.floorPlanCodeList = this.dropdownData.floorplans.filter(fp=>fp['selected']).map((fp:DropListFloorplan)=>fp.floorPlanCode)
     if(this.site){
-      let polygon = this.pixiElRef.allPixiPolygon[0]
+      let polygon = this.pixiElRef.viewport.allPixiPolygons[0]
       ret.siteCode = this.site.siteCode
       ret.polygonCoordinates = polygon?.vertices.map(v=>{return { x : polygon.position.x + v.x , y:  polygon.position.y + v.y }})
       ret.labelX = this.util.trimNum(polygon.position.x  + polygon?.pixiRobotCountTag.position.x, 0)
@@ -171,25 +179,6 @@ export class ArcsSetupBuildingComponent implements OnInit {
     }
     if((await this.dataSrv.saveRecord("api/building/v1", await this.getSubmitDataset() , this.frmGrp , !this.parentRow)).result){      
       this.dialogRef.close()
-    }
-  }
-
-  onBuildingShapeAdded(gr : PixiPolygon){
-    if(this.pixiElRef?.drawingsCreated.filter(d=>d['type'] == 'polygon').length == 1){
-      gr.graphicStyle.opacity = 0.8
-      gr.graphicStyle.fillColor = DRAWING_STYLE.mouseOverColor
-      gr.alpha = 0.8
-      let tagPos = centroidOfPolygon(gr.vertices)
-      if(!inside(tagPos, gr.vertices)){
-        tagPos = { x: (gr.vertices[0].x + gr.vertices[1].x) / 2, y: (gr.vertices[0].y + gr.vertices[1].y) / 2 }
-      }
-      //gr.filters = [<any>new ColorReplaceFilter(0x000000,  new PixiCommon().mouseOverColor, 1)]
-      this.pixiElRef.addPixiRobotCountTagToPolygon(gr , tagPos , 0 , false) //toLocal
-      gr.pixiRobotCountTag.option.fillColor = 0xffffff
-      gr.pixiRobotCountTag.textColor = 0x333333
-      gr.pixiRobotCountTag.option.opacity = 0.7
-      gr.pixiRobotCountTag.draw()
-      // this.pixiElRef.addBadgeToPolyon(gr)
     }
   }
   

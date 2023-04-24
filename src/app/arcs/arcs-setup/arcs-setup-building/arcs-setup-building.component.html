@@ -29,12 +29,13 @@
         <div class="viewport-container">
             <uc-drawing-board #pixi [overlayMsg] = "site ? null : ( uploadSiteMsg| label : uiSrv.langPack) " 
                               [canUploadMultiImg] = "false" [hideButton] = "{ line : true, brush: true, arrow : true, point: true, export: true, upload : true}" 
-                              [disableButton] = "pixiElRef?.drawingsCreated.length == 0 && pixiElRef?.selectedGraphics?.type == 'polygon'? {} :
-                                                 pixiElRef?.drawingsCreated.length == 0 && pixiElRef?.selectedGraphics?.type != 'polygon'? {delete : true } : 
-                                                 pixiElRef?.drawingsCreated.length != 0 && pixiElRef?.selectedGraphics?.type != 'polygon'? {polygon: true , delete : true } : 
-                                                 pixiElRef?.drawingsCreated.length != 0 && pixiElRef?.selectedGraphics?.type == 'polygon'? {polygon: true } :
+                              [disableButton] = "pixiElRef?.viewport.createdGraphics.polygon.length == 0 && pixiElRef?.selectedGraphics?.type == 'polygon'? {} :
+                                                 pixiElRef?.viewport.createdGraphics.polygon.length == 0 && pixiElRef?.selectedGraphics?.type != 'polygon'? {delete : true } : 
+                                                 pixiElRef?.viewport.createdGraphics.polygon.length != 0 && pixiElRef?.selectedGraphics?.type != 'polygon'? {polygon: true , delete : true } : 
+                                                 pixiElRef?.viewport.createdGraphics.polygon.length != 0 && pixiElRef?.selectedGraphics?.type == 'polygon'? {polygon: true } :
                                                  null"
-                              [hideRelocationButton] = "true" (onDrawingsCreated) = "onBuildingShapeAdded($event)"
+                              [polygonType] = "'building'"
+                              [hideRelocationButton] = "true" 
                               [palette] = "{ map: ['#000000'], path: null, location: null}">
             </uc-drawing-board>            
         </div>

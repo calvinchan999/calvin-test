@@ -5,7 +5,7 @@ import { HttpClient } from '@angular/common/http';
 import { AsyncSubject, BehaviorSubject, Subject } from 'rxjs';
 import { NotificationService } from "@progress/kendo-angular-notification";
 import { DomSanitizer } from '@angular/platform-browser';
-import { DrawingBoardComponent, PixiCommon } from '../ui-components/drawing-board/drawing-board.component';
+import { Map2DViewportComponent } from '../ui-components/map-2d-viewport/map-2d-viewport.component';
 import { filter, skip, take, takeUntil } from 'rxjs/operators';
 import { DatePipe } from '@angular/common'
 import { environment } from 'src/environments/environment';
@@ -43,7 +43,7 @@ export class UiService {
   }
   public lang = new BehaviorSubject<string>('EN')
   public loadingShadeZindex = 999999
-  public drawingBoardComponents : DrawingBoardComponent[]  = []
+  public Map2DViewportComponents : Map2DViewportComponent[]  = []
   public dataSrv 
   public commonAlertMessages = {
     estopped : "Emergency Stop Switched On",
@@ -199,7 +199,7 @@ export class UiService {
 
   suspendBackgroundPixis() {
     let ret = new Map()
-    this.drawingBoardComponents.forEach(comp=>{
+    this.Map2DViewportComponents.forEach(comp=>{
       ret.set(comp , comp.suspended)
       comp.suspended = true
     })

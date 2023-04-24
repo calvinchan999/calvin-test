@@ -9,7 +9,7 @@ import { RvHttpService } from 'src/app/services/rv-http.service';
 import { SignalRService } from 'src/app/services/signal-r.service';
 import { UiService } from 'src/app/services/ui.service';
 import { SaMapComponent } from 'src/app/standalone/sa-map/sa-map.component';
-import { DrawingBoardComponent, PixiCommon, PixiPolygon, Robot } from 'src/app/ui-components/drawing-board/drawing-board.component';
+import { Map2DViewportComponent,  Robot } from 'src/app/ui-components/map-2d-viewport/map-2d-viewport.component';
 import { GeneralUtil } from 'src/app/utils/general/general.util';
 import { ArcsSetupComponent } from '../arcs-setup.component';
 @Component({
@@ -19,7 +19,8 @@ import { ArcsSetupComponent } from '../arcs-setup.component';
 })
 export class ArcsSetupPointTypeComponent implements OnInit {
   readonly = false
-  @ViewChild('pixi') pixiElRef : DrawingBoardComponent
+  background = 0xAAAAAA
+  @ViewChild('pixi') pixiElRef : Map2DViewportComponent
   constructor(public uiSrv: UiService, public dialogSrv: DialogService, public ngZone: NgZone, public httpSrv: RvHttpService,
     public signalRSrv: SignalRService, public util: GeneralUtil, public dataSrv: DataService, public authSrv: AuthService) {
   }
@@ -65,13 +66,14 @@ export class ArcsSetupPointTypeComponent implements OnInit {
     }
     let getIconBase64 = ()=> (!this.frmGrp.controls['base64Image'].value || this.frmGrp.controls['base64Image'].value == '' ? undefined : this.frmGrp.controls['base64Image'].value)
     this.frmGrp.controls['code'].valueChanges.pipe(takeUntil(this.$onDestroy)).subscribe(v =>{
-      if( this.pixiElRef.allPixiPoints[0]){
-        this.pixiElRef.allPixiPoints[0].text = v.toUpperCase()
+      if( this.pixiElRef.viewport.allPixiWayPoints[0]){
+        this.pixiElRef.viewport.allPixiWayPoints[0].text = v.toUpperCase()
       }
     })
     this.pixiElRef.initDone$.subscribe(async () => {
       this.pixiElRef._ngPixi.background = 0xAAAAAA
       this.pixiElRef.loadDemoWaypoint(this.frmGrp.controls['code'].value,  getIconBase64());
+      this.pixiElRef.module.ui.toggleDarkMode(false)
     }) 
   }
 

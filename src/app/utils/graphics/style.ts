@@ -1,8 +1,8 @@
 export function ConvertColorToDecimal(color: string | number) {
-    if(Number.isFinite(color)){
-        return Number(color)
-    }else{
+    if((<any>color) instanceof String || typeof color === 'string'){
         return Number(color.toString().replace("#", '0x'))
+    }else{
+        return Number(color)
     }
 }
 

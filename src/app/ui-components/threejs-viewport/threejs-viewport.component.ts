@@ -12,7 +12,7 @@ import { AmbientLight, DirectionalLight, DoubleSide, Group, Mesh, Object3D, Shap
 import { GeneralUtil } from 'src/app/utils/general/general.util';
 import { DataService, DropListFloorplan, DropListRobot, JFloorPlan, JMap, JPoint, RobotDetailARCS, signalRType } from 'src/app/services/data.service';
 import { debounce, debounceTime, filter, retry, share, skip, switchMap, take, takeUntil , map } from 'rxjs/operators';
-import { radRatio } from '../drawing-board/drawing-board.component';
+import { radRatio } from '../map-2d-viewport/map-2d-viewport.component';
 import { interval, Observable, Subject, Subscription } from 'rxjs';
 import { CSS2DRenderer, CSS2DObject } from 'three/examples/jsm/renderers/CSS2DRenderer'; //three-css2drender
 import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls';
@@ -460,6 +460,9 @@ export class ThreejsViewportComponent implements OnInit , OnDestroy{
     } else {
       (<THREE.MeshPhongMaterial>this.floorplan.material).visible = true
     }
+    // //TESTING
+    // (<THREE.MeshPhongMaterial>this.floorplan.material).visible = true
+    // //TESTING
 
     if(settings?.walls){
       this.initWalls(settings.walls , settings.wallHeight);
@@ -1831,7 +1834,7 @@ class Import3DModelSettings {
 
       //   // let refreshPose = (r : Robot) => r.refreshPose(getPose(r.id).x, getPose(r.id).y, getPose(r.id).angle, getPose(r.id).interval, mapCode, r.robotBase)
       //   // //all related map containers MUST be added already before calling this function/all related map containers MUST be added already before calling this function
-      //   // //let container = this.mapContainerStore[mapCode] //  + robotBase //
+      //   // //let container = this.viewport.mapContainerStore[mapCode] //  + robotBase //
       //   // let robotCodes = Object.keys(poseObj[mapCode])
 
       //   // let robotCodesToAdd = robotCodes.filter(c => !this.robots.map(r => r.id).includes(c) || (this.robots.filter(r => r.id == c)[0].mapCode != mapCode))

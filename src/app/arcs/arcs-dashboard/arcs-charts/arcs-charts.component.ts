@@ -3,7 +3,7 @@ import { ChartComponent, HighlightVisualArgs, LegendLabelsContentArgs, SeriesCli
 import { ChangeDetectorRef, Component, NgZone, OnInit, Input, ViewChild, ElementRef, TemplateRef, OnDestroy, HostListener } from '@angular/core';
 import { RvHttpService } from 'src/app/services/rv-http.service';
 import { UiService } from 'src/app/services/ui.service';
-import { DrawingBoardComponent, PixiCommon } from 'src/app/ui-components/drawing-board/drawing-board.component';
+import { Map2DViewportComponent } from 'src/app/ui-components/map-2d-viewport/map-2d-viewport.component';
 import { GeneralUtil } from 'src/app/utils/general/general.util';
 import { ARCS_STATUS_MAP, DataService, DropListBuilding, DropListFloorplan, DropListRobot, DropListType, FloorPlanDataset, JFloorPlan, RobotStatusARCS as RobotStatus, RobotTaskInfoARCS, ShapeJData } from 'src/app/services/data.service';
 import { Router } from '@angular/router';
@@ -41,7 +41,7 @@ export class ArcsChartsComponent implements OnInit, OnDestroy {
   @ViewChild('utilizationByRobotChart') utilizationByRobotChart: ChartComponent
   @ViewChild('utilizationByRobotTypeChart') utilizationByRobotTypeChart: ChartComponent
   @ViewChild('utilizationByHourChart') utilizationByHourChart: ChartComponent
-  @ViewChild('pixi') pixiRef : DrawingBoardComponent
+  @ViewChild('pixi') pixiRef : Map2DViewportComponent
 
   frDateTplView
 

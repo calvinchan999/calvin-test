@@ -1,13 +1,14 @@
 import { Component, Input, OnDestroy, OnInit, ViewChild } from '@angular/core';
 import { DialogService } from '@progress/kendo-angular-dialog';
 import { Subject } from 'rxjs';
-import { skip, takeUntil } from 'rxjs/operators';
+import { filter, skip, take, takeUntil } from 'rxjs/operators';
 import { ConfigService } from 'src/app/services/config.service';
 import { DataService, DropListMap, signalRType } from 'src/app/services/data.service';
 import { RvHttpService } from 'src/app/services/rv-http.service';
 import { UiService } from 'src/app/services/ui.service';
-import { DrawingBoardComponent } from 'src/app/ui-components/drawing-board/drawing-board.component';
+import { Map2DViewportComponent, radRatio } from 'src/app/ui-components/map-2d-viewport/map-2d-viewport.component';
 import { GeneralUtil } from 'src/app/utils/general/general.util';
+import { trimAngle } from 'src/app/utils/math/functions';
 
 @Component({
   selector: 'app-sa-control-buttons',
@@ -17,7 +18,7 @@ import { GeneralUtil } from 'src/app/utils/general/general.util';
 export class SaControlButtonsComponent implements OnInit ,  OnDestroy {
   signalRTopics : signalRType[] = ['battery','state','brake','followMePair','led','fan', 'pauseResume']
   signalRsubscribed = false
-  @ViewChild('mapContainer') pixiElRef : DrawingBoardComponent
+  @ViewChild('mapContainer') pixiElRef : Map2DViewportComponent
   @Input() readonly = {
     controls : false,
     robot: false
@@ -155,7 +156,7 @@ export class SaControlButtonsComponent implements OnInit ,  OnDestroy {
           this.showManualModePopup = !isActive
           if(this.showManualModePopup){
             setTimeout(()=>{
-              this.pixiElRef.subscribeLiveLidar_SA()
+              this.pixiElRef.standaloneModule.lidarPointCloud.subscribeLiveLidar()
               this.pixiElRef.cameraTraceEnabled = true
             })
           }          
@@ -168,10 +169,33 @@ export class SaControlButtonsComponent implements OnInit ,  OnDestroy {
       this.uiSrv.loadAsyncDone(ticket)
     } else if (id == 'changeMap') {
       this.showChangeMapPopup = true
+      setTimeout(async ()=>{
+        await this.pixiElRef.initDone$.toPromise()
+        this.pixiElRef.module.localization.localizing = true
+        this.pixiElRef.module.data.loadDefaultFloorPlan()
+      })
+
     }else if (id == 'localize') {
       this.showLocalizePopup = true
-      setTimeout(()=>{
-        this.pixiElRef.sendLidarRequestToRV(false)
+      setTimeout(async ()=>{
+        await this.pixiElRef.initDone$.toPromise()
+        let poseResp: { x: number, y: number, mapName: string, angle: number } = await this.httpSrv.fmsRequest('GET', 'localization/v1/pose', undefined, false)
+        const floorPlanCode = (<DropListMap[]>this.pixiElRef.module.data.dropdownData.maps).filter(m => m.mapCode == poseResp?.mapName)[0]?.floorPlanCode
+        if (floorPlanCode == null) {
+          this.uiSrv.loadAsyncDone(this.pixiElRef.module.common.ui.loadingTicket)
+           this.uiSrv.showNotificationBar("No valid active map detected. Please change map first", 'error')
+          this.pixiElRef.cancelFullScreen.emit()
+          return
+        } else {
+          this.pixiElRef.module.localization.localizing = true
+          this.pixiElRef.module.data.activeFloorPlanCode = floorPlanCode
+          this.pixiElRef.module.data.selectedFloorPlanCode = floorPlanCode
+          await this.pixiElRef.module.data.loadFloorPlan(floorPlanCode)
+          this.pixiElRef.module.localization.previewData.rotation = trimAngle(poseResp.angle * radRatio)
+          this.pixiElRef.module.localization.previewData.rosX = poseResp.x
+          this.pixiElRef.module.localization.previewData.rosY = poseResp.y
+          this.pixiElRef.module.localization.startLocalize()
+        }
       })
     } else if (['followMe' , 'charge' , 'stop'].includes(id)) {
       this.optionObj.type = id
