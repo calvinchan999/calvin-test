@@ -22,8 +22,12 @@ jobs:
         with:
           node-version: ${{ matrix.node-version }}
           cache: "npm"
+      - name: Show npm version
+        run: npm -v
       - run: npm install
-      - run: npm install -g @angular/cli
+      - run: npm install -g @angular/cli@11.2.19
+      - name: Install kendo-angular-layout
+        run: npm install --save @progress/kendo-angular-layout
       - name: Activate Kendo UI License
         run: npx kendo-ui-license activate
         env:
