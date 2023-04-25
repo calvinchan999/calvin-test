@@ -32,6 +32,8 @@ jobs:
           KENDO_UI_LICENSE: ${{ secrets.KENDO_UI_LICENSE }}
       - name: Build Application
         run: npm run build-arcs
+      - name: Dist folder
+        run: ls ./dist
       - name: Azure Static Web Apps Deploy
         uses: Azure/static-web-apps-deploy@v1
         with:
@@ -39,7 +41,7 @@ jobs:
           action: "upload"
           skip_api_build: true
           skip_app_build: true
-          app_location: "dist/rv-arcs-website"
+          app_location: "dist/schmidt-arcs-website"
       - name: Zip File And Create New Directory
         run: tar -zcvf fobo-amr-web.tar.gz dist && mkdir ./dist/zip && mv ./fobo-amr-web.tar.gz ./dist/zip
       - name: Upload to Azure File Container
