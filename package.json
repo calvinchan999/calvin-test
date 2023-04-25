@@ -9,7 +9,7 @@
     "lint": "ng lint",
     "e2e": "ng e2e",
     "set-prod-environment": "node ./replace.build.js",
-    "build-arcs": "npm run set-prod-environment -- arcs && node --max-old-space-size=10240 ./node_modules/@angular/cli/bin/ng build --prod --base-href \"/arcs/\"",
+    "build-arcs": "npm run set-prod-environment -- arcs && node --max-old-space-size=10240 ./node_modules/@angular/cli/bin/ng build --prod --aot --base-href \"/arcs/\"",
     "build-sa": "npm run set-prod-environment -- standalone &&  node --max-old-space-size=10240 ./node_modules/@angular/cli/bin/ng build --prod --base-href  \"/rv_standalone/\" --source-map=false"
   },
   "private": true,
