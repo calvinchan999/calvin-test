@@ -6,7 +6,7 @@
   "version": 1,
   "newProjectRoot": "projects",
   "projects": {
-    "schmidt-arcs-website": {
+    "rv-arcs-website": {
       "projectType": "application",
       "schematics": {
         "@schematics/angular:component": {
@@ -30,7 +30,7 @@
               "@progress/kendo-angular-intl/locales/es/all",
               "@progress/kendo-angular-intl/locales/fr/all"
             ],
-            "outputPath": "dist/schmidt-arcs-website",
+            "outputPath": "dist/rv-arcs-website",
             "index": "src/index.html",
             "main": "src/main.ts",
             "polyfills": "src/polyfills.ts",
@@ -95,18 +95,18 @@
         "serve": {
           "builder": "@angular-devkit/build-angular:dev-server",
           "options": {
-            "browserTarget": "schmidt-arcs-website:build"
+            "browserTarget": "rv-arcs-website:build"
           },
           "configurations": {
             "production": {
-              "browserTarget": "schmidt-arcs-website:build:production"
+              "browserTarget": "rv-arcs-website:build:production"
             }
           }
         },
         "extract-i18n": {
           "builder": "@angular-devkit/build-angular:extract-i18n",
           "options": {
-            "browserTarget": "schmidt-arcs-website:build"
+            "browserTarget": "rv-arcs-website:build"
           }
         },
         "lint": {
@@ -123,5 +123,5 @@
       }
     }
   },
-  "defaultProject": "schmidt-arcs-website"
+  "defaultProject": "rv-arcs-website"
 }
