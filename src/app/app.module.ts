@@ -227,7 +227,7 @@ import { ArcsSetupExportFloorplanComponent } from './arcs/arcs-setup/arcs-setup-
 import { ArcsRobotGroupComponent } from './arcs/arcs-dashboard/arcs-robot-group/arcs-robot-group.component';
 import { ArcsAbnormalTasksComponent } from './arcs/arcs-dashboard/arcs-charts/arcs-abnormal-tasks/arcs-abnormal-tasks.component';
 import { CmTaskCancelComponent } from './common-components/cm-task/cm-task-cancel/cm-task-cancel.component';
-import { ArcsLiftIotComponent } from './arcs/arcs-IoT/arcs-lift-iot/arcs-lift-iot.component';
+import { ArcsLiftIotComponent } from './arcs/arcs-iot/arcs-lift-iot/arcs-lift-iot.component';
 import { ArcsTurnstileIotComponent } from './arcs/arcs-iot/arcs-turnstile-iot/arcs-turnstile-iot.component';
 import { ArcsSetupRobotCoopComponent } from './arcs/arcs-setup/arcs-setup-robot-coop/arcs-setup-robot-coop.component';
 import { FilterModule } from '@progress/kendo-angular-filter';

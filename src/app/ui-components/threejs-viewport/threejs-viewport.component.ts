@@ -26,7 +26,7 @@ import { Color } from '@progress/kendo-drawing';
 import { transform } from 'typescript';
 import { DRACOLoader } from 'three/examples/jsm/loaders/DRACOLoader';
 import { ArcsDashboardRobotDetailComponent } from 'src/app/arcs/arcs-dashboard/arcs-dashboard-robot-detail/arcs-dashboard-robot-detail.component';
-import { ArcsLiftIotComponent } from 'src/app/arcs/arcs-IoT/arcs-lift-iot/arcs-lift-iot.component';
+import { ArcsLiftIotComponent } from 'src/app/arcs/arcs-iot/arcs-lift-iot/arcs-lift-iot.component';
 import { ArcsTurnstileIotComponent } from 'src/app/arcs/arcs-iot/arcs-turnstile-iot/arcs-turnstile-iot.component';
 import {GetImageDimensions} from 'src/app/utils/graphics/image'
 
