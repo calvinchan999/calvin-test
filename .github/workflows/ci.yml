@@ -26,8 +26,6 @@ jobs:
         run: npm -v
       - run: npm install
       - run: npm install -g @angular/cli@11.2.19
-      - name: Install kendo-angular-layout
-        run: npm install --save @progress/kendo-angular-layout
       - name: Activate Kendo UI License
         run: npx kendo-ui-license activate
         env:
@@ -41,7 +39,7 @@ jobs:
           action: "upload"
           skip_api_build: true
           skip_app_build: true
-          app_location: "dist/schmidt-arcs-website"
+          app_location: "dist/rv-arcs-website"
       - name: Zip File And Create New Directory
         run: tar -zcvf fobo-amr-web.tar.gz dist && mkdir ./dist/zip && mv ./fobo-amr-web.tar.gz ./dist/zip
       - name: Upload to Azure File Container
