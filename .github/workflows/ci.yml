@@ -31,9 +31,7 @@ jobs:
         env:
           KENDO_UI_LICENSE: ${{ secrets.KENDO_UI_LICENSE }}
       - name: Build Application
-        run: npm run build-arcs
-      - name: Dist folder
-        run: ls ./dist
+        run: npm run build-azure
       - name: Azure Static Web Apps Deploy
         uses: Azure/static-web-apps-deploy@v1
         with:
