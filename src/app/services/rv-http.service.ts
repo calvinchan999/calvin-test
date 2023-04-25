@@ -21,7 +21,7 @@ export class RvHttpService {
 
   public async fmsRequest(method : 'POST' | 'PUT' | 'GET' | 'DELETE', rvEndpoint: string, body: object = {} , fullResponse = true, dispMsg = null , extraMsgPaths = null ,  throwErr = false ): Promise<any>{
     try{
-      let resp = await this.http.request('post', `${this.generalUtil.getRvApiUrl()}/fms/restApi?method=${method}&endpoint=%2F${rvEndpoint.split("/").join("%2F")}`,
+      let resp = await this.http.request('post', `${this.generalUtil.getRvApiUrl()}/fms/restApi?method=${method}&endpoint=${encodeURIComponent( '/' + rvEndpoint)}`,
         {
           body: {
             // method: method,

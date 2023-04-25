@@ -360,6 +360,7 @@ export class ArcsDashboardComponent implements OnInit {
 
   async setFloorplanRobotCount(options :  { value: string, text: string, suffix: string }[]) {
     let ticket = this.uiSrv.loadAsyncBegin()
+    console.log(this.robotTypeFilter)
     let robotInfo: RobotStatusARCS[] = await this.dataSrv.httpSrv.fmsRequest('GET', 'robot/v1/robotInfo' + (this.robotTypeFilter ? `?robotType=${this.robotTypeFilter.toUpperCase()}` : ''), undefined, false)
     options.forEach((o) => {
       let count = robotInfo.filter(r => r.floorPlanCode == o.value).length
@@ -507,9 +508,9 @@ export class ArcsDashboardComponent implements OnInit {
       i.executingTaskCount = data.filter(t=>t.robotType == i.robotType).reduce((acc, i)=>  acc += i.executingTaskCount , 0)
       i.completedTaskCount = data.filter(t=>t.robotType == i.robotType).reduce((acc, i)=>  acc += i.completedTaskCount , 0)
     })    
-    this.executingTaskCount = data.map(t=> t.executingTaskCount ).reduce((acc, i)=>  acc += i , 0)
-    this.totalTaskCount =  data.map(t=> t.executingTaskCount + t.completedTaskCount).reduce((acc, i)=>  acc += i , 0)
-    if(this.pixiElRef && this.pixiElRef.module.site.locationTree.currentLevel == 'site'){
+    this.executingTaskCount = data.filter(t => !this.robotTypeFilter || t?.robotType == this.robotTypeFilter?.toUpperCase()).map(t => t.executingTaskCount).reduce((acc, i) => acc += i, 0)
+    this.totalTaskCount = data.filter(t => !this.robotTypeFilter || t?.robotType == this.robotTypeFilter?.toUpperCase()).map(t => t.executingTaskCount + t.completedTaskCount).reduce((acc, i) => acc += i, 0)
+    if (this.pixiElRef && this.pixiElRef.module.site.locationTree.currentLevel == 'site') {
       this.refreshBuildingRobotCountTag((<any>data))
     }
   }
@@ -519,6 +520,7 @@ export class ArcsDashboardComponent implements OnInit {
       return
     }
     const filters = this.getStatusListUrlParam()
+    console.log(this.robotTypeFilter)
     data = data == null ?  await this.dataSrv.httpSrv.fmsRequest('GET', 'robot/v1/robotInfo' + this.getStatusListUrlParam(), undefined, false) : data
     if(filters!= this.getStatusListUrlParam()){ //validate concurrency
       return
@@ -620,8 +622,8 @@ export class ArcsDashboardComponent implements OnInit {
       }
     }
 
-    this.activeRobotCount = data.filter(s=>s.robotStatus != 'UNKNOWN').length
-    this.totalRobotCount = data.length
+    this.activeRobotCount = data.filter(s=>s.robotStatus != 'UNKNOWN' && (!this.robotTypeFilter || s?.robotType == this.robotTypeFilter?.toUpperCase())).length
+    this.totalRobotCount = data.filter(s=>!this.robotTypeFilter || s?.robotType == this.robotTypeFilter?.toUpperCase()).length
     if(this.pixiElRef &&  this.locationTree.currentLevel == 'site'){
       this.refreshBuildingRobotCountTag(<any> data.filter(s=>s.robotStatus != 'UNKNOWN'))
     }
