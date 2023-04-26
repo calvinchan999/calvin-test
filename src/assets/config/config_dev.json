@@ -15,7 +15,7 @@
 	"SERVER_URLx": "rv-arcs-api.azurewebsites.net",
 	"SERVER_URLxxx": "rv-dev.eastasia.cloudapp.azure.com",
 	"SERVER_URLxx": "rv-hkaa.eastasia.cloudapp.azure.com",
-	"SERVER_URL": "localhost",
+	"SERVER_URL": "localhost", 
 	"PORT_NO": "44329",
 	"PORT_NOx": "",
 	"APPLICATIONxx": "/standalone_api",
