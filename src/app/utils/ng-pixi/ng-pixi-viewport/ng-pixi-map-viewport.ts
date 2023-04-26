@@ -58,7 +58,7 @@ export class PixiMapViewport extends PixiViewport{
 
     toggleModule = {
         flags : {
-            showRosMap : true,
+            showRosMap : false,
             showWaypoint : true,
             showWaypointName : true,
             showPath : false,
