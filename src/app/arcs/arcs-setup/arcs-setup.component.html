@@ -22,7 +22,10 @@
                           [defaultState] = "gridSettings[selectedTab]['defaultState'] ? gridSettings[selectedTab]['defaultState'] : null"
                           (selectedDataChange)="tableDisabledButtons = {new : false , action : $event.length == 0}"
                           (actionClick) = "$event.actionId == 'delete' ? delete(): null "
-                          (cellClick) = "$event?.column == 'edit' ? showDetail($event) : null" (createClick) = "showDetail()" [useColumnFilter]='true'>
+                          (cellClick) = "$event?.column == 'edit' || $event?.column == 'floorplan3d' ? 
+                                            showDetail($event , $event?.column == 'floorplan3d' ? 'floorplan3d' : null) : 
+                                            null" 
+                          (createClick) = "showDetail()" [useColumnFilter]='true'>
         </uc-table>
     </div>
     <!-- <div class="viewport-container"  *ngIf = "selectedTab == 'dashboard'">

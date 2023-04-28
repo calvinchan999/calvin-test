@@ -3,3 +3,11 @@
     height: 75vh;
     margin: 20px;
 }
+
+:host ::ng-deep  .mdi-video-3d {
+    font-size: 22px;
+}
+
+:host ::ng-deep td.floorplan3d {
+    padding: 0px 10px 0px 10px;
+}

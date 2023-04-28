@@ -12,7 +12,7 @@ import { Router } from '@angular/router';
 import { AzurePubsubService } from './azure-pubsub.service';
 import { DatePipe } from '@angular/common'
 import { ConfigService } from './config.service';
-import { HttpHeaders } from '@angular/common/http';
+import { HttpEventType, HttpHeaders } from '@angular/common/http';
 export type syncStatus = 'TRANSFERRED' | 'TRANSFERRING' | 'MALFUNCTION'
 export type syncLog =  {dataSyncId? : string , dataSyncType? : string , objectType? : string , dataSyncStatus?: syncStatus , objectCode?: string , robotCode?: string , progress? : any , startDateTime? : Date , endDateTime : Date  }
 export type dropListType =  'floorplans' | 'buildings' | 'sites' | 'maps' | 'actions' | 'types' | 'locations' | 'userGroups' | 'subTypes' | 'robots' | 'missions' | 'taskFailReason' | 'taskCancelReason'
@@ -1057,6 +1057,32 @@ export class DataService {
     }
   }
 
+  public async getArcs3DFloorPlanBlob(code : string) : Promise<Blob>{
+    let ret = null
+    let awaiter = new Subject()
+    let ticket = this.uiSrv.loadAsyncBegin()
+    this.httpSrv.http.get(this.util.getRvApiUrl() + `/api/map/3dModel/v1/${code}.glb`, { reportProgress: true, observe: 'events', responseType: "blob" }).subscribe(resp => {
+      if (resp.type === HttpEventType.Response) {
+        this.uiSrv.loadAsyncDone(ticket)
+        if (resp.status == 200) {
+          ret = resp.body
+        } 
+        awaiter.next(true)
+      }
+    },
+      error => {
+        awaiter.next(false)
+        this.uiSrv.loadAsyncDone(ticket)
+        console.log(error)
+      });
+    await <any>awaiter.pipe(filter(v => ![null, undefined].includes(v)), take(1)).toPromise()
+    return ret
+  }
+
+  public async getArcs3DFloorPlanSettings(code : string) : Promise<floorPlan3DSettings>{
+    return await this.httpSrv.get("api/map/floorPlan3DSettings/v1/"+ code) 
+  }
+
   // * * * v RV STANDALONE ACTIONS v * * * 
   public async openRobotCabinet(id , robotCode = null){
     this.httpSrv.fmsRequest("POST" , `cabinet/v1/open/${robotCode? robotCode + '/' : ''}` + id , undefined , true , this.uiSrv.translate(`Open Cabiniet [${id}]`))
@@ -1081,9 +1107,20 @@ export class DataService {
     // return <any> ret.pipe(filter(v => ![null,undefined].includes(v)), take(1)).toPromise()
   }
   // * * * ^ RV STANDALONE ACTIONS ^ * * * 
+  
 }
 
-
+export class floorPlan3DSettings {
+  floorPlanCode
+  fileName
+  scale
+  positionX
+  positionY
+  positionZ
+  rotationX
+  rotationY
+  rotationZ
+}
 
 export class robotPose{
   x

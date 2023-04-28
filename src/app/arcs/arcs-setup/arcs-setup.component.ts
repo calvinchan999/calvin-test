@@ -24,6 +24,7 @@ import { ArcsSetupRobotCoopComponent } from './arcs-setup-robot-coop/arcs-setup-
 import { ArcsSetupRobotComponent } from './arcs-setup-robot/arcs-setup-robot.component';
 import { ArcsSetupSiteComponent } from './arcs-setup-site/arcs-setup-site.component';
 import { ArcsSetupTypeComponent } from './arcs-setup-type/arcs-setup-type.component';
+import { ArcsSetupFloorplan3dComponent } from './arcs-setup-floorplan3d/arcs-setup-floorplan3d.component';
 
 @Component({
   selector: 'app-arcs-setup',
@@ -118,7 +119,10 @@ export class ArcsSetupComponent implements OnInit {
         { title: "Floor Plan Name", id: "floorPlanName", width: 200 },       
       ].concat(this.dataSrv.arcsDefaultBuilding ? [{ title: "Building", id: "buildingName", width: 200 }] : []).concat(
         <any>[{ title: "Default", id: "defaultPerBuilding", width: 50 , dropdownOptions:[{text : "Yes" , value : true},{text : "No" , value : false}] }]
-      ).concat(<any>[{ title: "", type: "button", id: "alert", width: 80, icon: 'mdi mdi-exclamation-thick', fixed: true , ngIf: true , matTooltip : 'alertMsg' }])
+      ).concat(<any>[
+        { title: "", type: "button", id: "floorplan3d", width: 80, icon: 'mdi mdi-video-3d', fixed: true , matTooltip : 'Edit 3D Model' },
+        { title: "", type: "button", id: "alert", width: 80, icon: 'mdi mdi-exclamation-thick', fixed: true , ngIf: true , matTooltip : 'alertMsg' }
+      ])
     },
     map: {
       functionId:"MAP",
@@ -234,7 +238,8 @@ export class ArcsSetupComponent implements OnInit {
       map:CmMapDetailComponent,
       floorplan:CmMapFloorplanComponent,
       action : CmActionComponent,
-      pointType : ArcsSetupPointTypeComponent
+      pointType : ArcsSetupPointTypeComponent,
+      floorplan3d : ArcsSetupFloorplan3dComponent
     }
     const dialog: DialogRef = this.uiSrv.openKendoDialog({
       content: idCompMap[id ? id : this.selectedTab],

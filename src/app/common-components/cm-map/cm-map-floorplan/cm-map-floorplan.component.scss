@@ -1,3 +1,14 @@
 :host .treeview{
     max-height: calc(100% - 280px);
 }
+
+
+// :host .three-d-container{
+//     backdrop-filter: blur(5px);
+//     height: 100%;
+//     width: 100%;
+// }
+
+:host .container{
+    justify-content: initial;
+}

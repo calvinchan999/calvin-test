@@ -233,6 +233,12 @@ export class UiService {
     if( document.hidden && !popWhenResumeFromHidden){
       return
     }
+    // let audio = new Audio();
+    // audio.src = "../../assets/audio/notification.mp3";
+    // audio.load();
+    // audio.play();
+
+
     this.notificationService.show({
       cssClass: "notification" + (type == 'none' ? '' : (' ' + type)),
       content: translate? this.translate(msg) : msg,
@@ -349,6 +355,7 @@ export class EnumNamePipe implements PipeTransform {
     return value.split("_").map(x => upperCase ? x.toUpperCase() : (x.length > 1 ? x.substring(0, 1).toUpperCase() + x.substring(1, x.length).toLowerCase() : x.toUpperCase())).join(" ").toString();
   }
 } 
+
 
 
 @Pipe({

@@ -1,10 +1,10 @@
-<div class="title arcs">
+<div class="title arcs" *ngIf = "locationTree" >
   <div class="location-tree">
     <a class="site-name" *ngIf = "locationTree?.site?.code"  (click)="to2D.emit({showSite : true })"> {{locationTree.site.name}} </a>  
     <span class="mdi mdi-chevron-right" *ngIf = "locationTree?.site?.code && locationTree.currentLevel == 'floorplan'"></span>
     <span class="building-name" *ngIf = "locationTree?.site?.code && locationTree.currentLevel == 'floorplan'"> {{locationTree.building.name}}</span>
   </div>
-  <span class="floorplan" *ngIf = "locationTree.currentLevel == 'floorplan' && floorPlanDataset"> 
+  <span class="floorplan" *ngIf = "locationTree?.currentLevel == 'floorplan' && floorPlanDataset"> 
     <uc-dropdown   [options]="floorPlanOptions"   [value] = "floorPlanDataset.floorPlanCode"  
                    [allowClear] = "false"  [customDropItemTemplate] = "true"
                    (valueChange)="parent? parent.loadFloorPlan($event) : null"
@@ -14,23 +14,26 @@
 </div>
 
 <div class="buttons-container t1">
-  <button  kendoButton class="show-waypoint" [matTooltip]="((uiToggles.showWaypoint && uiToggles.showWaypointName) ? 'Hide Waypoint Name' : ((uiToggles.showWaypoint && !uiToggles.showWaypointName) ? 'Hide Waypoint' : 'Show Waypoint'))| label : uiSrv.langPack"  
+  <button  *ngIf="uiToggles.showWaypoint !== undefined" kendoButton class="show-waypoint" [matTooltip]="((uiToggles.showWaypoint && uiToggles.showWaypointName) ? 'Hide Waypoint Name' : ((uiToggles.showWaypoint && !uiToggles.showWaypointName) ? 'Hide Waypoint' : 'Show Waypoint'))| label : uiSrv.langPack"  
                  matTooltipPosition="right" 
                 (click)=" uiToggles.showWaypointName = !(uiToggles.showWaypoint && uiToggles.showWaypointName); uiToggles.showWaypoint = !(uiToggles.showWaypoint && uiToggles.showWaypointName) ; uiToggled('waypoint') ; uiToggled('waypointName') "  
                 [ngClass]="{'btn-intermediate': uiToggles.showWaypoint && !uiToggles.showWaypointName , 'btn-active': uiToggles.showWaypoint && uiToggles.showWaypointName }">
           <span class="mdi mdi-map-marker"></span>
  </button>
-  <button *ngIf="floorplan?.settings?.walls" kendoButton class="wall" [matTooltip]="'Show walls' | label : uiSrv.langPack" (click)="uiToggles.showWall = !uiToggles.showWall ; uiToggled('wall')" [ngClass]="{'btn-active':uiToggles.showWall}" >
+  <button *ngIf="uiToggles.showWall !== undefined && floorplan?.settings?.walls" kendoButton class="wall" [matTooltip]="'Show walls' | label : uiSrv.langPack" (click)="uiToggles.showWall = !uiToggles.showWall ; uiToggled('wall')" [ngClass]="{'btn-active':uiToggles.showWall}" >
     <span class="mdi mdi-wall"></span>
   </button>
-  <button kendoButton class="2d-switch" [matTooltip]="'2D Map' | label : uiSrv.langPack" (click)="dataSrv.setLocalStorage('dashboardMapType' , '2D');to2D.emit({floorPlanCode : floorPlanDataset.floorPlanCode })">
+  <button *ngIf="uiToggles.to2D !== undefined" kendoButton class="2d-switch" [matTooltip]="'2D Map' | label : uiSrv.langPack" (click)="dataSrv.setLocalStorage('dashboardMapType' , '2D');to2D.emit({floorPlanCode : floorPlanDataset.floorPlanCode })">
     <span class="mdi mdi-video-2d"></span>
   </button>
-  <button kendoButton class="robot-status-popup" [matTooltip]="'Show IoT Info' | label : uiSrv.langPack"  (click)="uiToggles.showRobotStatus = !uiToggles.showRobotStatus ; uiToggled('robotStatus')" [ngClass]="{'btn-active':uiToggles.showRobotStatus}" >
+  <button *ngIf="uiToggles.showIot !== undefined"  kendoButton class="robot-status-popup" [matTooltip]="'Show IoT Info' | label : uiSrv.langPack"  (click)="uiToggles.showIot = !uiToggles.showIot ; uiToggled('robotStatus')" [ngClass]="{'btn-active':uiToggles.showIot}" >
     <span class="mdi mdi-message-text"></span>
   </button>
-  <button  kendoButton class="full-screen" [matTooltip]="'Full Screen' | label : uiSrv.langPack" (click)="toggleFullScreen()"  [ngClass]="{'btn-active':fullScreen}" >
+  <button *ngIf="uiToggles.fullScreen !== undefined"  kendoButton class="full-screen" [matTooltip]="'Full Screen' | label : uiSrv.langPack" (click)="toggleFullScreen()"  [ngClass]="{'btn-active':fullScreen}" >
     <span [class]="'mdi mdi-' + (fullScreen ? 'fullscreen-exit' : 'fullscreen')"></span>
+  </button>
+  <button *ngIf="uiToggles.showFloorPlanImage !== undefined" kendoButton class="wall" [matTooltip]="'Show 2D Floor Plan' | label : uiSrv.langPack" (click)="uiToggles.showFloorPlanImage = !uiToggles.showFloorPlanImage ; uiToggled('showFloorPlanImage')" [ngClass]="{'btn-active':uiToggles.showFloorPlanImage}" >
+    <span class="mdi mdi-floor-plan"></span>
   </button>
 </div>
 <div #canvas class="canvas-container"></div>

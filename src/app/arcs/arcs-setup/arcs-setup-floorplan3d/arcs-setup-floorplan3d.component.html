@@ -1,0 +1,58 @@
+<div class="dialog-content map-floorplan">
+    <kendo-dialog-titlebar [style.display]="uiSrv.isTablet?'none':''" (close) = "onClose()">
+        <div>{{'3D Floor Plan' | label: uiSrv.langPack}}</div>
+    </kendo-dialog-titlebar>
+
+    <input hidden type="file" #uploader (change)="onfileLoad($event)" accept=".glb" />
+
+    <div class="container"  #container>      
+        <ng-container *ngIf="!uiSrv.isTablet">
+            <div class="form-container">
+                <form [formGroup]="frmGrp" class="content">
+                    <uc-txtbox lab="Code" [frmGrp]="frmGrp" frmCtrl="floorPlanCode" [upper] = "true" [disabled] = "true"></uc-txtbox>
+                    <uc-txtbox lab="3D Model File" [frmGrp]="frmGrp" frmCtrl="fileName" 
+                                [suffixButton]="{icon : 'k-icon mdi mdi-upload'}"
+                                (suffixButtonClick)="onUploadClicked()">
+                    </uc-txtbox>
+                    <!-- <button kendoButton  class="upload-btn" (click)="onUploadClicked() ">
+                        <span class="k-icon mdi mdi-upload"></span>
+                        {{'Upload 3D model' | label: uiSrv.langPack}}
+                    </button> -->
+                    <ng-container *ngIf="floorPlanDataset && threeJsElRef">
+                        <uc-txtbox  class="scale" lab = "Scale"  [frmGrp]="frmGrp" frmCtrl="scale" [numeric]="true" [numMin]="0" [numMax] = "10000" (valueChange) = "scaleChange($event)" ></uc-txtbox>
+                        <div class="form-row">
+                            <uc-txtbox  class="position" lab = "Position X"  [frmGrp]="frmGrp" frmCtrl="positionX" [numeric]="true" (valueChange) = "positionChange( 'x' , $event)" ></uc-txtbox>
+                            <uc-txtbox  class="position" lab = "Position Y"  [frmGrp]="frmGrp" frmCtrl="positionY" [numeric]="true" (valueChange) = "positionChange( 'y' , $event)" ></uc-txtbox>
+                            <uc-txtbox  class="position" lab = "Position Z"  [frmGrp]="frmGrp" frmCtrl="positionZ" [numeric]="true" (valueChange) = "positionChange( 'z' , $event)" ></uc-txtbox>    
+                        </div>
+
+                        <div class="form-row">
+                            <uc-txtbox  class="rotation" lab = "Rotation X"  [frmGrp]="frmGrp" frmCtrl="rotationX" [numeric]="true" (valueChange) = "rotationChange( 'x' , $event)" ></uc-txtbox>
+                            <uc-txtbox  class="rotation" lab = "Rotation Y"  [frmGrp]="frmGrp" frmCtrl="rotationY" [numeric]="true" (valueChange) = "rotationChange( 'y' , $event)" ></uc-txtbox>
+                            <uc-txtbox  class="rotation" lab = "Rotation Z"  [frmGrp]="frmGrp" frmCtrl="rotationZ" [numeric]="true" (valueChange) = "rotationChange( 'z' , $event)" ></uc-txtbox>
+                        </div>         
+                    </ng-container>
+                 
+                </form>
+            </div>
+        </ng-container>
+
+        <div *ngIf="file && floorPlanDataset" class="three-d-container"> 
+            <uc-3d-viewport #threeJs [uiToggles] = "{showFloorPlanImage : false}">
+            </uc-3d-viewport>
+        </div>        
+        <div *ngIf="!file && floorPlanDataset" class="upload-container">
+            <div>
+                <span class="no-model-message">{{'Please upload 3D model for the floor plan first.' | label: uiSrv.langPack}}</span>              
+            </div>
+        </div> 
+    </div>
+
+    <div class="button-container">
+        <button kendoButton (click) = "onClose()"> {{'Cancel' | label : uiSrv.langPack}}</button>
+        <button *ngIf="!readonly" kendoButton (click) = "saveToDB()"  [disabled] = "!file || !floorPlanDataset"> {{'Save' | label : uiSrv.langPack}}</button>
+    </div>
+</div>
+
+
+

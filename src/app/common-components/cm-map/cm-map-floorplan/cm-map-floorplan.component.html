@@ -9,26 +9,32 @@
         </kendo-tabstrip-tab>
         <kendo-tabstrip-tab  [title]="'Locations' | label : uiSrv.langPack">        
         </kendo-tabstrip-tab>
+        <!-- <kendo-tabstrip-tab *ngIf="util.arcsApp && parentRow" [title]="'3D Model' | label : uiSrv.langPack" [disabled] = "frmGrp.controls['fileName'].value == null">        
+        </kendo-tabstrip-tab> -->
     </kendo-tabstrip>
 
 
     <div class="container"  #container>      
-        <ng-container *ngIf="!uiSrv.isTablet">
+        <ng-container *ngIf="!uiSrv.isTablet && (selectedTab == 'maps' || selectedTab == 'locations')">
             <div class="form-container">
                 <ng-container *ngTemplateOutlet="form">
                 </ng-container>
             </div>
         </ng-container>
         <!-- [style.minWidth] = "selectedTab == 'locations'? '100%' : ''" -->
-        <div class="viewport-container" #pixiContainer > 
-            <uc-drawing-board #pixi [overlayMsg] = "frmGrp.controls['fileName'].value? null : ('Please upload the floor plan file first' | label : uiSrv.langPack) " 
+        <div class="viewport-container" #pixiContainer [style.display] = "selectedTab == 'maps' || selectedTab == 'locations' ? '' : 'none'"> 
+            <uc-drawing-board  #pixi [overlayMsg] = "frmGrp.controls['fileName'].value? null : ('Please upload the floor plan file first' | label : uiSrv.langPack) " 
                               [readonly] = "readonly" [waypointEditable] = "true" [showWaypointType] = "showWaypointType"
                               (graphicsUnselected) = "$event.type == 'waypoint' ? onPointUnselected($event) : null" 
                               [showRosToggle] = "util.standaloneApp" (addLocalWayPointClicked) = "getPoseAndAddWaypoint_SA()"
                               [canUploadMultiImg] = "false" [hideButton] = "{all:true}" [(selectedGraphics)] = "selectedPixiShape" [hideRelocationButton] = "true"
                               (fileLoad)=" frmGrp.controls['fileName'].setValue($event?.name)">
             </uc-drawing-board>
-        </div>      
+        </div>   
+        <!-- <div class="three-d-container"  [style.display] = "selectedTab == '3d'? '' : 'none'" > 
+            <uc-3d-viewport #threeJs *ngIf="model3dFile" [floorPlanDataset]="floorPlanDsFor3D">
+            </uc-3d-viewport>
+        </div>          -->
     </div>
 
     <ng-container *ngIf="uiSrv.isTablet">
@@ -87,6 +93,7 @@
             </div>
         </div>
 
+        
 
         <!-- <uc-dropdown  lab = "Building" [frmGrp] = "frmGrp" frmCtrl = "buildingId" [options] = "dropdownOptions.buildings">
                 </uc-dropdown>

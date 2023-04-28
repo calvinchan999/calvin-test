@@ -100,7 +100,7 @@
                   (click)="module.ui.toggleDarkMode(!module.ui.toggle.darkMode)"  [ngClass]="{'btn-active': module.ui.toggle.darkMode}">
                <span [class]="'mdi mdi-theme-light-dark'"></span>
           </button>
-           <button *ngIf="engineerMode && showRobot && !commonModule.ui.fullScreen " kendoButton class="show-ros" [matTooltip]="'Show Positioning Accuracy'| label : uiSrv.langPack"   
+           <button *ngIf="engineerMode && showRobot && !commonModule.ui.fullScreen " kendoButton class="show-pose-dev" [matTooltip]="'Show Positioning Accuracy'| label : uiSrv.langPack"   
                   matTooltipPosition="right" (click) = "module.ui.toggle.showPoseDeviation = !module.ui.toggle.showPoseDeviation; module.ui.updateLocalStorage()"  [ngClass]="{'btn-active': module.ui.toggle.showPoseDeviation }">
             <span class="mdi mdi-crosshairs-question"></span>
           </button>

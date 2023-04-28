@@ -11,7 +11,7 @@ import { GeneralUtil } from 'src/app/utils/general/general.util';
 import { DataService, DropListFloorplan, DropListRobot, JFloorPlan, JMap, JPoint, RobotDetailARCS, signalRType } from 'src/app/services/data.service';
 import { debounce, debounceTime, filter, retry, share, skip, switchMap, take, takeUntil , map } from 'rxjs/operators';
 import { radRatio } from '../map-2d-viewport/map-2d-viewport.component';
-import { interval, Observable, Subject, Subscription } from 'rxjs';
+import { BehaviorSubject, interval, Observable, Subject, Subscription } from 'rxjs';
 import { CSS2DRenderer, CSS2DObject } from 'three/examples/jsm/renderers/CSS2DRenderer'; //three-css2drender
 import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls';
 import { BufferGeometryUtils  } from 'three/examples/jsm/utils/BufferGeometryUtils';
@@ -29,6 +29,7 @@ import { ArcsDashboardRobotDetailComponent } from 'src/app/arcs/arcs-dashboard/a
 import { ArcsLiftIotComponent } from 'src/app/arcs/arcs-iot/arcs-lift-iot/arcs-lift-iot.component';
 import { ArcsTurnstileIotComponent } from 'src/app/arcs/arcs-iot/arcs-turnstile-iot/arcs-turnstile-iot.component';
 import {GetImageDimensions} from 'src/app/utils/graphics/image'
+import { init } from 'src/app/services/config.service';
 
 const NORMAL_ANGLE_ADJUSTMENT =  - 90 / radRatio
 const ASSETS_ROOT = 'assets/3D'
@@ -81,13 +82,25 @@ export class ThreejsViewportComponent implements OnInit , OnDestroy{
   isMobile = false
   fullScreen = false 
   $onDestroy = new Subject()
+  floorPlanModel : THREE.Group
 
-  @Input() uiToggles = {
-    showWall : true,
-    showWaypoint:true,
-    showWaypointName : true,
-    showRobotStatus : false
-  }
+  @Input() uiToggles: {
+    showWall?: boolean,
+    showWaypoint?: boolean,
+    showWaypointName?: boolean,
+    showIot?: boolean,
+    showFloorPlanImage?: boolean,
+    to2D?: boolean,
+    fullScreen?: boolean
+  } = {
+      showWall: true,
+      showWaypoint: true,
+      showWaypointName: true,
+      showIot: false,
+      to2D: false,
+      fullScreen: false
+    }
+
   @Input() locationTree : {
     site : {
       code : string ,
@@ -108,7 +121,7 @@ export class ThreejsViewportComponent implements OnInit , OnDestroy{
   constructor(public uiSrv: UiService , public ngZone : NgZone , public util : GeneralUtil , public dataSrv : DataService ,  public ngRenderer:Renderer2 ,
               public elRef : ElementRef , public vcRef: ViewContainerRef , public compResolver: ComponentFactoryResolver ) {
     // this.loadingTicket = this.uiSrv.loadAsyncBegin()
-    this.loadLocalStorageToggleSettings()
+    // this.loadLocalStorageToggleSettings()
     this.isMobile = this.uiSrv.detectMob()
   }
 
@@ -116,6 +129,10 @@ export class ThreejsViewportComponent implements OnInit , OnDestroy{
   mouseRaycaster = new THREE.Raycaster();
   focusedRaycaster = new THREE.Raycaster();
   cameraRayCaster = new THREE.Raycaster();
+  _initDone = new BehaviorSubject<boolean>(false) 
+  get $initDone(){
+    return this._initDone.pipe(filter(v => v == true), take(1))
+  }
 
 
   get waypointMeshes() : MarkerObject3D[]{
@@ -201,9 +218,11 @@ export class ThreejsViewportComponent implements OnInit , OnDestroy{
     }
   }
 
-  loadLocalStorageToggleSettings(){
-    this.uiToggles = this.dataSrv.getLocalStorage('uitoggle') ?  JSON.parse(this.dataSrv.getLocalStorage('uitoggle')) :  this.uiToggles
-  }
+  // loadLocalStorageToggleSettings(){
+  //   let storedToggle = this.dataSrv.getLocalStorage('uitoggle') ?  JSON.parse(this.dataSrv.getLocalStorage('uitoggle')) : {};
+  //   Object.keys(this.uiToggles).forEach(k=> this.uiToggles[k] =  storedToggle[k] )
+  //   // this.uiToggles = this.dataSrv.getLocalStorage('uitoggle') ?  JSON.parse(this.dataSrv.getLocalStorage('uitoggle')) :  this.uiToggles
+  // }
 
   uiToggled(key : string){    
     let storedToggle = this.dataSrv.getLocalStorage('uitoggle') ?  JSON.parse(this.dataSrv.getLocalStorage('uitoggle')) : {};
@@ -217,7 +236,9 @@ export class ThreejsViewportComponent implements OnInit , OnDestroy{
     }else if(key == 'waypointName'){
       this.waypointMeshes.forEach(m=>m.toolTipAlwaysOn = this.uiToggles.showWaypointName)
     }else if(key == 'robotStatus'){
-      this.robotObjs.forEach(r=>r.toolTipAlwaysOn = this.uiToggles.showRobotStatus)
+      this.robotObjs.forEach(r=>r.toolTipAlwaysOn = this.uiToggles.showIot)
+    } else if (key == 'showFloorPlanImage') {
+      (<THREE.MeshPhongMaterial>this.floorplan.material).visible = this.uiToggles.showFloorPlanImage
     }
   }
 
@@ -350,6 +371,7 @@ export class ThreejsViewportComponent implements OnInit , OnDestroy{
 
   resetScene(){
     this.mapCode = null
+    this.floorPlanModel  = null
     this.robotObjs.forEach(r=>r.destroy())
     this.floorplan?.traverse(obj=>{
       if(obj instanceof Object3DCommon){
@@ -361,28 +383,34 @@ export class ThreejsViewportComponent implements OnInit , OnDestroy{
     })
     this.orbitCtrl?.reset()
     this.scene.remove(this.floorplan)
+    console.log('reset')
     this.mapMeshes.forEach(m=>this.scene.remove(m))
     this.waypointMeshes.forEach(w=>w.hideToolTip())
     this.unsubscribeRobotPoses()
   }
 
-  async loadFloorPlan(floorplan: JFloorPlan, subscribePoses = true) {
+  async loadFloorPlan(floorplan: JFloorPlan, subscribePoses = true , glbFile : Blob = null) {
     this.resetScene()
     let tmpDims = await GetImageDimensions(floorplan.base64Image)
     let dimension = {width : tmpDims[0] , height : tmpDims[1]}
     this.initFloorPlan(floorplan , dimension.width , dimension.height);
-    this.initROSmaps(floorplan.mapList)
-    this.initWaypoints(floorplan.pointList)
     this.camera.position.set(0, this.floorplan.height  , this.floorplan.height * 0.7 )
     this.camera.lookAt(1, -0.9 , -0.5)
     this.orbitCtrl.update()
     this.camera.position.z += this.floorplan.height * 0.1
     this.pointLight.position.set(dimension.width / 2 ,  dimension.height  ,  dimension.height / 2)
+
+    if (glbFile) {
+      await this.loadFloorPlanModelFromBlob(glbFile)
+      return
+    }
+    this.initROSmaps(floorplan.mapList)
+    this.initWaypoints(floorplan.pointList)
+
     if(subscribePoses && this.mapCode){
       this.subscribeRobotPoses()
     }
-    this.parent.refreshRobotStatus();
-
+    this.parent?.refreshRobotStatus();
     //this.testOutline()
     
     // TBR
@@ -396,8 +424,10 @@ export class ThreejsViewportComponent implements OnInit , OnDestroy{
     // TBR : HOW TO UPDATE CONTROL WITHOUT CHANGING BACK ITS POSITION Z AGAIN??
 
     //v TESTING v
-    this.initCustom3dModel()
+    this.load3DFloorPlanFromAzureStorage(floorplan.floorPlanCode)
+    
     //^ TESTING ^
+    
   }
 
   onObjProgress = ( xhr )=>{
@@ -406,75 +436,106 @@ export class ThreejsViewportComponent implements OnInit , OnDestroy{
     }
   };
 
-  async initCustom3dModel() {
-    let tenantCode = this.util.getTenantCode()
-    let path = `${ASSETS_ROOT}/floorplans/${tenantCode}/${this.floorPlanDataset.floorPlanCode}`
-    let settings = await this.dataSrv.getAssets(path + '.json')
+  async loadFloorPlanModelFromBlob(glbFile){
+    var awaiter = new Subject()
+    let ticket = this.uiSrv.loadAsyncBegin()
+    const loader = new GLTFLoader();
+    loader.parse(await new Response(glbFile).arrayBuffer(), '', (gltf: GLTF) => {
+      this.loadingPercent = null
+      this.floorPlanModel = gltf.scene
+      // transform(obj)
+      this.floorplan.add(  this.floorPlanModel )
+      this.uiSrv.loadAsyncDone(ticket)
+      awaiter.next()
+    }, this.onObjProgress);
+    ['showFloorPlanImage'].forEach(k => this.uiToggled(k))
+    await awaiter.pipe(take(1)).toPromise()
+  }
 
-
-    this.floorplan.settings = settings
-    path = this.uiSrv.detectMob() && settings.tabletPath?  settings.tabletPath : (settings?.path ? settings.path : path + '.glb') 
-    let transform = (obj: THREE.Group) => {
-      obj.rotation.set(settings.rotate?.x ? settings.rotate?.x : 0, settings.rotate?.y ? settings.rotate?.y : 0, settings.rotate?.z ? settings.rotate?.z : 0)
-      if (settings?.scale) {
-        obj.scale.set(settings?.scale, settings?.scale, settings?.scale)
-      }
-      obj.position.set(settings.position?.x ? settings.position?.x : 0, settings.position?.y ? settings.position?.y : 0, settings.position?.z ? settings.position?.z : 0)
-      
-      obj.traverse((c) => {
-        if(c instanceof Mesh){
-          var prevMaterial = c.material; 
-          c.material = new MeshPhongMaterial();      
-          MeshBasicMaterial.prototype.copy.call( c.material, prevMaterial );
-        }      
-      });
-    }
-    // let fileExt = settings?.fileExtension ? settings?.fileExtension : '.glb'
-    if (settings && settings?.withModel != false) {
-      if (path.endsWith(".glb") || path.endsWith(".gltf") ) {
-        const dracoLoader = new DRACOLoader();
-        dracoLoader.setDecoderPath(ASSETS_ROOT + '/draco/');      
-        const loader =  new GLTFLoader();
-        loader.setDRACOLoader(dracoLoader);
-        loader.load(path, (gltf: GLTF) => {   
-          this.loadingPercent = null
-          let obj = gltf.scene
-          transform(obj)
-          this.floorplan.add(obj)
-        }, this.onObjProgress)
-      } else if (path.endsWith(".obj")) {
-        var mtlLoader = new MTLLoader();
-        mtlLoader.load(path.substring(0, path.length - 4) + '.mtl', (materials) => {
-          materials.preload();
-          var objLoader = new OBJLoader();
-          objLoader.setMaterials(materials);
-          objLoader.load(path, (obj) => {
-            this.loadingPercent = null
-            transform(obj)
-            this.floorplan.add(obj)
-          }, this.onObjProgress);
-        });
-      }
-    } else {
+  async load3DFloorPlanFromAzureStorage(floorPlanCode : string) : Promise<boolean>{
+    const file = await this.dataSrv.getArcs3DFloorPlanBlob(floorPlanCode)
+    const settings =  await this.dataSrv.getArcs3DFloorPlanSettings(floorPlanCode)
+    if(file){
+      (<THREE.MeshPhongMaterial>this.floorplan.material).visible = false
+      await this.loadFloorPlanModelFromBlob(file);
+      this.floorPlanModel.scale.set((settings).scale , (settings).scale , (settings).scale)
+      this.floorPlanModel.position.set((settings).positionX , (settings).positionY , (settings).positionZ)
+      this.floorPlanModel.rotation.set(settings.rotationX / radRatio , settings.rotationY / radRatio , settings.rotationZ / radRatio)
+      return true
+    }else{
       (<THREE.MeshPhongMaterial>this.floorplan.material).visible = true
-    }
-    // //TESTING
-    // (<THREE.MeshPhongMaterial>this.floorplan.material).visible = true
-    // //TESTING
-
-    if(settings?.walls){
-      this.initWalls(settings.walls , settings.wallHeight);
-    }
-
-    //elevators
-    if(settings?.elevators ){
-      this.initElevators( settings.floor , settings.elevators)
-    }
-    //turnstile
-    if(settings?.turnstiles ){
-      this.initTurnstile( settings.turnstiles)
+      return false
     }
   }
+  
+
+  // async init3dModelFromAssets() {
+  //   let tenantCode = this.util.getTenantCode()
+  //   let path = `${ASSETS_ROOT}/floorplans/${tenantCode}/${this.floorPlanDataset.floorPlanCode}`
+  //   let settings = await this.dataSrv.getAssets(path + '.json')
+  //   this.floorplan.settings = settings
+  //   path = this.uiSrv.detectMob() && settings.tabletPath?  settings.tabletPath : (settings?.path ? settings.path : path + '.glb') 
+  //   let transform = (obj: THREE.Group) => {
+  //     obj.rotation.set(settings.rotate?.x ? settings.rotate?.x : 0, settings.rotate?.y ? settings.rotate?.y : 0, settings.rotate?.z ? settings.rotate?.z : 0)
+  //     if (settings?.scale) {
+  //       obj.scale.set(settings?.scale, settings?.scale, settings?.scale)
+  //     }
+  //     obj.position.set(settings.position?.x ? settings.position?.x : 0, settings.position?.y ? settings.position?.y : 0, settings.position?.z ? settings.position?.z : 0)
+      
+  //     obj.traverse((c) => {
+  //       if(c instanceof Mesh){
+  //         var prevMaterial = c.material; 
+  //         c.material = new MeshPhongMaterial();      
+  //         MeshBasicMaterial.prototype.copy.call( c.material, prevMaterial );
+  //       }      
+  //     });
+  //   }
+  //   // let fileExt = settings?.fileExtension ? settings?.fileExtension : '.glb'
+  //   if (settings && settings?.withModel != false) {
+  //     if (path.endsWith(".glb") || path.endsWith(".gltf") ) {
+  //       const dracoLoader = new DRACOLoader();
+  //       dracoLoader.setDecoderPath(ASSETS_ROOT + '/draco/');      
+  //       const loader =  new GLTFLoader();
+  //       loader.setDRACOLoader(dracoLoader);
+  //       loader.load(path, (gltf: GLTF) => {   
+  //         this.loadingPercent = null
+  //         let obj = gltf.scene
+  //         transform(obj)
+  //         this.floorplan.add(obj)
+  //       }, this.onObjProgress)
+  //     } else if (path.endsWith(".obj")) {
+  //       var mtlLoader = new MTLLoader();
+  //       mtlLoader.load(path.substring(0, path.length - 4) + '.mtl', (materials) => {
+  //         materials.preload();
+  //         var objLoader = new OBJLoader();
+  //         objLoader.setMaterials(materials);
+  //         objLoader.load(path, (obj) => {
+  //           this.loadingPercent = null
+  //           transform(obj)
+  //           this.floorplan.add(obj)
+  //         }, this.onObjProgress);
+  //       });
+  //     }
+  //   } else {
+  //     (<THREE.MeshPhongMaterial>this.floorplan.material).visible = true
+  //   }
+  //   // //TESTING
+  //   // (<THREE.MeshPhongMaterial>this.floorplan.material).visible = true
+  //   // //TESTING
+
+  //   if(settings?.walls){
+  //     this.initWalls(settings.walls , settings.wallHeight);
+  //   }
+
+  //   //elevators
+  //   if(settings?.elevators ){
+  //     this.initElevators( settings.floor , settings.elevators)
+  //   }
+  //   //turnstile
+  //   if(settings?.turnstiles ){
+  //     this.initTurnstile( settings.turnstiles)
+  //   }
+  // }
 
   async initElevators(floor : string , elevators : { liftId : string , position? : {x : number , y : number , z : number } , rotation? : number , width? : number , height? : number , depth? : number }[]){
     // [
@@ -555,7 +616,11 @@ export class ThreejsViewportComponent implements OnInit , OnDestroy{
     this.uiSrv.loadAsyncDone(ticket);
   }
 
-  async ngAfterViewInit() {    
+  async ngAfterViewInit() {   
+    this.init() 
+  }
+
+  async init(){
     this.container = this.canvas.nativeElement
     this.scene = new THREE.Scene();
     this.camera = new THREE.PerspectiveCamera(45, this.width / this.height , 1 , 100000);
@@ -579,9 +644,10 @@ export class ThreejsViewportComponent implements OnInit , OnDestroy{
     document.addEventListener('pointermove', (e)=>this.onMouseMove(e), false);
     setTimeout(() => this.onResize())
 
-    if(this.floorPlanDataset){
+    if( this.floorPlanDataset){
      await this.loadFloorPlan(this.floorPlanDataset);
     }
+    this._initDone.next(true)
   }
 
   initPasses() {
@@ -1029,9 +1095,9 @@ class Object3DCommon extends Object3D{
       }
       this.toolTipAlwaysOn = !this.toolTipAlwaysOn
       if (!this.toolTipAlwaysOn && this.master?.robotObjs.every(r => !r.toolTipAlwaysOn)) {
-        this.master.uiToggles.showRobotStatus = false
+        this.master.uiToggles.showIot = false
       } else if (this.master) {
-        this.master.uiToggles.showRobotStatus = true
+        this.master.uiToggles.showIot = true
       }
     })
   }
@@ -1394,7 +1460,7 @@ export class RobotObject3D extends Object3DCommon{
     this.toolTipSettings.position = this.getToolTipPos()
     if(this.robotCode != null){
       this.initInfoToolTipEl()      
-      this.toolTipAlwaysOn = this.master.uiToggles.showRobotStatus && !this.offline
+      this.toolTipAlwaysOn = this.master.uiToggles.showIot && !this.offline
     }
     this.visible = !this.robotCode
     this.onClick.subscribe(()=>{

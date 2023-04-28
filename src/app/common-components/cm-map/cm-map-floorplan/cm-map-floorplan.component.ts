@@ -16,6 +16,8 @@ import { trimAngle } from 'src/app/utils/math/functions';
 import { Observable, of } from 'rxjs';
 import { PixiGraphicStyle , DRAWING_STYLE} from 'src/app/utils/ng-pixi/ng-pixi-viewport/ng-pixi-styling-util';
 import { PixiEditableMapImage, PixiWayPoint } from 'src/app/utils/ng-pixi/ng-pixi-viewport/ng-pixi-map-graphics';
+import { HttpEventType } from '@angular/common/http';
+import { ThreejsViewportComponent } from 'src/app/ui-components/threejs-viewport/threejs-viewport.component';
 
 @Component({
   selector: 'app-cm-map-floorplan',
@@ -28,6 +30,7 @@ export class CmMapFloorplanComponent implements OnInit {
   @ViewChild('pixiContainer') pixiContainer : ElementRef
   @ViewChild('container') mainContainer : ElementRef
   @ViewChild('tabStrip') tabStripRef : TabStripComponent
+  @ViewChild('threeJs') threeJsElRef : ThreejsViewportComponent
   @HostBinding('class') customClass = 'setup-map'
 
   constructor(public util : GeneralUtil, public uiSrv : UiService , public windowSrv: DialogService, public ngZone : NgZone,
@@ -79,7 +82,7 @@ export class CmMapFloorplanComponent implements OnInit {
   loadingTicket
   subscriptions = []
   selectedTab = 'maps'
-  tabs = ['maps', 'locations']
+  tabs = ['maps', 'locations' ]
   pixiMapBorders = []
   mapCode: string = null
   showWaypointType = false
@@ -109,6 +112,7 @@ export class CmMapFloorplanComponent implements OnInit {
   get code():string{
     return this.parentRow?.floorPlanCode
   }
+  
  
   ngOnInit(): void {
     this.readonly = this.readonly || !this.authSrv.hasRight(this.id ? "FLOORPLAN_EDIT" : "FLOORPLAN_ADD")
@@ -125,6 +129,10 @@ export class CmMapFloorplanComponent implements OnInit {
 
   async ngAfterViewInit(){
     await this.initDropDown()
+    this.initPixi()
+  }
+
+  initPixi(){
     this.pixiElRef.initDone$.subscribe(async () => {
       if (this.id) {
         await this.loadData(this.id)
@@ -162,6 +170,7 @@ export class CmMapFloorplanComponent implements OnInit {
     // JSON.parse(RNR_1110).forEach(w => {
     //   this.add_UserTrainingWaypoint(w['name'].toUpperCase(), w['x'], w['y'] , w['angle'])
     // })
+
     this.uiSrv.loadAsyncDone(ticket);
   }
   
@@ -362,44 +371,46 @@ export class CmMapFloorplanComponent implements OnInit {
     await this.selectedTabChanged(tab) 
   }
   
-  async selectedTabChanged(evt){
-    if(evt==this.selectedTab){
+  async selectedTabChanged(evt) {
+    if (evt == this.selectedTab) {
       return
-    }else{
+    } else {
       this.selectedTab = this.tabs[evt]
-
     }
-    // this.pixiElRef.toggleRosMap(false)
+
     this.pixiElRef.viewport.selectedGraphics = null
-    this.pixiElRef.hideButton =  this.selectedTab == 'maps' || this.readonly? {all : true} : { polygon : true , brush : true , line : true , export : true};
-    this.mapTree.data.filter(m=>this.mapCode == m.mapCode).forEach(m=>{
+    this.pixiElRef.hideButton = this.selectedTab == 'maps' || this.readonly ? { all: true } : { polygon: true, brush: true, line: true, export: true };
+    this.mapTree.data.filter(m => this.mapCode == m.mapCode).forEach(m => {
       m.robotBases.forEach(b => this.toggleMapVisibility(<DropListMap>b, this.selectedTab == 'maps'))
     });
     // Object.values(this.pixiElRef.viewport.mapLayerStore).filter((v : PixiMapLayer) => v && v.ROS).forEach((c: PixiMapLayer) =>{
     //   c.interactive =  this.selectedTab == 'maps'
     //   c.ROS.alpha = this.selectedTab == 'maps' ? 0.5 : 0
     // });
-    (<any>this.pixiElRef.viewport.allPixiWayPoints).concat((<any>this.pixiElRef.viewport.allPixiPaths)).forEach(gr=>gr.visible = this.selectedTab == 'locations')
-    if(this.selectedTab == 'maps'){
-      this.pixiMapBorders.forEach(g=>g.parent.removeChild(g))
+    (<any>this.pixiElRef.viewport.allPixiWayPoints).concat((<any>this.pixiElRef.viewport.allPixiPaths)).forEach(gr => gr.visible = this.selectedTab == 'locations')
+    if (this.selectedTab == 'maps') {
+      this.pixiMapBorders.forEach(g => g.parent.removeChild(g))
       this.pixiMapBorders = []
       this.pixiElRef.viewport.selectedGraphics = this.selectedPixiShape ? this.selectedPixiShape : Object.values(this.pixiElRef.viewport.mapLayerStore)[0]
 
-      Object.values(this.pixiElRef.viewport.mapLayerStore).forEach((m: PixiEditableMapImage) =>{
+      Object.values(this.pixiElRef.viewport.mapLayerStore).forEach((m: PixiEditableMapImage) => {
         m.interactive = true
         // if(m.border){
         //   m.border.visible = true
         // }
       })
-    }else if(this.selectedTab == 'locations'){
+    } else if (this.selectedTab == 'locations') {
       this.renderMapBordersOnPixi()
-      Object.values(this.pixiElRef.viewport.mapLayerStore).forEach((m: PixiEditableMapImage) =>{
+      Object.values(this.pixiElRef.viewport.mapLayerStore).forEach((m: PixiEditableMapImage) => {
         m.interactive = false
-        if(m.border){
+        if (m.border) {
           m.border.visible = false
         }
       })
     }
+
+    // this.pixiElRef.toggleRosMap(false)
+
   }
 
   toggleMapVisibility(item : DropListMap , visible = undefined){

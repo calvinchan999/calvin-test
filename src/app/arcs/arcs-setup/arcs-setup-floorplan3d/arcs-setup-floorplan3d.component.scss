@@ -1,0 +1,36 @@
+:host .container{
+    height: 70vh;
+    width: 80vw;
+    display: flex;
+    justify-content: space-between;
+}
+
+:host .three-d-container{
+    background: url("../../../../assets/bg-black.png") no-repeat, linear-gradient(rgba(255, 255, 255, 0.3),rgba(255, 255, 255, 0.3));
+    background-blend-mode: overlay;    
+    backdrop-filter: blur(5px);
+    height: 100%;
+    flex-grow: 1;
+}
+
+:host .upload-container{
+    display: flex;
+    justify-content: center;
+    height: 100%;
+    width: 75%;
+}
+
+:host .upload-container div{
+    display: flex;
+    justify-content: center;
+    flex-direction: column;
+}
+
+:host .no-model-message{
+    padding: 10px;
+}
+
+:host .form-container{
+    width: 400px;
+    margin-right: 15px;
+}

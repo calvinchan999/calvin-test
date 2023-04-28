@@ -233,6 +233,7 @@ import { ArcsSetupRobotCoopComponent } from './arcs/arcs-setup/arcs-setup-robot-
 import { FilterModule } from '@progress/kendo-angular-filter';
 import { WorkflowDesignerComponent } from './ui-components/workflow-designer/workflow-designer.component';
 import { PinKeypadComponent } from './ui-components/pin-keypad/pin-keypad.component';
+import { ArcsSetupFloorplan3dComponent } from './arcs/arcs-setup/arcs-setup-floorplan3d/arcs-setup-floorplan3d.component';
 // import { WorkflowComponent } from './ui-components/workflow/workflow.component';
 // import { SequentialWorkflowDesignerModule } from 'sequential-workflow-designer-angular';
 
@@ -259,10 +260,12 @@ import { PinKeypadComponent } from './ui-components/pin-keypad/pin-keypad.compon
         RoundDownPipe,
         RoundUpPipe,
         DropdownDescPipe,
-        TranslatePipe,
-        rowDetailToolTipPipe,
+        TranslatePipe,      
         WaypointNamePipe,
         CssClassNamePipe,
+        
+        rowDetailToolTipPipe,
+  
         TableComponent,
         MsgDialogContent,
         TxtboxComponent,
@@ -332,6 +335,7 @@ import { PinKeypadComponent } from './ui-components/pin-keypad/pin-keypad.compon
         ArcsSetupRobotCoopComponent,
         WorkflowDesignerComponent,
         PinKeypadComponent,
+        ArcsSetupFloorplan3dComponent,
         // WorkflowComponent        
     ],
     imports: [
