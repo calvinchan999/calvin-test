@@ -1505,9 +1505,9 @@ export class RobotModule {
   get viewport (){
     return this.master.viewport
   }
-  events = {
-    robotClicked: new EventEmitter()
-  }
+  // events = {
+  //   robotClicked: new EventEmitter()
+  // }
   cm: CommonModule
 
   get master() {
@@ -1545,7 +1545,9 @@ export class RobotModule {
       }
     }
     this.robots.push(ret)
-    ret.pixiGraphics.events.click.pipe(takeUntil(ret.pixiGraphics.events.destroyed)).subscribe((evt) => this.viewport.ngZone.run(() => this.events.robotClicked.emit({ id: id, event: evt })))
+    ret.pixiGraphics.events.click.pipe(takeUntil(ret.pixiGraphics.events.destroyed)).subscribe((evt) => {
+      this.viewport.ngZone.run(() => this.master.robotClicked.emit({ id: id, event: evt }))
+    })
     ret.pixiGraphics.buttonMode = true
     ret.pixiGraphics.autoScaleEnabled = true
     // if(this.cm.util.standaloneApp){
