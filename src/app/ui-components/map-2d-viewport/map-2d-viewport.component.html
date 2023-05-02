@@ -4,7 +4,7 @@
 
 <ng-template #pixiTpl>
   <div #container 
-       (contextmenu)=" createData?.type ? $event.preventDefault() : null; !viewport.preventContextMenu ? viewport.mode = null : null;"
+       (contextmenu)=" viewport.createData?.type ? $event.preventDefault() : null; !viewport.preventContextMenu ? viewport.mode = null : null;"
        style="width: 100%; height: 100%;" class="drawing-board" [style.cursor]="mode == 'create'? 'crosshair':''">
   <ng-pixi-viewport [fullScreen] = "commonModule.ui.fullScreen" [background] = "background">
     <ng-container *ngIf="viewport">
@@ -141,7 +141,7 @@
           <ng-container *ngTemplateOutlet="navigationModuleTpl"></ng-container>
         </div>
   
-        <div class="bottom-sector line-sector" *ngIf="createData?.type == 'line'  || selectedGraphics?.type == 'line'">
+        <div class="bottom-sector line-sector" *ngIf="viewport.createData?.type == 'line'  || selectedGraphics?.type == 'line'">
           <kendo-colorpalette [palette]="palette?.map" [(value)]="viewport.selectedStyle.line.color" [tileSize]="25"
             [matTooltip]="'Line Color'| label : uiSrv.langPack" matTooltipPosition="below"
             (valueChange)=" selectedGraphics?.type == 'line'? (selectedGraphics.style.lineColor = $event.replace('#','0x')) : null ;
@@ -162,7 +162,7 @@
           </button>  
         </div>
   
-        <div class="bottom-sector brush-sector" *ngIf="createData?.type == 'brush'">
+        <div class="bottom-sector brush-sector" *ngIf="viewport.createData?.type == 'brush'">
           <kendo-colorpalette [palette]="palette.map" [(value)]="viewport.selectedStyle.brush.color" [tileSize]="25"
             [matTooltip]="'Brush Color'| label : uiSrv.langPack" matTooltipPosition="below"></kendo-colorpalette>
           <kendo-slider [smallStep]="4" [fixedTickWidth]="5" [min]="1" [max]="100" [(ngModel)]="viewport.selectedStyle.brush.size"
@@ -174,7 +174,7 @@
   
         </div>
   
-        <div class="bottom-sector polygon-sector" *ngIf="(createData?.type == 'polygon' || selectedGraphics?.type == 'polygon') && !readonly && palette.map?.length > 1">
+        <div class="bottom-sector polygon-sector" *ngIf="(viewport.createData?.type == 'polygon' || selectedGraphics?.type == 'polygon') && !readonly && palette.map?.length > 1">
           <kendo-colorpalette [palette]="palette.map" [(value)]="viewport.selectedStyle.polygon.color" [tileSize]="25"
             [matTooltip]="'Polygon Color'| label : uiSrv.langPack" matTooltipPosition="below"
             (valueChange)=" selectedGraphics?.type == 'polygon'? (selectedGraphics.style.fillColor = $event.replace('#','0x')) : null ;
@@ -243,7 +243,7 @@
         </div>
   
         <div class="bottom-sector edit-map-floorplan" *ngIf=" (uiSrv.isTablet || selectedGraphics?.type == 'location' || selectedGraphics?.type == 'waypoint') && !readonly &&
-                                                             ((( createData?.type == 'location' || createData?.type == 'waypoint' || !createData?.type ) &&  
+                                                             ((( viewport.createData?.type == 'location' || viewport.createData?.type == 'waypoint' || !viewport.createData?.type ) &&  
                                                              (selectedGraphics?.type == 'location' || selectedGraphics?.type ==  'waypoint' ))|| selectedGraphics?.type == 'mapLayer' )" >
           <ng-container *ngIf=" selectedGraphics?.type == 'location' || selectedGraphics?.type == 'waypoint' ">
               <uc-txtbox #ucPointTextBox class="waypoint-name-textbox" customClass="txtbox-container"
@@ -422,7 +422,7 @@
               <label class="col-form-label">{{'Rotation' | label: uiSrv.langPack}}</label>
               <div class="slider-wrapper">
                 <span class="display-value">{{module.localization.previewData.rotation | number:'1.0-1'}}°</span>
-                <kendo-slider #kendoAngleSlider [fixedTickWidth]="0.25" [min]="-180" [max]="180" [smallStep]="0.5" [largeStep]="60" [readonly] = "disableKendoKeyboardNavigation"
+                <kendo-slider #kendoAngleSlider [fixedTickWidth]="0.25" [min]="0" [max]="360" [smallStep]="0.5" [largeStep]="60" [readonly] = "disableKendoKeyboardNavigation"
                   tickPlacement="none" [(ngModel)]="module.localization.previewData.rotation"
                   (ngModelChange)="kendoAngleSlider.blur() ; module.localization.refreshPos(); module.localization.refreshLidarLayerPos()">
                 </kendo-slider>
@@ -447,52 +447,52 @@
 
 <ng-template #createModeTpl>
    <button kendoButton class="polygon" [matTooltip]="'Draw Polygon'| label : uiSrv.langPack" matTooltipPosition="right" [disabled] = "disableButton['polygon']"
-            *ngIf="!hideButton['polygon']" [ngClass]="{'btn-active': createData?.type == 'polygon'}"
-            (click)="createData?.type == 'polygon' ? viewport.mode = null : viewport.startCreate('polygon')">
+            *ngIf="!hideButton['polygon']" [ngClass]="{'btn-active': viewport.createData?.type == 'polygon'}"
+            (click)="viewport.createData?.type == 'polygon' ? viewport.mode = null : viewport.startCreate('polygon')">
             <span class="mdi mdi-vector-polygon"> </span>
           </button>
   
   
           <button kendoButton class="line" [matTooltip]="'Draw Line'| label : uiSrv.langPack" matTooltipPosition="right" *ngIf="!hideButton['line']" [disabled] = "disableButton['line']"
-            [ngClass]="{'btn-active': createData?.type == 'line'}"
-            (click)="createData?.type == 'line' ? viewport.mode = null : viewport.startCreate('line')">
+            [ngClass]="{'btn-active': viewport.createData?.type == 'line'}"
+            (click)="viewport.createData?.type == 'line' ? viewport.mode = null : viewport.startCreate('line')">
             <span class="mdi mdi-vector-line"> </span>
           </button>
   
           <button kendoButton class="brush" [matTooltip]="'Brush'| label : uiSrv.langPack" matTooltipPosition="right" *ngIf="!hideButton['brush']" [disabled] = "disableButton['brush']"
-            [ngClass]="{'btn-active': createData?.type == 'brush'}"
-            (click)="createData?.type == 'brush' ? viewport.mode = null : viewport.startCreate('brush')">
+            [ngClass]="{'btn-active': viewport.createData?.type == 'brush'}"
+            (click)="viewport.createData?.type == 'brush' ? viewport.mode = null : viewport.startCreate('brush')">
             <span class="mdi mdi-brush"></span>
           </button>
   
           <button kendoButton class="arrow" [matTooltip]="'Plot Path'| label : uiSrv.langPack" matTooltipPosition="right"  [disabled] = "disableButton['arrow']"
-            *ngIf="!hideButton['arrow'] && !( configSrv.dbConfig.DISABLE_PATH_FOLLOWING || configSrv.disabledModule_SA.pathFollowing)" [ngClass]="{'btn-active': createData?.type == 'arrow'}"
-            (click)="createData?.type == 'arrow' ? viewport.mode = null : viewport.startCreate('arrow')">
+            *ngIf="!hideButton['arrow'] && !( configSrv.dbConfig.DISABLE_PATH_FOLLOWING || configSrv.disabledModule_SA.pathFollowing)" [ngClass]="{'btn-active': viewport.createData?.type == 'arrow'}"
+            (click)="viewport.createData?.type == 'arrow' ? viewport.mode = null : viewport.startCreate('arrow')">
             <span class="mdi mdi-arrow-top-right"></span>
           </button>
   
           <button kendoButton class="bi-arrow" [matTooltip]="'Plot Bidirectional Path' | label : uiSrv.langPack" matTooltipPosition="right" [disabled] = "disableButton['arrow']"
-            *ngIf="!hideButton['arrow'] && !( configSrv.dbConfig.DISABLE_PATH_FOLLOWING || configSrv.disabledModule_SA.pathFollowing)" [ngClass]="{'btn-active': createData?.type == 'arrow_bi'}"
-            (click)="createData?.type == 'arrow_bi' ? viewport.mode = null : viewport.startCreate('arrow_bi')">
+            *ngIf="!hideButton['arrow'] && !( configSrv.dbConfig.DISABLE_PATH_FOLLOWING || configSrv.disabledModule_SA.pathFollowing)" [ngClass]="{'btn-active': viewport.createData?.type == 'arrow_bi'}"
+            (click)="viewport.createData?.type == 'arrow_bi' ? viewport.mode = null : viewport.startCreate('arrow_bi')">
             <span class="mdi mdi-arrow-top-right-bottom-left"></span>
           </button>
   
           <button kendoButton class="curved-arrow" [matTooltip]="'Plot Curved Path'| label : uiSrv.langPack" matTooltipPosition="right" [disabled] = "disableButton['arrow']"
-            *ngIf="!hideButton['arrow'] && !( configSrv.dbConfig.DISABLE_PATH_FOLLOWING || configSrv.disabledModule_SA.pathFollowing)" [ngClass]="{'btn-active': createData?.type == 'arrow_curved'}"
-            (click)="createData?.type == 'arrow_curved' ? viewport.mode = null : viewport.startCreate('arrow_curved')">
+            *ngIf="!hideButton['arrow'] && !( configSrv.dbConfig.DISABLE_PATH_FOLLOWING || configSrv.disabledModule_SA.pathFollowing)" [ngClass]="{'btn-active': viewport.createData?.type == 'arrow_curved'}"
+            (click)="viewport.createData?.type == 'arrow_curved' ? viewport.mode = null : viewport.startCreate('arrow_curved')">
             <span class="mdi mdi-redo"></span>
           </button>
   
           <button kendoButton class="bi-curved-arrow" [matTooltip]="'Plot Curved Bidirectional Path'| label : uiSrv.langPack" [disabled] = "disableButton['arrow']"
             matTooltipPosition="right" *ngIf="!hideButton['arrow'] && !( configSrv.dbConfig.DISABLE_PATH_FOLLOWING || configSrv.disabledModule_SA.pathFollowing)"
-            [ngClass]="{'btn-active': createData?.type == 'arrow_bi_curved'}"
-            (click)="createData?.type == 'arrow_bi_curved' ? viewport.mode = null : viewport.startCreate('arrow_bi_curved')">
+            [ngClass]="{'btn-active': viewport.createData?.type == 'arrow_bi_curved'}"
+            (click)="viewport.createData?.type == 'arrow_bi_curved' ? viewport.mode = null : viewport.startCreate('arrow_bi_curved')">
             <span class="mdi mdi-redo"></span>
           </button>
  
           <button kendoButton class="point" [matTooltip]="'Plot Way Point'| label : uiSrv.langPack" matTooltipPosition="right" [disabled] = "disableButton['point']"
             (click)="viewport.startCreate('point') ; point.type ='waypoint'" *ngIf="!hideButton['point']"
-            [ngClass]="{'btn-active': createData?.type == 'point' &&  point.type == 'waypoint'}">
+            [ngClass]="{'btn-active': viewport.createData?.type == 'point' &&  point.type == 'waypoint'}">
             <span class="mdi mdi-circle-medium"></span>
           </button>
           <button kendoButton class="point" [matTooltip]="'Plot Way Point at Current Location'| label : uiSrv.langPack" matTooltipPosition="right" [disabled] = "disableButton['point']"
@@ -506,7 +506,7 @@
           </button>
   
           <button *ngIf="selectedGraphics && !hideButton['delete']" kendoButton class="delete" [matTooltip]="'Delete Shape'| label : uiSrv.langPack" 
-                  [disabled] = "disableButton['delete'] || (selectedGraphics?.type == 'waypoint' && (createData?.type == 'arrow_bi' || createData?.type == 'arrow_bi_curved' || createData?.type == 'arrow' || createData?.type == 'arrow_curved' ))"
+                  [disabled] = "disableButton['delete'] || (selectedGraphics?.type == 'waypoint' && (viewport.createData?.type == 'arrow_bi' || viewport.createData?.type == 'arrow_bi_curved' || viewport.createData?.type == 'arrow' || viewport.createData?.type == 'arrow_curved' ))"
             matTooltipPosition="right" (click)="deleteSelectedGraphics()" [ngClass]="{'btn-active': mode == 'delete'}">
             <span class="mdi mdi-trash-can-outline"></span>
           </button>

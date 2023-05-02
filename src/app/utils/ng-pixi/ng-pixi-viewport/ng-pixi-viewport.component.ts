@@ -72,10 +72,10 @@ export class NgPixiViewportComponent implements OnInit, AfterViewInit, OnDestroy
         // private _changeDetectorRef: ChangeDetectorRef
     ) {
     
-        this._ngZone.runOutsideAngular(() => {
+        this._ngZone.runOutsideAngular(() => {            
             this.app = new PIXI.Application({
                 antialias: true,
-                resolution: window.devicePixelRatio || 1,
+                resolution: 2,//window.devicePixelRatio || 1,
                 autoDensity: true,
                 transparent: true     
             });

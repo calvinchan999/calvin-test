@@ -11,7 +11,7 @@ import { getLocalStorage, setLocalStorage } from '../../general/general.util'
 import * as PIXI from 'pixi.js';
 import { start } from 'repl'
 
-const DEFAULT_WAYPOINT_NAME = "WAYPOINT"
+export const DEFAULT_WAYPOINT_NAME = "WAYPOINT"
 
 
 type CreateType = 'point' | 'polygon' | 'line' | 'localize' | 'pickLoc' | 'brush' | 'arrow_bi_curved' | 'arrow_bi' | 'arrow' | 'arrow_curved'
@@ -186,21 +186,23 @@ export class PixiMapViewport extends PixiViewport{
         // this.clickEndEvts.forEach(t => this.mouseUpListenerObj[t] = this.renderer.listen(document, t, () => this.endEdit()))
     }
 
-    startCreate(type : CreateType) {
-        this.selectedGraphics = null
-        this.createData.type = type
-        this._createEnded = new Subject()
-        this.mainContainer.events.click.pipe(takeUntil(this._createEnded)).subscribe((evt: PIXI.interaction.InteractionEvent) => {
-            this.createData.clickedPosition = evt.data.getLocalPosition(this.mainContainer)
-            if (this.createData.eventHandler.clicked[type]) {
-                this.createData.eventHandler.clicked[type](evt)
+    startCreate(type: CreateType) {
+        this.ngZone.run(() => {
+            this.mode = null
+            this.mode = 'create'
+            this.selectedGraphics = null
+            this.createData.type = type
+            this._createEnded = new Subject()
+            this.mainContainer.events.click.pipe(takeUntil(this._createEnded)).subscribe((evt: PIXI.interaction.InteractionEvent) => {
+                this.createData.clickedPosition = evt.data.getLocalPosition(this.mainContainer)
+                if (this.createData.eventHandler.clicked[type]) {
+                    this.createData.eventHandler.clicked[type](evt)
+                }
+            })
+            if (this.createData.onStart[type]) {
+                this.createData.onStart[type]()
             }
         })
-        this.mode = null
-        this.mode = 'create'
-        if(this.createData.onStart[type]){
-            this.createData.onStart[type]()
-        }
     }
 
     undoCreate(type: 'brush' | 'line') {
@@ -245,25 +247,27 @@ export class PixiMapViewport extends PixiViewport{
             gr.parent.removeChild(gr)
         }
     }
+
+    async getExportImageContainer() : Promise<PIXI.Container>{
+        let ret = new PIXI.Container()
+        let mapSprite : PIXI.Sprite =<any>this.mainContainer.children.filter(c=> c instanceof PIXI.Sprite)[0]
+        if(mapSprite){
+            ret.addChild(PIXI.Sprite.from(mapSprite.texture))
+        }
+        Object.keys(this.createdGraphics).forEach(k => {
+            this.createdGraphics[k].filter(g => this.mainContainer.children.includes(g)).forEach((g : PixiMapGraphics) => {
+              let clonedGraphics = g.clone()
+              clonedGraphics.position = g.position
+              ret.addChild(clonedGraphics)
+            })
+          })
+        return ret
+    }
     
     async exportEditedMapImage(){
         this.selectedGraphics = null
-        let newContainer = new PIXI.Container()
-        let mapSprite : PIXI.Sprite =<any>this.mainContainer.children.filter(c=> c instanceof PIXI.Sprite)[0]
-        if(mapSprite){
-            newContainer.addChild(PIXI.Sprite.from(mapSprite.texture))
-        }
-        //this.drawingsCreated.filter(c => !this.arrowTypes.includes(c['type'])).forEach((c : PIXI.Graphics) => newContainer.addChild(c.clone()))
-        Object.keys(this.createdGraphics).forEach(k => {
-          this.createdGraphics[k].filter(g => this.mainContainer.children.includes(g)).forEach((g : PixiMapGraphics) => {
-            let clonedGraphics = g.clone()
-            clonedGraphics.position = g.position
-            newContainer.addChild(clonedGraphics)
-          })
-        })
-        //this.brushPaintings.forEach((b: PIXI.Graphics) => newContainer.addChild(b.clone()))
-    
-        this._pixiApp.renderer.extract.canvas(newContainer).toBlob(function (b) {
+        let container = await this.getExportImageContainer()
+        this._pixiApp.renderer.extract.canvas(container).toBlob(function (b) {
           var a = document.createElement('a');
           document.body.append(a);
           a.download = 'map';

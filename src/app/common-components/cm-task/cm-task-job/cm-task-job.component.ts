@@ -301,9 +301,9 @@ export class CmTaskJobComponent implements OnInit {
   
   getActionDropListData(row){
     let pointType = this.dropdownData.locations.filter(l=>l.pointCode == row?.pointCode)[0]?.pointType
-    let robotType = this.frmGrp.controls['robotType'].value ? this.frmGrp.controls['robotType'].value : this.dropdownData.robots.filter(r=> r.robotCode == this.frmGrp.controls['robotCode'].value)[0]?.robotType
+    let robotType = this.frmGrp.controls['robotType']?.value ? this.frmGrp.controls['robotType'].value : this.dropdownData.robots?.filter(r=> r.robotCode == this.frmGrp.controls['robotCode'].value)[0]?.robotType
     return this.dropdownData.actions.filter(a => {
-      if((this.frmGrp.controls['robotType'].value && !a.allowedRobotTypes.includes(robotType)) || 
+      if((this.frmGrp.controls['robotType']?.value && !a.allowedRobotTypes.includes(robotType)) || 
          (pointType && !a.allowedPointTypes.includes(pointType))){
         return false
       }else {
@@ -577,6 +577,7 @@ export class CmTaskJobComponent implements OnInit {
         return
       }
       let ds = this.getSubmitDataset()
+      console.log(JSON.stringify(ds))
       let url = ((this.isTemplate && !this.isExecuteTemplate )? "api/task/mission/v1" : (`api/task/v1${this.util.arcsApp || !this.frmGrp2.controls['loop'].value ? '' : ('/' + this.frmGrp2.controls['loop'].value)}`))
       if ((await this.dataSrv.saveRecord( url , ds , this.frmGrp , this.isCreate || this.isExecuteTemplate)).result == true) {
         this.parent.loadData()

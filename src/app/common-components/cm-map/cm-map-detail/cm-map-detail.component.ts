@@ -240,10 +240,10 @@ export class CmMapDetailComponent implements OnInit {
       if(this.latestBase64image != base64Img){
         this.latestBase64image = base64Img 
         await this.pixiElRef.loadToMainContainer(this.latestBase64image, undefined, undefined, undefined, undefined, !this.occupancyGridReceived)
+   
       }
       if(!this.occupancyGridReceived){
         robot = this.pixiElRef.robotModule.addRobot(this.dataSrv.robotMaster.robotCode)  
-        // this.pixiElRef.refreshRobotScale()        
       }
      
       let metaData : {x : number |null , y :  number |null , angle :  number |null ,width: number |null , height :  number |null} = o['mapMetadata']
@@ -266,6 +266,7 @@ export class CmMapDetailComponent implements OnInit {
     this.dataSrv.signalRSubj.pose.pipe(skip(1) ,filter(p=>p), takeUntil(this.onDestroy)).subscribe(p=>{
       if(this.occupancyGridReceived){   
         robot.refreshPose(p.x, p.y, p.angle , undefined , undefined, undefined , true , true)
+        robot.pixiGraphics.autoScaleModule.setScale()      
       }
     })
   }  

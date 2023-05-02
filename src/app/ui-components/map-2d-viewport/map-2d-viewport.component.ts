@@ -301,14 +301,6 @@ export class Map2DViewportComponent implements OnInit , AfterViewInit , OnDestro
   get editData(){
     return this.viewport?.editData
   }
-  set createData(v){
-    if(this.viewport){
-      this.viewport.createData = v
-    }
-  }
-  get createData(){
-    return this.viewport?.createData
-  }
 
   set mode(v){
     if(this.viewport){
@@ -388,7 +380,7 @@ export class Map2DViewportComponent implements OnInit , AfterViewInit , OnDestro
     if(this.suspended || this.readonly || this.hideButton['all']|| this.hideButton['delete'] || (this.textInputFocused() && ((<any>this.selectedGraphics)?.text?.length > 0)) ){
       return
     }
-    if(this.selectedGraphics && !(this.selectedGraphics instanceof PixiWayPoint && DRAWING_STYLE.arrowTypes.includes(this.createData?.type))  && !this.uiSrv.overlayActivated(this.elRef.nativeElement)){
+    if(this.selectedGraphics && !(this.selectedGraphics instanceof PixiWayPoint && DRAWING_STYLE.arrowTypes.includes(this.viewport.createData?.type))  && !this.uiSrv.overlayActivated(this.elRef.nativeElement)){
       this.deleteSelectedGraphics()
     }
   }
@@ -415,20 +407,20 @@ export class Map2DViewportComponent implements OnInit , AfterViewInit , OnDestro
   }
 
   addSubtractKeyStep = 1
-  @HostListener('document:keydown.+', ['$event'])
-  @HostListener('document:keydown.-', ['$event'])
+  @HostListener('document:keydown.,', ['$event'])
+  @HostListener('document:keydown.dot', ['$event'])
   onAddSubtractKeyDown(event: KeyboardEvent) {
     if(this.module.localization?.previewData.alignLidar){
       this.addSubtractKeyStep +=  this.addSubtractKeyStep< 100 ? 0.1 : 0
-      let tmp =  this.module.localization?.previewData.rotation + (event.key == '-' ? -0.1 : 0.1) *  this.addSubtractKeyStep
-      this.module.localization.previewData.rotation = tmp > 180 ? tmp - 360  : (tmp < - 180 ? 360 + tmp : tmp )
+      let tmp =  this.module.localization?.previewData.rotation + (event.key == ',' ? 0.1 : -0.1) *  this.addSubtractKeyStep
+      this.module.localization.previewData.rotation = (360 + tmp)%360 //tmp > 180 ? tmp - 360  : (tmp < - 180 ? 360 + tmp : tmp )
       this.module.localization?.refreshPos()
       this.module.localization?.refreshLidarLayerPos()
     }
   }
 
-  @HostListener('document:keyup.+', ['$event'])
-  @HostListener('document:keyup.-', ['$event'])
+  @HostListener('document:keyup.,', ['$event'])
+  @HostListener('document:keyup.dot', ['$event'])
   onAddSubtractKeyUp(){
     this.addSubtractKeyStep = 1
   }
@@ -638,6 +630,7 @@ export class Map2DViewportComponent implements OnInit , AfterViewInit , OnDestro
         this.overlayMsg = this.uiSrv.translate("Select Starting Postion")
         // this.signalRPoseSubscribed = true
         this.module.robot.addRobot(this.dataSrv.robotMaster?.robotCode, null)
+
         this.standaloneModule.robot.subscribeRobotPose()
         // await this.pixiElRef.loadFloorPlanFullDataset(await this.dataSrv.getFloorplanFullDs(fpId) , true , true)
         // this.addRobot(this.dataSrv.robotMaster?.robotCode , null);
@@ -846,15 +839,11 @@ export class Map2DViewportComponent implements OnInit , AfterViewInit , OnDestro
     origin.position.set(x , y)       
   }
 
-  async getMainContainerImgBase64(excludeDrawings = false) {
+  async getMainContainerImgBase64() {
     this.viewport.selectedGraphics = null
     let done = new BehaviorSubject(null)
-    let newContainer = new PIXI.Container()
-    newContainer.addChild(PIXI.Sprite.from(this.backgroundSprite.texture))
-    if(!excludeDrawings){
-      Object.values(this.viewport.createdGraphics).forEach(grs=> grs.forEach((c : PIXI.Graphics) => newContainer.addChild(c.clone())))
-    }
-    let image = this._ngPixi.app.renderer.extract.image(newContainer)
+    let container = await this.viewport.getExportImageContainer()
+    let image = this._ngPixi.app.renderer.extract.image(container)
     image.onload = (e) => {
       done.next(e.target['src'])
     }
@@ -863,6 +852,7 @@ export class Map2DViewportComponent implements OnInit , AfterViewInit , OnDestro
     }
     return done.value.replace('data:image/png;base64,' , '')
   }
+  
 
   //===================================================================================================================================================
   
@@ -1528,10 +1518,10 @@ export class RobotModule {
   }
 
   loadingMap = null
-  _activeMapCode = null
-  get activeMapCode() {
-    return this._activeMapCode
-  }
+  // _activeMapCode = null
+  // get activeMapCode() {
+  //   return this._activeMapCode
+  // }
 
 
   constructor(cm: CommonModule) {
@@ -1541,10 +1531,10 @@ export class RobotModule {
   public addRobot(id, mapCode = null, robotBase = null) { //consider to add 'type' argument for ARCS
     let ret = new Robot(id, mapCode, robotBase, this.cm);
     if (mapCode == null) {
-      console.log(ret.pixiGraphics)
+      // console.log(ret.pixiGraphics)
       this.viewport.mainContainer.addChild(ret.pixiGraphics);
     } else {
-      this._activeMapCode = mapCode
+      // this._activeMapCode = mapCode
       let container = this.cm.util.standaloneApp ? this.viewport.mapContainerStore[mapCode] : Object.values(this.viewport.mapContainerStore).filter((m: PixiMapContainer) => m.robotBase == robotBase && m.mapCode == mapCode)[0]
       if (!container) {
         console.log(`map not yet added to the viewport (map code : ${mapCode} , robot code : ${id})`)
@@ -1557,6 +1547,9 @@ export class RobotModule {
     ret.pixiGraphics.events.click.pipe(takeUntil(ret.pixiGraphics.events.destroyed)).subscribe((evt) => this.viewport.ngZone.run(() => this.events.robotClicked.emit({ id: id, event: evt })))
     ret.pixiGraphics.buttonMode = true
     ret.pixiGraphics.autoScaleEnabled = true
+    // if(this.cm.util.standaloneApp){
+    //   ret.pixiGraphics.autoScaleModule.counterScaleBinding = ()=>1
+    // }
     return ret;
   }
 
@@ -1659,9 +1652,12 @@ export class StandaloneRobotModule extends RobotModule {
       if (pose && !this.master.module.localization?.previewData.alignLidar && !this.cm.dataSrv.signalRSubj.isFollowMeWithoutMap.value && !['', null, undefined].includes(pose?.mapName)) {
         //--- mapName return mapCode but we need mapId here ---
         robot.mapCode = pose?.mapName
+        // if(this.cm.data.selectedMapCode!=pose?.mapName){
+        //   this.cm.data.selectedFloorPlanCode = this.fl
+        // }
         //-----------------------------------------------------
         if (robot.mapCode != null) {
-          if (!this.viewport.mapContainerStore[robot.mapCode]) {
+          if (!this.viewport.mapContainerStore[robot.mapCode] || this.cm.data.activeMapCode != robot.mapCode) {
             if (this.loadingMap != null) {
               await this.loadingMap.pipe(filter(v => v == false), take(1)).toPromise()
             } else {
@@ -1672,6 +1668,8 @@ export class StandaloneRobotModule extends RobotModule {
           }
           if (robot.pixiGraphics.parent && robot.pixiGraphics.parent != this.viewport.mapContainerStore[robot.mapCode]) { //&& this.mapId == pose?.mapName
             robot.pixiGraphics.parent.removeChild(robot.pixiGraphics)
+            console.log(robot.mapCode)
+            console.log(  this.viewport.mapContainerStore)
             this.viewport.mapContainerStore[robot.mapCode].addChild(robot.pixiGraphics)
             robot.observed.next(true)
           }
@@ -1692,6 +1690,11 @@ export class StandaloneRobotModule extends RobotModule {
   async onRobotMapChanged(mapCode) {
     this.loadingMap = new Subject()
     var fpCode = (<DropListMap>(await this.cm.dataSrv.getDropList('maps')).data.filter((m: DropListMap) => m.mapCode ==  mapCode)[0])?.floorPlanCode
+    if (this.cm.data.activeFloorPlanCode != fpCode) {
+      await this.cm.data.loadFloorPlan(fpCode)
+    }
+    this.cm.data.selectedFloorPlanCode = fpCode      
+    this.cm.data.activeFloorPlanCode = fpCode
     if (!fpCode) {
       var msg = "UNKNOWN MAP CODE OR NO LINKED FLOOR PLAN FROM MQTT POSE : " + mapCode
       this.cm.uiSrv.showNotificationBar(msg, 'error')
@@ -1700,17 +1703,7 @@ export class StandaloneRobotModule extends RobotModule {
       this.loadingMap = null
       return false
     }
-    if (this.cm.data.activeFloorPlanCode != fpCode) {
-      this.cm.data.activeFloorPlanCode = fpCode
-      await this.cm.data.loadFloorPlan(fpCode)
 
-      // let fpDs: JFloorPlan = await this.cm.dataSrv.getFloorPlan(fpCode)
-      // await this.master.loadFloorPlanDataset(fpDs, true, true)
-      // this.cm.data.activeFloorPlanCode = fpCode
-      // this.cm.data.activeMap = this.robots[0].mapCode
-      // this.cm.data.activeMapCodeChange.emit(this.robots[0].mapCode)
-      // this.cm.data.activeFloorPlanCodeChange.emit(fpCode)
-    }
     this.loadingMap.next(false)
     this.loadingMap = null
     // this.master.refreshLocationOptions()
@@ -1924,11 +1917,12 @@ export class LocalizationModule { //Standalone Function : change map / localize
   }
 
   async changeMap(){
+    let ticket = this.cm.uiSrv.loadAsyncBegin()
     if (!this.cm.dataSrv.signalRSubj.isFollowMeMode) {
       await this.cm.httpSrv.fmsRequest('POST', 'mode/v1/navigation')
     }
     await this.cm.httpSrv.fmsRequest('POST', 'map/v1/change', { mapName: this.cm.data.selectedMapCode, useInitialPose: false, waypointName: null })
-    Object.values(this.viewport.mapContainerStore).filter(v => v).forEach(v => (<any>v).visible = true)
+    // Object.values(this.viewport.mapContainerStore).filter(v => v).forEach(v => (<any>v).visible = false)
     this.cm.uiSrv.showNotificationBar("Map changed successfully" , 'success')
     this.previewData.rosX = 0
     this.previewData.rosY = 0
@@ -1937,8 +1931,9 @@ export class LocalizationModule { //Standalone Function : change map / localize
     await this.master.loadDataset( await this.cm.dataSrv.getFloorPlan(this.cm.data.selectedFloorPlanCode), true , true)
     // this.cm.data.selectedMap = ds.mapList[0]?.mapCode
     // this.master.changeMode('create','localize')
+    this.cm.uiSrv.loadAsyncDone(ticket)
     this.endLocalize()
-    Object.values(this.viewport.mapContainerStore).filter(v => v).forEach(v => (<any>v).visible = false)
+    // Object.values(this.viewport.mapContainerStore).filter(v => v).forEach(v => (<any>v).visible = false)
     this.startLocalize()
   }
 
@@ -2022,7 +2017,8 @@ export class LocalizationModule { //Standalone Function : change map / localize
 
   endLocalize(){
     this.viewport.preventContextMenu = false
-    this.viewport.mode = null
+    this.viewport.mode = null;
+    this.cm.ui.toggleRosMap(this.cm.ui.toggle.showRosMap)
     if(this.previewData.markerGraphic){
       this.previewData.markerGraphic?.parent?.removeChild(this.previewData.markerGraphic)
       clearInterval(this.previewData.markerGraphic['interval'])
@@ -2436,8 +2432,10 @@ export class DataModule{
   set activeFloorPlanCode(v) {
     const oldCode = this._activeFloorPlanCode
     this._activeFloorPlanCode = v
+
     this.dropdownOptions.locations = this.dataSrv.getDropListOptions('locations', this.dropdownData.locations, { floorPlanCode: v })
     this._activeMapCode = (<DropListMap[]>this.dropdownData.maps).filter((m) => m.floorPlanCode == this.activeFloorPlanCode)[0]?.mapCode
+    // console.log(    this._activeMapCode )
     if (oldCode != v) {
       this.activeFloorPlanCodeChange.emit(v)
       this.activeMapCodeChange.emit(this._activeMapCode)
@@ -2572,6 +2570,7 @@ export class UiModule {
     if(toggleFloorplan){
       this.master.backgroundSprite.visible = !this.toggle.showRosMap 
     }
+    this.updateLocalStorage()
   }
 
   toggleDarkMode(on ) {

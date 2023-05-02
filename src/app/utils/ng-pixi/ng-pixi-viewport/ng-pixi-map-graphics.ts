@@ -52,7 +52,7 @@ export class PixiMapGraphics extends PixiGraphics {
         let scale = DRAWING_STYLE.markerScale * weight / this.viewport.scale.x * (this.autoScaleModule.counterScaleBinding())
         this.scale.set(scale, scale)
       } else {
-        this.scale.set(1 / (this.autoScaleModule.counterScaleBinding() * this.viewport.scale.x))
+        this.scale.set(1 / (this.autoScaleModule.counterScaleBinding() * this.viewport.scale.x) , 1 / (this.autoScaleModule.counterScaleBinding() * this.viewport.scale.y))
       }
     }
   }
@@ -1227,12 +1227,14 @@ export class PixiRobotMarker extends PixiMapGraphics {
     this.sortableChildren = true
     // this.icon = icon
     this.zIndex = 100//20220611
+    // this.autoScaleEnabled = false
+    this.autoScaleEnabled = true
     this.events.added.pipe(takeUntil(this.events.destroyed)).subscribe(() => {
       this.parent.sortableChildren = true
       this.parent.zIndex = 1000
       this.zIndex = 1000
-      this.autoScaleEnabled = false
-      this.autoScaleEnabled = true
+      // this.autoScaleEnabled = false
+      // this.autoScaleEnabled = true
     })
   }
 

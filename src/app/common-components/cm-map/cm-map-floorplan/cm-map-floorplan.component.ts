@@ -18,6 +18,7 @@ import { PixiGraphicStyle , DRAWING_STYLE} from 'src/app/utils/ng-pixi/ng-pixi-v
 import { PixiEditableMapImage, PixiWayPoint } from 'src/app/utils/ng-pixi/ng-pixi-viewport/ng-pixi-map-graphics';
 import { HttpEventType } from '@angular/common/http';
 import { ThreejsViewportComponent } from 'src/app/ui-components/threejs-viewport/threejs-viewport.component';
+import { DEFAULT_WAYPOINT_NAME } from 'src/app/utils/ng-pixi/ng-pixi-viewport/ng-pixi-map-viewport';
 
 @Component({
   selector: 'app-cm-map-floorplan',
@@ -444,43 +445,47 @@ export class CmMapFloorplanComponent implements OnInit {
     })  
   }
 
-  async getPoseAndAddWaypoint_SA(){
-    let resp: { x: number, y: number, angle : number , mapName: string } = await this.httpSrv.fmsRequest('GET', 'localization/v1/pose', undefined, false)
+  async getPoseAndAddWaypoint_SA() {
+    let resp: { x: number, y: number, angle: number, mapName: string } = await this.httpSrv.fmsRequest('GET', 'localization/v1/pose', undefined, false)
     if (this.mapCode != resp.mapName) {
       this.uiSrv.showMsgDialog('Current map not match with selected map')
     } else if (this.pixiElRef) {
-      let map : PixiEditableMapImage = this.pixiElRef.viewport.mapLayerStore[this.mapCode]
+      let map: PixiEditableMapImage = this.pixiElRef.viewport.mapLayerStore[this.mapCode]
       let mapPosition = { x: map.calculateMapX(resp.x), y: map.calculateMapY(resp.y) }
-      let position = this.pixiElRef.mainContainer.toLocal(this.pixiElRef.viewport.mapLayerStore[this.mapCode].toGlobal(new PIXI.Point(mapPosition.x , mapPosition.y)))
-      let gr = new PixiWayPoint(this.pixiElRef.viewport , undefined , new PixiGraphicStyle() , true)
-      gr.position.set(position.x , position.y)
-
-      if(gr.angleIndicator){
+      let position = this.pixiElRef.mainContainer.toLocal(this.pixiElRef.viewport.mapLayerStore[this.mapCode].toGlobal(new PIXI.Point(mapPosition.x, mapPosition.y)))
+      //new PixiWayPoint(this.pixiElRef.viewport , undefined , new PixiGraphicStyle() , true)
+      let names = [DEFAULT_WAYPOINT_NAME].concat(Array.from(Array(this.pixiElRef.viewport.allPixiWayPoints.length).keys()).map(k => `${DEFAULT_WAYPOINT_NAME}-${k + 1}`))
+      let newPtName = names.filter(n => !this.pixiElRef.viewport.allPixiWayPoints.map(p => p.text).some(t => t == n))[0]
+      let pixiWp = new PixiWayPoint(this.pixiElRef.viewport, newPtName, new PixiGraphicStyle(), this.pixiElRef.viewport.settings.waypointEditable)
+      pixiWp.position.set(position.x, position.y)
+      this.pixiElRef.viewport.mainContainer.addChild(pixiWp)
+      if (pixiWp.angleIndicator) {
         let angle = 90 - resp.angle * radRatio + this.pixiElRef.viewport.mapLayerStore[resp.mapName].angle
-        gr.angleIndicator.angle = trimAngle(angle)
+        pixiWp.angleIndicator.angle = trimAngle(angle)
       }
       this.pixiElRef.viewport.mode = null
-      this.pixiElRef.viewport.selectedGraphics = gr
-      gr.focusInput()
-    }    
+      this.pixiElRef.viewport.selectedGraphics = pixiWp
+      pixiWp.focusInput()
+    }
   }
 
-  add_UserTrainingWaypoint(name , x , y , rad){ //for HKAA user training only
-      let map : PixiEditableMapImage = <any>Object.values(this.pixiElRef.viewport.mapLayerStore)[0]
-      // let origin = this.pixiElRef.getGuiOrigin(map)
-      let mapPosition = { x: map.calculateMapX(x), y: map.calculateMapY(y) }
-      let position = this.pixiElRef.mainContainer.toLocal((<any>map).toGlobal(mapPosition))
-      let gr = new PixiWayPoint(this.pixiElRef.viewport , undefined , new PixiGraphicStyle() , true)
-      gr.position.set(position.x , position.y)
-      if(gr.angleIndicator){
-        let angle = 90 - rad * 57.2958 + map.angle
-        gr.angleIndicator.angle = trimAngle(angle)
-      }
-      gr.text = name
-      this.pixiElRef.viewport.mode = null
-      this.pixiElRef.viewport.selectedGraphics = gr
-    // this.pixiElRef.onWayPointMouseDown(gr)
-  }
+  // add_UserTrainingWaypoint(name , x , y , rad){ //for HKAA user training only
+  //     let map : PixiEditableMapImage = <any>Object.values(this.pixiElRef.viewport.mapLayerStore)[0]
+  //     // let origin = this.pixiElRef.getGuiOrigin(map)
+  //     let mapPosition = { x: map.calculateMapX(x), y: map.calculateMapY(y) }
+  //     let position = this.pixiElRef.mainContainer.toLocal((<any>map).toGlobal(mapPosition))
+  //     let pixiWp = new PixiWayPoint(this.pixiElRef.viewport , undefined , new PixiGraphicStyle() , true)
+  //     this.pixiElRef.viewport.mainContainer.addChild(pixiWp)
+  //     pixiWp.position.set(position.x , position.y)
+  //     if(pixiWp.angleIndicator){
+  //       let angle = 90 - rad * 57.2958 + map.angle
+  //       pixiWp.angleIndicator.angle = trimAngle(angle)
+  //     }
+  //     pixiWp.text = name
+  //     this.pixiElRef.viewport.mode = null
+  //     this.pixiElRef.viewport.selectedGraphics = pixiWp
+  //   // this.pixiElRef.onWayPointMouseDown(gr)
+  // }
 
 }
 

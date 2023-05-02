@@ -9,6 +9,7 @@ import { UiService } from 'src/app/services/ui.service';
 import { Map2DViewportComponent, radRatio } from 'src/app/ui-components/map-2d-viewport/map-2d-viewport.component';
 import { GeneralUtil } from 'src/app/utils/general/general.util';
 import { trimAngle } from 'src/app/utils/math/functions';
+import { PixiMapContainer } from 'src/app/utils/ng-pixi/ng-pixi-viewport/ng-pixi-map-graphics';
 
 @Component({
   selector: 'app-sa-control-buttons',
@@ -173,6 +174,7 @@ export class SaControlButtonsComponent implements OnInit ,  OnDestroy {
         await this.pixiElRef.initDone$.toPromise()
         this.pixiElRef.module.localization.localizing = true
         this.pixiElRef.module.data.loadDefaultFloorPlan()
+        Object.values(this.pixiElRef.viewport.mapContainerStore).filter(v => v).forEach(v => (<PixiMapContainer>v).ROS.alpha = 0)
       })
 
     }else if (id == 'localize') {

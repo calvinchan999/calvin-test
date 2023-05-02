@@ -263,17 +263,18 @@ export class PixiGraphics extends PIXI.Graphics {
       this.on(e, (evt: PIXI.interaction.InteractionEvent) => this.events.move.emit(evt))
     })
 
-    this.events.added.pipe(takeUntil(this.events.removedOrDestroyed)).subscribe(() => {
+    this.events.added.pipe(takeUntil(this.events.destroyed)).subscribe(() => {      
       if (this.autoScaleModule.enabled) {
-        this.autoScaleModule.setScale()
+        this.autoScaleEnabled = false
+        this.autoScaleEnabled = true
       }
     })
     
-    this.events.unselected.pipe(takeUntil(this.events.removedOrDestroyed)).subscribe(()=>{
+    this.events.unselected.pipe(takeUntil(this.events.destroyed)).subscribe(()=>{
       this.cursor = this.instantDrag ?  this.dragCursor :  (this.selectable ? 'pointer' : this.defaultCursor)
     })
 
-    this.events.selected.pipe(takeUntil(this.events.removedOrDestroyed)).subscribe(()=>{
+    this.events.selected.pipe(takeUntil(this.events.destroyed)).subscribe(()=>{
       this.cursor = this.draggable ? this.dragCursor : this.defaultCursor
     })
   }
