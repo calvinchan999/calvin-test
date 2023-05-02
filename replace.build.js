@@ -1,5 +1,8 @@
 var replace = require('replace-in-file');
 var app = process.argv[2];
+var isArcs = app.toUpperCase() == "ARCS" || app.toUpperCase() == "AZURE";
+var isAzure = app.toUpperCase() == "AZURE"
+app = app.toUpperCase() == "AZURE" ? "arcs" : app
 var date = new Date();
 const buildDateString = (new Date(date.getTime() - (date.getTimezoneOffset() * 60000))).toISOString().replace(/[^0-9]/g, "");
 const buildVersion = `${buildDateString.slice(0, 8)}-${buildDateString.slice(8, 12)}`
@@ -19,7 +22,6 @@ const options2 = {
 async function main() {
   try {
     var fs = require('fs');
-    var isArcs = app.toUpperCase() == "ARCS";
     fs.copyFile('src/environments/environment.template.ts', 'src/environments/environment.prod.ts', async (err) => {
       if (err) {
         console.log('An error has occured');
@@ -32,7 +34,7 @@ async function main() {
       }
     });
     try {
-      fs.copyFile(`src/assets/config/config_${isArcs ? 'arcs' : 'sa'}.json`, 'src/assets/config/config.json', async (err) => {
+      fs.copyFile(`src/assets/config/config_${isAzure ? 'azure' : (isArcs? 'arcs': 'sa')}.json`, 'src/assets/config/config.json', async (err) => {
         if (err) {
           console.log('Warning : Config File Not Replaced');
           console.log(err)

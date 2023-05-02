@@ -47,6 +47,7 @@ import { GetResizedBase64, GetResizedCanvas, GetSpriteFromUrl } from 'src/app/ut
 export const radRatio = 180 / 3.14159265358979323846264338327950288419716939937510
 const VIRTUAL_MAP_ROS_HEIGHT = 20
 
+
 //pending : add curved arrow default curved (rescontrol point ) 
 @Component({
   selector: 'uc-drawing-board', //*** TO BE REVISED , need to revise CSS */
@@ -2532,7 +2533,7 @@ export class UiModule {
     }
   }
 
-
+  // darkModeDisabled:boolean = false
   overlayMessage = null
   loadingTicket = null
   cm : CommonModule
@@ -2563,7 +2564,7 @@ export class UiModule {
     this.toggle.showRosMap = show;
     [this.viewport.mapLayerStore, this.viewport.mapContainerStore].forEach(obj => {
       Object.keys(obj).filter(k => obj[k] && obj[k]['ROS']).forEach(k => {
-        (<PixiMap>obj[k]).ROS.alpha = this.toggle.showRosMap ?  0.5 : 0;
+        (<PixiMap>obj[k]).ROS.alpha = this.toggle.showRosMap && !(this.cm.util.arcsApp && this.master.showRobot) ?  0.5 : 0;
         (<PixiMapGraphics>obj[k]).visible = true
       })
     })    
@@ -2653,5 +2654,9 @@ export class UiModule {
       }
     })
   }
+
+  // refreshDarkModeDisabled(){
+  //   let viewportSize = 
+  // }
 
 }

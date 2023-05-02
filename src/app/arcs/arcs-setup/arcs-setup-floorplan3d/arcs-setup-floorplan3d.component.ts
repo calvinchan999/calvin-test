@@ -20,7 +20,6 @@ import { PixiEditableMapImage, PixiWayPoint } from 'src/app/utils/ng-pixi/ng-pix
 import { HttpEventType } from '@angular/common/http';
 import { ThreejsViewportComponent } from 'src/app/ui-components/threejs-viewport/threejs-viewport.component';
 
-
 @Component({
   selector: 'app-arcs-setup-floorplan3d',
   templateUrl: './arcs-setup-floorplan3d.component.html',

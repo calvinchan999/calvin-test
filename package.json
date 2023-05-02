@@ -9,7 +9,7 @@
     "lint": "ng lint",
     "e2e": "ng e2e",
     "set-prod-environment": "node ./replace.build.js",
-    "build-azure": "npm run set-prod-environment -- arcs && node --max-old-space-size=10240 ./node_modules/@angular/cli/bin/ng build --prod --aot ",
+    "build-azure": "npm run set-prod-environment -- azure && node --max-old-space-size=10240 ./node_modules/@angular/cli/bin/ng build --prod --aot ",
     "build-arcs": "npm run set-prod-environment -- arcs && node --max-old-space-size=10240 ./node_modules/@angular/cli/bin/ng build --prod --aot --base-href \"/arcs/\"",
     "build-sa": "npm run set-prod-environment -- standalone &&  node --max-old-space-size=10240 ./node_modules/@angular/cli/bin/ng build --prod --base-href  \"/rv_standalone/\" --source-map=false"
   },
@@ -69,7 +69,7 @@
     "@progress/kendo-angular-toolbar": "^4.0.0",
     "@progress/kendo-angular-tooltip": "^3.0.0",
     "@progress/kendo-angular-treeview": "^5.4.0",
-    "@progress/kendo-angular-upload": "^7.1.0", 
+    "@progress/kendo-angular-upload": "^7.1.0",
     "@progress/kendo-angular-barcodes": "^1.0.0",
     "@progress/kendo-data-query": "^1.5.4",
     "@progress/kendo-date-math": "^1.5.2",

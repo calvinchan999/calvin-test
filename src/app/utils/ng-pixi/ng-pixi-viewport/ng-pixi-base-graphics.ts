@@ -1,6 +1,5 @@
 import { Component, AfterViewInit, Input, ViewChild, ElementRef, EventEmitter, Injectable, Inject, Output, ChangeDetectorRef, Renderer2, HostListener, NgZone, OnInit , OnDestroy } from '@angular/core';
 import * as PIXI from 'pixi.js';
-import * as PixiTextInput from 'pixi-text-input';
 // import { Pose2D } from 'src/app/models/floor-plan.model';
 import { BehaviorSubject, combineLatest, forkJoin, merge, Observable, of, Subject, Subscription, timer } from 'rxjs';
 import { debounce, debounceTime, distinctUntilChanged, filter, retry, share, skip, switchMap, take, takeUntil, tap } from 'rxjs/operators';
@@ -10,8 +9,6 @@ import * as Viewport from 'pixi-viewport';
 import {ColorReplaceFilter} from '@pixi/filter-color-replace';
 import {GlowFilter} from '@pixi/filter-glow';
 import {OutlineFilter} from '@pixi/filter-outline';
-import {ColorOverlayFilter} from '@pixi/filter-color-overlay';
-import {DropShadowFilter} from '@pixi/filter-drop-shadow';
 import {DRAWING_STYLE , PixiGraphicStyle} from './ng-pixi-styling-util'
 import { PixiMapViewport } from './ng-pixi-map-viewport';
 import { getAngle, getBezierSectionPoints, getOrientation, intersectionsOfCircles } from '../../math/functions';
