@@ -5,7 +5,7 @@ import { GLTF, GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader';
 import { MTLLoader } from 'three/examples/jsm/loaders/MTLLoader';
 import { OBJLoader } from 'three/examples/jsm/loaders/OBJLoader';
 import {TWEEN} from "three/examples/jsm/libs/tween.module.min";
-import { DragControls } from 'three/examples/jsm/controls/DragControls';
+// import { DragControls } from 'three/examples/jsm/controls/DragControls';
 import { AmbientLight, DirectionalLight, DoubleSide, Group, Mesh, Object3D, ShapeGeometry, WebGLRenderer ,BufferGeometry, LineSegments, MeshStandardMaterial, Vector3, MeshBasicMaterial, ShaderMaterial, Material, MeshPhongMaterial, PlaneGeometry } from 'three';
 import { GeneralUtil } from 'src/app/utils/general/general.util';
 import { DataService, DropListFloorplan, DropListRobot, JFloorPlan, JMap, JPoint, RobotDetailARCS, signalRType } from 'src/app/services/data.service';
@@ -29,7 +29,7 @@ import { ArcsDashboardRobotDetailComponent } from 'src/app/arcs/arcs-dashboard/a
 import { ArcsLiftIotComponent } from 'src/app/arcs/arcs-iot/arcs-lift-iot/arcs-lift-iot.component';
 import { ArcsTurnstileIotComponent } from 'src/app/arcs/arcs-iot/arcs-turnstile-iot/arcs-turnstile-iot.component';
 import {GetImageDimensions} from 'src/app/utils/graphics/image'
-import { init } from 'src/app/services/config.service';
+import { TransformControls } from 'three/examples/jsm/controls/TransformControls.js';
 
 const NORMAL_ANGLE_ADJUSTMENT =  - 90 / radRatio
 const ASSETS_ROOT = 'assets/3D'
@@ -70,7 +70,8 @@ export class ThreejsViewportComponent implements OnInit , OnDestroy{
   // @ViewChild('orbitControl') 
   orbitCtrl : OrbitControls
   container : HTMLElement
-  dragCtrl : DragControls
+  // dragCtrl : DragControls
+  transformCtrl : TransformControls
   floorplan : FloorPlanMesh
   $mapCodeChanged = new Subject()
   renderer : WebGLRenderer
@@ -91,7 +92,8 @@ export class ThreejsViewportComponent implements OnInit , OnDestroy{
     showIot?: boolean,
     showFloorPlanImage?: boolean,
     to2D?: boolean,
-    fullScreen?: boolean
+    fullScreen?: boolean ,
+    transformControl ? : boolean
   } = {
       showWall: true,
       showWaypoint: true,
@@ -239,6 +241,8 @@ export class ThreejsViewportComponent implements OnInit , OnDestroy{
       this.robotObjs.forEach(r=>r.toolTipAlwaysOn = this.uiToggles.showIot)
     } else if (key == 'showFloorPlanImage') {
       (<THREE.MeshPhongMaterial>this.floorplan.material).visible = this.uiToggles.showFloorPlanImage
+    }else if(key == 'transformControl' && this.floorPlanModel && this.transformCtrl){
+      // this.transformCtrl.visible =  this.uiToggles.transformControl
     }
   }
 
@@ -382,14 +386,15 @@ export class ThreejsViewportComponent implements OnInit , OnDestroy{
       }
     })
     this.orbitCtrl?.reset()
+    // this.transformCtrl?.parent?.remove( this.transformCtrl)
+    // this.transformCtrl = null
     this.scene.remove(this.floorplan)
-    console.log('reset')
     this.mapMeshes.forEach(m=>this.scene.remove(m))
     this.waypointMeshes.forEach(w=>w.hideToolTip())
     this.unsubscribeRobotPoses()
   }
 
-  async loadFloorPlan(floorplan: JFloorPlan, subscribePoses = true , glbFile : Blob = null) {
+  async loadFloorPlan(floorplan: JFloorPlan, subscribePoses = true , glb : Blob = null) {
     this.resetScene()
     let tmpDims = await GetImageDimensions(floorplan.base64Image)
     let dimension = {width : tmpDims[0] , height : tmpDims[1]}
@@ -400,10 +405,14 @@ export class ThreejsViewportComponent implements OnInit , OnDestroy{
     this.camera.position.z += this.floorplan.height * 0.1
     this.pointLight.position.set(dimension.width / 2 ,  dimension.height  ,  dimension.height / 2)
 
-    if (glbFile) {
-      await this.loadFloorPlanModelFromBlob(glbFile)
+    if (glb) {
+      await this.loadFloorPlanModelFromBlob(glb)
       return
     }
+    // else if(files?.zip){
+    //   await this.loadFloorPlanModelFromUnzippedObj(files.zip)
+    //   return
+    // }
     this.initROSmaps(floorplan.mapList)
     this.initWaypoints(floorplan.pointList)
 
@@ -444,13 +453,18 @@ export class ThreejsViewportComponent implements OnInit , OnDestroy{
       this.loadingPercent = null
       this.floorPlanModel = gltf.scene
       // transform(obj)
-      this.floorplan.add(  this.floorPlanModel )
+      this.floorplan.add(this.floorPlanModel)
       this.uiSrv.loadAsyncDone(ticket)
-      awaiter.next()
+      awaiter.next();
+      this.transformCtrl.object = null
+      this.transformCtrl.attach(this.floorPlanModel)
+
+  
     }, this.onObjProgress);
-    ['showFloorPlanImage'].forEach(k => this.uiToggled(k))
     await awaiter.pipe(take(1)).toPromise()
   }
+
+
 
   async load3DFloorPlanFromAzureStorage(floorPlanCode : string) : Promise<boolean>{
     const file = await this.dataSrv.getArcs3DFloorPlanBlob(floorPlanCode)
@@ -460,7 +474,8 @@ export class ThreejsViewportComponent implements OnInit , OnDestroy{
       await this.loadFloorPlanModelFromBlob(file);
       this.floorPlanModel.scale.set((settings).scale , (settings).scale , (settings).scale)
       this.floorPlanModel.position.set((settings).positionX , (settings).positionY , (settings).positionZ)
-      this.floorPlanModel.rotation.set(settings.rotationX / radRatio , settings.rotationY / radRatio , settings.rotationZ / radRatio)
+      this.floorPlanModel.rotation.set(settings.rotationX / radRatio , settings.rotationY / radRatio , settings.rotationZ / radRatio);
+      ['showFloorPlanImage' , 'transformControl'].forEach(k => this.uiToggled(k))
       return true
     }else{
       (<THREE.MeshPhongMaterial>this.floorplan.material).visible = true
@@ -469,73 +484,6 @@ export class ThreejsViewportComponent implements OnInit , OnDestroy{
   }
   
 
-  // async init3dModelFromAssets() {
-  //   let tenantCode = this.util.getTenantCode()
-  //   let path = `${ASSETS_ROOT}/floorplans/${tenantCode}/${this.floorPlanDataset.floorPlanCode}`
-  //   let settings = await this.dataSrv.getAssets(path + '.json')
-  //   this.floorplan.settings = settings
-  //   path = this.uiSrv.detectMob() && settings.tabletPath?  settings.tabletPath : (settings?.path ? settings.path : path + '.glb') 
-  //   let transform = (obj: THREE.Group) => {
-  //     obj.rotation.set(settings.rotate?.x ? settings.rotate?.x : 0, settings.rotate?.y ? settings.rotate?.y : 0, settings.rotate?.z ? settings.rotate?.z : 0)
-  //     if (settings?.scale) {
-  //       obj.scale.set(settings?.scale, settings?.scale, settings?.scale)
-  //     }
-  //     obj.position.set(settings.position?.x ? settings.position?.x : 0, settings.position?.y ? settings.position?.y : 0, settings.position?.z ? settings.position?.z : 0)
-      
-  //     obj.traverse((c) => {
-  //       if(c instanceof Mesh){
-  //         var prevMaterial = c.material; 
-  //         c.material = new MeshPhongMaterial();      
-  //         MeshBasicMaterial.prototype.copy.call( c.material, prevMaterial );
-  //       }      
-  //     });
-  //   }
-  //   // let fileExt = settings?.fileExtension ? settings?.fileExtension : '.glb'
-  //   if (settings && settings?.withModel != false) {
-  //     if (path.endsWith(".glb") || path.endsWith(".gltf") ) {
-  //       const dracoLoader = new DRACOLoader();
-  //       dracoLoader.setDecoderPath(ASSETS_ROOT + '/draco/');      
-  //       const loader =  new GLTFLoader();
-  //       loader.setDRACOLoader(dracoLoader);
-  //       loader.load(path, (gltf: GLTF) => {   
-  //         this.loadingPercent = null
-  //         let obj = gltf.scene
-  //         transform(obj)
-  //         this.floorplan.add(obj)
-  //       }, this.onObjProgress)
-  //     } else if (path.endsWith(".obj")) {
-  //       var mtlLoader = new MTLLoader();
-  //       mtlLoader.load(path.substring(0, path.length - 4) + '.mtl', (materials) => {
-  //         materials.preload();
-  //         var objLoader = new OBJLoader();
-  //         objLoader.setMaterials(materials);
-  //         objLoader.load(path, (obj) => {
-  //           this.loadingPercent = null
-  //           transform(obj)
-  //           this.floorplan.add(obj)
-  //         }, this.onObjProgress);
-  //       });
-  //     }
-  //   } else {
-  //     (<THREE.MeshPhongMaterial>this.floorplan.material).visible = true
-  //   }
-  //   // //TESTING
-  //   // (<THREE.MeshPhongMaterial>this.floorplan.material).visible = true
-  //   // //TESTING
-
-  //   if(settings?.walls){
-  //     this.initWalls(settings.walls , settings.wallHeight);
-  //   }
-
-  //   //elevators
-  //   if(settings?.elevators ){
-  //     this.initElevators( settings.floor , settings.elevators)
-  //   }
-  //   //turnstile
-  //   if(settings?.turnstiles ){
-  //     this.initTurnstile( settings.turnstiles)
-  //   }
-  // }
 
   async initElevators(floor : string , elevators : { liftId : string , position? : {x : number , y : number , z : number } , rotation? : number , width? : number , height? : number , depth? : number }[]){
     // [
@@ -638,10 +586,24 @@ export class ThreejsViewportComponent implements OnInit , OnDestroy{
     this.animate()
 
     await this.getRobotList()
+    this.transformCtrl = new TransformControls(this.camera, this.renderer.domElement)
+    this.transformCtrl.visible = false
 
+    this.scene.add(this.transformCtrl)
     this.orbitCtrl = new OrbitControls( this.camera, this.labelRenderer.domElement );
-    this.orbitCtrl.addEventListener( 'change', (v)=> this.onOrbitControlChange(v) );
+    // this.orbitCtrl .addEventListener("change", render);
+    // this.orbitCtrl.enabled  = false
+    // this.orbitCtrl.addEventListener( 'change', (v)=> this.onOrbitControlChange(v) );
     document.addEventListener('pointermove', (e)=>this.onMouseMove(e), false);
+    this.transformCtrl.addEventListener("change", ()=> this.animate());
+    this.transformCtrl.addEventListener("dragging-changed", function (event) {
+      console.log("dragging-changed ", event);
+      if (!event.value) {
+        this.transformCtrl.detach();
+        // console.log("check mesh", mesh);
+      }
+      this.orbitCtrl.enabled = !event.value;
+    });
     setTimeout(() => this.onResize())
 
     if( this.floorPlanDataset){
@@ -851,6 +813,125 @@ export class ThreejsViewportComponent implements OnInit , OnDestroy{
     this.composer = null
   }
 }
+
+
+  // loadFloorPlanModelFromUnzippedObj(file: { obj?: string, mtl?: string, textures?: { [key: string]: string } }) {
+  //   let ticket = this.uiSrv.loadAsyncBegin()
+  //   const objLoader = new OBJLoader();
+  //   const mtlLoader = new MTLLoader();
+  
+  //   const materialCreator = mtlLoader.parse(file.mtl, '');
+
+
+  //   Object.keys(materialCreator.materialsInfo).forEach(k => {
+  //     const extension = k.split(".")[k.split(".").length - 1]
+  //     materialCreator.materials[k] = new THREE.MeshPhongMaterial();
+  //     (<any>materialCreator.materials[k]).map = new THREE.TextureLoader().load(`data:image/${extension};base64,${file.textures[k]}`);
+  //     (<any>materialCreator.materials[k]).needsUpdate = true;
+  //     (<any>materialCreator.materials[k]).index = (<any>materialCreator).materialsArray.indexOf(materialCreator.materials[k]);
+  //   })
+
+
+  //   objLoader.setMaterials(materialCreator);
+  
+  //   this.floorPlanModel = objLoader.parse(file.obj);
+  //   this.floorPlanModel.traverse((child) => {
+  //     if (child instanceof THREE.Mesh) {
+  //       child.material.side = THREE.DoubleSide;
+  //     }
+  //   });
+  
+  //   this.floorplan.add(this.floorPlanModel);
+  //   ['showFloorPlanImage'].forEach(k => this.uiToggled(k))
+  //   this.uiSrv.loadAsyncDone(ticket)
+  // }
+
+
+  // async load3DFloorPlanFromAzureStorage(floorPlanCode : string) : Promise<boolean>{
+  //   const file = await this.dataSrv.getArcs3DFloorPlanBlob(floorPlanCode)
+  //   const settings =  await this.dataSrv.getArcs3DFloorPlanSettings(floorPlanCode)
+  //   if(file){
+  //     (<THREE.MeshPhongMaterial>this.floorplan.material).visible = false
+  //     await this.loadFloorPlanModelFromBlob(file);
+  //     this.floorPlanModel.scale.set((settings).scale , (settings).scale , (settings).scale)
+  //     this.floorPlanModel.position.set((settings).positionX , (settings).positionY , (settings).positionZ)
+  //     this.floorPlanModel.rotation.set(settings.rotationX / radRatio , settings.rotationY / radRatio , settings.rotationZ / radRatio)
+  //     return true
+  //   }else{
+  //     (<THREE.MeshPhongMaterial>this.floorplan.material).visible = true
+  //     return false
+  //   }
+  // }
+  
+
+  // async init3dModelFromAssets() {
+  //   let tenantCode = this.util.getTenantCode()
+  //   let path = `${ASSETS_ROOT}/floorplans/${tenantCode}/${this.floorPlanDataset.floorPlanCode}`
+  //   let settings = await this.dataSrv.getAssets(path + '.json')
+  //   this.floorplan.settings = settings
+  //   path = this.uiSrv.detectMob() && settings.tabletPath?  settings.tabletPath : (settings?.path ? settings.path : path + '.glb') 
+  //   let transform = (obj: THREE.Group) => {
+  //     obj.rotation.set(settings.rotate?.x ? settings.rotate?.x : 0, settings.rotate?.y ? settings.rotate?.y : 0, settings.rotate?.z ? settings.rotate?.z : 0)
+  //     if (settings?.scale) {
+  //       obj.scale.set(settings?.scale, settings?.scale, settings?.scale)
+  //     }
+  //     obj.position.set(settings.position?.x ? settings.position?.x : 0, settings.position?.y ? settings.position?.y : 0, settings.position?.z ? settings.position?.z : 0)
+      
+  //     obj.traverse((c) => {
+  //       if(c instanceof Mesh){
+  //         var prevMaterial = c.material; 
+  //         c.material = new MeshPhongMaterial();      
+  //         MeshBasicMaterial.prototype.copy.call( c.material, prevMaterial );
+  //       }      
+  //     });
+  //   }
+  //   // let fileExt = settings?.fileExtension ? settings?.fileExtension : '.glb'
+  //   if (settings && settings?.withModel != false) {
+  //     if (path.endsWith(".glb") || path.endsWith(".gltf") ) {
+  //       const dracoLoader = new DRACOLoader();
+  //       dracoLoader.setDecoderPath(ASSETS_ROOT + '/draco/');      
+  //       const loader =  new GLTFLoader();
+  //       loader.setDRACOLoader(dracoLoader);
+  //       loader.load(path, (gltf: GLTF) => {   
+  //         this.loadingPercent = null
+  //         let obj = gltf.scene
+  //         transform(obj)
+  //         this.floorplan.add(obj)
+  //       }, this.onObjProgress)
+  //     } else if (path.endsWith(".obj")) {
+  //       var mtlLoader = new MTLLoader();
+  //       mtlLoader.load(path.substring(0, path.length - 4) + '.mtl', (materials) => {
+  //         materials.preload();
+  //         var objLoader = new OBJLoader();
+  //         objLoader.setMaterials(materials);
+  //         objLoader.load(path, (obj) => {
+  //           this.loadingPercent = null
+  //           transform(obj)
+  //           this.floorplan.add(obj)
+  //         }, this.onObjProgress);
+  //       });
+  //     }
+  //   } else {
+  //     (<THREE.MeshPhongMaterial>this.floorplan.material).visible = true
+  //   }
+  //   // //TESTING
+  //   // (<THREE.MeshPhongMaterial>this.floorplan.material).visible = true
+  //   // //TESTING
+
+  //   if(settings?.walls){
+  //     this.initWalls(settings.walls , settings.wallHeight);
+  //   }
+
+  //   //elevators
+  //   if(settings?.elevators ){
+  //     this.initElevators( settings.floor , settings.elevators)
+  //   }
+  //   //turnstile
+  //   if(settings?.turnstiles ){
+  //     this.initTurnstile( settings.turnstiles)
+  //   }
+  // }
+
 
 class FloorPlanMesh extends Mesh{
   width 
@@ -2335,3 +2416,80 @@ class Import3DModelSettings {
 //   depthTest: false,
 //   depthWrite: false,
 //   transparent: true
+
+
+  
+// async loadFloorPlanModelFromUnzippedObj( zip? : Blob) {
+//   let ticket = this.uiSrv.loadAsyncBegin()
+//   let unzippedData = await new JSZIP.default().loadAsync(zip)
+//   const objs = Object.keys(unzippedData.files).filter(k => k.split(".")[k.split(".").length - 1]?.toLowerCase() == 'obj')
+//   const mtls = Object.keys(unzippedData.files).filter(k => k.split(".")[k.split(".").length - 1]?.toLowerCase() == 'mtl')
+//   if (objs.length != 1) {
+//     this.uiSrv.showNotificationBar("The zip file must contain exactly 1 .obj file", "warning")
+//     this.uiSrv.loadAsyncDone(ticket)
+//     return
+//   } else if (mtls.length != 1) {
+//     this.uiSrv.showNotificationBar("The zip file must contain exactly 1 .mtl file", "warning")
+//     this.uiSrv.loadAsyncDone(ticket)
+//     return
+//   }
+//   const textureFiles = unzippedData.file(/^.*\.(jpg|png)$/i)
+//   let objPromise = unzippedData.file(objs[0]).async('string');
+//   let mtlPromise = unzippedData.file(mtls[0]).async('string');
+//   let texturesData = {}
+//   let texturePromises = textureFiles.map((file) => file.async('base64'));
+
+//   let [objData, mtlData, ...imagesData] = await Promise.all([objPromise, mtlPromise, ...texturePromises]);
+//   for (let i = 0; i < textureFiles.length; i++) {
+//     texturesData[textureFiles[i].name.split("/")[textureFiles[i].name.split("/").length - 1]] = imagesData[i]
+//   }
+//   const objLoader = new OBJLoader();
+//   const mtlLoader = new MTLLoader();
+
+//   const materialCreator = mtlLoader.parse(mtlData, '');
+
+//   materialCreator.preload()
+
+//   console.log(materialCreator)
+//   objLoader.setMaterials(materialCreator);
+
+//   this.floorPlanModel = objLoader.parse(objData);
+
+//   // const loadingManager = new THREE.LoadingManager();
+//   // const arrayBufferStore = {}
+//   // const urls = Object.keys(unzippedData.files)
+//   // let array = await Promise.all(urls.map((url) => unzippedData.file(url).async("arraybuffer")))
+//   // for(let i = 0 ; i< urls.length ; i ++){
+//   //   arrayBufferStore[urls[i]] = array[i]
+//   // }
+
+//   // loadingManager.setURLModifier((url) => {
+//   //     const arrayBuffer = arrayBufferStore[url]
+//   //     const uint8Array = new Uint8Array(arrayBuffer as ArrayBuffer);
+//   //     const blob = new Blob([uint8Array], { type: "application/octet-stream" });
+//   //     const objectURL = URL.createObjectURL(blob);
+//   //     console.log(objectURL)
+//   //     return objectURL;
+//   // })
+
+//   // const mtlLoader = new MTLLoader(loadingManager);
+//   // const materials = mtlLoader.parse(await unzippedData.file(mtls[0]).async('string'), '');
+//   // this.floorPlanModel = new OBJLoader().setMaterials(materials).parse(await  unzippedData.file(objs[0]).async('string'));
+
+
+//        // const textureFiles = zip.file(/^.*\.(jpg|png)$/i)
+//     // let objPromise = zip.file(objs[0]).async('string');
+//     // let mtlPromise = zip.file(mtls[0]).async('string');
+//     // let texturesData = {}
+//     // let texturePromises = textureFiles.map((file) => file.async('base64'));
+    
+//     // let [objData, mtlData, ...imagesData] = await Promise.all([objPromise, mtlPromise, ...texturePromises]);
+//     // for(let i = 0 ; i < textureFiles.length ; i ++){
+//     //   texturesData[textureFiles[i].name.split("/")[textureFiles[i].name.split("/").length - 1]] = imagesData[i]
+//     // }
+
+
+//   this.floorplan.add(this.floorPlanModel);
+//   ['showFloorPlanImage'].forEach(k => this.uiToggled(k))
+//   this.uiSrv.loadAsyncDone(ticket)
+// }

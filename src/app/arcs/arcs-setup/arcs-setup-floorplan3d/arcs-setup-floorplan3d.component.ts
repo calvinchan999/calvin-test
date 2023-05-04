@@ -19,6 +19,7 @@ import { PixiGraphicStyle, DRAWING_STYLE } from 'src/app/utils/ng-pixi/ng-pixi-v
 import { PixiEditableMapImage, PixiWayPoint } from 'src/app/utils/ng-pixi/ng-pixi-viewport/ng-pixi-map-graphics';
 import { HttpEventType } from '@angular/common/http';
 import { ThreejsViewportComponent } from 'src/app/ui-components/threejs-viewport/threejs-viewport.component';
+// import * as JSZIP from '@progress/jszip-esm';
 
 @Component({
   selector: 'app-arcs-setup-floorplan3d',
@@ -79,6 +80,7 @@ export class ArcsSetupFloorplan3dComponent implements OnInit {
   }
 
   file: Blob = null
+  fileType = 'glb'
   loadingTicket
   subscriptions = []
   pixiMapBorders = []
@@ -118,19 +120,31 @@ export class ArcsSetupFloorplan3dComponent implements OnInit {
     if (files.length === 0) {
       return;
     }
+    
+    
     let max_file_size = this.util.config['UPLOAD_MODEL_MAX_SIZE_KB'] ? this.util.config['UPLOAD_MODEL_MAX_SIZE_KB'] : 102400
     this.frmGrp.controls['fileName'].setValue(files[0].name)
     if (files[0].size / 1024 > max_file_size) {
       this.uiSrv.showWarningDialog(this.uiSrv.translate(`The uploaded file exceeds the maximum size`) + `( ${max_file_size > 1024 ? (max_file_size / 1024 + 'MB') : (max_file_size + 'KB')} )`);
       return;
     }
+    
+
     let ticket = this.uiSrv.loadAsyncBegin()
     var reader = new FileReader();
+    this.fileType = files[0].name.split(".")[files[0].name.split.length - 1]
     reader.readAsArrayBuffer(files[0])
     reader.onload = async (event) => {
       this.file = new Blob([event.target.result]);
       await this.load3DModel()
       this.uiSrv.loadAsyncDone(ticket)
+      // if (this.fileType == 'glb') {
+      //   await this.load3DModel({glb : this.file})
+      //   this.uiSrv.loadAsyncDone(ticket)
+      // } else if (this.fileType == 'zip') {
+      //   await this.load3DModel({zip : this.file})
+      //   this.uiSrv.loadAsyncDone(ticket)
+      // }
       // event.target.value = null
     }
   }
@@ -144,7 +158,6 @@ export class ArcsSetupFloorplan3dComponent implements OnInit {
 
   async loadData(id) {
     this.file =  await this.dataSrv.getArcs3DFloorPlanBlob( id.toString())    
-    console.log(this.file)
     const data = await this.dataSrv.getArcs3DFloorPlanSettings(id.toString())
     if(data){
       this.util.loadToFrmgrp(this.frmGrp , data)
@@ -275,3 +288,40 @@ export class ArcsSetupFloorplan3dComponent implements OnInit {
   }
 }
 
+
+
+        // new JSZIP.default().loadAsync(this.file).then(async(zip) => {
+        //   const objs = Object.keys(zip.files).filter(k => k.split(".")[k.split(".").length - 1]?.toLowerCase() == 'obj')
+        //   const mtls = Object.keys(zip.files).filter(k => k.split(".")[k.split(".").length - 1]?.toLowerCase() == 'mtl')
+        //   if (objs.length != 1) {
+        //     this.uiSrv.showNotificationBar("The zip file must contain exactly 1 .obj file", "warning")
+        //     this.uiSrv.loadAsyncDone(ticket)
+        //     return
+        //   } else if (mtls.length != 1) {
+        //     this.uiSrv.showNotificationBar("The zip file must contain exactly 1 .mtl file", "warning")
+        //     this.uiSrv.loadAsyncDone(ticket)
+        //     return
+        //   }
+        //   const textureFiles = zip.file(/^.*\.(jpg|png)$/i)
+        //   let objPromise = zip.file(objs[0]).async('string');
+        //   let mtlPromise = zip.file(mtls[0]).async('string');
+        //   let texturesData = {}
+        //   let texturePromises = textureFiles.map((file) => file.async('base64'));
+          
+        //   let [objData, mtlData, ...imagesData] = await Promise.all([objPromise, mtlPromise, ...texturePromises]);
+        //   for(let i = 0 ; i < textureFiles.length ; i ++){
+        //     texturesData[textureFiles[i].name.split("/")[textureFiles[i].name.split("/").length - 1]] = imagesData[i]
+        //   }
+
+        //   // for (let i = 0; i < textureFiles.length; i++) {
+        //   //   texturesData[textureFiles[i].name.split('.')[0]] = await textureFiles[i].async('base64')
+        //   // }
+        //   await this.load3DModel({obj: objData , mtl : mtlData , textures : texturesData})
+        //   this.uiSrv.loadAsyncDone(ticket)
+
+        //   // Object.keys(zip.files).forEach(function (filename) {
+        //   //   zip.files[filename].async('string').then(function (fileData) {
+        //   //     console.log(fileData) // These are your file contents      
+        //   //   })
+        //   // })
+        // })

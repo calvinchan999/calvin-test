@@ -3,7 +3,7 @@
         <div>{{'3D Floor Plan' | label: uiSrv.langPack}}</div>
     </kendo-dialog-titlebar>
 
-    <input hidden type="file" #uploader (change)="onfileLoad($event)" accept=".glb , .zip" />
+    <input hidden type="file" #uploader (change)="onfileLoad($event)" accept=".glb" />
 
     <div class="container"  #container>      
         <ng-container *ngIf="!uiSrv.isTablet">
@@ -38,7 +38,7 @@
         </ng-container>
 
         <div *ngIf="file && floorPlanDataset" class="three-d-container"> 
-            <uc-3d-viewport #threeJs [uiToggles] = "{showFloorPlanImage : false}">
+            <uc-3d-viewport #threeJs [uiToggles] = "{showFloorPlanImage : false , transformControl : true}">
             </uc-3d-viewport>
         </div>        
         <div *ngIf="!file && floorPlanDataset" class="upload-container">

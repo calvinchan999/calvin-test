@@ -692,7 +692,6 @@ export class ArcsDashboardComponent implements OnInit {
   }
 
   showRobotDetailDialog(id){
-    console.log(id)
     this.robotDetailId = id
     const dialog : DialogRef = this.uiSrv.openKendoDialog({
       content: ArcsDashboardRobotDetailComponent ,   
