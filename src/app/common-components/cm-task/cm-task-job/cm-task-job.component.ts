@@ -303,8 +303,9 @@ export class CmTaskJobComponent implements OnInit {
     let pointType = this.dropdownData.locations.filter(l=>l.pointCode == row?.pointCode)[0]?.pointType
     let robotType = this.frmGrp.controls['robotType']?.value ? this.frmGrp.controls['robotType'].value : this.dropdownData.robots?.filter(r=> r.robotCode == this.frmGrp.controls['robotCode'].value)[0]?.robotType
     return this.dropdownData.actions.filter(a => {
-      if((this.frmGrp.controls['robotType']?.value && !a.allowedRobotTypes.includes(robotType)) || 
-         (pointType && !a.allowedPointTypes.includes(pointType))){
+      if((this.frmGrp.controls['robotType']?.value && 
+          (a.allowedRobotTypes && !a.allowedRobotTypes.includes(robotType))) || 
+          (pointType && (a.allowedPointTypes && !a.allowedPointTypes.includes(pointType)))){
         return false
       }else {
         return true

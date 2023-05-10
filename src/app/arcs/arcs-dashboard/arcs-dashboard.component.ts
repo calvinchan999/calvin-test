@@ -143,13 +143,19 @@ export class ArcsDashboardComponent implements OnInit {
     }
   }
   
+
   getTabs(){
+    const extraTabsByRobotType = {
+      PATROL: [{ id: 'patrol_playback', label: 'Playback', functionId : 'PATROL_PLAYBACK' }]
+    }
     return (this.robotTypeFilter ? [
       { id: 'dashboard', label: 'Dashboard' , authorized : false},
       { id: 'task', label: 'Task' , functionId :  this.gridSettings.task.functionId},
       { id: 'template', label: 'Task Template' ,  functionId :  this.gridSettings.template.functionId},
       { id: 'schedule' , label : 'Schedule', functionId :  this.gridSettings.schedule.functionId},
-    ] : 
+    ].
+    concat(extraTabsByRobotType[this.robotTypeFilter.toUpperCase()] ? extraTabsByRobotType[this.robotTypeFilter.toUpperCase()] : []) : 
+
     [
       { id: 'dashboard', label: 'Dashboard', authorized: false } , 
       { id: 'usability', label: 'Usability', authorized: false },

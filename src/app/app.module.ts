@@ -100,7 +100,7 @@ import {MatToolbarModule} from '@angular/material/toolbar';
 import {MatTooltipModule} from '@angular/material/tooltip';
 import {MatTreeModule} from '@angular/material/tree';
 import {OverlayModule} from '@angular/cdk/overlay';
-import {MsgDialogContent} from  './services/ui.service';
+import {MsgDialogContent, SafePipe} from  './services/ui.service';
 import { PowerBIEmbedModule } from 'powerbi-client-angular';
 import { RECAPTCHA_V3_SITE_KEY, RecaptchaV3Module } from "ng-recaptcha";
 
@@ -168,7 +168,7 @@ import { SaMapComponent } from './standalone/sa-map/sa-map.component';
 import { DropdownComponent } from './ui-components/dropdown/dropdown.component';
 import { SaControlComponent } from './standalone/sa-control/sa-control.component';
 import { SaTaskComponent } from './standalone/sa-task/sa-task.component';
-import { ListviewComponent , rowDetailToolTipPipe } from './ui-components/listview/listview.component';
+import { ListviewComponent , rowDetailToolTipPipe as RowDetailToolTipPipe } from './ui-components/listview/listview.component';
 import { DateInputComponent } from './ui-components/date-input/date-input.component';
 import { ChangePasswordComponent } from './common-components/header/change-password/change-password.component';
 import { ListViewModule } from '@progress/kendo-angular-listview';
@@ -234,6 +234,7 @@ import { FilterModule } from '@progress/kendo-angular-filter';
 import { WorkflowDesignerComponent } from './ui-components/workflow-designer/workflow-designer.component';
 import { PinKeypadComponent } from './ui-components/pin-keypad/pin-keypad.component';
 import { ArcsSetupFloorplan3dComponent } from './arcs/arcs-setup/arcs-setup-floorplan3d/arcs-setup-floorplan3d.component';
+import { ArcsPatrolPlaybackComponent } from './arcs/arcs-dashboard/arcs-patrol-playback/arcs-patrol-playback.component';
 // import { WorkflowComponent } from './ui-components/workflow/workflow.component';
 // import { SequentialWorkflowDesignerModule } from 'sequential-workflow-designer-angular';
 
@@ -262,10 +263,10 @@ import { ArcsSetupFloorplan3dComponent } from './arcs/arcs-setup/arcs-setup-floo
         DropdownDescPipe,
         TranslatePipe,      
         WaypointNamePipe,
-        CssClassNamePipe,
+        CssClassNamePipe,        
+        RowDetailToolTipPipe,
+        SafePipe,
         
-        rowDetailToolTipPipe,
-  
         TableComponent,
         MsgDialogContent,
         TxtboxComponent,
@@ -336,6 +337,7 @@ import { ArcsSetupFloorplan3dComponent } from './arcs/arcs-setup/arcs-setup-floo
         WorkflowDesignerComponent,
         PinKeypadComponent,
         ArcsSetupFloorplan3dComponent,
+        ArcsPatrolPlaybackComponent,
         // WorkflowComponent        
     ],
     imports: [

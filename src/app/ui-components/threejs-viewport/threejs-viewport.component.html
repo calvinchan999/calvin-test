@@ -35,9 +35,9 @@
   <button *ngIf="uiToggles.showFloorPlanImage !== undefined" kendoButton class="wall" [matTooltip]="'Show 2D Floor Plan' | label : uiSrv.langPack" (click)="uiToggles.showFloorPlanImage = !uiToggles.showFloorPlanImage ; uiToggled('showFloorPlanImage')" [ngClass]="{'btn-active':uiToggles.showFloorPlanImage}" >
     <span class="mdi mdi-floor-plan"></span>
   </button>
-  <!-- <button *ngIf="uiToggles.transformControl !== undefined" kendoButton class="wall" [matTooltip]="'Show Transform Controller' | label : uiSrv.langPack" (click)="uiToggles.transformControl = !uiToggles.transformControl ; uiToggled('transformControl')" [ngClass]="{'btn-active':uiToggles.transformControl}" >
+  <button *ngIf="uiToggles.transformControl !== undefined" kendoButton class="wall" [matTooltip]="'Show Transform Controller' | label : uiSrv.langPack" (click)="uiToggles.transformControl = !uiToggles.transformControl ; uiToggled('transformControl')" [ngClass]="{'btn-active':uiToggles.transformControl}" >
     <span class="mdi mdi-resize"></span>
-  </button> -->
+  </button>
 </div>
 <div #canvas class="canvas-container"></div>
 

@@ -242,7 +242,7 @@ export class ThreejsViewportComponent implements OnInit , OnDestroy{
     } else if (key == 'showFloorPlanImage') {
       (<THREE.MeshPhongMaterial>this.floorplan.material).visible = this.uiToggles.showFloorPlanImage
     }else if(key == 'transformControl' && this.floorPlanModel && this.transformCtrl){
-      // this.transformCtrl.visible =  this.uiToggles.transformControl
+      this.transformCtrl.visible =  this.uiToggles.transformControl
     }
   }
 
@@ -591,11 +591,9 @@ export class ThreejsViewportComponent implements OnInit , OnDestroy{
 
     this.scene.add(this.transformCtrl)
     this.orbitCtrl = new OrbitControls( this.camera, this.labelRenderer.domElement );
-    // this.orbitCtrl .addEventListener("change", render);
     // this.orbitCtrl.enabled  = false
     // this.orbitCtrl.addEventListener( 'change', (v)=> this.onOrbitControlChange(v) );
     document.addEventListener('pointermove', (e)=>this.onMouseMove(e), false);
-    this.transformCtrl.addEventListener("change", ()=> this.animate());
     this.transformCtrl.addEventListener("dragging-changed", function (event) {
       console.log("dragging-changed ", event);
       if (!event.value) {

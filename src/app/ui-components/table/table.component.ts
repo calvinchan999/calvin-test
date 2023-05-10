@@ -66,7 +66,7 @@ export class TableComponent implements OnInit {
 
   public buttonCount = 5;
   public info = true;
-  public pageSizes = [5,10,15,20,50,100];
+  public pageSizes = [5, 10, 15, 20, 50, 100];
   public previousNext = true;
   public position = "bottom";
   public mySelection = []
@@ -74,7 +74,7 @@ export class TableComponent implements OnInit {
   public isRowSelected = (e: RowArgs) => this.selectedData.includes(e.dataItem)
   public state: DataStateChangeEvent = {skip: 0 , take: this.defaultPageSize};
   @Input() defaultState: DataStateChangeEvent = null;
-  fixedColumnWidth = 45
+  fixedColumnWidth = 50
   flexTableWidth = null
   columnTtlWidth = 0
   containerWidth

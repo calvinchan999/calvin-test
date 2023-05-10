@@ -73,7 +73,7 @@ export class SaMapImportComponent implements OnInit {
     // let ticket = this.uiSrv.loadAsyncBegin()
     // below to be moved to httpSrv
     const formData = new FormData();
-    formData.append('file', this.file, this.file.name);
+    formData.append('zip', this.file, this.file.name);
     this.isUploading = true   
     this.httpSrv.http.put(this.util.getRvApiUrl() + `/api/map/import/v1/${this.frmGrp.controls['mapCode'].value}`, formData, { reportProgress: true, observe: 'events'}).subscribe(resp => {
       if (resp.type === HttpEventType.Response) {       

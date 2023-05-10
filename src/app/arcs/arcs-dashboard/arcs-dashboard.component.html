@@ -173,6 +173,8 @@
     </uc-table>
 </div>
 
+<app-arcs-patrol-playback *ngIf="selectedTab == 'patrol_playback'" ></app-arcs-patrol-playback>
+
 <ng-container class="charts-container" *ngIf="selectedTab == 'usability' || selectedTab == 'utilization' || selectedTab == 'analysis' ">
     <app-arcs-charts [chartType]="selectedTab" ></app-arcs-charts>
 </ng-container>

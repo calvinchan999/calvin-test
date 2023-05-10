@@ -1,0 +1,36 @@
+<div class="table-container">
+    <uc-table #table  [toolbarButtons] ="tableButtons" [columnDefs] = "gridColumns" [(data)]="data"    
+                      functionId = "PATROL_PLAYBACK"
+                      [dataSourceApiEndpoint] = "'api/media/azureStorageList/v1'"
+                      [disabledButtons] = "tableDisabledButtons" 
+                      (selectedDataChange) = "tableDisabledButtons = {new : false , action : $event.length == 0}"
+                      (actionClick) = "$event.actionId == 'delete' ? delete(): null " [serverSidePagination] = "false"
+                      (cellClick) = "$event.column ==  'play' ? selectedRow = $event.row : null"
+                      [useColumnFilter]='true' [defaultState]="{skip: 0 , take: 15 , sort:[{dir: 'desc' , field: 'name'}]}">
+    </uc-table>
+</div>
+
+
+<kendo-dialog *ngIf="selectedRow != null"  [title]="('Patrol Robot Playback : ' | label : uiSrv.langPack) + ' ' + selectedRow.robotCode + ' (' +  selectedRow.name  + ')'"
+               (close)="selectedRow = null" [minWidth]="250" >
+    <div class="video-container">
+        <video controls>
+            <source [src]="selectedRow.url" />
+        </video>
+    </div>
+
+            <!-- <iframe [src] = "'https://www.rv-arcs.com' | safe" sandbox="allow-scripts allow-same-origin"></iframe> -->
+        <!-- <iframe [src] = "'https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3022.042331806074!2d-73.98509768459363!3d40.74881797922963!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x89c2596b4a4bb4e3%3A0x9f6fc6a7674a1f4c!2sEmpire%20State%20Building!5e0!3m2!1sen!2sus!4v1620662639426!5m2!1sen!2sus'|safe" 
+        width="600" 
+        height="450" 
+        frameborder="0" 
+        style="border:0" 
+        allowfullscreen 
+        sandbox="allow-scripts allow-same-origin"></iframe> -->
+        <!-- <button kendoButton> {{ 'Cancel' | label : uiSrv.langPack }}</button> -->
+<!-- 
+    <kendo-dialog-actions>
+        <button kendoButton (click)="selectedRow = null"> {{ 'OK' | label : uiSrv.langPack }} </button>
+
+    </kendo-dialog-actions> -->
+</kendo-dialog>

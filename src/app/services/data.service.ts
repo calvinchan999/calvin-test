@@ -707,11 +707,12 @@ export class DataService {
     if(!this.util.getCurrentUser()){
       return
     }
+    const PUB_SUB_IGNORE_SFX_LIST = ['arcsPoses' , 'battery' , 'speed'];
     let mapping = this.signalRMaster[type].mapping
     let subscribedCount = this.getSubscribedCount(type, paramString) 
     let topicSfx = paramString == '' ? '' : '/' + paramString 
     let newSubscription =  !(this._USE_AZURE_PUBSUB ? this.pubsubSrv.getCreatedTopics() : this.signalRSrv.subscribedTopics).includes(this.signalRMaster[type].topic + topicSfx)
-    let ret = this._USE_AZURE_PUBSUB ?(await this.pubsubSrv.subscribeTopic(this.signalRMaster[type].topic )): (await this.signalRSrv.subscribeTopic(this.signalRMaster[type].topic + topicSfx , subscribedCount == 0)) 
+    let ret = this._USE_AZURE_PUBSUB ? (await this.pubsubSrv.subscribeTopic(this.signalRMaster[type].topic + (PUB_SUB_IGNORE_SFX_LIST.includes(type) ? '' : topicSfx))) : (await this.signalRSrv.subscribeTopic(this.signalRMaster[type].topic + topicSfx, subscribedCount == 0))
     let $unsubscribed = this.signalRSrv.getUnsubscribedSubject(this.signalRMaster[type].topic + topicSfx)
     if (subscribedCount == 0 || getLatestFromApi ) {           
       if (mapping != undefined && mapping != null) {
@@ -756,7 +757,7 @@ export class DataService {
       if (newSubscription) {
         //20220804 added take until
         ret.pipe(takeUntil($unsubscribed ? $unsubscribed  : new Subject<any>())).subscribe(
-          (data) => this.updateSignalRBehaviorSubject(type, JSON.parse(data), paramString)
+          (data) =>  this.updateSignalRBehaviorSubject(type, JSON.parse(data), paramString)
         )
       }
     }
@@ -770,11 +771,11 @@ export class DataService {
       console.log(`[${new Date().toDateString()}] SignalR Received [${type.toUpperCase()}] : ${JSON.stringify(data)}`)
     }
     // data = JSON.parse(data)
-    if (this.util.arcsApp && this._USE_AZURE_PUBSUB && param != '') {
-      if ((type == 'arcsPoses' && data['mapName'] != param) || (type != 'arcsPoses' && data['robotId'] != param)) {
-        return
-      }
-    }
+    // if (this.util.arcsApp && this._USE_AZURE_PUBSUB && param != '') {
+    //   if ((type == 'arcsPoses' && data['mapName'] != param) || (type != 'arcsPoses' && data['robotId'] != param)) {
+    //     return
+    //   }
+    // }
 
     Object.keys(mapping).forEach(k => {
       if (mapping[k] == null) {
