@@ -301,7 +301,6 @@ export class SaTopModuleComponent implements OnInit , OnDestroy {
       //     }
       //   ]
       // }`
-     
       if(containersResp.status == 200 && containersResp?.body){
         var containers = JSON.parse(containersResp.body)?.[ hasDoors ? 'doorList' : 'levelList']
         let doorIds = containers.map(d=>d['id'])
@@ -389,7 +388,7 @@ export class SaTopModuleComponent implements OnInit , OnDestroy {
         })
 
       }else{
-        this.uiSrv.showNotificationBar("Error : GET [cabinet/v1] failed")
+        console.log(`Warning : GET ${(hasDoors ? "cabinet" : "trayRack" ) + `/v1${this.util.arcsApp? ('/' + this.arcsRobotCode) : ''}`} failed / return emtpy content : ${containersResp.body}`)
       }
       this.updateCabinetAvailabilityIcon()
     }
@@ -479,7 +478,7 @@ export class SaTopModuleComponent implements OnInit , OnDestroy {
   ngOnDestroy(){
     this.$onDestroy.next()
     if(this.arcsRobotSubType == 'CABINET_DELIVERY' && this.arcsRobotType == 'DELIVERY'){ //TBR !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-      this.dataSrv.unsubscribeSignalR('cabinet')
+      this.dataSrv.unsubscribeSignalR('cabinet' , false , this.util.arcsApp ? this.arcsRobotCode : undefined)
     }
     this.dataSrv.unsubscribeSignalRs( this.signalRSubscribedTopics , false , this.util.arcsApp ? this.arcsRobotCode : undefined)
   }

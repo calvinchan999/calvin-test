@@ -143,8 +143,8 @@ export class AzurePubsubService {
   }
 
   async unsubscribeTopic(topic: string) {
-    this.topicSubjStore[topic]['$unsubscribed']?.next()
-    this.topicSubjStore[topic] = null
+    this.topicSubjStore[topic]?.['$unsubscribed']?.next()
+    delete this.topicSubjStore[topic] 
     this.webSocket?.send(JSON.stringify({type: "leaveGroup", group: topic, ackId : this.autoId}))
     this.subscribedTopics = this.subscribedTopics.filter(t=>t!=topic)
   }

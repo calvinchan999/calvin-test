@@ -13,6 +13,9 @@ import { AzurePubsubService } from './azure-pubsub.service';
 import { DatePipe } from '@angular/common'
 import { ConfigService } from './config.service';
 import { HttpEventType, HttpHeaders } from '@angular/common/http';
+
+
+const PUB_SUB_IGNORE_SFX_LIST = ['arcsPoses' , 'battery' , 'speed'];
 export type syncStatus = 'TRANSFERRED' | 'TRANSFERRING' | 'MALFUNCTION'
 export type syncLog =  {dataSyncId? : string , dataSyncType? : string , objectType? : string , dataSyncStatus?: syncStatus , objectCode?: string , robotCode?: string , progress? : any , startDateTime? : Date , endDateTime : Date  }
 export type dropListType =  'floorplans' | 'buildings' | 'sites' | 'maps' | 'actions' | 'types' | 'locations' | 'userGroups' | 'subTypes' | 'robots' | 'missions' | 'taskFailReason' | 'taskCancelReason'
@@ -691,7 +694,7 @@ export class DataService {
       Object.keys(mapping).forEach(k => this.signalRSubj[k].next(null))
       let topicSfx =  paramString == '' ? '' : '/' + paramString 
       if(this._USE_AZURE_PUBSUB){
-        this.pubsubSrv.unsubscribeTopic(this.signalRMaster[type].topic)
+        this.pubsubSrv.unsubscribeTopic(this.signalRMaster[type].topic + (PUB_SUB_IGNORE_SFX_LIST.includes(type) ? '' : topicSfx))
       }else{
         this.signalRSrv.unsubscribeTopic(this.signalRMaster[type].topic + topicSfx)
       }
@@ -707,7 +710,6 @@ export class DataService {
     if(!this.util.getCurrentUser()){
       return
     }
-    const PUB_SUB_IGNORE_SFX_LIST = ['arcsPoses' , 'battery' , 'speed'];
     let mapping = this.signalRMaster[type].mapping
     let subscribedCount = this.getSubscribedCount(type, paramString) 
     let topicSfx = paramString == '' ? '' : '/' + paramString 
@@ -770,7 +772,7 @@ export class DataService {
     if (this.util.config.DEBUG_SIGNALR && (!this.util.config.DEBUG_SIGNALR_TYPE || this.util.config.DEBUG_SIGNALR_TYPE?.length == 0 || type == this.util.config.DEBUG_SIGNALR_TYPE)) {
       console.log(`[${new Date().toDateString()}] SignalR Received [${type.toUpperCase()}] : ${JSON.stringify(data)}`)
     }
-    // data = JSON.parse(data)
+    
     // if (this.util.arcsApp && this._USE_AZURE_PUBSUB && param != '') {
     //   if ((type == 'arcsPoses' && data['mapName'] != param) || (type != 'arcsPoses' && data['robotId'] != param)) {
     //     return

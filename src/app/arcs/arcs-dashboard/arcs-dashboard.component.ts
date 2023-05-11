@@ -366,7 +366,6 @@ export class ArcsDashboardComponent implements OnInit {
 
   async setFloorplanRobotCount(options :  { value: string, text: string, suffix: string }[]) {
     let ticket = this.uiSrv.loadAsyncBegin()
-    console.log(this.robotTypeFilter)
     let robotInfo: RobotStatusARCS[] = await this.dataSrv.httpSrv.fmsRequest('GET', 'robot/v1/robotInfo' + (this.robotTypeFilter ? `?robotType=${this.robotTypeFilter.toUpperCase()}` : ''), undefined, false)
     options.forEach((o) => {
       let count = robotInfo.filter(r => r.floorPlanCode == o.value).length
@@ -522,13 +521,14 @@ export class ArcsDashboardComponent implements OnInit {
   }
 
   async refreshRobotStatus(data: RobotStatus[] = null){
-    if(!this.currentFloorPlan){
-      return
-    }
+    // if(!this.currentFloorPlan){
+    //   return
+    // }
     const filters = this.getStatusListUrlParam()
-    console.log(this.robotTypeFilter)
     data = data == null ?  await this.dataSrv.httpSrv.fmsRequest('GET', 'robot/v1/robotInfo' + this.getStatusListUrlParam(), undefined, false) : data
     if(filters!= this.getStatusListUrlParam()){ //validate concurrency
+      console.log(filters)
+      console.log(this.getStatusListUrlParam())
       return
     }
 
@@ -595,36 +595,38 @@ export class ArcsDashboardComponent implements OnInit {
       i.alertCount = data.filter(s => alerted(s) && s.robotType == i.robotType).length
     })    
     
-    for(let i = 0 ; i < data.length ; i ++){
-      let d = data[i];
-      let robot : Robot | RobotObject3D = this.pixiElRef ? this.pixiElRef?.robots.filter(r=>r.id == d.robotCode)[0] : this.threeJsElRef?.robotObjs.filter(r=>r.robotCode == d.robotCode)[0]
-      if (!robot && d.robotStatus == "UNKNOWN" && (this.pixiElRef || this.threeJsElRef)) {// STILL SHOW OFFLINE ROBOT , GET POSE FROM API
-        let pose: { x: number, y: number, angle: number } = await this.httpSrv.fmsRequest('GET', 'robotStatus/v1/robotTaskStatus/pose/' + d.robotCode, undefined, false)
-        let mapCode = this.currentFloorPlan.mapList.map(m => m.mapCode)[0]
-        let robotInfo = (await this.dataSrv.getRobotList()).filter(r => r.robotCode == d.robotCode)[0]
-        let arcsPoseObj = this.dataSrv.signalRSubj.arcsPoses.value ? JSON.parse(JSON.stringify(this.dataSrv.signalRSubj.arcsPoses.value)) : {}
-        arcsPoseObj[mapCode] = arcsPoseObj[mapCode] ? arcsPoseObj[mapCode] : {}
-        arcsPoseObj[mapCode][d.robotCode] = {
-          x: pose.x, y: pose.y, angle: pose.angle,
-          mapName: mapCode,
-          timeStamp: new Date().getTime(),
-          interval: 0
+    if( this.currentFloorPlan){
+      for(let i = 0 ; i < data.length ; i ++){
+        let d = data[i];
+        let robot : Robot | RobotObject3D = this.pixiElRef ? this.pixiElRef?.robots.filter(r=>r.id == d.robotCode)[0] : this.threeJsElRef?.robotObjs.filter(r=>r.robotCode == d.robotCode)[0]
+        if (!robot && d.robotStatus == "UNKNOWN" && (this.pixiElRef || this.threeJsElRef)) {// STILL SHOW OFFLINE ROBOT , GET POSE FROM API
+          let pose: { x: number, y: number, angle: number } = await this.httpSrv.fmsRequest('GET', 'robotStatus/v1/robotTaskStatus/pose/' + d.robotCode, undefined, false)
+          let mapCode = this.currentFloorPlan.mapList.map(m => m.mapCode)[0]
+          let robotInfo = (await this.dataSrv.getRobotList()).filter(r => r.robotCode == d.robotCode)[0]
+          let arcsPoseObj = this.dataSrv.signalRSubj.arcsPoses.value ? JSON.parse(JSON.stringify(this.dataSrv.signalRSubj.arcsPoses.value)) : {}
+          arcsPoseObj[mapCode] = arcsPoseObj[mapCode] ? arcsPoseObj[mapCode] : {}
+          arcsPoseObj[mapCode][d.robotCode] = {
+            x: pose.x, y: pose.y, angle: pose.angle,
+            mapName: mapCode,
+            timeStamp: new Date().getTime(),
+            interval: 0
+          }
+          if (this.pixiElRef && this.pixiElRef.getMapContainer(mapCode, robotInfo.robotBase)) {
+            robot = this.pixiElRef.robotModule.addRobot(d.robotCode, mapCode, robotInfo.robotBase)
+            // robot.observed = true
+          } else if (this.threeJsElRef && this.threeJsElRef.getMapMesh(robotInfo.robotBase)) {
+            robot = this.threeJsElRef.getRobot(d.robotCode) ? this.threeJsElRef.getRobot(d.robotCode) : new RobotObject3D(this.threeJsElRef, d.robotCode, robotInfo.robotBase, robotInfo.robotType , robotInfo.robotSubType)
+            this.threeJsElRef.getMapMesh(robotInfo.robotBase).add(robot)
+            this.threeJsElRef.refreshRobotColors()
+            robot.visible = true
+          }
+          this.dataSrv.signalRSubj.arcsPoses.next(arcsPoseObj)
         }
-        if (this.pixiElRef && this.pixiElRef.getMapContainer(mapCode, robotInfo.robotBase)) {
-          robot = this.pixiElRef.robotModule.addRobot(d.robotCode, mapCode, robotInfo.robotBase)
-          // robot.observed = true
-        } else if (this.threeJsElRef && this.threeJsElRef.getMapMesh(robotInfo.robotBase)) {
-          robot = this.threeJsElRef.getRobot(d.robotCode) ? this.threeJsElRef.getRobot(d.robotCode) : new RobotObject3D(this.threeJsElRef, d.robotCode, robotInfo.robotBase, robotInfo.robotType , robotInfo.robotSubType)
-          this.threeJsElRef.getMapMesh(robotInfo.robotBase).add(robot)
-          this.threeJsElRef.refreshRobotColors()
-          robot.visible = true
+        
+        if(robot){
+          robot.offline = d.robotStatus == "UNKNOWN"
+          robot.alert = alerted(d)
         }
-        this.dataSrv.signalRSubj.arcsPoses.next(arcsPoseObj)
-      }
-      
-      if(robot){
-        robot.offline = d.robotStatus == "UNKNOWN"
-        robot.alert = alerted(d)
       }
     }
 
