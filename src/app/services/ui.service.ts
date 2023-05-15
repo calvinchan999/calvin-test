@@ -131,9 +131,9 @@ export class UiService {
     this.loadingShadeZindex = zIndex != null ? zIndex : this.loadingShadeZindex
   }
 
-  awaitSignalRBegin(signalRsubj:Subject<any> , criteria = undefined){
+  awaitMqBegin(mqSubj:Subject<any> , criteria = undefined){
     let ticket = this.loadAsyncBegin()
-    signalRsubj.pipe(skip(1), filter(v=>criteria === undefined || criteria == v || Object.keys(criteria).every(k=>criteria[k] === v[k])), take(1)).subscribe(()=>{
+    mqSubj.pipe(skip(1), filter(v=>criteria === undefined || criteria == v || Object.keys(criteria).every(k=>criteria[k] === v[k])), take(1)).subscribe(()=>{
       this.loadAsyncDone(ticket)
     })
   }

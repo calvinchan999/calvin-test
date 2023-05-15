@@ -8,15 +8,15 @@
        style="width: 100%; height: 100%;" class="drawing-board" [style.cursor]="mode == 'create'? 'crosshair':''">
   <ng-pixi-viewport [fullScreen] = "commonModule.ui.fullScreen" [background] = "background">
     <ng-container *ngIf="viewport">
-      <div class="overlay" *ngIf="dataSrv.signalRSubj.isFollowMeWithoutMap.value || (showRobot && dataSrv.signalRSubj.isMappingMode.value)  || commonModule.ui.overlayMessage "> 
+      <div class="overlay" *ngIf="robotSrv.data.isFollowMeWithoutMap.value || (showRobot && robotSrv.data.isMappingMode.value)  || commonModule.ui.overlayMessage "> 
         <div class="overlay-button-container">
-          <button kendoButton class="pick-map" *ngIf="robots && !dataSrv.signalRSubj.isFollowMeWithoutMap.value && showRobot && !(robots[0] && robots[0]['mapCode']) && authSrv.username && !dataSrv.signalRSubj.isMappingMode.value" 
+          <button kendoButton class="pick-map" *ngIf="robots && !robotSrv.data.isFollowMeWithoutMap.value && showRobot && !(robots[0] && robots[0]['mapCode']) && authSrv.username && !robotSrv.data.isMappingMode.value" 
                   [disabled]="authSrv.isGuestMode"
                   (click)="  module.localization.localizing = true ; commonModule.ui.fullScreen = true; module.data.loadDefaultFloorPlan() ; commonModule.ui.overlayMessage =  null" > 
                   <!-- pending : init -->
             <span class="mdi mdi-crosshairs"></span>
           </button>
-          <button kendoButton class="scan"  *ngIf="!dataSrv.signalRSubj.isFollowMeWithoutMap.value && showScanButton" (click)="scanClicked.emit()">
+          <button kendoButton class="scan"  *ngIf="!robotSrv.data.isFollowMeWithoutMap.value && showScanButton" (click)="scanClicked.emit()">
             <span class="mdi mdi-focus-field"></span>
           </button>
           <button kendoButton class="cancel"  *ngIf="commonModule.ui.fullScreen && !showScanButton"  (click)="commonModule.ui.fullScreen = false">
@@ -24,13 +24,13 @@
           </button>
         </div>
         <span class="message">
-           {{ dataSrv.signalRSubj.isFollowMeWithoutMap.value ? ('Follow Me Standalone Mode Activated'|label : uiSrv.langPack) : 
-           ( showRobot && dataSrv.signalRSubj.isMappingMode.value) ? ('Mapping Mode Activated'|label : uiSrv.langPack)  : commonModule.ui.overlayMessage }}
+           {{ robotSrv.data.isFollowMeWithoutMap.value ? ('Follow Me Standalone Mode Activated'|label : uiSrv.langPack) : 
+           ( showRobot && robotSrv.data.isMappingMode.value) ? ('Mapping Mode Activated'|label : uiSrv.langPack)  : commonModule.ui.overlayMessage }}
         </span>
       </div>
   
       <div *ngIf = "!hideHeader && !dataSrv.arcsDefaultBuilding && (module?.localization?.localizing || header) " class="title">
-        {{module.localization.localizing ? ( 'Localization' | label : uiSrv.langPack) : header}}
+        {{module.localization?.localizing ? ( 'Localization' | label : uiSrv.langPack) : header}}
       </div>
    
       <div *ngIf = "dataSrv.arcsDefaultBuilding && showRobot" class="title arcs">
@@ -48,8 +48,8 @@
       </div>
       
       <div class="debug-info-container" *ngIf="util.standaloneApp && module.ui.toggle.showPoseDeviation">
-          <span> {{'Translation Deviation'}}: {{dataSrv.signalRSubj.poseDeviation.value?.translationDeviation}}</span>
-          <span> {{'Angle Deviation'}} : {{dataSrv.signalRSubj.poseDeviation.value?.angleDeviation}}</span>
+          <span> {{'Translation Deviation'}}: {{robotSrv.data.poseDeviation.value?.translationDeviation}}</span>
+          <span> {{'Angle Deviation'}} : {{robotSrv.data.poseDeviation.value?.angleDeviation}}</span>
       </div>
       
       <div class="buttons-container t1" [ngClass]="{'tablet': uiSrv.isTablet}">
@@ -69,7 +69,7 @@
         <button *ngIf="showRobot && !util.arcsApp  &&  !hideButton['tools']" kendoButton class="engineer-mode"  [matTooltip]="'More Options'| label : uiSrv.langPack" (click)="engineerMode = !engineerMode" [ngClass]="{'btn-active': engineerMode}">
           <span class="mdi mdi-eye"></span>
         </button>
-        <button  *ngIf="showRobot && !commonModule.ui.fullScreen && dataSrv.signalRSubj.poseDeviation.value?.poseValid == false " kendoButton class="relocation-reminder" [style.background]="'red'"  [matTooltip]="'Poor Positioning Detected. Relocation Required'| label : uiSrv.langPack">
+        <button  *ngIf="showRobot && !commonModule.ui.fullScreen && robotSrv.data.poseDeviation.value?.poseValid == false " kendoButton class="relocation-reminder" [style.background]="'red'"  [matTooltip]="'Poor Positioning Detected. Relocation Required'| label : uiSrv.langPack">
           <span  class="mdi mdi-reload-alert"></span>
         </button>
 
@@ -127,7 +127,7 @@
           <kendo-switch class="path-direction" [checked]="remoteControlTurboOn" (valueChange) = "remoteControlTurboOn = $event"
                         [onLabel] = "'Fast' | label : uiSrv.langPack"   [offLabel] = "'Slow' | label : uiSrv.langPack" >
           </kendo-switch>
-          <button *ngIf="!hideButton?.manual && (!hideButton.all || showRobot)" kendoButton (click)="terminateRemoteControl.emit() ; dataSrv.stopManualMode();" class="cancel-btn">
+          <button *ngIf="!hideButton?.manual && (!hideButton.all || showRobot)" kendoButton (click)="terminateRemoteControl.emit() ; robotSrv.STANDALONE.stopManualMode();" class="cancel-btn">
             {{ 'Cancel' | label : uiSrv.langPack}}
           </button>
         </div>
@@ -137,7 +137,7 @@
           <ng-container *ngTemplateOutlet = "localizationModuleTpl"></ng-container>
         </div>
   
-       <div class="bottom-sector navigate-sector" *ngIf="showDropdown && !module?.localization?.localizing  && !dataSrv.signalRSubj.navigationDisabled.value ">
+       <div class="bottom-sector navigate-sector" *ngIf="showDropdown && !module?.localization?.localizing  && !robotSrv.data.navigationDisabled.value ">
           <ng-container *ngTemplateOutlet="navigationModuleTpl"></ng-container>
         </div>
   
@@ -395,7 +395,7 @@
     </div>
   </ng-container>
 
-  <button kendoButton [disabled] = "(!commonModule.data.selectedPointCode && (module.navigation.target.rosX  == null || module.navigation.target.rosY == null)) || dataSrv.signalRSubj.navigationDisabled.value || dataSrv.signalRSubj.isFollowMeMode.value"  (click) = "module.navigation.confirm()">
+  <button kendoButton [disabled] = "(!commonModule.data.selectedPointCode && (module.navigation.target.rosX  == null || module.navigation.target.rosY == null)) || robotSrv.data.navigationDisabled.value || robotSrv.data.isFollowMeMode.value"  (click) = "module.navigation.confirm()">
      {{ 'Go' | label : uiSrv.langPack}} 
   </button>
 </ng-template>

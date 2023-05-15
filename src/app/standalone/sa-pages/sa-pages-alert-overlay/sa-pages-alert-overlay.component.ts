@@ -2,6 +2,8 @@ import { Component, OnDestroy, OnInit } from '@angular/core';
 import { Subject } from 'rxjs';
 import { takeUntil } from 'rxjs/operators';
 import { DataService } from 'src/app/services/data.service';
+import { MqService } from 'src/app/services/mq.service';
+import { RobotService } from 'src/app/services/robot.service';
 import { MsgDialogContent, UiService } from 'src/app/services/ui.service';
 
 @Component({
@@ -11,7 +13,7 @@ import { MsgDialogContent, UiService } from 'src/app/services/ui.service';
 })
 export class SaPagesAlertOverlayComponent implements OnInit , OnDestroy  {
   expanded = 'true'
-  constructor(public uiSrv : UiService , public dataSrv : DataService) {
+  constructor(public robotSrv : RobotService, public uiSrv : UiService , public dataSrv : DataService , public mqSrv : MqService) {
 
   }
   subscriptions = []
@@ -24,18 +26,18 @@ export class SaPagesAlertOverlayComponent implements OnInit , OnDestroy  {
   ngOnInit(): void {
     if (!this.uiSrv.isTablet) {
       Object.keys(this.alertMap).forEach(k => {
-        this.subscriptions.push(this.dataSrv.signalRSubj[k].subscribe((b) => {
-          if (b && !this.dataSrv.signalRSubj[k].dialogRef) {
-            this.dataSrv.signalRSubj[k].dialogRef =  this.uiSrv.openKendoDialog({
+        this.subscriptions.push(this.robotSrv.robotState()[k].subscribe((b) => {
+          if (b && !this.alertMap[k].dialogRef) {
+            this.alertMap[k].dialogRef =  this.uiSrv.openKendoDialog({
               title: this.uiSrv.translate('Warning'),
               content: MsgDialogContent,
               actions: [{ text: 'OK', index: 0} ]
             })
-            this.dataSrv.signalRSubj[k].dialogRef.content.instance.customClass = 'warning'
-            this.dataSrv.signalRSubj[k].dialogRef.content.instance.msg =  this.uiSrv.translate(this.alertMap[k].message)
-          }else if(!b && this.dataSrv.signalRSubj[k].dialogRef){
-            this.dataSrv.signalRSubj[k].dialogRef.close()
-            this.dataSrv.signalRSubj[k].dialogRef = null
+            this.alertMap[k].dialogRef.content.instance.customClass = 'warning'
+            this.alertMap[k].dialogRef.content.instance.msg =  this.uiSrv.translate(this.alertMap[k].message)
+          }else if(!b && this.alertMap[k].dialogRef){
+            this.alertMap[k].dialogRef.close()
+            this.alertMap[k].dialogRef = null
           }
         }))
       })

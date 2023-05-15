@@ -104,7 +104,7 @@ export class PixiToolTip extends PIXI.Graphics implements IDraw{
     }
     
     if(!this.stage?.children.includes(this)){
-      this.stage.addChild(this)
+      this.stage?.addChild(this)
     }
 
     if(mouseEvt != null || position != null || this.positionBinding != null ){

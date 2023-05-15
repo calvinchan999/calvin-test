@@ -12,3 +12,7 @@
 :host .container{
     justify-content: initial;
 }
+
+:host ::ng-deep .export-btn , .import-btn{
+    margin: 10px;
+}

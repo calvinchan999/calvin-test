@@ -4,7 +4,8 @@ import { CdkVirtualForOf, CdkVirtualScrollViewport } from '@angular/cdk/scrollin
 import { ChangeDetectorRef, Component, ElementRef, EventEmitter, HostListener, Input, NgZone, OnInit, Output, Pipe, PipeTransform, Renderer2, ViewChild } from '@angular/core';
 import { FormControl, FormGroup } from '@angular/forms';
 import { BehaviorSubject } from 'rxjs';
-import { ActionParameter, DataService } from 'src/app/services/data.service';
+import { DataService } from 'src/app/services/data.service';
+import { ActionParameter } from 'src/app/services/data.models';
 import { UiService , dataNotFoundMessage } from 'src/app/services/ui.service';
 import { DropdownComponent } from '../dropdown/dropdown.component';
 import { TxtboxComponent } from '../txtbox/txtbox.component';

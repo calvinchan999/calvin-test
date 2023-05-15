@@ -3,6 +3,7 @@ import * as nipplejs from 'nipplejs';
 import { Observable, fromEvent, BehaviorSubject, combineLatest, Subject } from 'rxjs';
 import { takeUntil, tap, switchMap, publishReplay, refCount, take, map, delay, repeat, mergeMap, debounceTime, debounce, filter } from 'rxjs/operators';
 import { DataService } from 'src/app/services/data.service';
+import { MqService } from 'src/app/services/mq.service';
 import { GeneralUtil } from 'src/app/utils/general/general.util';
 
 @Component({
@@ -40,7 +41,7 @@ export class JoystickComponent implements AfterViewInit , OnDestroy {
   joystricMoveAfterDelay$: Observable<nipplejs.JoystickOutputData>;
   holdCount = 0
 
-  constructor(private dataSrv : DataService , private util : GeneralUtil) { }
+  constructor(private dataSrv : DataService , private util : GeneralUtil , public mqSrv : MqService) { }
 
   ngAfterViewInit() {
     setTimeout(()=> this.create() , 500) //to fix the wrong position bug. IDK WHY but it's working
@@ -60,7 +61,7 @@ export class JoystickComponent implements AfterViewInit , OnDestroy {
   }
 
   publishSignalR(updown, leftright) {
-    this.dataSrv.signalRSrv.invoke('PublishMQTT' ,['rvautotech/fobo/joystick', JSON.stringify({upDown: updown , leftRight : leftright , turboOn : this.remoteControlTurboOn})]);
+    this.mqSrv.signalRSrv.invoke('PublishMQTT' ,['rvautotech/fobo/joystick', JSON.stringify({upDown: updown , leftRight : leftright , turboOn : this.remoteControlTurboOn})]);
   }
 
   create() {

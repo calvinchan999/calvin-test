@@ -16,6 +16,7 @@ import { WifiComponent } from './wifi/wifi.component';
 import { CmLoginComponent } from '../cm-login/cm-login.component';
 import { DataService } from 'src/app/services/data.service';
 import { style } from '@angular/animations';
+import { MqService } from 'src/app/services/mq.service';
 
 @Component({
     selector: 'app-header-component',
@@ -67,7 +68,7 @@ export class HeaderComponent {
     }
 
     constructor(public intlService: IntlService , public uiSrv : UiService , public dialogSrv: DialogService, public dataSrv: DataService,
-                public authSrv : AuthService , public router : Router, public util : GeneralUtil , public ngZone : NgZone  ) {
+                public authSrv : AuthService , public router : Router, public util : GeneralUtil , public ngZone : NgZone , public mqSrv : MqService  ) {
         this.hasUserManagementRight = this.authSrv.hasAccessToPath('user');
         // this.uiSrv.lang.subscribe(()=>this.changeDectector.detectChanges())
         // this.localeId = this.selectedLanguage.localeId;
@@ -136,7 +137,7 @@ export class HeaderComponent {
 
     public openSyncMenu(){
         this.syncMenuOpened = true
-        this.syncMenuItems = this.dataSrv.alertFloorPlans.concat(<any> this.dataSrv.signalRSubj.arcsSyncLog.value ) 
+        this.syncMenuItems = this.dataSrv.alertFloorPlans.concat(<any> this.mqSrv.data.arcsSyncLog.value ) 
         this.updateUnreadCount()
         setTimeout(()=> this.syncMenu.toggle(true , '0'))
     }
@@ -147,8 +148,8 @@ export class HeaderComponent {
     }
 
     public updateUnreadLog(){
-        let processingLogs = (this.dataSrv.signalRSubj.arcsSyncLog.value ? this.dataSrv.signalRSubj.arcsSyncLog.value : []).filter(l=>l.dataSyncStatus == 'TRANSFERRING')
-        this.dataSrv.signalRSubj.arcsSyncLog.next( processingLogs)
+        let processingLogs = (this.mqSrv.data.arcsSyncLog.value ? this.mqSrv.data.arcsSyncLog.value : []).filter(l=>l.dataSyncStatus == 'TRANSFERRING')
+        this.mqSrv.data.arcsSyncLog.next( processingLogs)
         this.dataSrv.setLocalStorage('syncDoneLog' , JSON.stringify([]))
     }
 

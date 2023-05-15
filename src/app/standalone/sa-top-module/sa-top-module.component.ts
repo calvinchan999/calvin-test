@@ -19,10 +19,11 @@ import { AuthService } from 'src/app/services/auth.service';
 import { filter, map, skip, take, takeUntil } from 'rxjs/operators';
 import { mixin } from 'pixi-viewport';
 import { DataService } from 'src/app/services/data.service';
-import { SignalRService } from 'src/app/services/signal-r.service';
 import { SaPagesLockCabinetComponent } from '../sa-pages/sa-pages-lock-cabinet/sa-pages-lock-cabinet.component';
 import { DialogRef } from '@progress/kendo-angular-dialog';
 import { SaPagesUnlockCabinetComponent } from '../sa-pages/sa-pages-unlock-cabinet/sa-pages-unlock-cabinet.component';
+import { MqService } from 'src/app/services/mq.service';
+import { RobotService } from 'src/app/services/robot.service';
 
 @Component({
   selector: 'app-sa-top-module',
@@ -94,19 +95,19 @@ export class SaTopModuleComponent implements OnInit , OnDestroy {
   loadingTicket
   robotType
   robotSubType
-  signalRSubscribedTopics = []
-  signalRModuleTopic = {
-    patrol: [ 'ieq' ],
-    delivery : []
-  }
-  subTypeTopicMap = {
-    delivery : {
-      TRAY_DELIVERY : ['trayRack'],
-      CABINET_DELIVERY : ['cabinet']
-    }
-  }
+  // mqSubscribedTopics = []
+  // mqModuleTopic = {
+  //   patrol: [ 'ieq' ],
+  //   delivery : []
+  // }
+  // subTypeTopicMap = {
+  //   delivery : {
+  //     TRAY_DELIVERY : ['trayRack'],
+  //     CABINET_DELIVERY : ['cabinet']
+  //   }
+  // }
 
-  constructor( public util : GeneralUtil, public uiSrv : UiService ,  public authSrv : AuthService,
+  constructor( public robotSrv : RobotService , public util : GeneralUtil, public uiSrv : UiService ,  public authSrv : AuthService, public mqSrv : MqService,
                public router: Router , public dataSrv :  DataService ,  private configSrv : GeneralUtil) { }
                
   async ngOnInit(){}
@@ -130,115 +131,53 @@ export class SaTopModuleComponent implements OnInit , OnDestroy {
     this.robotSubType = this.util.arcsApp ? this.arcsRobotSubType : this.dataSrv.robotMaster.robotSubType
     this.customClass += ' ' + this.robotType
     // this.arcsRobotSubType == 'CABINET_DELIVERY' //TESTING
-    if(this.subTypeTopicMap[this.robotType]){
-      this.signalRModuleTopic[this.robotType] = this.subTypeTopicMap[this.robotType][this.robotSubType] ?  this.subTypeTopicMap[this.robotType][this.robotSubType] : []
-    }
-    this.signalRSubscribedTopics = this.signalRModuleTopic[this.robotType] ? this.signalRModuleTopic[this.robotType]  : []
-    this.dataSrv.subscribeSignalRs(this.signalRSubscribedTopics , this.util.arcsApp ? this.arcsRobotCode : undefined)
+    // if(this.subTypeTopicMap[this.robotType]){
+    //   this.mqModuleTopic[this.robotType] = this.subTypeTopicMap[this.robotType][this.robotSubType] ?  this.subTypeTopicMap[this.robotType][this.robotSubType] : []
+    // }
+    // this.mqSubscribedTopics = this.mqModuleTopic[this.robotType] ? this.mqModuleTopic[this.robotType]  : []
+    // this.mqSrv.subscribeMQTTsUntil(this.mqSubscribedTopics , this.util.arcsApp ? this.arcsRobotCode : undefined , this.$onDestroy)
 
     // if(this.robotSubType == 'CABINET_DELIVERY' && this.arcsRobotType == 'DELIVERY'){ //TBR !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-    //   this.dataSrv.subscribeSignalR('cabinet')
+    //   this.mqSrv.subscribeMQTT('cabinet')
     // }
 
-    this.initAirQualitySubscription()
+  
     this.initDataSource()
     await this.initByRobotType()
     this.dashboardLayout = this.topModule[this.robotType]
     this.uiSrv.loadAsyncDone(this.loadingTicket)
   }
 
-  getIeqSubj() {
-    if (this.util.arcsApp) {
-      this.dataSrv.initArcsRobotDataMap(this.arcsRobotCode)
-    }
-    return this.util.arcsApp ? this.dataSrv.arcsRobotDataMap[this.arcsRobotCode].ieq : this.dataSrv.signalRSubj.ieq
-  }
 
   getPins(){
 
   }
  
   
- async initAirQualitySubscription() {
-    if (this.robotType == 'patrol') {
-      let ieqReq = await this.dataSrv.httpSrv.fmsRequest('GET', this.dataSrv.signalRMaster.ieq.api + (this.util.arcsApp ?  ('/' + this.arcsRobotCode) : '') , undefined , false)
-      let ieqData = this.dataSrv.signalRMaster.ieq.mapping.ieq(ieqReq)
-      // ieqData = {"co":733,"co2":405,"hcho":3,"light":4,"no2":320,"noise_moy":6,"noise_max":7,"o3":8,"p":9,"pm1":9,"pm2_5":5,"pm10":15,"rh":50,"t":19,"tvoc_mos":15,"tvoc_pid":10}
-      let refreshIeq = (ieq)=>{
-        let ret = null
-        let levels = this.util.config.IEQ_LEVELS ? this.util.config.IEQ_LEVELS : ['Inadequate', 'Poor', 'Fair', 'Good', 'Excellent']
-        let range = this.util.config.IEQ_STANDARD ? this.util.config.IEQ_STANDARD :  {
-          t: [[15, 24], [16, 23], [17, 22], [18, 21]],
-          rh: [[10, 90], [20, 80], [30, 70], [40, 60]],
-          co: [[null, 7000], [null, null], [null, 1000], [null, 0]],
-          no2: [[null, 400], [null, null], [null, 200], [null, null]],
-          co2: [[null, 1800], [null, 1500], [null , 800], [null, 600]],
-          tvoc_pid: [[null, 1000], [null, 500], [null, 300], [null, 100]]
-        }
-        // {
-        //   t: [[15, 24], [16, 23], [17, 22], [18, 21]],
-        //   rh: [[10, 90], [20, 80], [30, 70], [40, 60]],
-        //   co2: [[null, 2500], [null, 2000], [null, 1500], [null, 650]],
-        //   pm2_5: [[null, 150.5], [null, 55.4], [null, 35.4], [null, 12]],
-        //   tvoc_pid: [[null, 75], [null, 51], [null, 26], [null, 16]]
-        // }
-
-        Object.keys(this.ds).filter(k2=>Object.keys(range).includes(this.ds[k2].signalRfld)).forEach(k2=>delete this.ds[k2].class)
-
-        for (let i = 0; i < levels.length - 1; i++) {
-          Object.keys(range).forEach(k => {
-            let limits = range[k][i]
-            if (limits!=undefined && !isNaN(Number(ieq[k])) && 
-                ((limits[0] != null && Number(ieq[k]) < limits[0]) || (limits[1] != null && Number(ieq[k]) > limits[1]))) {
-              if (ret == null) {
-                 ret = levels[i]
-              }
-              let dsObj = this.ds[Object.keys(this.ds).filter(k2=>this.ds[k2].signalRfld == k)[0]] 
-              if(dsObj && !dsObj.class){
-                dsObj.class = levels[i]
-              }
-            }
-          })
-          // if (ret != null) {
-          //   break
-          // }
-        }
-        Object.keys(this.ds).filter(k2 => Object.keys(range).includes(this.ds[k2].signalRfld) && !this.ds[k2].class).forEach(k2 => this.ds[k2].class = levels[levels.length - 1])
-
-        this.airQualitySubj.next(ret == null ? levels[levels.length - 1] : ret)
-
-      }
-      // refreshIeq(ieqData)
-      const ieqSubj = this.getIeqSubj()
-      ieqSubj.pipe(skip(1),takeUntil(this.$onDestroy),filter(ieq=>ieq!=null)).subscribe(ieq => refreshIeq(ieq))
-      ieqSubj.next(ieqData)
-    }
-  }
-
   initDataSource(){
-    const ieqSubj = this.getIeqSubj()
+    const ieqSubj = this.robotSrv.robotState(this.arcsRobotCode).ieq
     this.ds = {
-      status : {title: 'Status', suffix: '' , icon:'mdi-autorenew' ,  signalR: this.dataSrv.signalRSubj.status},
-      battery : {title: 'Battery', suffix: '%' , icon : 'mdi-battery-70' , signalR: this.dataSrv.signalRSubj.batteryRounded},
-      mode : { title: 'Mode',  suffix: '' , icon:'mdi-map-marker-path' , signalR: this.dataSrv.signalRSubj.state},
-      pending_task : { title: 'Current Task',  suffix: '' , icon:'mdi-file-clock-outline', signalR: this.dataSrv.signalRSubj.currentTaskId},
+      status : {title: 'Status', suffix: '' , icon:'mdi-autorenew' ,  mq: this.robotSrv.data.status},
+      battery : {title: 'Battery', suffix: '%' , icon : 'mdi-battery-70' , mq: this.robotSrv.data.batteryRounded},
+      mode : { title: 'Mode',  suffix: '' , icon:'mdi-map-marker-path' , mq: this.robotSrv.data.state},
+      pending_task : { title: 'Current Task',  suffix: '' , icon:'mdi-file-clock-outline', mq: this.robotSrv.data.currentTaskId},
       wifi_signal : { title: 'Wifi', suffix: '%' , icon : 'mdi-wifi'},
-      cellular_bars: { title: 'Cellular', suffix: '/', icon: 'mdi-signal-cellular-3', signalR: this.dataSrv.signalRSubj.cellularNumerator, suffixSignalR: this.dataSrv.signalRSubj.cellularDenominator },
-      tvoc_pid: { title: 'TVOC', suffix: 'µg/m3', icon: 'mdi-spray', signalR: ieqSubj, signalRfld: 'tvoc_pid' },
-      pm2_5: { title: 'PM 2.5', suffix: 'µg/m3', icon: 'mdi-chart-bubble', signalR: ieqSubj, signalRfld: 'pm2_5' },
-      co2: { title: 'Carbon Dioxide', suffix: 'ppm', icon: 'mdi-molecule-co2', signalR: ieqSubj, signalRfld: 'co2' },
-      air_quality: { title: 'Air Quality', suffix: '', icon: 'mdi-blur', signalR: this.airQualitySubj },
-      co: { title: 'Carbon Monoxide', suffix: 'µg/m3', icon: 'mdi-molecule-co', signalR: ieqSubj, signalRfld: 'co' },
-      pm1: { title: 'PM 1', suffix: 'µg/m3', icon: 'mdi-scatter-plot', signalR: ieqSubj, signalRfld: 'pm1' },
-      pm10: { title: 'PM 10', suffix: 'µg/m3', icon: 'mdi-scatter-plot-outline', signalR: ieqSubj, signalRfld: 'pm10' },
-      o3: { title: 'Ozone', suffix: 'ppb', icon: 'mdi-webhook', signalR: ieqSubj, signalRfld: 'o3' },
-      no2: { title: 'Nitrogen Dioxide', suffix: 'µg/m3', icon: 'mdi-chemical-weapon', signalR: ieqSubj, signalRfld: 'no2' },
-      temperature: { title: 'Temperature', suffix: '°C', icon: 'mdi-thermometer-lines', signalR: ieqSubj, signalRfld: 't' },
-      pressure: { title: 'Pressure', suffix: 'hPa', icon: 'mdi-gauge-low', signalR: ieqSubj, signalRfld: 'p' },
-      humidity: { title: 'Humidity', suffix: '%', icon: 'mdi-water-outline', signalR: ieqSubj, signalRfld: 'rh' },
-      formaldehyde: { title: 'Formaldehyde', suffix: 'ppb', icon: 'mdi-molecule', signalR: ieqSubj, signalRfld: 'hcho' },
-      light: { title: 'Light', suffix: 'lux', icon: 'mdi-white-balance-sunny', signalR: ieqSubj, signalRfld: 'light' },
-      noise: { title: 'Noise', suffix: 'dB SPL', icon: 'mdi-volume-high', signalR: ieqSubj, signalRfld: 'noise_moy' },
+      cellular_bars: { title: 'Cellular', suffix: '/', icon: 'mdi-signal-cellular-3', mq: this.robotSrv.data.cellularNumerator, suffixmq: this.robotSrv.data.cellularDenominator },
+      tvoc_pid: { title: 'TVOC', suffix: 'ppb', icon: 'mdi-spray', mq: ieqSubj, mqfld: 'tvoc_ppb' },
+      pm2_5: { title: 'PM 2.5', suffix: 'µg/m3', icon: 'mdi-chart-bubble', mq: ieqSubj, mqfld: 'pm2_ugPerM3' },
+      co2: { title: 'Carbon Dioxide', suffix: 'ppm', icon: 'mdi-molecule-co2', mq: ieqSubj, mqfld: 'co2_ppm' },
+      air_quality: { title: 'Air Quality', suffix: '', icon: 'mdi-blur', mq: this.robotSrv.robotState(this.arcsRobotCode).topModule.patrol.airQualityOverall },
+      co: { title: 'Carbon Monoxide', suffix: 'ppb', icon: 'mdi-molecule-co', mq: ieqSubj, mqfld: 'co_ppb' },
+      pm1: { title: 'PM 1', suffix: 'µg/m3', icon: 'mdi-scatter-plot', mq: ieqSubj, mqfld: 'pm1_ugPerM3' },
+      pm10: { title: 'PM 10', suffix: 'µg/m3', icon: 'mdi-scatter-plot-outline', mq: ieqSubj, mqfld: 'pm10_ugPerM3' },
+      o3: { title: 'Ozone', suffix: 'ppb', icon: 'mdi-webhook', mq: ieqSubj, mqfld: 'o3_ppb' },
+      no2: { title: 'Nitrogen Dioxide', suffix: 'ppb', icon: 'mdi-chemical-weapon', mq: ieqSubj, mqfld: 'no2_ppb' },
+      temperature: { title: 'Temperature', suffix: '°C', icon: 'mdi-thermometer-lines', mq: ieqSubj, mqfld: 't_degreeC' },
+      pressure: { title: 'Pressure', suffix: 'hPa', icon: 'mdi-gauge-low', mq: ieqSubj, mqfld: 'p_mb' },
+      humidity: { title: 'Humidity', suffix: '%', icon: 'mdi-water-outline', mq: ieqSubj, mqfld: 'rh_percent' },
+      formaldehyde: { title: 'Formaldehyde', suffix: 'ppb', icon: 'mdi-molecule', mq: ieqSubj, mqfld: 'hcho_ppb' },
+      light: { title: 'Light', suffix: 'lux', icon: 'mdi-white-balance-sunny', mq: ieqSubj, mqfld: 'light_lux' },
+      noise: { title: 'Noise', suffix: 'dB SPL', icon: 'mdi-volume-high', mq: ieqSubj, mqfld: 'noise_dB' },
     };
     Object.keys(this.ds).filter(k=>(this.util.config.IEQ_DISABLED ? this.util.config.IEQ_DISABLED : []).includes(k)).forEach(k=>{
       this.ds[k].disabled = true
@@ -248,21 +187,31 @@ export class SaTopModuleComponent implements OnInit , OnDestroy {
   
   async initByRobotType(){
     let ticket = this.uiSrv.loadAsyncBegin()
- 
+
     if(this.robotType == 'patrol'){
-    
-    } else if(this.robotType == 'delivery' && this.signalRModuleTopic.delivery.length > 0){ // tray API endpoint TBR 
-      let hasDoors = this.robotSubType == 'CABINET_DELIVERY'
 
-      let containersResp 
-  
+      this.airQualitySubj = this.robotSrv.robotState(this.arcsRobotCode).topModule.patrol.airQualityOverall
+      let ieqResp = await this.dataSrv.httpSrv.fmsRequest('GET', this.mqSrv.mqMaster.ieq.api + (this.util.arcsApp ?  ('/' + this.arcsRobotCode) : '') , undefined , false)
+      let ieqData = this.mqSrv.mqMaster.ieq.robotState.ieq(ieqResp)
+      this.robotSrv.robotState(this.arcsRobotCode).topModule.patrol.airQualityDetail.pipe(skip(1),takeUntil(this.$onDestroy),filter(detailObj=>detailObj!=null)).subscribe(data =>{
+        Object.keys(data).forEach(k=>{
+          let dsKey = Object.keys(this.ds).filter(dsK=> this.ds[dsK].mqfld == k)[0]
+          if(this.ds[dsKey]){
+            this.ds[dsKey].class = data[k]
+          }
+        })
+      })
+      this.robotSrv.robotState(this.arcsRobotCode).ieq.next(ieqData)
+      this.mqSrv.subscribeMQTTUntil('ieq', this.util.arcsApp ? this.arcsRobotCode : undefined  , this.$onDestroy)
+
+    } else if(this.robotType == 'delivery' && this.robotSubType == 'CABINET_DELIVERY' || this.robotSubType == 'TRAY_DELIVERY'){ // tray API endpoint TBR 
+      let hasDoors = this.robotSubType == 'CABINET_DELIVERY'      
+      let containersResp   
       containersResp =  await this.dataSrv.httpSrv.fmsRequest("GET", (hasDoors ? "cabinet" : "trayRack" ) + `/v1${this.util.arcsApp? ('/' + this.arcsRobotCode) : ''}`)
-
-    
-      // let containersResp = {status : 200 , body: `
+      // containersResp = {status : 200 , body: `
       // {
-      //   "robotId": "DUMMY-TEST-10",
-      //   "doorList": [
+      //   "robotId": "RV-ROBOT-102",
+      //   "levelList": [
       //     {
       //       "id": 1,
       //       "status": "CLOSED",
@@ -284,35 +233,11 @@ export class SaTopModuleComponent implements OnInit , OnDestroy {
       //   ]
       // }
       // `}
-      // `{
-      //   "robotId": "DUMMY-TEST-10",
-      //   "levelList": [
-      //     {
-      //       "id": 1,
-      //       "trayFull": false
-      //     },
-      //     {
-      //       "id": 2,
-      //       "trayFull": true
-      //     },
-      //     {
-      //       "id": 3,
-      //       "trayFull": false
-      //     }
-      //   ]
-      // }`
       if(containersResp.status == 200 && containersResp?.body){
         var containers = JSON.parse(containersResp.body)?.[ hasDoors ? 'doorList' : 'levelList']
         let doorIds = containers.map(d=>d['id'])
-        // if(this.util.arcsApp){
-
-        // }
-        if(hasDoors){
-          this.dataSrv.signalRSubj.cabinetAvail.next(this.dataSrv.signalRMaster.cabinet.mapping.cabinetAvail(JSON.parse(containersResp.body))) 
-        }else{
-          this.dataSrv.signalRSubj.trayRackAvail.next(this.dataSrv.signalRMaster.trayRack.mapping.trayRackAvail(JSON.parse(containersResp.body))) 
-        }
-
+        this.robotSrv.robotState(this.arcsRobotCode).topModule.delivery.updateContainers(JSON.parse(containersResp.body))
+ 
         let containerData = {
           containerId: { title: 'Container ID', icon: 'mdi mdi-package-variant-closed', class: 'container' },
           availability: { title: 'Available / Occupied', icon: 'mdi mdi-tray-alert', class: 'availibility' },
@@ -325,11 +250,12 @@ export class SaTopModuleComponent implements OnInit , OnDestroy {
           let doorId = doorIds[i]
           let dataObj =  JSON.parse(JSON.stringify(containerData))
           dataObj.containerId['content'] = doorId.toString()
-          dataObj.availability['signalR'] = this.util.arcsApp ? this.dataSrv.arcsRobotDataMap[this.arcsRobotCode].containersAvail :(hasDoors? this.dataSrv.signalRSubj.cabinetAvail : this.dataSrv.signalRSubj.trayRackAvail)
-          dataObj.availability['signalRfld'] = i
+          dataObj.availability['mq'] = this.robotSrv.robotState(this.arcsRobotCode).containersAvail
+          //dataObj.availability['mq'] = this.util.arcsApp ? this.robotSrv.ARCS.robotStore[this.arcsRobotCode].containersAvail :(hasDoors? this.robotSrv.data.cabinetAvail : this.robotSrv.data.trayRackAvail)
+          dataObj.availability['mqfld'] = i
           if(hasDoors){
-            dataObj.door['signalR'] =  this.util.arcsApp ? this.dataSrv.arcsRobotDataMap[this.arcsRobotCode].containersDoorStatus : this.dataSrv.signalRSubj.cabinetDoorStatus
-            dataObj.door['signalRfld'] = i
+            dataObj.door['mq'] =  this.robotSrv.robotState(this.arcsRobotCode).containersDoorStatus//this.util.arcsApp ? this.robotSrv.ARCS.robotStore[this.arcsRobotCode].containersDoorStatus : this.robotSrv.data.cabinetDoorStatus
+            dataObj.door['mqfld'] = i
           }
           Object.keys(dataObj).forEach(k => {
             this.ds[k + '_' + doorId] = dataObj[k]
@@ -380,13 +306,13 @@ export class SaTopModuleComponent implements OnInit , OnDestroy {
           }
         }
         
-        this.dataSrv.signalRSubj.cabinetDoorStatus.pipe(filter(v=>v),takeUntil(this.$onDestroy)).subscribe(v=>{
-          for(let i = 0 ; i < v.length ; i ++){
+        this.robotSrv.robotState(this.arcsRobotCode).topModule.delivery.containersDoorStatus.pipe(filter(v => v != null), takeUntil(this.$onDestroy)).subscribe(v => {
+          for (let i = 0; i < v.length; i++) {
             this.ds['closeContainer_' + doorIds[i]].disabled = v[i] == 'CLOSED'
             this.ds['openContainer_' + doorIds[i]].disabled = v[i] == 'OPENED'
           }
         })
-
+      this.mqSrv.subscribeMQTTUntil(<any>(hasDoors ? 'cabinet'  : 'trayRack' ), this.util.arcsApp ? this.arcsRobotCode : undefined  , this.$onDestroy)
       }else{
         console.log(`Warning : GET ${(hasDoors ? "cabinet" : "trayRack" ) + `/v1${this.util.arcsApp? ('/' + this.arcsRobotCode) : ''}`} failed / return emtpy content : ${containersResp.body}`)
       }
@@ -400,12 +326,16 @@ export class SaTopModuleComponent implements OnInit , OnDestroy {
     let resp   
     if(evt.id.startsWith('openContainer_')){
       let containerId = evt?.id?.replace('openContainer_', '')
-      let callOpenContainerApi = async()=>{
+
+      const callOpenContainerApi = async()=>{
         evt.action = "open"
-        resp = await this.dataSrv.openRobotCabinet(containerId, this.util.arcsApp ? this.arcsRobotCode : null)
+        let ticket = this.uiSrv.loadAsyncBegin()
+        resp = await this.robotSrv.openRobotCabinet(containerId, this.util.arcsApp ? this.arcsRobotCode : null)
+        this.uiSrv.loadAsyncDone(ticket )
         this.updateCabinetAvailabilityIcon()
       }
-      let pin = localStorage.getItem('pin_' + containerId )
+
+      let pin = this.util.standaloneApp ? localStorage.getItem('pin_' + containerId ) : null
 
       if(pin){
         let onPinInput = (v , errmsg)=>{
@@ -437,30 +367,34 @@ export class SaTopModuleComponent implements OnInit , OnDestroy {
       }
     } else if (evt.id.startsWith('closeContainer_')) {
       let containerId = evt?.id?.replace('closeContainer_', '')
-      let oldPin = localStorage.getItem('pin_' + containerId )
+      let oldPin = this.util.standaloneApp ? localStorage.getItem('pin_' + containerId ) : null
       if(oldPin!=null){
         this.uiSrv.showNotificationBar('The cabinet is locked already' , 'warning')
         return
       }
-      const dialog: DialogRef = this.uiSrv.openKendoDialog({
-        content: SaPagesLockCabinetComponent,
-        width:'800px'
-      });
 
-      const content :SaPagesLockCabinetComponent  = dialog.content.instance;
-      content.dialogRef = dialog
-      content.title = this.uiSrv.translate(`Set Locker Password - Cabinet `) + `[${containerId}]`;
-      let pin = await content.setPin.pipe(take(1)).toPromise()
+      if (this.util.standaloneApp) {
+        const dialog: DialogRef = this.uiSrv.openKendoDialog({
+          content: SaPagesLockCabinetComponent,
+          width: '800px'
+        });
 
-      if(pin!=null){ // TBR : send pin to fobo amr api
-        localStorage.setItem('pin_' + containerId , pin)
-      }else{
-        localStorage.removeItem('pin_' + containerId)
+        const content: SaPagesLockCabinetComponent = dialog.content.instance;
+        content.dialogRef = dialog
+        content.title = this.uiSrv.translate(`Set Locker Password - Cabinet `) + `[${containerId}]`;
+        let pin = await content.setPin.pipe(take(1)).toPromise()
+        if (pin != null) { // TBR : send pin to fobo amr api
+          localStorage.setItem('pin_' + containerId, pin)
+        } else {
+          localStorage.removeItem('pin_' + containerId)
+        }
+        dialog.close()
       }
-      dialog.close()
 
       evt.action = "close"
-      resp = this.dataSrv.closeRobotCabinet(containerId, this.util.arcsApp ? this.arcsRobotCode : null)
+      let ticket = this.uiSrv.loadAsyncBegin()
+      resp = await this.robotSrv.closeRobotCabinet(containerId, this.util.arcsApp ? this.arcsRobotCode : null)
+      this.uiSrv.loadAsyncDone(ticket)
       this.updateCabinetAvailabilityIcon()
     }
     evt['response'] = resp
@@ -469,18 +403,18 @@ export class SaTopModuleComponent implements OnInit , OnDestroy {
 
   updateCabinetAvailabilityIcon(){
      Object.keys(this.ds).filter(k=>k.startsWith('availability_')).forEach(k=>{
-      let containerId = k.replace('availability_' , '')
-      let withPin = localStorage.getItem('pin_' + containerId)!=null
+       let containerId = k.replace('availability_', '')
+       let withPin = this.util.standaloneApp ? localStorage.getItem('pin_' + containerId) != null : null
       this.ds[k]['icon'] = withPin ?  'mdi mdi-lock' : 'mdi mdi-tray-alert' 
      })
   }
 
   ngOnDestroy(){
     this.$onDestroy.next()
-    if(this.arcsRobotSubType == 'CABINET_DELIVERY' && this.arcsRobotType == 'DELIVERY'){ //TBR !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-      this.dataSrv.unsubscribeSignalR('cabinet' , false , this.util.arcsApp ? this.arcsRobotCode : undefined)
-    }
-    this.dataSrv.unsubscribeSignalRs( this.signalRSubscribedTopics , false , this.util.arcsApp ? this.arcsRobotCode : undefined)
+    // if(this.arcsRobotSubType == 'CABINET_DELIVERY' && this.arcsRobotType == 'DELIVERY'){ //TBR !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+    //   this.mqSrv.unsubscribeMQTT('cabinet' , false , this.util.arcsApp ? this.arcsRobotCode : undefined)
+    // }
+    // this.mqSrv.unsubscribeMQTTs( this.mqSubscribedTopics , false , this.util.arcsApp ? this.arcsRobotCode : undefined)
   }
 
 }

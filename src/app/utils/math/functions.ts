@@ -11,7 +11,7 @@
   WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 -- END LICENSE BLOCK ------------------------------------------------*/
 import * as PIXI from 'pixi.js';
-import { JPath } from 'src/app/services/data.service';
+import { JPath } from 'src/app/services/data.models';
 import {GraphBuilder, DijkstraStrategy} from "js-shortest-path"
 import { Bezier} from "bezier-js/dist/bezier.js";
 import { Vector2 } from 'three';

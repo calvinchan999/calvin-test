@@ -13,7 +13,7 @@
                 [canUploadMultiImg]="false" [uploadMustMatchOriginalSize]="true"
                 [hideButton]="readonly ? {all : true} : { arrow: true, upload: true, point: true , manual : true}"
                 (fileLoad)=" frmGrp.controls['fileName'].setValue($event?.name)"
-                [showScanButton]="isCreate && !startedScanning" (scanClicked)="startScanMap()"
+                [showScanButton]="isCreate && !startedScanning" (scanClicked)="scanMapClicked()"
                 [hideRelocationButton]="true">
             </uc-drawing-board>
         </div>
@@ -49,3 +49,22 @@
         </form>    
 </ng-template>
 
+
+<kendo-dialog *ngIf="scanOption.show" [title]="('Start Scanning' | label : uiSrv.langPack)"
+               (close)="scanOption.show = false" [minWidth]="250" >
+
+    <input #immediate class="radio-button extend" type="radio" [value]="true"
+            [(ngModel)]="scanOption.extend" kendoRadioButton />
+    <label class="radio-label extend" [for]="immediate">{{'Extend From Current Map : ' | label: uiSrv.langPack}} {{scanOption.activeMapCode}} </label>
+
+    <input #smooth class="radio-button new" type="radio" [value]="false"
+            [(ngModel)]="scanOption.extend" kendoRadioButton />
+    <label class="radio-label new" [for]="smooth">{{'Scan a new map' | label: uiSrv.langPack}}</label>
+
+    <kendo-dialog-actions>
+        <button kendoButton  (click)="startScan(scanOption.extend)">
+            {{ 'OK' | label : uiSrv.langPack }}
+        </button>
+        <button kendoButton (click)="scanOption.show = false">{{ 'Cancel' | label : uiSrv.langPack }}</button>
+    </kendo-dialog-actions>
+</kendo-dialog>

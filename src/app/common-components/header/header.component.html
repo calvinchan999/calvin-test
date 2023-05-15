@@ -7,14 +7,14 @@
             <h1> {{ app == 'STANDALONE'? (dataSrv.robotMaster? dataSrv.robotMaster.robotCode : '')   : ('Agnostic Robotic Control System (ARCS)' | label : uiSrv.langPack ) }} </h1>
         </div>
 
-        <div class="alert topnav" *ngIf="dataSrv.unreadNotificationCount.value > 0" [matTooltip]="('You have' | label : uiSrv.langPack  ) + ' ' + dataSrv.unreadNotificationCount.value + ' ' + ('unread notification' | label : uiSrv.langPack )">
+        <div class="alert topnav" *ngIf="mqSrv.data.unreadMsgCnt.value > 0" [matTooltip]="('You have' | label : uiSrv.langPack  ) + ' ' + mqSrv.data.unreadMsgCnt.value + ' ' + ('unread notification' | label : uiSrv.langPack )">
             <a class="k-icon mdi mdi-alert"  (click)="router.navigate([ util.standaloneApp ? '/control' : '/setup', {selectedTab : 'log'}] , {skipLocationChange: false})">
-                <kendo-badge rounded="medium" themeColor="warning" position="edge" [align] = "{ vertical: 'bottom', horizontal: 'end' }">{{dataSrv.unreadNotificationCount.value}}</kendo-badge>
+                <kendo-badge rounded="medium" themeColor="warning" position="edge" [align] = "{ vertical: 'bottom', horizontal: 'end' }">{{mqSrv.data.unreadMsgCnt.value}}</kendo-badge>
             </a>
         </div>
 
         
-        <div class="bg-job topnav" *ngIf="util.arcsApp && (dataSrv.signalRSubj.arcsSyncLog.value.length > 0  || dataSrv.alertFloorPlans.length > 0) ">
+        <div class="bg-job topnav" *ngIf="util.arcsApp && (mqSrv.data.arcsSyncLog.value.length > 0  || dataSrv.alertFloorPlans.length > 0) ">
             <kendo-menu #syncMenu [items]="[{id:'jobStatus' , items: syncMenuItems}]" class="job-menu" (mouseover)="syncMenuOpened ? null :  openSyncMenu(); " (close)="onSyncMenuClose()"> 
                  <!-- (open)="updateUnreadCount()" -->
                 <ng-template kendoMenuItemTemplate let-item="item">

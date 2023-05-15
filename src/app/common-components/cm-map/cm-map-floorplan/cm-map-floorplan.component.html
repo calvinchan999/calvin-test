@@ -115,7 +115,12 @@
                 </div>
             </div>
         </div> -->
-
+        <div *ngIf="util.standaloneApp">
+            <button kendoButton class="export-btn" (click) = "exportDatasetAsTextFile()">{{'Export Data' | label: uiSrv.langPack}}</button>
+            <button kendoButton class="import-btn" (click) = "onImportClicked()">{{'Import Data' | label: uiSrv.langPack}}</button>
+        </div>
     </form>
 </ng-template>
+
+<input hidden type="file" #txtUploader (change)="importDatasetFromTextFile($event)" #input accept=".txt"/>
 

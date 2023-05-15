@@ -20,7 +20,8 @@ import { AuthService } from 'src/app/services/auth.service';
 import { filter, map, take } from 'rxjs/operators';
 import { mixin } from 'pixi-viewport';
 import { DataService } from 'src/app/services/data.service';
-import { SignalRService } from 'src/app/services/signal-r.service';
+import { MqService } from 'src/app/services/mq.service';
+import { RobotService } from 'src/app/services/robot.service';
 
 @Component({
   selector: 'app-sa-home',
@@ -67,9 +68,9 @@ export class SaHomeComponent implements OnInit {
   locationAlwaysVisible = true
   subscriptions = []
 
-  signalRSubscribedTopics = ['battery', 'state', 'speed']
-  constructor( public utils : GeneralUtil, public uiSrv : UiService , private httpSrv : RvHttpService , public authSrv : AuthService,
-               public router: Router , private dataSrv :  DataService , private signalRSrv : SignalRService) { 
+  mqSubscribedTopics = ['battery', 'state', 'speed']
+  constructor( public utils : GeneralUtil, public uiSrv : UiService  , public authSrv : AuthService, public robotSrv : RobotService , 
+               public router: Router , private dataSrv :  DataService , public mqSrv : MqService) { 
     
   }
 
@@ -83,7 +84,7 @@ export class SaHomeComponent implements OnInit {
     this.loadingTicket = this.uiSrv.loadAsyncBegin()
     await this.dataSrv.getRobotMaster()
     this.robotType = this.dataSrv.robotMaster.robotType  //TO BE REVISED
-    this.dataSrv.subscribeSignalRs(<any>this.signalRSubscribedTopics)
+    this.mqSrv.subscribeMQTTs(<any>this.mqSubscribedTopics)
     this.initDataSource()
     // this.dashboardLayout = this.dashboardLayout.concat(this.topModule[this.robotType]) 
 
@@ -92,7 +93,7 @@ export class SaHomeComponent implements OnInit {
   }
 
   ngOnDestroy(){
-    this.dataSrv.unsubscribeSignalRs(<any>this.signalRSubscribedTopics)
+    this.mqSrv.unsubscribeMQTTs(<any>this.mqSubscribedTopics)
     this.subscriptions.forEach(s=>s.unsubscribe())
     this.onDestroy.next()
   }
@@ -115,11 +116,11 @@ export class SaHomeComponent implements OnInit {
 
   initDataSource(){
     this.ds = {
-      status : {title: 'Status', suffix: '' , icon:'mdi-autorenew' ,  signalR: this.dataSrv.signalRSubj.status},
-      battery : {title: 'Battery', suffix: '%' , icon : 'mdi-battery-70' , signalR: this.dataSrv.signalRSubj.batteryRounded},
-      mode : { title: 'Mode',  suffix: '' , icon:'mdi-map-marker-path' , signalR: this.dataSrv.signalRSubj.state},
-      pending_task : { title: 'Current Task',  suffix: '' , icon:'mdi-file-clock-outline', signalR: this.dataSrv.signalRSubj.currentTaskId},
-      speed:{title: 'Speed',  suffix: 'm/s' , icon:'mdi-speedometer', signalR: this.dataSrv.signalRSubj.speed}
+      status : {title: 'Status', suffix: '' , icon:'mdi-autorenew' ,  mq: this.robotSrv.data.status},
+      battery : {title: 'Battery', suffix: '%' , icon : 'mdi-battery-70' , mq: this.robotSrv.data.batteryRounded},
+      mode : { title: 'Mode',  suffix: '' , icon:'mdi-map-marker-path' , mq: this.robotSrv.data.state},
+      pending_task : { title: 'Current Task',  suffix: '' , icon:'mdi-file-clock-outline', mq: this.robotSrv.data.currentTaskId},
+      speed:{title: 'Speed',  suffix: 'm/s' , icon:'mdi-speedometer', mq: this.robotSrv.data.speed}
     };
   }
 

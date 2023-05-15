@@ -2,7 +2,7 @@ import { ChangeDetectorRef, Component, NgZone, OnInit, ViewChild , HostBinding }
 import { FormControl, FormGroup, Validators } from '@angular/forms';
 import { DialogService } from '@progress/kendo-angular-dialog';
 import { filter, take } from 'rxjs/operators';
-import { DataService, ShapeJData } from 'src/app/services/data.service';
+import { DataService } from 'src/app/services/data.service';
 import { RvHttpService } from 'src/app/services/rv-http.service';
 import { UiService } from 'src/app/services/ui.service';
 import { Map2DViewportComponent, Robot } from 'src/app/ui-components/map-2d-viewport/map-2d-viewport.component';

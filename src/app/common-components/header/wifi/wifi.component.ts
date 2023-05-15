@@ -5,6 +5,8 @@ import { DialogRef } from '@progress/kendo-angular-dialog';
 import { BehaviorSubject, Subject } from 'rxjs';
 import { filter, takeUntil } from 'rxjs/operators';
 import { DataService } from 'src/app/services/data.service';
+import { MqService } from 'src/app/services/mq.service';
+import { RobotService } from 'src/app/services/robot.service';
 import { RvHttpService } from 'src/app/services/rv-http.service';
 import { UiService } from 'src/app/services/ui.service';
 
@@ -19,14 +21,14 @@ export class WifiComponent implements OnInit , OnDestroy {
   dialogRef : DialogRef
   password
   selectedSsid
-  connectedWifi = null //{ ssid: "Fake Wifi 4", signal: 2, connected: true } //TBD : should get from signalRSubj
+  connectedWifi = null //{ ssid: "Fake Wifi 4", signal: 2, connected: true } //TBD : should get from mqSubj
   onDestroy = new Subject()
 
-  constructor(public uiSrv : UiService, public dataSrv: DataService, private changeDetector : ChangeDetectorRef) { }
+  constructor( public robotSrv : RobotService, public uiSrv : UiService, public dataSrv: DataService, private changeDetector : ChangeDetectorRef , public mqSrv : MqService) { }
 
   ngOnInit(): void {
-    this.dataSrv.subscribeSignalR('wifi')
-    this.dataSrv.signalRSubj.wifiList.pipe(filter(w=>w!=null),takeUntil(this.onDestroy)).subscribe(wifis=>{
+    this.mqSrv.subscribeMQTT('wifi')
+    this.robotSrv.data.wifiList.pipe(filter(w=>w!=null),takeUntil(this.onDestroy)).subscribe(wifis=>{
       this.refreshWifiList(wifis)
     })
     //pending : 
@@ -36,7 +38,7 @@ export class WifiComponent implements OnInit , OnDestroy {
 
   ngOnDestroy(){
     this.onDestroy.next()
-    this.dataSrv.unsubscribeSignalR('wifi')
+    this.mqSrv.unsubscribeMQTT('wifi')
   }
 
   refreshWifiList(wifis) {
@@ -56,12 +58,12 @@ export class WifiComponent implements OnInit , OnDestroy {
   }
 
   async connectWifi(ssid){
-    await this.dataSrv.connectWifi(ssid, this.password)
+    await this.robotSrv.STANDALONE.connectWifi(ssid, this.password)
     this.getConnectedWifi()
   }
 
   async getConnectedWifi(){
-    //TBD : should refresh from signalRSubj but shouldn't reset wifiSignalList (shouldn't disturb user input)
+    //TBD : should refresh from mqSubj but shouldn't reset wifiSignalList (shouldn't disturb user input)
    this.connectedWifi =  this.wifiSignalList.filter(w=>w['inUse'])[0]
   }
 }

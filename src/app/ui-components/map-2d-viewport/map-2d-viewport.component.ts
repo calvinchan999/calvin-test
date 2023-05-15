@@ -21,7 +21,8 @@ import {GlowFilter} from '@pixi/filter-glow';
 import {OutlineFilter} from '@pixi/filter-outline';
 import {ColorOverlayFilter} from '@pixi/filter-color-overlay';
 import {DropShadowFilter} from '@pixi/filter-drop-shadow';
-import { ShapeJData , MapJData, FloorPlanDataset, MapDataset, DataService, robotPose, DropListFloorplan, DropListLocation, DropListMap, DropListAction, DropListBuilding, JMap, JPoint, JPath, JFloorPlan, DropListRobot, DropListPointIcon, RobotStatusARCS, JChildPoint } from 'src/app/services/data.service';
+import {DataService} from 'src/app/services/data.service';
+import { ShapeJData , MapJData, FloorPlanDataset, MapDataset, robotPose, DropListFloorplan, DropListLocation, DropListMap, DropListAction, DropListBuilding, JMap, JPoint, JPath, JFloorPlan, DropListRobot, DropListPointIcon, RobotStatusARCS, JChildPoint } from 'src/app/services/data.models';
 import { AuthService } from 'src/app/services/auth.service';
 import * as roundSlider from "@maslick/radiaslider/src/slider-circular";
 import {GraphBuilder, DijkstraStrategy} from "js-shortest-path"
@@ -40,6 +41,8 @@ import {calculateMapOrigin, calculateMapX, calculateMapY} from './pixi-ros-conve
 import {  PixiContainer} from 'src/app/utils/ng-pixi/ng-pixi-viewport/ng-pixi-base-container';
 import { PixiPath, PixiChildPoint, PixiWayPoint, PixiMap, PixiMapContainer, PixiEditableMapImage, PixiPointGroup, PixiBuildingPolygon, PixiRobotCountTag, PixiRobotMarker, PixiRosMapOriginMarker, PixiTaskPath, PixiMapGraphics } from '../../utils/ng-pixi/ng-pixi-viewport/ng-pixi-map-graphics'
 import { GetResizedBase64, GetResizedCanvas, GetSpriteFromUrl } from 'src/app/utils/ng-pixi/ng-pixi-viewport/ng-pixi-functions';
+import { MqService } from 'src/app/services/mq.service';
+import { RobotService } from 'src/app/services/robot.service';
 
 // adapted from
 // http://jsfiddle.net/eZQdE/43/
@@ -471,8 +474,8 @@ export class Map2DViewportComponent implements OnInit , AfterViewInit , OnDestro
     this.arrowKeyStep = 1
   }
 
-  constructor(public util: GeneralUtil, public changeDetector: ChangeDetectorRef,private renderer: Renderer2 , public dataSrv : DataService, public configSrv : ConfigService,
-              public uiSrv : UiService,  public httpSrv : RvHttpService, public elRef : ElementRef, public ngZone : NgZone , public authSrv : AuthService) {
+  constructor( public robotSrv : RobotService, public util: GeneralUtil, public changeDetector: ChangeDetectorRef,private renderer: Renderer2 , public dataSrv : DataService, public configSrv : ConfigService,
+              public uiSrv : UiService,  public httpSrv : RvHttpService, public elRef : ElementRef, public ngZone : NgZone , public authSrv : AuthService , public mqSrv : MqService) {
       this.commonModule = new CommonModule(this)
       if(this.util.standaloneApp){
         const robotModule =  new StandaloneRobotModule(this.commonModule) 
@@ -590,9 +593,9 @@ export class Map2DViewportComponent implements OnInit , AfterViewInit , OnDestro
     try{
       this.uiSrv.Map2DViewportComponents = this.uiSrv.Map2DViewportComponents.filter(c => c != this)
       this.subscriptions.forEach(s=>s.unsubscribe())
-      // if(this.signalRPoseSubscribed){
-      //   this.dataSrv.unsubscribeSignalR('poseDeviation')
-      //   this.dataSrv.unsubscribeSignalR('pose')
+      // if(this.mqPoseSubscribed){
+      //   this.mqSrv.unsubscribeMQTT('poseDeviation')
+      //   this.mqSrv.unsubscribeMQTT('pose')
       // }
       if(this.module.robot instanceof ARCSRobotModule){
         this.module.robot.unsubscribePose()
@@ -629,7 +632,7 @@ export class Map2DViewportComponent implements OnInit , AfterViewInit , OnDestro
 
       if (this.showRobot && this.robots.length == 0) {
         this.overlayMsg = this.uiSrv.translate("Select Starting Postion")
-        // this.signalRPoseSubscribed = true
+        // this.mqPoseSubscribed = true
         this.module.robot.addRobot(this.dataSrv.robotMaster?.robotCode, null)
 
         this.standaloneModule.robot.subscribeRobotPose()
@@ -1564,7 +1567,7 @@ export class RobotModule {
 
 export class ARCSRobotModule extends RobotModule {
   robotColors = []
-  signalRSubscribedMapCodes = []
+  mqSubscribedMapCodes = []
   poseSubscription 
   constructor( cm: CommonModule) {
     super(cm)
@@ -1585,20 +1588,20 @@ export class ARCSRobotModule extends RobotModule {
   
   async unsubscribePose(){
     this.poseSubscription?.unsubscribe()
-    if(this.signalRSubscribedMapCodes.length > 0){
-      this.signalRSubscribedMapCodes.forEach(m => this.cm.dataSrv.unsubscribeSignalR('arcsPoses', false,`${m}`))
-      this.signalRSubscribedMapCodes = []
+    if(this.mqSubscribedMapCodes.length > 0){
+      this.mqSubscribedMapCodes.forEach(m => this.cm.mqSrv.unsubscribeMQTT('arcsPoses', false,`${m}`))
+      this.mqSubscribedMapCodes = []
     }
   }
 
   async subscribeRobotPose(mapCodes) { 
     // TBD : mapContainerStore key change from mapCode to robotBase
     this.unsubscribePose()
-    this.signalRSubscribedMapCodes = mapCodes
+    this.mqSubscribedMapCodes = mapCodes
     mapCodes.forEach(m=>{
-      this.cm.dataSrv.subscribeSignalR('arcsPoses',`${m}`)
+      this.cm.mqSrv.subscribeMQTT('arcsPoses',`${m}`)
     })
-    this.poseSubscription = this.cm.dataSrv.signalRSubj.arcsPoses.pipe(filter(v => v)).subscribe(async (poseObj) => { //{mapCode : robotId : pose}
+    this.poseSubscription = this.cm.mqSrv.data.arcsPoses.pipe(filter(v => v)).subscribe(async (poseObj) => { //{mapCode : robotId : pose}
       Object.keys(poseObj).forEach(mapCode => {
         let robotsAdded = []
    
@@ -1641,18 +1644,18 @@ export class StandaloneRobotModule extends RobotModule {
   }
 
   async subscribeRobotPose() {
-    this.cm.dataSrv.unsubscribeSignalR('pose')
-    this.cm.dataSrv.subscribeSignalR('pose')
-    this.cm.dataSrv.unsubscribeSignalR('poseDeviation')
-    this.cm.dataSrv.subscribeSignalR('poseDeviation')
+    this.cm.mqSrv.unsubscribeMQTT('pose')
+    this.cm.mqSrv.subscribeMQTT('pose')
+    this.cm.mqSrv.unsubscribeMQTT('poseDeviation')
+    this.cm.mqSrv.subscribeMQTT('poseDeviation')
 
-    this.cm.dataSrv.signalRSubj.pose.pipe(takeUntil(this.master.onDestroy)).subscribe(async (pose) => {
+    this.cm.robotSrv.data.pose.pipe(takeUntil(this.master.onDestroy)).subscribe(async (pose) => {
       if (this.master.module.localization?.localizing) {
         return
       }
-      pose = this.cm.dataSrv.signalRSubj.pose.value
+      pose = this.cm.robotSrv.data.pose.value
       let robot = this.robots[0]
-      if (pose && !this.master.module.localization?.previewData.alignLidar && !this.cm.dataSrv.signalRSubj.isFollowMeWithoutMap.value && !['', null, undefined].includes(pose?.mapName)) {
+      if (pose && !this.master.module.localization?.previewData.alignLidar && !this.cm.robotSrv.data.isFollowMeWithoutMap.value && !['', null, undefined].includes(pose?.mapName)) {
         //--- mapName return mapCode but we need mapId here ---
         robot.mapCode = pose?.mapName
         // if(this.cm.data.selectedMapCode!=pose?.mapName){
@@ -1685,8 +1688,8 @@ export class StandaloneRobotModule extends RobotModule {
     })
 
     this.master.onDestroy.subscribe(() => {
-      this.cm.dataSrv.unsubscribeSignalR('poseDeviation')
-      this.cm.dataSrv.unsubscribeSignalR('pose')
+      this.cm.mqSrv.unsubscribeMQTT('poseDeviation')
+      this.cm.mqSrv.unsubscribeMQTT('pose')
     })
   }
 
@@ -1921,7 +1924,7 @@ export class LocalizationModule { //Standalone Function : change map / localize
 
   async changeMap(){
     let ticket = this.cm.uiSrv.loadAsyncBegin()
-    if (!this.cm.dataSrv.signalRSubj.isFollowMeMode) {
+    if (!this.cm.robotSrv.data.isFollowMeMode) {
       await this.cm.httpSrv.fmsRequest('POST', 'mode/v1/navigation')
     }
     await this.cm.httpSrv.fmsRequest('POST', 'map/v1/change', { mapName: this.cm.data.selectedMapCode, useInitialPose: false, waypointName: null })
@@ -2217,9 +2220,9 @@ export class TaskModule{
       let tmp = await this.cm.dataSrv.getDropList('actions')
       tmp.data.forEach((a: DropListAction) => this.cm.dataSrv.dataStore.action[a.alias] = a.name)
     }
-    await this.cm.dataSrv.subscribeSignalRs(['taskArrive', 'taskProgress','taskDepart'])
-    await this.cm.dataSrv.refreshTaskStatus()
-    this.cm.dataSrv.signalRSubj.taskActive.pipe(filter(v=>!v)).subscribe(async() => {
+    await this.cm.mqSrv.subscribeMQTTs(['taskArrive', 'taskProgress','taskDepart'])
+    await this.cm.mqSrv.refreshTaskStatus()
+    this.cm.robotSrv.data.taskActive.pipe(filter(v=>!v)).subscribe(async() => {
       this.taskShowing = null
       this.viewport.allPixiWayPoints.forEach((p: PixiWayPoint) =>{
         p.setTaskItemSeq('')
@@ -2228,7 +2231,7 @@ export class TaskModule{
       itemList = []
     })
 
-    this.cm.dataSrv.signalRSubj.taskActive.pipe(filter(v=>v)).subscribe(async(task) => {
+    this.cm.robotSrv.data.taskActive.pipe(filter(v=>v)).subscribe(async(task) => {
       if(!this.taskShowing){
         task.taskItemList.forEach(move => {
           let pointCode = move['movement']['waypointName']
@@ -2248,12 +2251,12 @@ export class TaskModule{
       }
     })
     
-    this.cm.dataSrv.signalRSubj.taskItemIndex.subscribe(i => {
+    this.cm.robotSrv.data.taskItemIndex.subscribe(i => {
       if(this.master.module.localization?.localizing){
         return
       }
-      this.viewport.allPixiWayPoints.filter(p => p.taskItemIndex == this.cm.dataSrv.signalRSubj.taskItemIndex.value).forEach((p: PixiWayPoint) => {
-        let actionName = this.cm.dataSrv.dataStore.action?.[this.cm.dataSrv.signalRSubj.taskActive.value?.taskItemList?.[this.cm.dataSrv.signalRSubj.taskItemIndex.value]?.actionList?.[i]?.alias]
+      this.viewport.allPixiWayPoints.filter(p => p.taskItemIndex == this.cm.robotSrv.data.taskItemIndex.value).forEach((p: PixiWayPoint) => {
+        let actionName = this.cm.dataSrv.dataStore.action?.[this.cm.robotSrv.data.taskActive.value?.taskItemList?.[this.cm.robotSrv.data.taskItemIndex.value]?.actionList?.[i]?.alias]
         if (actionName) {
           p.toolTipContent = `${p.text} ${actionName ? ':' : ''} ${actionName}`
         }
@@ -2262,7 +2265,7 @@ export class TaskModule{
       this.viewport.allPixiWayPoints.filter(p => p.taskItemIndex <= i).forEach((p: PixiWayPoint) => {
         let idxs = itemList.filter(taskItm => taskItm.pointCode == p.code).map(taskItm => itemList.indexOf(taskItm))
         let idxsNotExecuted = idxs.filter(idx => idx > i)
-        let currIdxs = idxs.filter(idx => idx == i || (this.cm.dataSrv.signalRSubj.isMovingInTask.value && (idx == i - 1)))
+        let currIdxs = idxs.filter(idx => idx == i || (this.cm.robotSrv.data.isMovingInTask.value && (idx == i - 1)))
         p.taskItemIndex = currIdxs.length > 0 ? currIdxs[0] : (idxsNotExecuted.length > 0 ? Math.min.apply(null, idxsNotExecuted) : Math.max.apply(null, idxs))
         let dispVal = currIdxs.length > 0 ? (currIdxs[0] + 1).toString() : ((idxs.filter(idx => idx <= i).map(idx => (idx + 1).toString()).slice(0,3)).join(' , ') + (idxs.length > 3 ?  ' ...' : '' ))
         p.setTaskItemSeq(dispVal, undefined, true)
@@ -2271,11 +2274,11 @@ export class TaskModule{
       // !!! IMPORTANT !!! //
        // TBR : this.mainContainer.children.filter(c => c instanceof PixiTaskPath).forEach
       this.viewport.allPixiTaskPaths.forEach((p: PixiTaskPath) => {
-        p.visible = this.cm.dataSrv.signalRSubj.isMovingInTask.value && p.taskItemIndex == i - 1
+        p.visible = this.cm.robotSrv.data.isMovingInTask.value && p.taskItemIndex == i - 1
         p.alpha = 0.7
       })
       this.viewport.allPixiWayPoints.filter(p =>  p.taskItemIndex != null &&  p.taskItemIndex == i).forEach((p: PixiWayPoint) => {
-        p.setTaskItemSeq((p.taskItemIndex + 1).toString(), undefined, !this.cm.dataSrv.signalRSubj.isMovingInTask.value, this.cm.dataSrv.signalRSubj.isMovingInTask.value)
+        p.setTaskItemSeq((p.taskItemIndex + 1).toString(), undefined, !this.cm.robotSrv.data.isMovingInTask.value, this.cm.robotSrv.data.isMovingInTask.value)
       })
       this.viewport.allPixiWayPoints.filter(p =>  p.taskItemIndex != null &&  p.taskItemIndex > i).forEach((p: PixiWayPoint) => {
         p.setTaskItemSeq((p.taskItemIndex + 1).toString())
@@ -2305,11 +2308,11 @@ export class PointCloudModule { //Standalone Function
   async subscribeLiveLidar(){
     let ticket = this.cm.uiSrv.loadAsyncBegin()
     await this.cm.httpSrv.fmsRequest("POST","lidar/v1/laserScanToPointCloud/start")
-    await this.cm.dataSrv.subscribeSignalRs(['lidar','lidarStatus']);
+    await this.cm.mqSrv.subscribeMQTTs(['lidar','lidarStatus']);
     if(this.statusSubscription){
       this.statusSubscription.unsubscribe()
     }
-    this.statusSubscription = this.cm.dataSrv.signalRSubj.lidarSwitchedOn.pipe(skip(1), filter(on => !on)).subscribe(() => {
+    this.statusSubscription = this.cm.robotSrv.data.lidarSwitchedOn.pipe(skip(1), filter(on => !on)).subscribe(() => {
       if (this.show) {
         console.log('lidar turned off . restarting ...')
         this.cm.httpSrv.fmsRequest("POST", "lidar/v1/laserScanToPointCloud/start")
@@ -2318,7 +2321,7 @@ export class PointCloudModule { //Standalone Function
     this.show = true
     this.cm.ui.toggleRosMap(true)
     this.cm.uiSrv.loadAsyncDone(ticket)
-    this.cm.dataSrv.signalRSubj.lidar.pipe(skip(1)).subscribe(l=>{
+    this.cm.robotSrv.data.lidar.pipe(skip(1)).subscribe(l=>{
       this.refreshLiveLidar()
     })
   }
@@ -2326,7 +2329,7 @@ export class PointCloudModule { //Standalone Function
   async unsubscribeLiveLidar(){
     let ticket = this.cm.uiSrv.loadAsyncBegin()
     await this.cm.httpSrv.fmsRequest("POST","lidar/v1/laserScanToPointCloud/stop")
-    await this.cm.dataSrv.unsubscribeSignalRs(['lidar' , 'lidarStatus']);
+    await this.cm.mqSrv.unsubscribeMQTTs(['lidar' , 'lidarStatus']);
     this.show = false
     this.cm.ui.toggleRosMap(false)
     this.refreshLiveLidar()    
@@ -2338,7 +2341,7 @@ export class PointCloudModule { //Standalone Function
 
 
   refreshLiveLidar() {
-    let lidarData = this.cm.dataSrv.signalRSubj.lidar.value
+    let lidarData = this.cm.robotSrv.data.lidar.value
     if (lidarData && this.master.module.lidarPointCloud.graphic && lidarData.mapName != this.master.module.lidarPointCloud.mapCode) {
       this.cm.ui.toggleRosMap(false)
       this.viewport.removeGraphics(this.graphic)
@@ -2389,6 +2392,8 @@ class CommonModule {
   httpSrv : RvHttpService
   dataSrv : DataService
   data : DataModule
+  mqSrv : MqService
+  robotSrv : RobotService
   //DROP DOWN
   constructor( master : Map2DViewportComponent){    
     this.ui = new UiModule(this)
@@ -2398,6 +2403,8 @@ class CommonModule {
     this.util = master.util
     this.httpSrv = master.httpSrv
     this.dataSrv = master.dataSrv
+    this.mqSrv = master.mqSrv
+    this.robotSrv = master.robotSrv
   }
 }
 

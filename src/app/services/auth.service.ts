@@ -10,7 +10,9 @@ import { CldrIntlService, IntlService } from '@progress/kendo-angular-intl';
 import { RvHttpService } from './rv-http.service';
 import { Router } from '@angular/router';
 import { ConfigService } from './config.service';
-import { DataService, loginResponse } from './data.service';
+import { DataService } from './data.service';
+import {  loginResponse } from './data.models';
+import { MqService } from './mq.service';
 
 @Injectable()
 export class AuthService {
@@ -24,7 +26,7 @@ export class AuthService {
 		accessToken : 'access_token',
 		refreshToken: 'refresh_token'
 	}
-	constructor(private httpSrv: RvHttpService, private dataSrv : DataService, private generalUtil : GeneralUtil, public intlService: IntlService, private router : Router, public configSrv : ConfigService) { 
+	constructor( public mqSrv : MqService ,  private httpSrv: RvHttpService, private dataSrv : DataService, private generalUtil : GeneralUtil, public intlService: IntlService, private router : Router, public configSrv : ConfigService) { 
 		this.username = this.generalUtil.getCurrentUser()
 		this.isGuestMode = JSON.parse(this.dataSrv.getSessionStorage('isGuestMode'))
 		this.userAccessList = JSON.parse(this.generalUtil.getUserAccess())
@@ -84,6 +86,7 @@ export class AuthService {
 					this.dataSrv.setSessionStorage('isGuestMode', JSON.stringify(guestMode))
 					this.isGuestMode = guestMode
 					this.dataSrv.init()
+					this.mqSrv.init()
 					this.configSrv.setDbConfig(response.validationResults.configurations)
 				}
 				return response;
@@ -111,10 +114,10 @@ export class AuthService {
 			})
 		}
 		if(this.dataSrv._USE_AZURE_PUBSUB){
-			this.dataSrv.pubsubSrv.webSocket.close()
-			this.dataSrv.pubsubSrv.disposeWebSocket()
+			this.mqSrv.pubsubSrv.webSocket.close()
+			this.mqSrv.pubsubSrv.disposeWebSocket()
 		}else{
-			this.dataSrv.signalRSrv.disconnect()
+			this.mqSrv.signalRSrv.disconnect()
 		}
 		this.router.navigate(['login'] ,{ queryParams: { clientId : this.tenantId } })
 		// var dataObj = {

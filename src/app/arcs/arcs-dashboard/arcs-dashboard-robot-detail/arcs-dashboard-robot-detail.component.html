@@ -13,11 +13,11 @@
             <div class="bl-text">
                 <label class="bl-label">{{ds[item['id']]?.title | label : uiSrv.langPack}}</label>
                 <span class="bl-result">{{(ds[item['id']]?.content ? ds[item['id']].content :  
-                                           ( ds[item['id']]?.signalRfld!=null &&  ds[item['id']]?.signalRfld!=undefined && ds[item['id']].signalR?.value? 
-                                             ds[item['id']].signalR?.value[ds[item['id']].signalRfld] : 
-                                             ds[item['id']]?.signalR?.value ) 
+                                           ( ds[item['id']]?.mqfld!=null &&  ds[item['id']]?.mqfld!=undefined && ds[item['id']].mq?.value? 
+                                             ds[item['id']].mq?.value[ds[item['id']].mqfld] : 
+                                             ds[item['id']]?.mq?.value ) 
                                           ) | label : uiSrv.langPack }}</span>
-                <span class="bl-unit">{{ (ds[item['id']]?.suffixSignalR && ds[item['id']]?.suffixSignalR.value ?  ds[item['id']]?.suffixSignalR.value : ds[item['id']]?.suffix ) | label : uiSrv.langPack }}</span>
+                <span class="bl-unit">{{ (ds[item['id']]?.suffixmq && ds[item['id']]?.suffixmq.value ?  ds[item['id']]?.suffixmq.value : ds[item['id']]?.suffix ) | label : uiSrv.langPack }}</span>
             </div>   
         </ng-container>
     </div>
@@ -36,7 +36,7 @@
             <!-- tab buttons -->
             <div class="card-buttons">
                 <kendo-buttongroup #buttonGroup selection="single">
-                    <button *ngFor="let tab of tabs" kendoButton [toggleable]="true" [selected]="selectedTab == tab.id" (click) = "selectedTab = tab.id ; selectedTab == 'camera' ? getStreamingUrl() : null;"> 
+                    <button *ngFor="let tab of tabs" kendoButton [toggleable]="true" [selected]="selectedTab == tab.id" (click) = "selectedTab = tab.id ; selectedTab == 'camera' ? getStreamingUrl() : null;" [disabled] = "false && tab.id!='info' && ds.status.content == ARCS_STATUS_MAP.UNKNOWN "> 
                         {{ tab.label | label : uiSrv.langPack }}
                     </button>
                 </kendo-buttongroup>
@@ -105,9 +105,9 @@
                 <span>{{ds.status.content | label : uiSrv.langPack}}</span>
             </span>
     
-            <span class="battery" *ngIf="ds.battery.signalR?.value">
-                <i [class]="'mdi mdi-battery' + ( ds.battery.signalR?.value == 100 ? '' : ('-' + ( ds.battery.signalR?.value < 10 ? '10' : ((ds.battery.signalR?.value / 10) | roundDown) * 10))) "></i> 
-                <span>{{ds.battery.signalR?.value}}%</span>
+            <span class="battery" *ngIf="ds.battery.mq?.value">
+                <i [class]="'mdi mdi-battery' + ( ds.battery.mq?.value == 100 ? '' : ('-' + ( ds.battery.mq?.value < 10 ? '10' : ((ds.battery.mq?.value / 10) | roundDown) * 10))) "></i> 
+                <span>{{ds.battery.mq?.value}}%</span>
             </span>
         </div>
 

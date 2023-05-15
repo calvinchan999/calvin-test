@@ -105,7 +105,7 @@ export class SaTaskComponent implements OnInit {
   // },
 
   ngOnInit() {
-    // this.dataSrv.signalRSubj.taskActive.pipe(skip(1)).subscribe(()=>{
+    // this.robotSrv.data.taskActive.pipe(skip(1)).subscribe(()=>{
     //   if(this.tableRef){
     //     this.tableRef.retrieveData()
     //   }

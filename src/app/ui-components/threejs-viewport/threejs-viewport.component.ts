@@ -8,7 +8,7 @@ import {TWEEN} from "three/examples/jsm/libs/tween.module.min";
 // import { DragControls } from 'three/examples/jsm/controls/DragControls';
 import { AmbientLight, DirectionalLight, DoubleSide, Group, Mesh, Object3D, ShapeGeometry, WebGLRenderer ,BufferGeometry, LineSegments, MeshStandardMaterial, Vector3, MeshBasicMaterial, ShaderMaterial, Material, MeshPhongMaterial, PlaneGeometry } from 'three';
 import { GeneralUtil } from 'src/app/utils/general/general.util';
-import { DataService, DropListFloorplan, DropListRobot, JFloorPlan, JMap, JPoint, RobotDetailARCS, signalRType } from 'src/app/services/data.service';
+import { DataService, mqType } from 'src/app/services/data.service';
 import { debounce, debounceTime, filter, retry, share, skip, switchMap, take, takeUntil , map } from 'rxjs/operators';
 import { radRatio } from '../map-2d-viewport/map-2d-viewport.component';
 import { BehaviorSubject, interval, Observable, Subject, Subscription } from 'rxjs';
@@ -30,6 +30,9 @@ import { ArcsLiftIotComponent } from 'src/app/arcs/arcs-iot/arcs-lift-iot/arcs-l
 import { ArcsTurnstileIotComponent } from 'src/app/arcs/arcs-iot/arcs-turnstile-iot/arcs-turnstile-iot.component';
 import {GetImageDimensions} from 'src/app/utils/graphics/image'
 import { TransformControls } from 'three/examples/jsm/controls/TransformControls.js';
+import { DropListRobot, JFloorPlan, JMap, JPoint } from 'src/app/services/data.models';
+import { MqService } from 'src/app/services/mq.service';
+import { RobotService } from 'src/app/services/robot.service';
 
 const NORMAL_ANGLE_ADJUSTMENT =  - 90 / radRatio
 const ASSETS_ROOT = 'assets/3D'
@@ -41,7 +44,7 @@ const ASSETS_ROOT = 'assets/3D'
 export class ThreejsViewportComponent implements OnInit , OnDestroy{
   public selected = false;
   public loadingTicket = null
-  subcribedIotSignalRTypes : signalRType [] = []
+  subcribedIotSignalRTypes : mqType [] = []
 
   scene : THREE.Scene
   camera : THREE.PerspectiveCamera
@@ -120,8 +123,8 @@ export class ThreejsViewportComponent implements OnInit , OnDestroy{
   } = null
   subscribedPoseMapCode = null
   robotLists : DropListRobot[]
-  constructor(public uiSrv: UiService , public ngZone : NgZone , public util : GeneralUtil , public dataSrv : DataService ,  public ngRenderer:Renderer2 ,
-              public elRef : ElementRef , public vcRef: ViewContainerRef , public compResolver: ComponentFactoryResolver ) {
+  constructor( public  robotSrv : RobotService ,  public uiSrv: UiService , public ngZone : NgZone , public util : GeneralUtil , public dataSrv : DataService ,  public ngRenderer:Renderer2 ,
+              public elRef : ElementRef , public vcRef: ViewContainerRef , public compResolver: ComponentFactoryResolver , public mqSrv : MqService) {
     // this.loadingTicket = this.uiSrv.loadAsyncBegin()
     // this.loadLocalStorageToggleSettings()
     this.isMobile = this.uiSrv.detectMob()
@@ -241,8 +244,24 @@ export class ThreejsViewportComponent implements OnInit , OnDestroy{
       this.robotObjs.forEach(r=>r.toolTipAlwaysOn = this.uiToggles.showIot)
     } else if (key == 'showFloorPlanImage') {
       (<THREE.MeshPhongMaterial>this.floorplan.material).visible = this.uiToggles.showFloorPlanImage
-    }else if(key == 'transformControl' && this.floorPlanModel && this.transformCtrl){
-      this.transformCtrl.visible =  this.uiToggles.transformControl
+    }else if(key == 'transformControl' && this.floorPlanModel ){
+      if(this.uiToggles.transformControl){
+        this.transformCtrl = new TransformControls(this.camera, this.renderer.domElement)
+        this.transformCtrl.addEventListener("dragging-changed", function (event) {
+          console.log("dragging-changed ", event);
+          // if (!event.value) {
+          //   this.transformCtrl.detach();
+          //   // console.log("check mesh", mesh);
+          // }
+          this.orbitCtrl.enabled = !event.value;
+        });
+        this.transformCtrl.attach(this.floorPlanModel)
+        this.scene.add(this.transformCtrl)
+      }else if(this.transformCtrl){       
+        this.transformCtrl.object = null
+        this.scene.remove(this.transformCtrl)
+ 
+      }
     }
   }
 
@@ -456,10 +475,10 @@ export class ThreejsViewportComponent implements OnInit , OnDestroy{
       this.floorplan.add(this.floorPlanModel)
       this.uiSrv.loadAsyncDone(ticket)
       awaiter.next();
-      this.transformCtrl.object = null
-      this.transformCtrl.attach(this.floorPlanModel)
-
-  
+      // this.transformCtrl.object = null
+      // this.transformCtrl.attach(this.floorPlanModel)
+      // this.scene.remove(this.transformCtrl)
+      // this.scene.add(this.transformCtrl)  
     }, this.onObjProgress);
     await awaiter.pipe(take(1)).toPromise()
   }
@@ -515,9 +534,9 @@ export class ThreejsViewportComponent implements OnInit , OnDestroy{
   }
 
   async subscribeElevators(){
-    await this.dataSrv.subscribeSignalR('arcsLift')
+    await this.mqSrv.subscribeMQTT('arcsLift')
     this.subcribedIotSignalRTypes.push('arcsLift')
-    this.dataSrv.signalRSubj.arcsLift.pipe( filter(v=> v!=null),takeUntil(this.$onDestroy)).subscribe((v)=>{
+    this.mqSrv.data.arcsLift.pipe( filter(v=> v!=null),takeUntil(this.$onDestroy)).subscribe((v)=>{
       Object.keys(v).forEach(k=>{
         const liftObj = this.elevators.filter(e=>e.liftId == k)[0]
         const liftData = v[k]
@@ -552,7 +571,7 @@ export class ThreejsViewportComponent implements OnInit , OnDestroy{
   }
 
   async subscribeTurnstile(){
-    await this.dataSrv.subscribeSignalR('arcsTurnstile')
+    await this.mqSrv.subscribeMQTT('arcsTurnstile')
     this.subcribedIotSignalRTypes.push('arcsTurnstile')
   }
 
@@ -586,22 +605,14 @@ export class ThreejsViewportComponent implements OnInit , OnDestroy{
     this.animate()
 
     await this.getRobotList()
-    this.transformCtrl = new TransformControls(this.camera, this.renderer.domElement)
-    this.transformCtrl.visible = false
+  
 
-    this.scene.add(this.transformCtrl)
+    // this.scene.add(this.transformCtrl)
     this.orbitCtrl = new OrbitControls( this.camera, this.labelRenderer.domElement );
     // this.orbitCtrl.enabled  = false
     // this.orbitCtrl.addEventListener( 'change', (v)=> this.onOrbitControlChange(v) );
+    
     document.addEventListener('pointermove', (e)=>this.onMouseMove(e), false);
-    this.transformCtrl.addEventListener("dragging-changed", function (event) {
-      console.log("dragging-changed ", event);
-      if (!event.value) {
-        this.transformCtrl.detach();
-        // console.log("check mesh", mesh);
-      }
-      this.orbitCtrl.enabled = !event.value;
-    });
     setTimeout(() => this.onResize())
 
     if( this.floorPlanDataset){
@@ -661,8 +672,8 @@ export class ThreejsViewportComponent implements OnInit , OnDestroy{
 
   public subscribeRobotPoses(mapCode = this.mapCode){ //Assume 1 Map per robot per floor plan
     //TBR : dont add robot if it is inside lift
-    this.dataSrv.subscribeSignalR('arcsPoses' , mapCode)
-    this.dataSrv.signalRSubj.arcsPoses.pipe(filter(v => v) , takeUntil(this.$mapCodeChanged)).subscribe(async (poseObj) => { //{mapCode : robotId : pose}
+    this.mqSrv.subscribeMQTT('arcsPoses' , mapCode)
+    this.mqSrv.data.arcsPoses.pipe(filter(v => v) , takeUntil(this.$mapCodeChanged)).subscribe(async (poseObj) => { //{mapCode : robotId : pose}
       Object.keys(poseObj[mapCode]).forEach((robotCode)=>{
         if(this.elevators.filter(e=>e.robotCode == robotCode).length > 0){ //wont display robot on map if it is shown in a lift
           return
@@ -714,13 +725,13 @@ export class ThreejsViewportComponent implements OnInit , OnDestroy{
   unsubscribeRobotPoses() {
     if (this.subscribedPoseMapCode) {
       this.$mapCodeChanged.next()
-      this.dataSrv.unsubscribeSignalR('arcsPoses', false, this.subscribedPoseMapCode)
+      this.mqSrv.unsubscribeMQTT('arcsPoses', false, this.subscribedPoseMapCode)
       this.subscribedPoseMapCode = null
     }
   }
 
   unsubscribeIot(){
-    this.dataSrv.unsubscribeSignalRs(this.subcribedIotSignalRTypes , true)
+    this.mqSrv.unsubscribeMQTTs(this.subcribedIotSignalRTypes , true)
   }
 
    refreshRobotColors(){
@@ -1856,7 +1867,7 @@ class ElevatorObject3D extends Object3DCommon{
     this.boxMesh = new THREE.Mesh(new THREE.BoxGeometry(this.width, this.height, this.depth),  new THREE.MeshLambertMaterial({side: THREE.DoubleSide , color: 0xAAAAAA, opacity: 0.8, transparent: true }));
     (<any> this.boxMesh).defaultOpacity = 0.8
     this.boxMesh.position.set(0, 0, this.depth / 2)
-    const liftData = this.master.dataSrv.signalRSubj.arcsLift.value?.[this.liftId]
+    const liftData = this.master.mqSrv.data.arcsLift.value?.[this.liftId]
     this.boxMesh.visible = false 
     this.add(this.boxMesh)
     this.currentFloor = liftData?.floor

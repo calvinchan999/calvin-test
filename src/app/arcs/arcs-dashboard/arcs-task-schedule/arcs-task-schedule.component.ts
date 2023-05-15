@@ -4,7 +4,7 @@ import { DialogService } from '@progress/kendo-angular-dialog';
 import { Subject } from 'rxjs';
 import { debounce, debounceTime, filter, skip, take, takeUntil } from 'rxjs/operators';
 import { AuthService } from 'src/app/services/auth.service';
-import { DataService, JMap, MapJData, ShapeJData } from 'src/app/services/data.service';
+import { DataService} from 'src/app/services/data.service';
 import { RvHttpService } from 'src/app/services/rv-http.service';
 import { SignalRService } from 'src/app/services/signal-r.service';
 import { UiService } from 'src/app/services/ui.service';
@@ -19,8 +19,7 @@ import { GeneralUtil } from 'src/app/utils/general/general.util';
 })
 export class ArcsTaskScheduleComponent implements OnInit {
   readonly = false
-  constructor(public uiSrv: UiService, public dialogSrv: DialogService, public ngZone: NgZone, public httpSrv: RvHttpService,
-    public signalRSrv: SignalRService, public util: GeneralUtil, public dataSrv: DataService, public authSrv: AuthService) {
+  constructor(public uiSrv: UiService, public dialogSrv: DialogService, public ngZone: NgZone, public httpSrv: RvHttpService, public util: GeneralUtil, public dataSrv: DataService, public authSrv: AuthService) {
   }
 
   frmGrp = new FormGroup({

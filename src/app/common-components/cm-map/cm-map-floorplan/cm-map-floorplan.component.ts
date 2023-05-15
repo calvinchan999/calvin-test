@@ -2,7 +2,8 @@ import { ChangeDetectorRef, Component, ElementRef, Input, NgZone, OnInit, ViewCh
 import { FormControl, FormGroup, Validators } from '@angular/forms';
 import { DialogService } from '@progress/kendo-angular-dialog';
 import { filter, retry, take } from 'rxjs/operators';
-import { DataService, DropListBuilding, DropListMap, JFloorPlan, JMap, MapJData, ShapeJData } from 'src/app/services/data.service';
+import { DataService} from 'src/app/services/data.service';
+import {  DropListBuilding, DropListMap, JFloorPlan, JMap, MapJData, ShapeJData } from 'src/app/services/data.models';
 import { RvHttpService } from 'src/app/services/rv-http.service';
 import { UiService } from 'src/app/services/ui.service';
 import { Map2DViewportComponent,   radRatio} from 'src/app/ui-components/map-2d-viewport/map-2d-viewport.component';
@@ -33,6 +34,7 @@ export class CmMapFloorplanComponent implements OnInit {
   @ViewChild('tabStrip') tabStripRef : TabStripComponent
   @ViewChild('threeJs') threeJsElRef : ThreejsViewportComponent
   @HostBinding('class') customClass = 'setup-map'
+  @ViewChild('txtUploader') txtUploader
 
   constructor(public util : GeneralUtil, public uiSrv : UiService , public windowSrv: DialogService, public ngZone : NgZone,
               public httpSrv : RvHttpService  , private dataSrv : DataService , public authSrv : AuthService) { 
@@ -147,10 +149,9 @@ export class CmMapFloorplanComponent implements OnInit {
     this.pixiElRef.init()
   }
 
-  async loadData(id){
+  async loadData(id , data : JFloorPlan = null){
     let ticket = this.uiSrv.loadAsyncBegin()
-    let data : JFloorPlan = await this.httpSrv.get("api/map/plan/v1/" + id.toString())
-    // data = JSON.parse(testDs4)
+    data = data != null ? data : await this.httpSrv.get("api/map/plan/v1/" + id.toString())
     this.mapCode = data.mapList[0]?.mapCode
     this.mapTree.refreshExpandedKeys()
     await this.pixiElRef.loadDataset(data, undefined, undefined, false)
@@ -158,13 +159,6 @@ export class CmMapFloorplanComponent implements OnInit {
       await this.getMapsData(this.mapCode)
       await this.loadMapsToPixi(this.mapCode, false)
     }
-    // this.mapsStore.set(this.mapCode , JSON.parse(JSON.stringify(data.mapList)))
-    // for (let i = 0; i < this.mapsStore.get(this.mapCode).length; i++) {
-    //   let pixiMap = await this.pixiElRef.loadMapV2(this.mapsStore.get(this.mapCode)[i])
-    //   if (!this.readonly && i == data.mapList.length - 1) {
-    //     this.pixiElRef.selectGraphics(pixiMap)
-    //   }
-    // } 
     this.util.loadToFrmgrp(this.frmGrp ,  data);
     (<any>this.pixiElRef.viewport.allPixiWayPoints).concat((<any>this.pixiElRef.viewport.allPixiPaths)).forEach(gr=>gr.visible = this.selectedTab == 'locations');
     // (<any>this.pixiElRef.allPixiPoints).concat((<any>this.pixiElRef.allPixiArrows)).forEach(gr=>this.pixiElRef.removeGraphics(gr))
@@ -468,6 +462,57 @@ export class CmMapFloorplanComponent implements OnInit {
       pixiWp.focusInput()
     }
   }
+
+  exportDatasetAsTextFile(){
+    const blob = new Blob([JSON.stringify(this.getSubmitDataset())], { type: 'text/txt' });
+    var url = window.URL.createObjectURL(blob);
+    var anchor = document.createElement("a");
+    anchor.download = this.frmGrp.controls['floorPlanCode'].value + ".txt";
+    anchor.href = url;
+    anchor.click();
+  }
+
+  onImportClicked(){
+    this.txtUploader.nativeElement.click()
+  }
+
+  importDatasetFromTextFile(event){
+    const files = event.target.files;
+    if (files.length === 0) {
+      return;
+    }
+    let ticket = this.uiSrv.loadAsyncBegin()
+    var reader = new FileReader();
+    reader.readAsText(files[0]);
+    reader.onload = async (_event) => {
+      let text = reader.result;
+      let data : JFloorPlan
+      try{
+        data = JSON.parse(text?.toString())
+      }catch{
+        this.uiSrv.showWarningDialog('The format of the imported file is invalid (Invalid JSON)')
+        return
+      }
+
+
+      if(data.mapList!=null && Array.isArray(data.mapList) && data.mapList.length > 0){
+        data.mapList = data.mapList.slice(0, 1)
+        if (this.dropdownData.maps.filter((m: DropListMap) => m.floorPlanCode == null && m.mapCode == data.mapList[0].mapCode).length == 0) {
+          let msg = this.uiSrv.translate('The floor plan image and waypoints are imported sucessfully but the selected map code ($MAP_CODE) is not available.')
+          msg = msg.replace('$MAP_CODE', data.mapList[0]?.mapCode)
+          data.mapList = []
+          this.uiSrv.showWarningDialog(msg)
+        }              
+      }
+
+      this.loadData(null , data)
+
+      this.uiSrv.loadAsyncDone(ticket)
+      
+      event.target.value = null
+    }
+  }
+
 
   // add_UserTrainingWaypoint(name , x , y , rad){ //for HKAA user training only
   //     let map : PixiEditableMapImage = <any>Object.values(this.pixiElRef.viewport.mapLayerStore)[0]

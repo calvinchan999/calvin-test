@@ -45,12 +45,12 @@
                 <div class="bl-text">
                     <label class="bl-label">{{ds[item['id']]?.title | label : uiSrv.langPack}}</label>
                     <span class="bl-result">{{ds[item['id']]?.disabled ? ' - ' : (ds[item['id']]?.content ? ds[item['id']].content :  
-                                               ( ds[item['id']]?.signalRfld!=null &&  ds[item['id']]?.signalRfld!=undefined && ds[item['id']].signalR?.value? 
-                                                 ds[item['id']].signalR?.value[ds[item['id']].signalRfld] : 
-                                                 ds[item['id']]?.signalR?.value ) 
+                                               ( ds[item['id']]?.mqfld!=null &&  ds[item['id']]?.mqfld!=undefined && ds[item['id']].mq?.value? 
+                                                 ds[item['id']].mq?.value[ds[item['id']].mqfld] : 
+                                                 ds[item['id']]?.mq?.value ) 
                                               )  }}
                     </span>             
-                    <span class="bl-unit">{{ (ds[item['id']]?.suffixSignalR && ds[item['id']]?.suffixSignalR.value ?  ds[item['id']]?.suffixSignalR.value : ds[item['id']]?.suffix ) | label : uiSrv.langPack }}</span>
+                    <span class="bl-unit">{{ (ds[item['id']]?.suffixmq && ds[item['id']]?.suffixmq.value ?  ds[item['id']]?.suffixmq.value : ds[item['id']]?.suffix ) | label : uiSrv.langPack }}</span>
                 </div>   
             </ng-container>
             <ng-container  *ngIf="item['type']=='button'">
@@ -77,10 +77,10 @@
         <!-- <span>{{}}</span> -->
     </span>
 
-    <span *ngIf="robotType == 'delivery' && dataSrv.arcsRobotDataMap[arcsRobotCode].totalContainersCount.value">
+    <span *ngIf="robotType == 'delivery' && robotSrv.ARCS.robotStore[arcsRobotCode].totalContainersCount.value">
         <!-- <i class="ieq mdi mdi-tailwind aq-icon"></i> -->
         <span>{{((arcsRobotSubType == 'TRAY_DELIVERY' ? 'Trays': 'Cabinet') + ' Avail.') | label : uiSrv.langPack }} : </span> 
-        <span>{{ dataSrv.arcsRobotDataMap[arcsRobotCode].availContainersCount.value | label : uiSrv.langPack }} / {{  dataSrv.arcsRobotDataMap[arcsRobotCode].totalContainersCount.value | label : uiSrv.langPack }}</span>
+        <span>{{ robotSrv.ARCS.robotStore[arcsRobotCode].availContainersCount.value | label : uiSrv.langPack }} / {{  robotSrv.ARCS.robotStore[arcsRobotCode].totalContainersCount.value | label : uiSrv.langPack }}</span>
         <!-- <span>{{}}</span> -->
     </span>
 </ng-container>

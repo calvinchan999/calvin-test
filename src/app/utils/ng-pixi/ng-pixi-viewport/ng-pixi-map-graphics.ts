@@ -16,7 +16,7 @@ import { ConvertColorToHexadecimal, ConvertColorToDecimal } from '../../graphics
 import { DRAWING_STYLE } from '../ng-pixi-viewport/ng-pixi-styling-util';
 import { IDraw as IDraw, IReColor, Pixi1DGraphics, PixiBorder, PixiCircle, PixiCurve, PixiDashedLine, PixiLine, PixiGraphics, canDraw, PixiArrow, PixiRotateHandle, PixiResizeHandle, PixiEditablePolygon } from '../ng-pixi-viewport/ng-pixi-base-graphics';
 import { calculateMapOrigin, calculateMapX, calculateMapY } from '../../../ui-components/map-2d-viewport/pixi-ros-conversion'
-import { JMap, JPath, JPoint } from 'src/app/services/data.service';
+import { JMap, JPath, JPoint } from 'src/app/services/data.models';
 import { CLICK_EVENTS, MOVE_EVENTS } from './ng-pixi-constants';
 import { GetPixiAngleDescription } from './ng-pixi-functions';
 

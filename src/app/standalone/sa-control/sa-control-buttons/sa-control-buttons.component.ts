@@ -3,13 +3,16 @@ import { DialogService } from '@progress/kendo-angular-dialog';
 import { Subject } from 'rxjs';
 import { filter, skip, take, takeUntil } from 'rxjs/operators';
 import { ConfigService } from 'src/app/services/config.service';
-import { DataService, DropListMap, signalRType } from 'src/app/services/data.service';
+import { DataService } from 'src/app/services/data.service';
+import {  DropListMap } from 'src/app/services/data.models';
 import { RvHttpService } from 'src/app/services/rv-http.service';
 import { UiService } from 'src/app/services/ui.service';
 import { Map2DViewportComponent, radRatio } from 'src/app/ui-components/map-2d-viewport/map-2d-viewport.component';
 import { GeneralUtil } from 'src/app/utils/general/general.util';
 import { trimAngle } from 'src/app/utils/math/functions';
 import { PixiMapContainer } from 'src/app/utils/ng-pixi/ng-pixi-viewport/ng-pixi-map-graphics';
+import { MqService , mqType } from 'src/app/services/mq.service';
+import { RobotService } from 'src/app/services/robot.service';
 
 @Component({
   selector: 'app-sa-control-buttons',
@@ -17,8 +20,8 @@ import { PixiMapContainer } from 'src/app/utils/ng-pixi/ng-pixi-viewport/ng-pixi
   styleUrls: ['./sa-control-buttons.component.scss']
 })
 export class SaControlButtonsComponent implements OnInit ,  OnDestroy {
-  signalRTopics : signalRType[] = ['battery','state','brake','followMePair','led','fan', 'pauseResume']
-  signalRsubscribed = false
+  mqTopics : mqType[] = ['battery','state','brake','followMePair','led','fan', 'pauseResume']
+  mqSubscribed = false
   @ViewChild('mapContainer') pixiElRef : Map2DViewportComponent
   @Input() readonly = {
     controls : false,
@@ -49,7 +52,7 @@ export class SaControlButtonsComponent implements OnInit ,  OnDestroy {
 
   @Input() buttonIds : string[] = null
 
-  constructor(public uiSrv : UiService, public windowSrv: DialogService, private util : GeneralUtil , private httpSrv : RvHttpService, public dataSrv:DataService , public configSrv : ConfigService) {
+  constructor(public robotSrv : RobotService, public mqSrv : MqService , public uiSrv : UiService, public windowSrv: DialogService, private util : GeneralUtil , private httpSrv : RvHttpService, public dataSrv:DataService , public configSrv : ConfigService) {
     // Object.keys(this.configSrv.disabledModule_SA).filter(k=>this.configSrv.disabledModule_SA[k] == true).forEach(k=>{
     //   this.layout.forEach(l => l.buttons =(<any>l.buttons).filter(b => b.id != k))
     // })
@@ -60,48 +63,48 @@ export class SaControlButtonsComponent implements OnInit ,  OnDestroy {
       title: 'Power',  icon : 'mdi mdi-power-plug', buttons: [
         { id: "shutdown", text: 'Shut Down', icon: 'mdi mdi-power' },
         { id: "restart", text: 'Restart', icon: 'mdi mdi-reload' },
-        { id: "charge", text: 'Charge', textActive: 'Uncharge', icon: 'mdi mdi-battery-charging', active: this.dataSrv.signalRSubj.charging }
+        { id: "charge", text: 'Charge', textActive: 'Uncharge', icon: 'mdi mdi-battery-charging', active: this.robotSrv.data.charging }
       ]
     },
     {
       title: 'Task', icon: 'mdi mdi-clipboard-file ', buttons: [
         { id: "stop", text: 'Stop', icon: 'mdi mdi-stop' },
-        { id: "pause", text: 'Pause', textActive: 'Resume', icon: 'mdi mdi-pause', active : this.dataSrv.signalRSubj.isPaused}
+        { id: "pause", text: 'Pause', textActive: 'Resume', icon: 'mdi mdi-pause', active : this.robotSrv.data.isPaused}
       ]
     },
     {
       title: 'Mode', icon: 'mdi mdi-map-marker-path', buttons: [
-        { id :"pairing", text : "Pair", textActive : 'Unpair' ,  icon: 'mdi mdi-account-arrow-left' , display: this.dataSrv.signalRSubj.isFollowMeMode , active: this.dataSrv.signalRSubj.followMePaired},
-        { id: "followMe", text: 'Follow Me', icon: 'mdi mdi-account-arrow-left', disabled :  this.dataSrv.signalRSubj.isFollowMeMode, active: this.dataSrv.signalRSubj.isFollowMeMode },
-        { id: "manual", text: 'Manual', icon: 'mdi mdi-gesture-double-tap', active: this.dataSrv.signalRSubj.isManualMode },
-        { id: "auto", text: 'Automatic', icon: 'mdi mdi-autorenew', disabled : this.dataSrv.signalRSubj.isAutoMode , active: this.dataSrv.signalRSubj.isAutoMode }
+        { id :"pairing", text : "Pair", textActive : 'Unpair' ,  icon: 'mdi mdi-account-arrow-left' , display: this.robotSrv.data.isFollowMeMode , active: this.robotSrv.data.followMePaired},
+        { id: "followMe", text: 'Follow Me', icon: 'mdi mdi-account-arrow-left', disabled :  this.robotSrv.data.isFollowMeMode, active: this.robotSrv.data.isFollowMeMode },
+        { id: "manual", text: 'Manual', icon: 'mdi mdi-gesture-double-tap', active: this.robotSrv.data.isManualMode },
+        { id: "auto", text: 'Automatic', icon: 'mdi mdi-autorenew', disabled : this.robotSrv.data.isAutoMode , active: this.robotSrv.data.isAutoMode }
       ]
     },
     {
       title: 'Locations', icon:'mdi mdi-map-marker-multiple' , buttons: [
-        { id: "changeMap", text: 'Change', icon:'mdi mdi-map' , disabled:this.dataSrv.signalRSubj.isFollowMeWithoutMap },
+        { id: "changeMap", text: 'Change', icon:'mdi mdi-map' , disabled:this.robotSrv.data.isFollowMeWithoutMap },
         // { id: "reset", text: 'Reset', icon:'mdi mdi-home-map-marker'  },
-        { id: "localize", text: 'Localise' , icon:'mdi mdi-map-marker-radius-outline' , disabled:this.dataSrv.signalRSubj.isFollowMeWithoutMap }
+        { id: "localize", text: 'Localise' , icon:'mdi mdi-map-marker-radius-outline' , disabled:this.robotSrv.data.isFollowMeWithoutMap }
       ]
     },
     {
       title: 'Controls', icon:'mdi mdi-tune' , buttons: [
-        { id: "fan", text: 'Fan',  icon:'mdi mdi-fan'  , active: this.dataSrv.signalRSubj.fan},
-        { id: "brake", text: 'Brake' , icon:'mdi mdi-car-brake-alert' , active : this.dataSrv.signalRSubj.brakeActive },
-        { id: "led", text: 'LED',  icon:'mdi mdi-lightbulb-on-outline' , active: this.dataSrv.signalRSubj.led },
+        { id: "fan", text: 'Fan',  icon:'mdi mdi-fan'  , active: this.robotSrv.data.fan},
+        { id: "brake", text: 'Brake' , icon:'mdi mdi-car-brake-alert' , active : this.robotSrv.STANDALONE.state.brakeActive },
+        { id: "led", text: 'LED',  icon:'mdi mdi-lightbulb-on-outline' , active: this.robotSrv.data.led },
       ]
     }
   ]
 
   ngOnDestroy(){
     this.onDestroy.next()
-    if(this.signalRsubscribed){
-      this.dataSrv.unsubscribeSignalRs(this.signalRTopics)
+    if(this.mqSubscribed){
+      this.mqSrv.unsubscribeMQTTs(this.mqTopics)
     }
   }
 
   ngOnInit(): void {
-    this.dataSrv.signalRSubj.isManualMode.pipe(skip(1) , takeUntil(this.onDestroy)).subscribe(isManual=>{
+    this.robotSrv.data.isManualMode.pipe(skip(1) , takeUntil(this.onDestroy)).subscribe(isManual=>{
       if(isManual === false && this.showManualModePopup){
         this.uiSrv.showMsgDialog('The navigation mode of the robot is no longer manual mode. Remote control is terminated.')
         this.showManualModePopup = false
@@ -111,7 +114,7 @@ export class SaControlButtonsComponent implements OnInit ,  OnDestroy {
       this.layout.forEach(l=>l.buttons = (<any>l.buttons).filter(b=>this.buttonIds.includes(b.id)))
       this.layout = this.layout.filter(l=>l.buttons.length > 0)
     }
-    this.dataSrv.subscribeSignalRs(this.signalRTopics)
+    this.mqSrv.subscribeMQTTs(this.mqTopics)
     this.initDropdown()
   }
 
@@ -149,7 +152,7 @@ export class SaControlButtonsComponent implements OnInit ,  OnDestroy {
     id = id == 'pause' && isActive ? 'resume' : id
     if(requestMap[id]){
       if(activeSubject && id!='manual'){ 
-        this.uiSrv.awaitSignalRBegin(activeSubject , true)
+        this.uiSrv.awaitMqBegin(activeSubject , true)
       }
       let ticket = this.uiSrv.loadAsyncBegin()
       try{
@@ -207,7 +210,7 @@ export class SaControlButtonsComponent implements OnInit ,  OnDestroy {
   }
 
   async sendFollowMeRequestToRV(){
-    this.uiSrv.awaitSignalRBegin(this.dataSrv.signalRSubj.isFollowMeMode)
+    this.uiSrv.awaitMqBegin(this.robotSrv.data.isFollowMeMode)
     let ticket = this.uiSrv.loadAsyncBegin()
     let mapCode = (<DropListMap[]>this.dropdownData.maps).filter((d)=> d.mapCode == this.optionObj.followMe.map)[0]?.mapCode
     let resp = await this.httpSrv.fmsRequest("POST", "mode/v1/followMe" + (this.optionObj.followMe.withMap ? `/${mapCode}` : ''), undefined, true, "Follow Me")
@@ -238,7 +241,7 @@ export class SaControlButtonsComponent implements OnInit ,  OnDestroy {
   }
 
   async sendChargingRequestToRV(){
-    this.uiSrv.awaitSignalRBegin(this.dataSrv.signalRSubj.charging)
+    this.uiSrv.awaitMqBegin(this.robotSrv.data.charging)
     let ticket = this.uiSrv.loadAsyncBegin()
     let body = {
       upperLimit: this.optionObj.charge.upperLimit / 100 , 
