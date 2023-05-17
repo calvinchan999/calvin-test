@@ -17,6 +17,7 @@ import { AuthService } from 'src/app/services/auth.service';
 import { TabStripComponent } from '@progress/kendo-angular-layout';
 import { ConfigService } from 'src/app/services/config.service';
 import { PixiWayPoint } from 'src/app/utils/ng-pixi/ng-pixi-viewport/ng-pixi-map-graphics';
+import { MapService } from 'src/app/services/map.service';
 
 @Component({
   selector: 'app-cm-task-job',
@@ -28,7 +29,7 @@ export class CmTaskJobComponent implements OnInit {
   @ViewChild('tabstrip') tabstrip : TabStripComponent
   @ViewChild('listview') listview : ListviewComponent
   @ViewChild('mapContainer') pixiElRef : Map2DViewportComponent
-  constructor(public util: GeneralUtil, public uiSrv: UiService, public dialogService: DialogService, public ngZone: NgZone, public httpSrv: RvHttpService,
+  constructor(public util: GeneralUtil, public uiSrv: UiService, public dialogService: DialogService, public ngZone: NgZone, public httpSrv: RvHttpService, public mapSrv : MapService,
     public changeDetector: ChangeDetectorRef, private dataSrv: DataService, public dialogSrv: DialogService, public authSrv: AuthService , public configSrv : ConfigService) {
     this.jobListDef = this.jobListDef.filter(d => d.id != 'floorPlanCode' || !this.util.standaloneApp)
     // this.loadingTicket = this.uiSrv.loadAsyncBegin()
@@ -668,7 +669,7 @@ export class CmTaskJobComponent implements OnInit {
 
   async getFloorplanDs(fpCode : string) : Promise<FloorPlanDataset>{
     if(!this.floorplanStore[fpCode]){
-      this.floorplanStore[fpCode] = await this.dataSrv.getFloorPlan(fpCode) 
+      this.floorplanStore[fpCode] = await this.mapSrv.getFloorPlan(fpCode) 
     }
     return this.floorplanStore[fpCode.toString()]
   }

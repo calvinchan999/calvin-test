@@ -236,6 +236,7 @@ import { PinKeypadComponent } from './ui-components/pin-keypad/pin-keypad.compon
 import { ArcsSetupFloorplan3dComponent } from './arcs/arcs-setup/arcs-setup-floorplan3d/arcs-setup-floorplan3d.component';
 import { ArcsPatrolPlaybackComponent } from './arcs/arcs-dashboard/arcs-patrol-playback/arcs-patrol-playback.component';
 import { ArcsRobotIotComponent } from './arcs/arcs-iot/todo-arcs-robot-iot/arcs-robot-iot.component';
+import { CustomButtonComponent } from './ui-components/threejs-viewport/custom-button/custom-button.component';
 // import { WorkflowComponent } from './ui-components/workflow/workflow.component';
 // import { SequentialWorkflowDesignerModule } from 'sequential-workflow-designer-angular';
 
@@ -340,6 +341,7 @@ import { ArcsRobotIotComponent } from './arcs/arcs-iot/todo-arcs-robot-iot/arcs-
         ArcsSetupFloorplan3dComponent,
         ArcsPatrolPlaybackComponent,
         ArcsRobotIotComponent,
+        CustomButtonComponent,
         // WorkflowComponent        
     ],
     imports: [

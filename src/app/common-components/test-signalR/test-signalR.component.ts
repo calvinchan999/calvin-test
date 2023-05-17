@@ -199,6 +199,26 @@ export class TestSignalRComponent implements OnInit {
   }
 
   sampleData = {
+    ai:{
+      seriesInterval: 0,
+      topic: 'rvautotech/fobo/armitage/vision/detection',
+      content : `{
+        "robotId": "FNB-ROBOT",
+        "pose": {
+          "mapName" : "5W2023",
+          "x" : 0,
+          "y" : 0 ,
+          "angle" : 0
+        },
+        "detectionType": "EMERGENCY_DOOR_OPEN",
+        "base64Image": "iVBORw0KGgoAAAANSUhEUgAAAe…",
+        "metadata": "",
+        "count": 1,
+        "confidence": 0.851,
+        "timestamp": 1683707877
+      }`
+    }
+    ,
     poseDeviation:{
       seriesInterval: 0,
       topic: 'rvautotech/fobo/poseDeviation',

@@ -7,7 +7,7 @@ import { ARCS_STATUS_MAP, DropListRobot } from 'src/app/services/data.models';
 import { UiService } from 'src/app/services/ui.service';
 import { VideoPlayerComponent } from 'src/app/ui-components/video-player/video-player.component';
 import { GeneralUtil } from 'src/app/utils/general/general.util';
-import { MqService , mqType } from 'src/app/services/mq.service';
+import { MqService , MQType } from 'src/app/services/mq.service';
 import { RobotService } from 'src/app/services/robot.service';
 
 // const testStreamUrl = 'wss://calvinchan999.eastasia.cloudapp.azure.com/RV-ROBOT-104.' //TESTING
@@ -46,7 +46,7 @@ export class ArcsDashboardRobotDetailComponent implements OnInit  {
   _robotId
   robotType
   robotSubType 
-  topics : mqType[] =  ['battery' , 'speed' , 'state' , 'arcsRobotDestination'] 
+  topics : MQType[] =  ['battery' , 'speed' , 'state' , 'arcsRobotDestination'] 
   topModuleTabs = {
     PATROL : [{id : 'topModule' , label : 'Module'} , {id : 'camera' , label : 'Cameras'}],
     DELIVERY :[{ id :'topModule' , label : 'Module'}]

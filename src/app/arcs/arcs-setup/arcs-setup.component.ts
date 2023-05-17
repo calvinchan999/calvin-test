@@ -26,6 +26,7 @@ import { ArcsSetupSiteComponent } from './arcs-setup-site/arcs-setup-site.compon
 import { ArcsSetupTypeComponent } from './arcs-setup-type/arcs-setup-type.component';
 import { ArcsSetupFloorplan3dComponent } from './arcs-setup-floorplan3d/arcs-setup-floorplan3d.component';
 import { MqService } from 'src/app/services/mq.service';
+import { MapService } from 'src/app/services/map.service';
 
 @Component({
   selector: 'app-arcs-setup',
@@ -35,7 +36,7 @@ import { MqService } from 'src/app/services/mq.service';
 export class ArcsSetupComponent implements OnInit {
   @ViewChild('table') tableElRef: TableComponent
   @ViewChild('pixi') pixiElRef: Map2DViewportComponent
-  constructor(public mqSrv : MqService, public windowSrv: DialogService, public dataSrv : DataService, public uiSrv: UiService, public http: RvHttpService, private location : Location, private router : Router,
+  constructor(public mapSrv : MapService, public mqSrv : MqService, public windowSrv: DialogService, public dataSrv : DataService, public uiSrv: UiService, public http: RvHttpService, private location : Location, private router : Router,
               private changeDectector: ChangeDetectorRef, private route : ActivatedRoute, private util: GeneralUtil, private ngZone: NgZone , private authSrv : AuthService) { 
       this.tabs = this.tabs.filter(t=> t.authorized === false || this.authSrv.hasRight(this.gridSettings[t.id].functionId?.toUpperCase()))
       this.selectedTab = this.route.snapshot.paramMap.get('selectedTab') ? this.route.snapshot.paramMap.get('selectedTab') : this.tabs[0].id
@@ -118,7 +119,7 @@ export class ArcsSetupComponent implements OnInit {
         { title: "#", type: "button", id: "edit", width: 15, icon: 'k-icon k-i-edit iconButton', fixed: true },
         { title: "Code", id: "floorPlanCode", width: 50 },
         { title: "Floor Plan Name", id: "floorPlanName", width: 200 },       
-      ].concat(this.dataSrv.arcsDefaultBuilding ? [{ title: "Building", id: "buildingName", width: 200 }] : []).concat(
+      ].concat(this.mapSrv.defaultBuilding ? [{ title: "Building", id: "buildingName", width: 200 }] : []).concat(
         <any>[{ title: "Default", id: "defaultPerBuilding", width: 50 , dropdownOptions:[{text : "Yes" , value : true},{text : "No" , value : false}] }]
       ).concat(<any>[
         { title: "", type: "button", id: "floorplan3d", width: 80, icon: 'mdi mdi-video-3d', fixed: true , matTooltip : 'Edit 3D Model' },
@@ -278,9 +279,9 @@ export class ArcsSetupComponent implements OnInit {
 
   async onGridDataChanged(){ //get alert by sql seems like a more elegant way but may lead to performance issue? rather have delay for showing alert? 
     if(this.tableElRef && this.selectedTab == 'floorplan'){
-      await this.mqSrv.updateFloorPlansAlert_ARCS() // after updating floor plan this will be triggered so that header notification can be updated
+      await this.mapSrv.updateOutSyncFloorPlanList() // after updating floor plan this will be triggered so that header notification can be updated
       this.tableElRef.myData =  JSON.parse(JSON.stringify(this.tableElRef.myData.map(d=> {
-        let alertFloorPlan = this.dataSrv.alertFloorPlans.filter(a=>a.floorPlanCode == d.floorPlanCode)[0]
+        let alertFloorPlan = this.mqSrv.outSyncFloorPlans.filter(a=>a.floorPlanCode == d.floorPlanCode)[0]
         if (alertFloorPlan) {
           d['alert'] = true
           d['alertMsg'] = this.uiSrv.translate(`Please update the floor plan for map [$mapCode] of robot bases [$robotBases]`).

@@ -19,24 +19,17 @@ export const ObjectTypes = ['ROBOT','FLOOR_PLAN' , 'FLOOR_PLAN_POINT' , 'MAP' , 
 export type syncStatus = 'TRANSFERRED' | 'TRANSFERRING' | 'MALFUNCTION'
 export type syncLog =  {dataSyncId? : string , dataSyncType? : string , objectType? : string , dataSyncStatus?: syncStatus , objectCode?: string , robotCode?: string , progress? : any , startDateTime? : Date , endDateTime : Date  }
 export type dropListType =  'floorplans' | 'buildings' | 'sites' | 'maps' | 'actions' | 'types' | 'locations' | 'userGroups' | 'subTypes' | 'robots' | 'missions' | 'taskFailReason' | 'taskCancelReason'
-export type localStorageKey = 'lang' | 'uitoggle' | 'lastLoadedFloorplanCode' | 'eventLog' | 'unreadMsgCnt' | 'unreadSyncMsgCount' | 'syncDoneLog' | 'dashboardMapType'
+export type localStorageKey = 'floorPlanAlerts'| 'lang' | 'uitoggle' | 'lastLoadedFloorplanCode' | 'eventLog' | 'unreadMsgCnt' | 'unreadSyncMsgCount' | 'syncDoneLog' | 'dashboardMapType'
 export type sessionStorageKey = 'arcsLocationTree' | 'dashboardFloorPlanCode'| 'isGuestMode' | 'userAccess' | 'arcsDefaultBuilding' | 'userId' | 'currentUser' 
 export type eventLog = {datetime? : string , type? : string , message : string  , robotCode?: string }
-export type mqType = 'activeMap' | 'occupancyGridMap' | 'navigationMove' | 'chargingResult' | 'chargingFeedback' | 'state' | 'battery' | 'pose' | 'speed'| 'poseDeviation' |
-                    'obstacleDetection' | 'estop' | 'brake' | 'tilt' | 'departure' | 'arrival' | 'completion' | 'timeout' | 'exception' | 'followMePair' |
-                    'followMeAoa' | 'digitalOutput' | 'wifi' | 'cellular' | 'ieq' | 'rfid' | 'cabinet' | 'rotaryHead' | 'nirCamera' | 'nirCameraDetection' |
-                    'thermalCamera' | 'thermalCameraDetection' | 'webcam' | 'heartbeatServer' | 'heartbeatClient' | 'arcsPoses' | 'taskActive' | 'lidarStatus' |
-                    'led' | 'fan' | 'pauseResume' | 'taskComplete' | 'taskDepart' | 'taskArrive' | 'destinationReached' | 'taskProgress' | 'moving' | 'lidar'| 'taskPopups'|
-                    'arcsRobotStatusChange' | 'arcsTaskInfoChange' | 'arcsSyncLog' | 'arcsRobotDestination' | 'arcsLift' | 'arcsTurnstile'
 
 @Injectable({
   providedIn: 'root'
 })
 export class DataService {
-  public alertFloorPlans :{type : string ,floorPlanCode : string , mapCode : string , robotBases : string[]}[] = []
+  _defaultSite 
+  _defaultBuilding
   public unreadSyncMsgCount = new BehaviorSubject<number>(0)
-  public arcsDefaultSite 
-  public arcsDefaultBuilding = null
   public codeRegex
   public codeRegexErrorMsg
   public enumPipe = new EnumNamePipe()
@@ -154,12 +147,12 @@ export class DataService {
       //   this.uiSrv.showWarningDialog('Lidar Sensor Turned On.')
       // }
     } else {
-      await this.getSite()
-      // this.updateFloorPlansAlert_ARCS()
-      if (!this.getSessionStorage("arcsDefaultBuilding")) {
-        await this.getArcsDefaultBuilding()
-      }
-      this.arcsDefaultBuilding = JSON.parse(this.getSessionStorage("arcsDefaultBuilding"))
+      // await this.getSite()
+      // // this.updateFloorPlansAlert_ARCS()
+      // if (!this.getSessionStorage("arcsDefaultBuilding")) {
+      //   await this.getArcsDefaultBuilding()
+      // }
+      // this.arcsDefaultBuilding = JSON.parse(this.getSessionStorage("arcsDefaultBuilding"))
     }
 
     // if(this._USE_AZURE_PUBSUB){
@@ -194,12 +187,12 @@ export class DataService {
     let ret= {data: null ,options: null}
     let apiMap = this.dropListApiMap
     var resp = apiMap[type].fromRV? await this.httpSrv.fmsRequest("GET", apiMap[type].url , undefined, false) :  await this.httpSrv.get(apiMap[type].url)
-    if(this.util.arcsApp && type == 'floorplans'){
-      await this.getSite()
-    }
-    if(this.util.arcsApp && type == 'floorplans' && !this.arcsDefaultSite && this.arcsDefaultBuilding){
-      resp = resp.filter((fp : DropListFloorplan)=>fp.buildingCode == this.arcsDefaultBuilding)
-    }else if(this.util.arcsApp && type == 'floorplans' && this.arcsDefaultSite){
+    // if(this.util.arcsApp && type == 'floorplans'){
+    //   await this.getSite()
+    // }
+    if(this.util.arcsApp && type == 'floorplans' && !this._defaultSite && this._defaultBuilding){
+      resp = resp.filter((fp : DropListFloorplan)=>fp.buildingCode == this._defaultBuilding)
+    }else if(this.util.arcsApp && type == 'floorplans' && this._defaultSite){
       resp = resp.filter((fp : DropListFloorplan)=>fp.buildingCode != null)
     }
     ret = {
@@ -227,13 +220,7 @@ export class DataService {
     // return await this.httpSrv.get("api/map/plan/v1")
   }
 
-  public async getSite(forceRefresh = false){ 
-    if(this.arcsDefaultSite === undefined || forceRefresh){
-      this.arcsDefaultSite = await this.httpSrv.get('api/site/v1')
-      this.arcsDefaultSite  = this.arcsDefaultSite === undefined ? null : this.arcsDefaultSite 
-    }
-    return this.arcsDefaultSite
-  }
+
 
   public async getRobotList() : Promise<DropListRobot[]>{
     if(!this.dataStore.arcsRobotList || this.dataStore.arcsRobotList?.length == 0){
@@ -364,65 +351,8 @@ export class DataService {
     return  this.robotMaster 
   }
 
-
-  public async getFloorPlan(code : string = null, blockUI = true): Promise<JFloorPlan>{
-    let ticket
-    code = code ? code : Object.keys(this.dataStore.floorPlan).filter(k=>this.dataStore.floorPlan[k]?.data?.isDefault)[0]
-    if(blockUI){
-      ticket = this.uiSrv.loadAsyncBegin()
-    }
-    let cachedFp : JFloorPlan = this.dataStore.floorPlan[code]?.data
-    if (code && cachedFp) {
-      let noImgFp: JFloorPlan = await this.httpSrv.get('api/map/plan/v1/' + code + '?mapImage=false&floorPlanImage=false');
-      if (noImgFp.modifiedDateTime == cachedFp.modifiedDateTime && noImgFp.mapList.every(m => cachedFp.mapList && cachedFp.mapList.filter(m2 => m2.mapCode == m.mapCode && m2.robotBase == m.robotBase)[0]?.modifiedDateTime == m.modifiedDateTime)) {
-        if (blockUI) {
-          this.uiSrv.loadAsyncDone(ticket) 
-        }
-        return this.dataStore.floorPlan[code].data
-      }
-    }
-    let ret : JFloorPlan = await this.httpSrv.get(code ? ('api/map/plan/v1/' +  code): 'api/map/plan/default/v1');
-    if(blockUI){
-      this.uiSrv.loadAsyncDone(ticket)
-    }
-    code = ret.floorPlanCode
-    this.dataStore.floorPlan[code] = { data : JSON.parse(JSON.stringify(ret)) , modifiedDateTime: ret.modifiedDateTime}
-    return ret
-  }
-
-  public async getArcsDefaultBuilding(){
-    let builidngDDL : DropListBuilding[] = <any>(await this.getDropList('buildings')).data
-    if(builidngDDL.length > 0){
-      var code = builidngDDL.filter(b=>b.defaultPerSite)[0]?.buildingCode
-      code = code ? code : builidngDDL[0].buildingCode
-      this.setSessionStorage('arcsDefaultBuilding',JSON.stringify(code))
-    }
-  }
-
-  public async getArcs3DFloorPlanBlob(code : string) : Promise<Blob>{
-    let ret = null
-    let awaiter = new Subject()
-    let ticket = this.uiSrv.loadAsyncBegin()
-    this.httpSrv.http.get(this.util.getRvApiUrl() + `/api/map/3dModel/v1/${code}.glb`, { reportProgress: true, observe: 'events', responseType: "blob" }).subscribe(resp => {
-      if (resp.type === HttpEventType.Response) {
-        this.uiSrv.loadAsyncDone(ticket)
-        if (resp.status == 200) {
-          ret = resp.body
-        } 
-        awaiter.next(true)
-      }
-    },
-      error => {
-        awaiter.next(false)
-        this.uiSrv.loadAsyncDone(ticket)
-        console.log(error)
-      });
-    await <any>awaiter.pipe(filter(v => ![null, undefined].includes(v)), take(1)).toPromise()
-    return ret
-  }
-
-  public async getArcs3DFloorPlanSettings(code : string) : Promise<floorPlan3DSettings>{
-    return await this.httpSrv.get("api/map/floorPlan3DSettings/v1/"+ code) 
+  public async getFloorPlanCode(mapCode : string){
+    return (<DropListMap[]>(await this.getDropList('maps')).data).filter((d)=>d.mapCode == mapCode)[0]?.floorPlanCode
   }
 
   public async getAssets(url: string): Promise<any> {

@@ -11,7 +11,7 @@ import { ColorReplaceFilter } from '@pixi/filter-color-replace';
 import { GlowFilter } from '@pixi/filter-glow';
 import { OutlineFilter } from '@pixi/filter-outline';
 import { ColorOverlayFilter } from '@pixi/filter-color-overlay';
-import { GetImageDimensions } from '../../graphics/image';
+import { GetImage, GetImageDimensions } from '../../graphics/image';
 import { ConvertColorToHexadecimal, ConvertColorToDecimal } from '../../graphics/style'
 import { DRAWING_STYLE } from '../ng-pixi-viewport/ng-pixi-styling-util';
 import { IDraw as IDraw, IReColor, Pixi1DGraphics, PixiBorder, PixiCircle, PixiCurve, PixiDashedLine, PixiLine, PixiGraphics, canDraw, PixiArrow, PixiRotateHandle, PixiResizeHandle, PixiEditablePolygon } from '../ng-pixi-viewport/ng-pixi-base-graphics';
@@ -25,7 +25,7 @@ const ROBOT_ACTUAL_LENGTH_METER = 1
 
 export class PixiMapGraphics extends PixiGraphics {
   public type: 'circle' | 'line' | 'curve' | 'dashed_line' | 'polygon' | 'border' | 'arrow_curved' | 'arrow_bi_curved' | 'imgEditHandle' |
-    'arrow_bi' | 'arrow' | 'mapLayer' | 'pointGroup' | 'waypoint' | 'childPoint' | 'mapContainer' | 'origin' | 'brush' | 'tag'
+    'arrow_bi' | 'arrow' | 'mapLayer' | 'pointGroup' | 'waypoint' | 'childPoint' | 'mapContainer' | 'origin' | 'brush' | 'tag' | 'eventMarker'
 
   viewport: PixiMapViewport
   constructor(viewport: PixiMapViewport) {
@@ -45,7 +45,7 @@ export class PixiMapGraphics extends PixiGraphics {
     setScale: () => {
       if (this.dimensionType == '1D' && canDraw(this)) {
         this.draw(true)
-      } else if (this.type == 'waypoint') {
+      } else if (this.type == 'waypoint' || this.type == 'eventMarker') {
         let max = this.autoScaleModule.scaleThreshold.max, min = this.autoScaleModule.scaleThreshold.min
         let exceedsThreshold = this.viewport.settings.mapTransformedScale && this.viewport.scale.x < max / this.viewport.settings.mapTransformedScale
         let weight = this.selected || !exceedsThreshold ? 1 : Math.min(1, Math.sqrt((Math.min(max, this.viewport.scale.x) - min) / (max - min)))
@@ -1346,6 +1346,52 @@ export class PixiRobotCountTag extends PixiMapGraphics {
     //   // })
     // }
     this.zIndex = 2
+  }
+}
+
+
+export class PixiEventMarker extends PixiMapGraphics implements IReColor{
+  type = <any>'eventMarker'
+  markerType = 'alert'
+  svgUrl = 'assets/icons/alert_triangle.svg'
+  _scale = 0.35
+  icon : PIXI.Sprite
+  eventId = null
+  robotCode = null
+
+  constructor(viewport: PixiMapViewport,  style: PixiGraphicStyle = new PixiGraphicStyle().set('fillColor' , 0xFFC000), robotId = null , eventId = null) {
+    super(viewport)
+    this.robotCode = robotId
+    this.eventId = eventId
+    this.style = style
+    this.interactive = true
+    this.buttonMode = true
+    this.init()
+  }
+
+  reColor(color : number){
+    this.icon.filters = null
+    this.icon.filters = [<any>new ColorReplaceFilter(0x000000, color, 1) ,  new OutlineFilter(1, color == DRAWING_STYLE.highlightColor ? 0xFF0000 : 0x000000  ,  1)]
+  }
+
+  async init(){
+    try {
+      this.icon = new PIXI.Sprite(PIXI.Texture.from(this.svgUrl))
+      const dim = await GetImageDimensions(this.svgUrl)
+      this.reColor(this.style.fillColor)
+      this.icon.pivot.set(dim[0]/2 , dim[1]/2)
+      this.icon.position.set(this.icon.pivot[0] , this.icon.pivot[1])
+      this.icon.scale.set(this._scale , this._scale)
+    } catch (err) {
+      console.log('An Error has occurred when loading ' +  this.svgUrl)
+      console.log(err)
+      throw err
+    }  
+    this.autoScaleEnabled = true
+    // this.mouseOverOutline = {color : 0xFF0000 , width : 2}
+    this.mouseOverColor = DRAWING_STYLE.highlightColor
+    this.mouseOverEffectEnabled = true
+    this.addChild(this.icon)
   }
 }
 

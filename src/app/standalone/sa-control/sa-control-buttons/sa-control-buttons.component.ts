@@ -11,7 +11,7 @@ import { Map2DViewportComponent, radRatio } from 'src/app/ui-components/map-2d-v
 import { GeneralUtil } from 'src/app/utils/general/general.util';
 import { trimAngle } from 'src/app/utils/math/functions';
 import { PixiMapContainer } from 'src/app/utils/ng-pixi/ng-pixi-viewport/ng-pixi-map-graphics';
-import { MqService , mqType } from 'src/app/services/mq.service';
+import { MqService , MQType } from 'src/app/services/mq.service';
 import { RobotService } from 'src/app/services/robot.service';
 
 @Component({
@@ -20,7 +20,7 @@ import { RobotService } from 'src/app/services/robot.service';
   styleUrls: ['./sa-control-buttons.component.scss']
 })
 export class SaControlButtonsComponent implements OnInit ,  OnDestroy {
-  mqTopics : mqType[] = ['battery','state','brake','followMePair','led','fan', 'pauseResume']
+  mqTopics : MQType[] = ['battery','state','brake','followMePair','led','fan', 'pauseResume']
   mqSubscribed = false
   @ViewChild('mapContainer') pixiElRef : Map2DViewportComponent
   @Input() readonly = {

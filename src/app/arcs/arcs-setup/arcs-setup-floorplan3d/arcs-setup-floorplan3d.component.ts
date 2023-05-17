@@ -20,6 +20,7 @@ import { PixiGraphicStyle, DRAWING_STYLE } from 'src/app/utils/ng-pixi/ng-pixi-v
 import { PixiEditableMapImage, PixiWayPoint } from 'src/app/utils/ng-pixi/ng-pixi-viewport/ng-pixi-map-graphics';
 import { HttpEventType } from '@angular/common/http';
 import { ThreejsViewportComponent } from 'src/app/ui-components/threejs-viewport/threejs-viewport.component';
+import { MapService } from 'src/app/services/map.service';
 // import * as JSZIP from '@progress/jszip-esm';
 
 @Component({
@@ -34,7 +35,7 @@ export class ArcsSetupFloorplan3dComponent implements OnInit {
   @ViewChild('threeJs') threeJsElRef: ThreejsViewportComponent
   @HostBinding('class') customClass = 'setup-floorplan3d'
 
-  constructor(public util: GeneralUtil, public uiSrv: UiService, public windowSrv: DialogService, public ngZone: NgZone,
+  constructor(public util: GeneralUtil, public uiSrv: UiService, public windowSrv: DialogService, public ngZone: NgZone, public mapSrv : MapService,
     public httpSrv: RvHttpService, private dataSrv: DataService, public authSrv: AuthService) {
       this.loadingTicket = this.uiSrv.loadAsyncBegin()
   }
@@ -158,8 +159,8 @@ export class ArcsSetupFloorplan3dComponent implements OnInit {
  
 
   async loadData(id) {
-    this.file =  await this.dataSrv.getArcs3DFloorPlanBlob( id.toString())    
-    const data = await this.dataSrv.getArcs3DFloorPlanSettings(id.toString())
+    this.file =  await this.mapSrv.get3DFloorPlanBlob( id.toString())    
+    const data = await this.mapSrv.get3DFloorPlanSettings(id.toString())
     if(data){
       this.util.loadToFrmgrp(this.frmGrp , data)
     }else{  

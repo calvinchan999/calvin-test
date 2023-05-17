@@ -14,6 +14,7 @@ import { centroidOfPolygon as centroidOfPolygon, inside } from 'src/app/utils/ma
 import { PixiBuildingPolygon } from 'src/app/utils/ng-pixi/ng-pixi-viewport/ng-pixi-map-graphics';
 import { DRAWING_STYLE } from 'src/app/utils/ng-pixi/ng-pixi-viewport/ng-pixi-styling-util';
 import * as PIXI from 'pixi.js';
+import { MapService } from 'src/app/services/map.service';
 
 
 @Component({
@@ -25,7 +26,7 @@ export class ArcsSetupBuildingComponent implements OnInit {
   @ViewChild('pixi') pixiElRef : Map2DViewportComponent
   @HostBinding('class') customClass = 'setup-map'
 
-  constructor(public uiSrv : UiService , public dataSrv : DataService, public dialogSrv: DialogService,
+  constructor(public uiSrv : UiService , public dataSrv : DataService, public dialogSrv: DialogService, public mapSrv : MapService,
               public ngZone : NgZone, public httpSrv : RvHttpService, public util : GeneralUtil) { }
   frmGrp = new FormGroup({
     buildingCode : new FormControl(null , Validators.compose([Validators.required, Validators.pattern(this.dataSrv.codeRegex)])),
@@ -78,7 +79,7 @@ export class ArcsSetupBuildingComponent implements OnInit {
   }
   
   async loadSite(){
-    this.site  = await this.dataSrv.getSite(true)
+    this.site  = await this.mapSrv.getSite(true)
     if(!this.site){
       return
     }

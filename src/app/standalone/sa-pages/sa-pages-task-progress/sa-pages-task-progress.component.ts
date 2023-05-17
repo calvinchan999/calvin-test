@@ -1,8 +1,8 @@
 import { Component, ComponentFactoryResolver, OnInit, ViewChild, ViewContainerRef , OnDestroy} from '@angular/core';
 import { Subject } from 'rxjs';
 import { filter, skip, takeUntil } from 'rxjs/operators';
-import { DataService, mqType } from 'src/app/services/data.service';
-import { MqService } from 'src/app/services/mq.service';
+import { DataService } from 'src/app/services/data.service';
+import { MqService , MQType } from 'src/app/services/mq.service';
 import { DropListAction } from 'src/app/services/data.models';
 import { UiService } from 'src/app/services/ui.service';
 import { SaPagesDeliveryFillupComponent } from '../top-modules/delivery/sa-pages-delivery-fillup/sa-pages-delivery-fillup.component';
@@ -20,7 +20,7 @@ export class SaPagesTaskProgressComponent implements OnInit , OnDestroy {
   constructor(public robotSrv : RobotService,  public dataSrv: DataService , public uiSrv:UiService , private resolver : ComponentFactoryResolver , public mqSrv : MqService) { }
   actions = {}
   onDestroy = new Subject()
-  mqtopics : mqType[] = ['taskProgress','taskArrive','taskDepart','taskPopups']
+  mqtopics : MQType[] = ['taskProgress','taskArrive','taskDepart','taskPopups']
   onDemandDialogues = {
     "DELIVERY-FILLUP" : {type: SaPagesDeliveryFillupComponent , compRef:null},
     "DELIVERY-PICKUP" : {type: SaPagesDeliveryPickupComponent , compRef:null} 

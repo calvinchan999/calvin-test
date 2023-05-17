@@ -8,7 +8,7 @@ import {TWEEN} from "three/examples/jsm/libs/tween.module.min";
 // import { DragControls } from 'three/examples/jsm/controls/DragControls';
 import { AmbientLight, DirectionalLight, DoubleSide, Group, Mesh, Object3D, ShapeGeometry, WebGLRenderer ,BufferGeometry, LineSegments, MeshStandardMaterial, Vector3, MeshBasicMaterial, ShaderMaterial, Material, MeshPhongMaterial, PlaneGeometry } from 'three';
 import { GeneralUtil } from 'src/app/utils/general/general.util';
-import { DataService, mqType } from 'src/app/services/data.service';
+import { DataService } from 'src/app/services/data.service';
 import { debounce, debounceTime, filter, retry, share, skip, switchMap, take, takeUntil , map } from 'rxjs/operators';
 import { radRatio } from '../map-2d-viewport/map-2d-viewport.component';
 import { BehaviorSubject, interval, Observable, Subject, Subscription } from 'rxjs';
@@ -31,8 +31,10 @@ import { ArcsTurnstileIotComponent } from 'src/app/arcs/arcs-iot/arcs-turnstile-
 import {GetImageDimensions} from 'src/app/utils/graphics/image'
 import { TransformControls } from 'three/examples/jsm/controls/TransformControls.js';
 import { DropListRobot, JFloorPlan, JMap, JPoint } from 'src/app/services/data.models';
-import { MqService } from 'src/app/services/mq.service';
+import { MqService , MQType} from 'src/app/services/mq.service';
 import { RobotService } from 'src/app/services/robot.service';
+import { MapService } from 'src/app/services/map.service';
+import { CustomButtonComponent } from './custom-button/custom-button.component';
 
 const NORMAL_ANGLE_ADJUSTMENT =  - 90 / radRatio
 const ASSETS_ROOT = 'assets/3D'
@@ -44,7 +46,7 @@ const ASSETS_ROOT = 'assets/3D'
 export class ThreejsViewportComponent implements OnInit , OnDestroy{
   public selected = false;
   public loadingTicket = null
-  subcribedIotSignalRTypes : mqType [] = []
+  subcribedIotSignalRTypes : MQType [] = []
 
   scene : THREE.Scene
   camera : THREE.PerspectiveCamera
@@ -123,7 +125,7 @@ export class ThreejsViewportComponent implements OnInit , OnDestroy{
   } = null
   subscribedPoseMapCode = null
   robotLists : DropListRobot[]
-  constructor( public  robotSrv : RobotService ,  public uiSrv: UiService , public ngZone : NgZone , public util : GeneralUtil , public dataSrv : DataService ,  public ngRenderer:Renderer2 ,
+  constructor( public mapSrv : MapService , public  robotSrv : RobotService ,  public uiSrv: UiService , public ngZone : NgZone , public util : GeneralUtil , public dataSrv : DataService ,  public ngRenderer:Renderer2 ,
               public elRef : ElementRef , public vcRef: ViewContainerRef , public compResolver: ComponentFactoryResolver , public mqSrv : MqService) {
     // this.loadingTicket = this.uiSrv.loadAsyncBegin()
     // this.loadLocalStorageToggleSettings()
@@ -452,8 +454,9 @@ export class ThreejsViewportComponent implements OnInit , OnDestroy{
     // TBR : HOW TO UPDATE CONTROL WITHOUT CHANGING BACK ITS POSITION Z AGAIN??
 
     //v TESTING v
-    this.load3DFloorPlanFromAzureStorage(floorplan.floorPlanCode)
-    
+    await this.load3DFloorPlanFromAzureStorage(floorplan.floorPlanCode)
+    let testAlert = new AlertObject3D(this)
+    this.floorplan.add(testAlert)
     //^ TESTING ^
     
   }
@@ -486,8 +489,8 @@ export class ThreejsViewportComponent implements OnInit , OnDestroy{
 
 
   async load3DFloorPlanFromAzureStorage(floorPlanCode : string) : Promise<boolean>{
-    const file = await this.dataSrv.getArcs3DFloorPlanBlob(floorPlanCode)
-    const settings =  await this.dataSrv.getArcs3DFloorPlanSettings(floorPlanCode)
+    const file = await this.mapSrv.get3DFloorPlanBlob(floorPlanCode)
+    const settings =  await this.mapSrv.get3DFloorPlanSettings(floorPlanCode)
     if(file){
       (<THREE.MeshPhongMaterial>this.floorplan.material).visible = false
       await this.loadFloorPlanModelFromBlob(file);
@@ -1889,7 +1892,6 @@ class ElevatorObject3D extends Object3DCommon{
 }
 
 class TurnstileObject3D extends Object3DCommon{ 
-
   toolTipCompRef : ComponentRef<ArcsTurnstileIotComponent>
   turnstileId : string
 
@@ -1907,7 +1909,27 @@ class TurnstileObject3D extends Object3DCommon{
     this.toolTipSettings.customEl = this.toolTipCompRef.instance.elRef.nativeElement 
     this.toolTipAlwaysOn = true
   }
+}
 
+class AlertObject3D extends Object3DCommon{
+  toolTipCompRef : ComponentRef<CustomButtonComponent>
+  constructor(public master : ThreejsViewportComponent ){    
+    super(master)
+    this.initInfoToolTipEl()
+  }
+
+  initInfoToolTipEl() { 
+    this.toolTipSettings.style = {}
+    this.toolTipSettings.staticComp = true
+    this.toolTipCompRef = this.master.vcRef.createComponent(this.master.compResolver.resolveComponentFactory(CustomButtonComponent))
+    this.toolTipCompRef.instance.cssClass = 'mdi mdi-alert alert-3d'
+    this.toolTipCompRef.instance.toolTipMsg = 'Test Alert'
+    this.toolTipSettings.customEl = this.toolTipCompRef.instance.elRef.nativeElement 
+    this.toolTipAlwaysOn = true
+    this.toolTipSettings.position = new Vector3(0 , 0 , 10)
+  }
+  
+  
 }
 
 

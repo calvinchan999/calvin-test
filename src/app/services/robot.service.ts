@@ -14,9 +14,9 @@ export class RobotService {
     STANDALONE : StandaloneRobotServiceModule
     data : RobotState
 
-    constructor( public util : GeneralUtil,  public dataSrv: DataService , public httpSrv : RvHttpService, public uiSrv : UiService) {
-        this.ARCS = new ArcsRobotServiceModule( dataSrv , httpSrv , uiSrv )
-        this.STANDALONE = new StandaloneRobotServiceModule( dataSrv , httpSrv , uiSrv )
+    constructor( public util : GeneralUtil,   public httpSrv : RvHttpService, public uiSrv : UiService) {
+        this.ARCS = new ArcsRobotServiceModule(  httpSrv , uiSrv )
+        this.STANDALONE = new StandaloneRobotServiceModule(  httpSrv , uiSrv )
         this.data = this.STANDALONE.state
     }
     
@@ -43,7 +43,7 @@ class ArcsRobotServiceModule {
     public robotStore: { [key: string]: RobotState } = {
 
     }
-    constructor( public dataSrv: DataService , public httpSrv : RvHttpService, public uiSrv : UiService) {
+    constructor( public httpSrv : RvHttpService, public uiSrv : UiService) {
 
     }
 
@@ -65,14 +65,14 @@ class ArcsRobotServiceModule {
         tiltDetected: boolean,
         estopped: boolean,
     }> {
-        return await this.dataSrv.httpSrv.fmsRequest("GET", "robot/v1/robotDetail/" + robotCode, undefined, false)
+        return await this.httpSrv.fmsRequest("GET", "robot/v1/robotDetail/" + robotCode, undefined, false)
     }
 }
 
 class StandaloneRobotServiceModule{
     state : RobotState
-    constructor( public dataSrv: DataService , public httpSrv : RvHttpService, public uiSrv : UiService) {
-        this.state = new RobotState(this.dataSrv.robotMaster?.robotCode)
+    constructor(  public httpSrv : RvHttpService, public uiSrv : UiService) {
+        this.state = new RobotState(null)
     }
     
     public async connectWifi(ssid, pw) {

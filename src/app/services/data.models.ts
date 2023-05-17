@@ -467,7 +467,23 @@ export class floorPlan3DSettings {
   
   export const TaskStateOptions = [{text : "Pending" , value : "WAITING"} , {text : "Executing" , value : "EXECUTING"},{text : "Completed" , value : "SUCCEEDED"} , {text : "Canceled" , value : "CANCELED"} , {text : "Failed" , value : "FAILED"}, {text : "Busy" , value : "BUSY"}]
   
-  
-  
-  
-  
+
+  export class LiftState {
+
+  }
+
+  export class TurnstileState {
+    
+  }
+
+  export const FloorPlanAlertTypeDescMap = {
+    SMOKE: "Smoke Detected",
+    FIRE: "Fire Detected",
+    FALL: "Falling Motion Detected",
+    ABNORMAL_OBJECT: "Abnormal Object Detected",
+    EMERGENCY_DOOR_OPEN: "Emergency Door Opened",
+    HIGH_BODY_TEMPERATURE: "High Body Temp. Detected",
+    LOW_BODY_TEMPERATURE: "Low Body Temp. Detected",
+    COVERING_UP_CAMERA: "Camera being covered up",
+    PEOPLE_PPC: "People PPC"
+  }

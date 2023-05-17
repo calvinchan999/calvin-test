@@ -16,6 +16,7 @@ import { TableComponent } from 'src/app/ui-components/table/table.component';
 import { GeneralUtil } from 'src/app/utils/general/general.util';
 import { SaMapExportComponent } from './sa-map-export/sa-map-export.component';
 import { SaMapImportComponent } from './sa-map-import/sa-map-import.component';
+import { MapService } from 'src/app/services/map.service';
 
 
 @Component({
@@ -29,7 +30,7 @@ export class SaMapComponent implements OnInit {
 @ViewChild('mapDetailComp') mapDetailComp : CmMapDetailComponent
 @ViewChild('floorplanComp') floorplanComp : CmMapFloorplanComponent
 @ViewChild('buttonGroup') buttonGroupRef : ButtonGroup
-  constructor(public windowSrv: DialogService, public uiSrv : UiService , public http: RvHttpService , public changeDectector : ChangeDetectorRef,
+  constructor(public windowSrv: DialogService, public uiSrv : UiService , public http: RvHttpService , public changeDectector : ChangeDetectorRef, public mapSrv : MapService,
               private dataSrv : DataService , private ngZone : NgZone ,private authSrv : AuthService , public util : GeneralUtil) { 
 
                 this.tabs = this.tabs.filter(t=>this.authSrv.userAccessList.includes(t.id.toUpperCase()))
@@ -236,7 +237,7 @@ export class SaMapComponent implements OnInit {
     if (!this.pixiElRef || this.pixiElRef.mainContainerId == this.selectedFloorplanCode) {
       return
     }
-    this.pixiElRef.loadDataset(await this.dataSrv.getFloorPlan(this.selectedFloorplanCode),true , true)
+    this.pixiElRef.loadDataset(await this.mapSrv.getFloorPlan(this.selectedFloorplanCode),true , true)
   }
   // ^ *** for tablet mode *** ^
 }

@@ -17,6 +17,7 @@ import { HttpEventType, HttpHeaders } from '@angular/common/http';
 import { RobotStateTypes, DropListMap, JTask, RobotStatusARCS, RobotTaskInfoARCS, TaskItem } from './data.models';
 import { DataService } from './data.service';
 import {RobotService, RobotState} from './robot.service'
+import {MapService} from './map.service'
 
 const PUB_SUB_IGNORE_SFX_LIST = ['arcsPoses' , 'battery' , 'speed'];
 export type syncStatus = 'TRANSFERRED' | 'TRANSFERRING' | 'MALFUNCTION'
@@ -25,18 +26,19 @@ export type dropListType =  'floorplans' | 'buildings' | 'sites' | 'maps' | 'act
 export type localStorageKey = 'lang' | 'uitoggle' | 'lastLoadedFloorplanCode' | 'eventLog' | 'unreadMsgCnt' | 'unreadSyncMsgCount' | 'syncDoneLog' | 'dashboardMapType'
 export type sessionStorageKey = 'arcsLocationTree' | 'dashboardFloorPlanCode'| 'isGuestMode' | 'userAccess' | 'arcsDefaultBuilding' | 'userId' | 'currentUser' 
 export type eventLog = {datetime? : string | null , type? : string , message : string  , robotCode?: string }
-export type mqType = 'activeMap' | 'occupancyGridMap' | 'navigationMove' | 'chargingResult' | 'chargingFeedback' | 'state' | 'battery' | 'pose' | 'speed'| 'poseDeviation' |
+export type MQType = 'activeMap' | 'occupancyGridMap' | 'navigationMove' | 'chargingResult' | 'chargingFeedback' | 'state' | 'battery' | 'pose' | 'speed'| 'poseDeviation' |
                     'obstacleDetection' | 'estop' | 'brake' | 'tilt' | 'departure' | 'arrival' | 'completion' | 'timeout' | 'exception' | 'followMePair' |
                     'followMeAoa' | 'digitalOutput' | 'wifi' | 'cellular' | 'ieq' | 'rfid' | 'cabinet' | 'rotaryHead' | 'nirCamera' | 'nirCameraDetection' |
                     'thermalCamera' | 'thermalCameraDetection' | 'webcam' | 'heartbeatServer' | 'heartbeatClient' | 'arcsPoses' | 'taskActive' | 'lidarStatus' |
                     'led' | 'fan' | 'pauseResume' | 'taskComplete' | 'taskDepart' | 'taskArrive' | 'destinationReached' | 'taskProgress' | 'moving' | 'lidar'| 'taskPopups'|
-                    'arcsRobotStatusChange' | 'arcsTaskInfoChange' | 'arcsSyncLog' | 'arcsRobotDestination' | 'arcsLift' | 'arcsTurnstile'
+                    'arcsRobotStatusChange' | 'arcsTaskInfoChange' | 'arcsSyncLog' | 'arcsRobotDestination' | 'arcsLift' | 'arcsTurnstile' | 'arcsAiDetectionAlert'
 
 @Injectable({
   providedIn: 'root'
 })
 export class MqService {
   data: { [key: string]: BehaviorSubject<any> } = {
+    execute : new BehaviorSubject<any>(null), //dummy 
     exception : new BehaviorSubject<any>(null),
     unreadMsgCnt: new BehaviorSubject<any>(0),
     arcsPoses : new BehaviorSubject<any>(null),   
@@ -355,7 +357,7 @@ export class MqService {
                         ret = [JSON.parse(JSON.stringify(d))].concat(ret.filter(l=>l.dataSyncId != d.dataSyncId)) 
                         this.dataSrv.setLocalStorage('syncDoneLog', JSON.stringify(ret.filter(l=>l.dataSyncStatus != 'TRANSFERRING')))    
                         if(d.dataSyncStatus == "TRANSFERRED"){
-                          this.updateFloorPlansAlert_ARCS()
+                          this.mapSrv.updateOutSyncFloorPlanList()
                         }
                         return ret
                       }
@@ -413,15 +415,23 @@ export class MqService {
       topic: "rvautotech/fobo/poseDeviation",
       robotState: { poseDeviation: null }
     },
-    arcsAlert : {
+    arcsAiDetectionAlert : {
       topic : "rvautotech/fobo/armitage/vision/detection",
       mapping : {
-        
+        execute: async(d : {pose  : {mapName : string} , detectionType : string})=>{
+          const floorPlanState = await this.mapSrv.getFloorPlanStateByMapCode(d.pose?.mapName)
+          if(floorPlanState){
+            floorPlanState.addAlert(<any>d)
+            console.log(`ARMITAGE DETECTED : ${d.detectionType} - Floor Plan : ` + floorPlanState.floorPlanCode)
+          }else{
+            console.log(`Floor Plan Not Found (rvautotech/fobo/armitage/vision/detection) for Map Code : ` + d.pose?.mapName)
+          }
+        }
       }
     }
   }
 
-  constructor( public robotSrv : RobotService, public util : GeneralUtil , public httpSrv : RvHttpService, public dataSrv : DataService ,private uiSrv : UiService,  public signalRSrv : SignalRService, private router : Router , public pubsubSrv : AzurePubsubService , private datePipe : DatePipe , public configSrv : ConfigService , public ngZone : NgZone) { 
+  constructor( public mapSrv : MapService, public robotSrv : RobotService, public util : GeneralUtil , public httpSrv : RvHttpService, public dataSrv : DataService ,private uiSrv : UiService,  public signalRSrv : SignalRService, private router : Router , public pubsubSrv : AzurePubsubService , private datePipe : DatePipe , public configSrv : ConfigService , public ngZone : NgZone) { 
     this.backgroundSubscribeTypes =  this.util.arcsApp? 
     ['exception' , 'estop' , 'tilt' , 'obstacleDetection' , 'arcsSyncLog' ]: 
     ['estop' , 'tilt' , 'obstacleDetection' , 'exception', 'taskActive' , 'taskComplete' , 'destinationReached', 'moving']
@@ -449,7 +459,7 @@ export class MqService {
         this.uiSrv.showWarningDialog('Lidar Sensor Turned On.')
       }
     } else {
-      this.updateFloorPlansAlert_ARCS()
+      this.mapSrv.updateOutSyncFloorPlanList()
     }
     if(this._USE_AZURE_PUBSUB){
       this.pubsubSrv.makeWebSocketConnection()   
@@ -459,7 +469,7 @@ export class MqService {
     )
   }
 
-  public alertFloorPlans :{type : string ,floorPlanCode : string , mapCode : string , robotBases : string[]}[] = []
+  public outSyncFloorPlans :{type : string ,floorPlanCode : string , mapCode : string , robotBases : string[]}[] = []
   public unreadSyncMsgCount = new BehaviorSubject<number>(0)
 
   get _USE_AZURE_PUBSUB(){
@@ -467,7 +477,7 @@ export class MqService {
   }
 
   
-  mqTopic(type: mqType) {
+  mqTopic(type: MQType) {
     return this.mqMaster[type].topic
   }
 
@@ -486,14 +496,14 @@ export class MqService {
   }
 
 
-  public async subscribeMQTTsUntil(types: mqType[], paramString = '', takeUntil: Subject<any>) {
+  public async subscribeMQTTsUntil(types: MQType[], paramString = '', takeUntil: Subject<any>) {
     takeUntil.pipe(take(1)).subscribe(() => {
       this.unsubscribeMQTTs(types, false, paramString)
     })
     this.subscribeMQTTs(types , paramString)
   }
   
-  public async subscribeMQTTUntil(type: mqType, paramString = '' , takeUntil: Subject<any> , getLatestFromApi = false ){
+  public async subscribeMQTTUntil(type: MQType, paramString = '' , takeUntil: Subject<any> , getLatestFromApi = false ){
     takeUntil.pipe(take(1)).subscribe(() => {
       this.unsubscribeMQTT(type, false, paramString)
     })
@@ -501,13 +511,13 @@ export class MqService {
   }
 
 
-  public async subscribeMQTTs(types : mqType[] , paramString = '' ){
+  public async subscribeMQTTs(types : MQType[] , paramString = '' ){
     let ret = {}
     await Promise.all(types.map(async(t)=> ret[t] = await this.subscribeMQTT(t , paramString)))
     return ret
   }
 
-  public unsubscribeMQTTs(types : mqType[] , forced = false , paramString = ''){
+  public unsubscribeMQTTs(types : MQType[] , forced = false , paramString = ''){
     types.forEach(t=> this.unsubscribeMQTT(t , forced , paramString))
   }
 
@@ -515,7 +525,7 @@ export class MqService {
     this.unsubscribeMQTTs(<any>Object.keys(this.mqMaster).filter(t=>!this.mqMaster[t].subscribedCount) , true)
   }
 
-  public async unsubscribeMQTT(type: mqType , forced = false , paramString = '') {
+  public async unsubscribeMQTT(type: MQType , forced = false , paramString = '') {
     //Commented 20220422 - - - Aviod duplicate subscription
     paramString = this.util.standaloneApp ? '' : paramString
     this.setSubscribedCount(type, (forced ? 0 : Math.max(0, this.getSubscribedCount(type, paramString) - 1)), paramString)
@@ -538,7 +548,7 @@ export class MqService {
     this.updateTaskStatus(JSON.parse(resp.body))
   }
 
-  public async subscribeMQTT(type: mqType, paramString = '' , getLatestFromApi = false ) {//paramString : get concated topic (ARCS implementing query param in signalR topic)
+  public async subscribeMQTT(type: MQType, paramString = '' , getLatestFromApi = false ) {//paramString : get concated topic (ARCS implementing query param in signalR topic)
     if(!this.util.getCurrentUser()){
       return
     }
@@ -556,7 +566,7 @@ export class MqService {
           this.updateMqBehaviorSubject(type, JSON.parse(resp.body), paramString)
         }
       } else if (this.util.arcsApp && subscribedCount == 0) {
-          const mqTypesRequiredApiByRobot: mqType[] = ['ieq', 'arcsRobotDestination'];
+          const mqTypesRequiredApiByRobot: MQType[] = ['ieq', 'arcsRobotDestination'];
           const mqTypesQueryParamMap: { [key: string]: string } = {
             arcsTaskInfoChange: 'floorPlanCode'
           }
@@ -654,23 +664,6 @@ export class MqService {
   }
 
   
-  async updateFloorPlansAlert_ARCS(){
-    let maps : DropListMap[] = (<any>(await this.dataSrv.getDropList('maps')).data)
-    let alertMaps = maps.filter(m=> !m.floorPlanCode && maps.filter(m2=> m2.mapCode == m.mapCode && m2.floorPlanCode != m.floorPlanCode).length > 0)
-    this.alertFloorPlans = []
-    alertMaps.forEach(m=>{
-      let floorPlanCode = maps.filter(m2=> m2.mapCode == m.mapCode && m2.floorPlanCode != m.floorPlanCode).map(m2=>m2.floorPlanCode)[0]
-      let alertFloorPlanObj : {type : string ,floorPlanCode : string , mapCode : string , robotBases : string[] } = this.alertFloorPlans.filter(f=>f.floorPlanCode == floorPlanCode)[0]
-      if (!alertFloorPlanObj) {
-        alertFloorPlanObj = {type : 'SyncAlert' , floorPlanCode: floorPlanCode, mapCode: m.mapCode, robotBases: []  }
-        this.alertFloorPlans.push(alertFloorPlanObj)
-      }
-      if(!alertFloorPlanObj.robotBases.includes(m.robotBase)){
-        alertFloorPlanObj.robotBases.push(m.robotBase)
-      }
-    })
-    this.dataSrv.setLocalStorage('unreadSyncMsgCount', this.unreadSyncMsgCount.value.toString())
-  }
 
   loadDataFromLocalStorage(){
     let notiCount = this.dataSrv.getLocalStorage('unreadMsgCnt')

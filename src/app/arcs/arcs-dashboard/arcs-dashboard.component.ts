@@ -24,6 +24,7 @@ import { environment } from 'src/environments/environment';
 import { PixiBuildingPolygon } from 'src/app/utils/ng-pixi/ng-pixi-viewport/ng-pixi-map-graphics';
 import * as PIXI from 'pixi.js';
 import { RobotService } from 'src/app/services/robot.service';
+import { MapService } from 'src/app/services/map.service';
 
 type robotTypeInfo = { //A group can be an individual robot (when filtered by robot type) OR robot type (no filter applied) 
   robotType: string
@@ -210,7 +211,7 @@ export class ArcsDashboardComponent implements OnInit {
   }
   me
   iconMap = {}
-  constructor( public robotSrv : RobotService, public mqSrv : MqService,  private util :GeneralUtil , private authSrv : AuthService , private httpSrv : RvHttpService, public uiSrv : UiService , private dataSrv : DataService, private router : Router , private ngZone : NgZone ) {
+  constructor(public mapSrv : MapService, public robotSrv : RobotService, public mqSrv : MqService,  private util :GeneralUtil , private authSrv : AuthService , private httpSrv : RvHttpService, public uiSrv : UiService , private dataSrv : DataService, private router : Router , private ngZone : NgZone ) {
     // this.chartTesting()
     environment.routes.forEach(r=>{
       this.iconMap [r.path.replace('/','').toUpperCase()] = r.icon
@@ -262,7 +263,7 @@ export class ArcsDashboardComponent implements OnInit {
 
   async ngAfterViewInit() {
     let ticket = this.uiSrv.loadAsyncBegin()
-    this.site = await this.dataSrv.getSite()
+    this.site = await this.mapSrv.getSite()
     let ddl = await this.dataSrv.getDropList('types')
     this.dropdownData.types = ddl.data;
     this.locationTree = this.dataSrv.getSessionStorage('arcsLocationTree') ? JSON.parse(this.dataSrv.getSessionStorage('arcsLocationTree')) : this.locationTree 
@@ -389,7 +390,7 @@ export class ArcsDashboardComponent implements OnInit {
     if(this.dataSrv.getSessionStorage('dashboardFloorPlanCode')){
       return this.dataSrv.getSessionStorage('dashboardFloorPlanCode')
     }
-    let defaultBuilding = this.dataSrv.arcsDefaultBuilding
+    let defaultBuilding = this.mapSrv.defaultBuilding
     let floorPlans : DropListFloorplan[] = <any>((await this.dataSrv.getDropList('floorplans')).data)
     let floorPlanCode = floorPlans.filter(f=>(f.buildingCode == defaultBuilding || !defaultBuilding ) && f.defaultPerBuilding)[0]?.floorPlanCode
     floorPlanCode = floorPlanCode ? floorPlanCode : floorPlans.filter(f=> f.buildingCode == defaultBuilding || !defaultBuilding )[0]?.floorPlanCode
@@ -408,21 +409,23 @@ export class ArcsDashboardComponent implements OnInit {
       this.mqSrv.unsubscribeMQTT('arcsTaskInfoChange', false , this.currentFloorPlan?.floorPlanCode)
       this.mqSrv.unsubscribeMQTT('arcsRobotStatusChange', false , this.currentFloorPlan?.floorPlanCode)
     }
-    let floorplan = await this.dataSrv.getFloorPlan(code);
+    let floorplan = await this.mapSrv.getFloorPlan(code);
     this.currentFloorPlan = floorplan
     if(floorplan?.floorPlanCode){
       this.dataSrv.setSessionStorage('dashboardFloorPlanCode', floorplan.floorPlanCode);  
     }
     this.selectedFloorPlanCode = floorplan.floorPlanCode
     if(this.pixiElRef){
-      await this.pixiElRef.loadDataset(floorplan, true, true);
+      await this.pixiElRef.module.data.loadFloorPlan(floorplan.floorPlanCode) // .loadDataset(floorplan, true, true);
       this.pixiElRef.module.robot.subscribeRobotPose([... new Set(floorplan.mapList.map(m => m.mapCode))])
+      this.pixiElRef.module.data.subscribeFloorPlanAlertState()
     }
     this.dataSrv.setSessionStorage('arcsLocationTree' , JSON.stringify(this.locationTree))      
     if(this.threeJsElRef){
       this.threeJsElRef.floorPlanDataset = floorplan
       this.threeJsElRef.loadFloorPlan(floorplan)
     }    
+    
    
     this.floorPlanFilter = floorplan.floorPlanCode
     // await this.refreshTaskInfo()

@@ -13,6 +13,7 @@ import { ConfigService } from './config.service';
 import { DataService } from './data.service';
 import {  loginResponse } from './data.models';
 import { MqService } from './mq.service';
+import { MapService } from './map.service';
 
 @Injectable()
 export class AuthService {
@@ -26,7 +27,7 @@ export class AuthService {
 		accessToken : 'access_token',
 		refreshToken: 'refresh_token'
 	}
-	constructor( public mqSrv : MqService ,  private httpSrv: RvHttpService, private dataSrv : DataService, private generalUtil : GeneralUtil, public intlService: IntlService, private router : Router, public configSrv : ConfigService) { 
+	constructor( public mapSrv : MapService, public mqSrv : MqService ,  private httpSrv: RvHttpService, private dataSrv : DataService, private generalUtil : GeneralUtil, public intlService: IntlService, private router : Router, public configSrv : ConfigService) { 
 		this.username = this.generalUtil.getCurrentUser()
 		this.isGuestMode = JSON.parse(this.dataSrv.getSessionStorage('isGuestMode'))
 		this.userAccessList = JSON.parse(this.generalUtil.getUserAccess())
@@ -87,6 +88,7 @@ export class AuthService {
 					this.isGuestMode = guestMode
 					this.dataSrv.init()
 					this.mqSrv.init()
+					this.mapSrv.init()
 					this.configSrv.setDbConfig(response.validationResults.configurations)
 				}
 				return response;

@@ -14,14 +14,14 @@
         </div>
 
         
-        <div class="bg-job topnav" *ngIf="util.arcsApp && (mqSrv.data.arcsSyncLog.value.length > 0  || dataSrv.alertFloorPlans.length > 0) ">
+        <div class="bg-job topnav" *ngIf="util.arcsApp && (mqSrv.data.arcsSyncLog.value.length > 0  || mapSrv.outSyncFloorPlans.length > 0) ">
             <kendo-menu #syncMenu [items]="[{id:'jobStatus' , items: syncMenuItems}]" class="job-menu" (mouseover)="syncMenuOpened ? null :  openSyncMenu(); " (close)="onSyncMenuClose()"> 
                  <!-- (open)="updateUnreadCount()" -->
                 <ng-template kendoMenuItemTemplate let-item="item">
                     <a *ngIf="item.id == 'jobStatus'" class="k-icon mdi mdi-cached" >
-                        <kendo-badge *ngIf="dataSrv.unreadSyncMsgCount.value +  dataSrv.alertFloorPlans.length > 0" rounded="medium" themeColor="info" position="edge" 
+                        <kendo-badge *ngIf="dataSrv.unreadSyncMsgCount.value +  mapSrv.outSyncFloorPlans.length > 0" rounded="medium" themeColor="info" position="edge" 
                                             [align] = "{ vertical: 'bottom', horizontal: 'end' }">
-                            {{dataSrv.unreadSyncMsgCount.value + dataSrv.alertFloorPlans.length }}
+                            {{dataSrv.unreadSyncMsgCount.value + mapSrv.outSyncFloorPlans.length }}
                         </kendo-badge>
                     </a>
                     <button kendoButton *ngIf="item.dataSyncId != null" (click)="router.navigate(['/setup', {selectedTab : 'synclog'}])" class="sync"> 

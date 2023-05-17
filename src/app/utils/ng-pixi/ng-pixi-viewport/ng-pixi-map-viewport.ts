@@ -1,6 +1,6 @@
 import { Subject } from 'rxjs'
 import {ModeType, PixiViewport} from './ng-pixi-base-viewport'
-import { PixiPath, PixiWayPoint, PixiMapContainer, PixiEditableMapImage, PixiBuildingPolygon, PixiRosMapOriginMarker, PixiTaskPath, PixiMapGraphics } from './ng-pixi-map-graphics'
+import { PixiPath, PixiWayPoint, PixiMapContainer, PixiEditableMapImage, PixiBuildingPolygon, PixiRosMapOriginMarker, PixiTaskPath, PixiMapGraphics, PixiEventMarker } from './ng-pixi-map-graphics'
 import { DRAWING_STYLE, PixiGraphicStyle } from './ng-pixi-styling-util'
 import { filter, take, takeUntil } from 'rxjs/operators'
 import { NgZone , EventEmitter, Renderer2 } from '@angular/core'
@@ -63,7 +63,8 @@ export class PixiMapViewport extends PixiViewport{
             showWaypointName : true,
             showPath : false,
             darkMode : true,
-            showPoseDeviation : false
+            showPoseDeviation : false,
+            alert : true
         },
         updateLocalStorage:()=>{
             let storedFlags = getLocalStorage('uitoggle') ?  JSON.parse(getLocalStorage('uitoggle')) : {};
@@ -166,6 +167,9 @@ export class PixiMapViewport extends PixiViewport{
     }
     get pixiRosMapOriginMarker(): PixiRosMapOriginMarker {
         return this.mainContainer.children.filter(c => c instanceof PixiRosMapOriginMarker).map(c => <PixiRosMapOriginMarker>c)?.[0]
+    }
+    get allPixiEventMarkers() : PixiEventMarker[]{
+        return this.mainContainer.children.filter(c => c instanceof PixiEventMarker).map(c => <PixiEventMarker>c)
     }
 
     constructor(arg : Viewport.Options , app : PIXI.Application, ngZone : NgZone,  ngRenderer : Renderer2, onDestroy : Subject<any> , METER_TO_PIXEL_RATIO : number , isStandaloneApp : boolean , isMobile : boolean){

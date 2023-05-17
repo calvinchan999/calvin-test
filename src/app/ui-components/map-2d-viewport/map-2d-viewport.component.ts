@@ -22,7 +22,7 @@ import {OutlineFilter} from '@pixi/filter-outline';
 import {ColorOverlayFilter} from '@pixi/filter-color-overlay';
 import {DropShadowFilter} from '@pixi/filter-drop-shadow';
 import {DataService} from 'src/app/services/data.service';
-import { ShapeJData , MapJData, FloorPlanDataset, MapDataset, robotPose, DropListFloorplan, DropListLocation, DropListMap, DropListAction, DropListBuilding, JMap, JPoint, JPath, JFloorPlan, DropListRobot, DropListPointIcon, RobotStatusARCS, JChildPoint } from 'src/app/services/data.models';
+import { ShapeJData , MapJData, FloorPlanDataset, MapDataset, robotPose, DropListFloorplan, DropListLocation, DropListMap, DropListAction, DropListBuilding, JMap, JPoint, JPath, JFloorPlan, DropListRobot, DropListPointIcon, RobotStatusARCS, JChildPoint, FloorPlanAlertTypeDescMap } from 'src/app/services/data.models';
 import { AuthService } from 'src/app/services/auth.service';
 import * as roundSlider from "@maslick/radiaslider/src/slider-circular";
 import {GraphBuilder, DijkstraStrategy} from "js-shortest-path"
@@ -39,10 +39,11 @@ import { IDraw as IDraw, IReColor, Pixi1DGraphics, PixiBorder, PixiCircle, PixiC
 import { style } from '@angular/animations';
 import {calculateMapOrigin, calculateMapX, calculateMapY} from './pixi-ros-conversion'
 import {  PixiContainer} from 'src/app/utils/ng-pixi/ng-pixi-viewport/ng-pixi-base-container';
-import { PixiPath, PixiChildPoint, PixiWayPoint, PixiMap, PixiMapContainer, PixiEditableMapImage, PixiPointGroup, PixiBuildingPolygon, PixiRobotCountTag, PixiRobotMarker, PixiRosMapOriginMarker, PixiTaskPath, PixiMapGraphics } from '../../utils/ng-pixi/ng-pixi-viewport/ng-pixi-map-graphics'
+import { PixiPath, PixiChildPoint, PixiWayPoint, PixiMap, PixiMapContainer, PixiEditableMapImage, PixiPointGroup, PixiBuildingPolygon, PixiRobotCountTag, PixiRobotMarker, PixiRosMapOriginMarker, PixiTaskPath, PixiMapGraphics, PixiEventMarker } from '../../utils/ng-pixi/ng-pixi-viewport/ng-pixi-map-graphics'
 import { GetResizedBase64, GetResizedCanvas, GetSpriteFromUrl } from 'src/app/utils/ng-pixi/ng-pixi-viewport/ng-pixi-functions';
 import { MqService } from 'src/app/services/mq.service';
-import { RobotService } from 'src/app/services/robot.service';
+import { RobotService, RobotState } from 'src/app/services/robot.service';
+import { FloorPlanState, MapService } from 'src/app/services/map.service';
 
 // adapted from
 // http://jsfiddle.net/eZQdE/43/
@@ -68,7 +69,7 @@ export class Map2DViewportComponent implements OnInit , AfterViewInit , OnDestro
     robot : StandaloneRobotModule,
     site ? : SiteModule,
     task : TaskModule,
-    ui : UiModule
+    ui : UiModule 
   }
 
   arcsModule : {
@@ -474,7 +475,7 @@ export class Map2DViewportComponent implements OnInit , AfterViewInit , OnDestro
     this.arrowKeyStep = 1
   }
 
-  constructor( public robotSrv : RobotService, public util: GeneralUtil, public changeDetector: ChangeDetectorRef,private renderer: Renderer2 , public dataSrv : DataService, public configSrv : ConfigService,
+  constructor( public mapSrv : MapService, public robotSrv : RobotService, public util: GeneralUtil, public changeDetector: ChangeDetectorRef,private renderer: Renderer2 , public dataSrv : DataService, public configSrv : ConfigService,
               public uiSrv : UiService,  public httpSrv : RvHttpService, public elRef : ElementRef, public ngZone : NgZone , public authSrv : AuthService , public mqSrv : MqService) {
       this.commonModule = new CommonModule(this)
       if(this.util.standaloneApp){
@@ -1699,8 +1700,8 @@ export class StandaloneRobotModule extends RobotModule {
     if (this.cm.data.activeFloorPlanCode != fpCode) {
       await this.cm.data.loadFloorPlan(fpCode)
     }
-    this.cm.data.selectedFloorPlanCode = fpCode      
-    this.cm.data.activeFloorPlanCode = fpCode
+    // this.cm.data.selectedFloorPlanCode = fpCode      
+    // this.cm.data.activeFloorPlanCode = fpCode
     if (!fpCode) {
       var msg = "UNKNOWN MAP CODE OR NO LINKED FLOOR PLAN FROM MQTT POSE : " + mapCode
       this.cm.uiSrv.showNotificationBar(msg, 'error')
@@ -1934,7 +1935,7 @@ export class LocalizationModule { //Standalone Function : change map / localize
     this.previewData.rosY = 0
     this.previewData.rotation =  0
 
-    await this.master.loadDataset( await this.cm.dataSrv.getFloorPlan(this.cm.data.selectedFloorPlanCode), true , true)
+    await this.master.loadDataset( await this.cm.master.mapSrv.getFloorPlan(this.cm.data.selectedFloorPlanCode), true , true)
     // this.cm.data.selectedMap = ds.mapList[0]?.mapCode
     // this.master.changeMode('create','localize')
     this.cm.uiSrv.loadAsyncDone(ticket)
@@ -2442,7 +2443,6 @@ export class DataModule{
   set activeFloorPlanCode(v) {
     const oldCode = this._activeFloorPlanCode
     this._activeFloorPlanCode = v
-
     this.dropdownOptions.locations = this.dataSrv.getDropListOptions('locations', this.dropdownData.locations, { floorPlanCode: v })
     this._activeMapCode = (<DropListMap[]>this.dropdownData.maps).filter((m) => m.floorPlanCode == this.activeFloorPlanCode)[0]?.mapCode
     // console.log(    this._activeMapCode )
@@ -2508,7 +2508,9 @@ export class DataModule{
   }
 
   async loadFloorPlan(fpCode : string){
-    await this.master.loadDataset( await this.dataSrv.getFloorPlan(fpCode), true , true)
+    await this.master.loadDataset( await this.master.mapSrv.getFloorPlan(fpCode), true , true)
+    this.activeFloorPlanCode = fpCode
+    this.selectedFloorPlanCode = fpCode
   }
 
   async loadDefaultFloorPlan(){
@@ -2517,13 +2519,61 @@ export class DataModule{
                                 this.dataSrv.getLocalStorage('lastLoadedFloorplanCode') : 
                                 this.dropdownOptions.floorplans[0].value
       // this.onFloorplanSelected_SA()
-      this.loadFloorPlan(this.selectedFloorPlanCode)
+      await this.master.loadDataset(this.selectedFloorPlanCode)
+      // this.loadFloorPlan(this.selectedFloorPlanCode)
     }
   }
-
  
   getIconBase64(iconType){
     return (<DropListPointIcon[]>this.dropdownData.iconTypes).filter(t => t.code == iconType)[0]?.base64Image
+  }
+
+  subscribeFloorPlanAlertState(){
+    //TBD : add FloorPlanCodeParam to MQ subscription , this.master.onDestroy also need to change to floorPlanChanged
+    this.master.mqSrv.subscribeMQTTUntil('arcsAiDetectionAlert' , undefined , this.activeFloorPlanCodeChange)
+    this.master.mapSrv.floorPlanStateChanged.pipe(filter(d=> d.floorPlanCode == this.activeFloorPlanCode) , takeUntil(this.activeFloorPlanCodeChange)).subscribe(((d: FloorPlanState)=>{
+      this.showAlertsOnFloorPlan()
+    }))
+    this.showAlertsOnFloorPlan()
+  }
+
+  async showAlertsOnFloorPlan(){ //TO BE MOVED TO OTHER MODULES
+    const floorPlanState  =  await this.master.mapSrv.floorPlanState(this.activeFloorPlanCode)
+    const unreadAlerts = floorPlanState.alerts.filter(a=>a.noted == false)
+    unreadAlerts.filter(a=> !this.master.viewport.allPixiEventMarkers.some(m=>m.robotCode == a.robotId && m.eventId == a.timestamp)).forEach(a=>{
+      const robotBase = (<DropListRobot[]>this.dropdownData.robots)?.filter(r=>r.robotCode == a.robotId)[0]?.robotBase
+      const pixiMap = this.master.viewport.mapContainerStore[`${a.mapCode}${this.master.util.arcsApp ? ('@' + robotBase) : ''}`]
+      if(pixiMap){
+        const pos = this.master.viewport.mainContainer.toLocal(pixiMap.toGlobal(new PIXI.Point(pixiMap.calculateMapX(a.rosX) , pixiMap.calculateMapY(a.rosY)))) 
+        const alertMarker = new PixiEventMarker(this.master.viewport , undefined , a.robotId ,  a.timestamp )
+        alertMarker.toolTip.contentBinding = ()=> {
+          let datetime = new Date(a.timestamp * 1000)
+          let timeStr = `${datetime.getHours().toString().padStart(2, '0')}:${datetime.getMinutes().toString().padStart(2, '0')}` 
+          const dateStr = this.master.uiSrv.datePipe.transform(datetime , (datetime?.getFullYear() == new Date().getFullYear() ? 'd MMM' : 'd MMM yyyy'))
+          const dateTimeStr =`${ datetime.toDateString() != new Date().toDateString() ?  (dateStr + ' ') : '' }${timeStr}`
+          return `- ${ this.master.uiSrv.translate(FloorPlanAlertTypeDescMap[a.alertType])}\n [${dateTimeStr}] ${a.robotId}` 
+        }
+        alertMarker.events.click.pipe(takeUntil(this.activeFloorPlanCodeChange)).subscribe((evt)=>{
+          floorPlanState.markAlertAsNoted(a.robotId , a.timestamp)
+          this.showAlertsOnFloorPlan()
+        })
+        alertMarker.toolTip.enabled = true
+        alertMarker.zIndex = 5
+        alertMarker.visible = this.master.module.ui.toggle.alert
+        alertMarker.position.set(pos.x, pos.y)
+        this.master.viewport.mainContainer.addChild(alertMarker)
+      }
+    })
+    
+    floorPlanState.alerts.filter(a => a.noted == true).forEach(a => {
+      const notedAlertMaker = this.master.viewport.allPixiEventMarkers.filter(m => m.robotCode == a.robotId && m.eventId == a.timestamp)[0]
+      notedAlertMaker.toolTip.hide()
+      notedAlertMaker?.parent?.removeChild(notedAlertMaker)
+    })
+  }
+
+  showAnalysisDataOnFloorPlan(){  //TO BE MOVED TO OTHER MODULES
+
   }
 }
 
@@ -2580,6 +2630,12 @@ export class UiModule {
     if(toggleFloorplan){
       this.master.backgroundSprite.visible = !this.toggle.showRosMap 
     }
+    this.updateLocalStorage()
+  }
+
+  toggleAlerts(on){
+    this.toggle.alert = on
+    this.viewport.allPixiEventMarkers.forEach(a=>a.visible = on)
     this.updateLocalStorage()
   }
 
