@@ -116,6 +116,7 @@ export class Map2DViewportComponent implements OnInit , AfterViewInit , OnDestro
   @Input() showWaypointType = false
   @Input() arcsParent : ArcsDashboardComponent
   @Input() polygonType : PolygonType
+  @Input() loadMapContainers = false
   
   get viewport(){
     return <PixiMapViewport>this._ngPixi?.viewport
@@ -934,7 +935,7 @@ export class Map2DViewportComponent implements OnInit , AfterViewInit , OnDestro
     Object.keys(this.viewport.mapLayerStore).forEach(k=>delete this.viewport.mapLayerStore[k])
   }
 
-  async loadDataset(dataset: JFloorPlan, readonly = false, locationOnly = null, showFloorPlanName = true, setCamera = true) {
+  async loadDataset(dataset: JFloorPlan, readonly = false, locationOnly = null, showFloorPlanName = true, setCamera = true , refreshToggled = true) {
     let ret = new Subject()
     let ticket
     this.ngZone.runOutsideAngular(async () => {
@@ -951,7 +952,8 @@ export class Map2DViewportComponent implements OnInit , AfterViewInit , OnDestro
         }
         this.setViewportCamera(this.defaultPos.x, this.defaultPos.y, this.defaultPos.zoom)
       }
-      if(this.showRobot || this.module.localization?.localizing){
+
+      if(this.showRobot || this.module.localization?.localizing || this.loadMapContainers){
         for(let i = 0 ; i < dataset.mapList.length ; i++){
           var mapData  = dataset.mapList[i];
           await this.convertJMapToUniversalResolution(mapData); //20221024
@@ -965,6 +967,7 @@ export class Map2DViewportComponent implements OnInit , AfterViewInit , OnDestro
           container.robotBase = mapData.robotBase
         }
       }
+
       ret.next(this.loadGraphics(dataset, readonly, locationOnly))
       if(readonly && locationOnly){
         this.viewport.settings.mapTransformedScale = Math.max.apply(null , dataset.mapList.map(m=>m.transformedScale))
@@ -979,8 +982,10 @@ export class Map2DViewportComponent implements OnInit , AfterViewInit , OnDestro
       }      
       this.arcsLocationTreeChange.emit( this.module.site.locationTree)
     }
-    this.module.ui.toggleDarkMode(this.module.ui.toggle.darkMode)
-    this.module.ui.toggleRosMap(this.module.ui.toggle.showRosMap)
+    if(refreshToggled){
+      this.module.ui.toggleDarkMode(this.module.ui.toggle.darkMode)
+      this.module.ui.toggleRosMap(this.module.ui.toggle.showRosMap)
+    }
     return ret
   }
 
@@ -2543,18 +2548,8 @@ export class DataModule{
     const floorPlanState  =  await this.master.mapSrv.floorPlanState(this.activeFloorPlanCode)
     const unreadAlerts = floorPlanState.alerts.filter(a=>a.noted == false)
     unreadAlerts.filter(a=> !this.master.viewport.allPixiEventMarkers.some(m=>m.robotCode == a.robotId && m.eventId == a.timestamp)).forEach(a=>{
-      const robotBase = (<DropListRobot[]>this.dropdownData.robots)?.filter(r=>r.robotCode == a.robotId)[0]?.robotBase
-      const pixiMap = this.master.viewport.mapContainerStore[`${a.mapCode}${this.master.util.arcsApp ? ('@' + robotBase) : ''}`]
-      if(pixiMap){
-        const pos = this.master.viewport.mainContainer.toLocal(pixiMap.toGlobal(new PIXI.Point(pixiMap.calculateMapX(a.rosX) , pixiMap.calculateMapY(a.rosY)))) 
-        const alertMarker = new PixiEventMarker(this.master.viewport , undefined , a.robotId ,  a.timestamp )
-        alertMarker.toolTip.contentBinding = ()=> {
-          let datetime = new Date(a.timestamp )
-          let timeStr = `${datetime.getHours().toString().padStart(2, '0')}:${datetime.getMinutes().toString().padStart(2, '0')}` 
-          const dateStr = this.master.uiSrv.datePipe.transform(datetime , (datetime?.getFullYear() == new Date().getFullYear() ? 'd MMM' : 'd MMM yyyy'))
-          const dateTimeStr =`${ datetime.toDateString() != new Date().toDateString() ?  (dateStr + ' ') : '' }${timeStr}`
-          return `- ${ this.master.uiSrv.translate(FloorPlanAlertTypeDescMap[a.alertType])}\n [${dateTimeStr}] ${a.robotId}` 
-        }
+      const alertMarker = this.setPixiEventMarker(a)
+      if(alertMarker){        
         alertMarker.events.click.pipe(takeUntil(this.activeFloorPlanCodeChange)).subscribe((evt)=>{
           this.master.ngZone.run(()=>{
             floorPlanState.markAlertAsNoted(a.robotId , a.timestamp)
@@ -2562,7 +2557,7 @@ export class DataModule{
             const content : ArcsEventDetectionDetailComponent = dialog.content.instance;
             content.robotCode = alertMarker.robotCode
             content.timestamp = alertMarker.eventId
-            content.data = {floorPlanCode : floorPlanState.floorPlanCode}
+            content.data = {floorPlanCode : a.floorPlanCode , mapCode : a.mapCode , rosX : a.rosX , rosY : a.rosY}
             setTimeout(()=>{
               alertMarker.toolTip.hide()
               alertMarker?.parent?.removeChild(alertMarker)
@@ -2570,11 +2565,6 @@ export class DataModule{
             // content.dialogRef = dialog
           })
         })
-        alertMarker.toolTip.enabled = true
-        alertMarker.zIndex = 5
-        alertMarker.visible = this.master.module.ui.toggle.alert
-        alertMarker.position.set(pos.x, pos.y)
-        this.master.viewport.mainContainer.addChild(alertMarker)
       }
     })
     
@@ -2587,6 +2577,30 @@ export class DataModule{
 
   showAnalysisDataOnFloorPlan(){  //TO BE MOVED TO OTHER MODULES
 
+  }
+
+  setPixiEventMarker(a : { robotId : string , timestamp : any , rosX : any , rosY : any , mapCode : string , alertType :string}){
+    const robotBase = (<DropListRobot[]>this.dropdownData.robots)?.filter(r=>r.robotCode == a.robotId)[0]?.robotBase
+    const pixiMap = this.master.viewport.mapContainerStore[`${a.mapCode}${this.master.util.arcsApp ? ('@' + robotBase) : ''}`]
+    console.log(this.master.viewport.mapContainerStore)
+    let pixiEventMarker : PixiEventMarker
+    if(pixiMap){
+      const pos = this.master.viewport.mainContainer.toLocal(pixiMap.toGlobal(new PIXI.Point(pixiMap.calculateMapX(a.rosX) , pixiMap.calculateMapY(a.rosY)))) 
+      pixiEventMarker = new PixiEventMarker(this.master.viewport , undefined , a.robotId ,  a.timestamp )
+      pixiEventMarker.toolTip.contentBinding = ()=> {
+        let datetime = new Date(a.timestamp )
+        let timeStr = `${datetime.getHours().toString().padStart(2, '0')}:${datetime.getMinutes().toString().padStart(2, '0')}` 
+        const dateStr = this.master.uiSrv.datePipe.transform(datetime , (datetime?.getFullYear() == new Date().getFullYear() ? 'd MMM' : 'd MMM yyyy'))
+        const dateTimeStr =`${ datetime.toDateString() != new Date().toDateString() ?  (dateStr + ' ') : '' }${timeStr}`
+        return `- ${ this.master.uiSrv.translate(FloorPlanAlertTypeDescMap[a.alertType])}\n [${dateTimeStr}] ${a.robotId}` 
+      }
+      pixiEventMarker.toolTip.enabled = true
+      pixiEventMarker.zIndex = 5
+      pixiEventMarker.visible = this.master.module.ui.toggle.alert
+      pixiEventMarker.position.set(pos.x, pos.y)
+      this.master.viewport.mainContainer.addChild(pixiEventMarker)
+    }
+    return pixiEventMarker
   }
 }
 

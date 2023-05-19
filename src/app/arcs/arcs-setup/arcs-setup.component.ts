@@ -55,7 +55,7 @@ export class ArcsSetupComponent implements OnInit {
     { id: 'building', label: 'Building'},
     { id: 'floorplan', label: 'Floor Plan' },
     { id: 'map', label: 'Map' },
-    { id: 'robotCoop' , label : 'Robot Collaboration'},
+    // { id: 'robotCoop' , label : 'Robot Collaboration'},
     { id: 'pointType', label: 'Waypoint Type'},
     { id: 'synclog', label: 'Data Sync Log' },
     { id: 'log', label: 'Event Log' , authorized : false},

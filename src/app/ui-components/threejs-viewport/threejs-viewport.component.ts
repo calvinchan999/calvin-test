@@ -782,7 +782,7 @@ export class ThreejsViewportComponent implements OnInit , OnDestroy{
             const content : ArcsEventDetectionDetailComponent = dialog.content.instance;
             content.robotCode = newMarker.robotId
             content.timestamp = newMarker.eventId
-            content.data = {floorPlanCode : state.floorPlanCode}
+            content.data = {floorPlanCode : a.floorPlanCode , mapCode : a.mapCode , rosX : a.rosX , rosY : a.rosY}
           })
         })
         

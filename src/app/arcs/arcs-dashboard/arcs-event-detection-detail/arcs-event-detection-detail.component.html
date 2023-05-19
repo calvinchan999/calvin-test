@@ -2,6 +2,21 @@
     <kendo-dialog-titlebar (close)="dialogRef.close()">
         <div>{{title  | label: uiSrv.langPack}}</div>
     </kendo-dialog-titlebar>
-    <div>{{message}}</div>
-    <img *ngIf="data?.base64Image" [src]="data.base64Image" />
+    <kendo-tabstrip #tabstrip (tabSelect)=" tabChanged() ;">
+        <kendo-tabstrip-tab [title]="'Log' | label : uiSrv.langPack " [selected]="true">
+            <ng-template kendoTabContent>       
+                <div class="message">{{message}}</div>
+                <img *ngIf="data?.base64Image" [src]="data.base64Image" />
+            </ng-template>
+        </kendo-tabstrip-tab>
+        
+        <kendo-tabstrip-tab *ngIf="data?.floorPlanCode" [title]="'Location' | label : uiSrv.langPack">
+            <ng-template kendoTabContent>
+                <div [class]="uiSrv.isTablet? 'viewport-container-tablet' : 'viewport-container'">
+                    <uc-drawing-board #pixi [hideButton]="{all:true}"  [hideHeader] = "true"  [readonly] = "true" [loadMapContainers] = "true">
+                    </uc-drawing-board>
+                </div>
+            </ng-template>
+        </kendo-tabstrip-tab>
+    </kendo-tabstrip>
 </div>
