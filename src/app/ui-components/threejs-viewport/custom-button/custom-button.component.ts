@@ -14,6 +14,7 @@ export class CustomButtonComponent implements OnInit {
   data 
   content
   toolTipMsg 
+  toolTipMsgBinding = null
   clicked = new EventEmitter()
   //customTemplate TBD
   constructor(public mqSrv : MqService , public uiSrv: UiService , public dataSrv : DataService , public util : GeneralUtil , public elRef : ElementRef) { 

@@ -42,6 +42,12 @@ export class MapService {
   defaultBuilding
   outSyncFloorPlans = []
   floorPlanStore : {[key : string] : FloorPlanState} = {}
+  alertImageCache : {
+    robotId : string ,
+    timestamp : string ,
+    base64Image : string,
+    detectionType : string
+  }
   floorPlanStateChanged : EventEmitter<FloorPlanState> = new EventEmitter<FloorPlanState>()
 
   async init(){
@@ -66,7 +72,7 @@ export class MapService {
 
   public async floorPlanState(fpCode: string) : Promise<FloorPlanState>{
     if (!this.floorPlanStore[fpCode]) {
-      await this.getFloorPlan(fpCode)
+      await this.getFloorPlan(fpCode , false)
     }
     return this.floorPlanStore[fpCode]
   }
@@ -192,11 +198,6 @@ export class FloorPlanState {
     noted : boolean
   }[] = []
 
-  alertImageCache : {
-    robotId : string ,
-    id : string ,
-    base64Image : string
-  }
 
   constructor(_mapSrv : MapService , floorPlanCode = null){
     this.mapSrv = _mapSrv
@@ -238,10 +239,11 @@ export class FloorPlanState {
       noted : false
     }
     this.alerts.push(newAlert);
-    this.alertImageCache = {
+    this.mapSrv.alertImageCache = {
       robotId : d.robotId,
-      id : d.timestamp.toString(),
-      base64Image : d.base64Image
+      timestamp : d.timestamp.toString(),
+      base64Image : d.base64Image,
+      detectionType : d.detectionType
     }
     this.mapSrv.floorPlanStateChanged.emit(this)
     this.updateAlertsInLocalStorage()

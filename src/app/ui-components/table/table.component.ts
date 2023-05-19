@@ -116,6 +116,11 @@ export class TableComponent implements OnInit {
     }
     if(Object.keys(evt).includes('columnDefs')){
       this.getAccessObj()
+      this.columnDefs.filter(c=>c['dropdownType']!=null).forEach(async(c)=>{
+        let dropdownOptions = (await this.dataSrv.getDropList(c['dropdownType']))?.options
+        c['dropdownOptions'] = dropdownOptions
+      })
+
       if(this.functionId){
         this.columnDefs.filter(c=> c.id == 'edit' && !this.accessObj.edit).forEach((c)=>{
           c.icon = 'k-icon mdi mdi-text-box-search-outline'

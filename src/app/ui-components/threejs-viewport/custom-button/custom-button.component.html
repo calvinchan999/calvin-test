@@ -1,3 +1,7 @@
-<a [class] = "cssClass" [matTooltip] = "toolTipMsg ? (toolTipMsg | label : uiSrv.langPack ) : undefined "  (clicked) = "clicked.emit(data)">
+<a [class] = "cssClass" 
+   [matTooltip] = "toolTipMsgBinding? toolTipMsgBinding() : (toolTipMsg ? (toolTipMsg | label : uiSrv.langPack ) : undefined )"  
+   (click) = "clicked.emit(data)"
+   matTooltipPosition = "above"
+   >
     <span *ngIf="content"></span>
 </a>

@@ -38,6 +38,10 @@
   <button *ngIf="uiToggles.transformControl !== undefined" kendoButton class="wall" [matTooltip]="'Show Transform Controller' | label : uiSrv.langPack" (click)="uiToggles.transformControl = !uiToggles.transformControl ; uiToggled('transformControl')" [ngClass]="{'btn-active':uiToggles.transformControl}" >
     <span class="mdi mdi-resize"></span>
   </button>
+  <button  *ngIf="uiToggles.alert !== undefined" kendoButton class="show-alert" [matTooltip]="(uiToggles.alert ? 'Hide Event Alerts' : 'Show Event Alerts') | label : uiSrv.langPack"  
+            (click)="uiToggles.alert = !uiToggles.alert ; uiToggled('alert')" [ngClass]="{'btn-active': uiToggles.alert}">
+    <span [class]="'mdi mdi-alert'"></span>
+  </button>
 </div>
 <div #canvas class="canvas-container"></div>
 

@@ -5,7 +5,7 @@ import { MqService } from 'src/app/services/mq.service';
 import { Map2DViewportComponent, Robot } from 'src/app/ui-components/map-2d-viewport/map-2d-viewport.component';
 import { GeneralUtil } from 'src/app/utils/general/general.util';
 import { DataService } from 'src/app/services/data.service';
-import {DropListBuilding, DropListFloorplan, DropListType, FloorPlanDataset, JFloorPlan, JSite, RobotStatusARCS as RobotStatus, RobotStatusARCS, RobotTaskInfoARCS, ShapeJData, TaskStateOptions} from 'src/app/services/data.models';
+import {DropListBuilding, DropListFloorplan, DropListType, FloorPlanAlertTypeDescMap, FloorPlanDataset, JFloorPlan, JSite, RobotStatusARCS as RobotStatus, RobotStatusARCS, RobotTaskInfoARCS, ShapeJData, TaskStateOptions} from 'src/app/services/data.models';
 import { Router } from '@angular/router';
 import { DialogRef } from '@progress/kendo-angular-dialog';
 import { CmTaskJobComponent } from 'src/app/common-components/cm-task/cm-task-job/cm-task-job.component';
@@ -25,6 +25,7 @@ import { PixiBuildingPolygon } from 'src/app/utils/ng-pixi/ng-pixi-viewport/ng-p
 import * as PIXI from 'pixi.js';
 import { RobotService } from 'src/app/services/robot.service';
 import { MapService } from 'src/app/services/map.service';
+import { ArcsEventDetectionDetailComponent } from './arcs-event-detection-detail/arcs-event-detection-detail.component';
 
 type robotTypeInfo = { //A group can be an individual robot (when filtered by robot type) OR robot type (no filter applied) 
   robotType: string
@@ -144,13 +145,27 @@ export class ArcsDashboardComponent implements OnInit {
           { title: "Robots", id: "robotCodes", width: 150 },
         ],
       },
+      robot_detection: {
+        apiUrl: "api/analytics/robotDetection/page/v1",
+        defaultState: {skip: 0 , take: 15 , sort:[{dir: 'desc' , field: 'detectionDateTime'}]},
+        buttons : {new: false, action: false },
+        columns: [
+          { title: "#", type: "button", id: "edit", width: 30, icon: 'k-icon mdi mdi-text-box-search-outline' , fixed: true },          
+          { title: "Date", id: "detectionDateTime", width: 100 ,  type: "date"  },
+          { title: "Floor Plan", id: "floorPlanCode", width: 100 , dropdownType : 'floorplans'},
+          { title : "Event" , id : "detectionType" , width : 250 , dropdownOptions : Object.keys(FloorPlanAlertTypeDescMap).map(k=> { return {text : FloorPlanAlertTypeDescMap[k] , value : k}})},
+          { title: "Robot Code", id: "robotCode", width: 100 },
+        ],
+      },
     }
   }
   
 
   getTabs(){
     const extraTabsByRobotType = {
-      PATROL: [{ id: 'patrol_playback', label: 'Playback', functionId : 'PATROL_PLAYBACK' }]
+      PATROL: [
+        { id: 'patrol_playback', label: 'Playback', functionId : 'PATROL_PLAYBACK' } 
+      ]
     }
     return (this.robotTypeFilter ? [
       { id: 'dashboard', label: 'Dashboard' , authorized : false},
@@ -163,7 +178,8 @@ export class ArcsDashboardComponent implements OnInit {
     [
       { id: 'dashboard', label: 'Dashboard', authorized: false } , 
       { id: 'usability', label: 'Usability', authorized: false },
-      { id: 'utilization', label: 'Utilization', authorized: false },
+      { id: 'utilization', label: 'Utilization', authorized: false },      
+      { id: 'robot_detection' , label : 'Alerts' , authorized : false },
       // { id: 'analysis', label: 'Analysis', authorized: false },
       { id: 'group', label: 'Group' , functionId :  this.gridSettings.group.functionId},
     ]).
@@ -587,33 +603,34 @@ export class ArcsDashboardComponent implements OnInit {
     }
   }
 
-  showGroupDialog(evt = null){
-    let dialog : DialogRef = this.uiSrv.openKendoDialog({content: ArcsRobotGroupComponent, preventAction:()=>true});
-    const content = dialog.content.instance;
-    content.dialogRef = dialog;
-    content.parent = this;
-    content.parentRow = evt?.row;
-    dialog.result.subscribe(()=>{
-      this.tableRef.retrieveData()
-    })
+  showDialog(event){
+    if ( this.selectedTab == 'task' &&  event?.column == 'cancel') {
+      this.cancelTask(event)
+    }else{
+      const compMap =  {
+        schedule : ArcsTaskScheduleComponent,
+        task : CmTaskJobComponent,
+        template : CmTaskJobComponent,
+        group : ArcsRobotGroupComponent,
+        robot_detection : ArcsEventDetectionDetailComponent
+      }
+      let dialog : DialogRef = this.uiSrv.openKendoDialog({content: compMap[this.selectedTab] , preventAction:()=>true});
+      const content = dialog.content.instance;
+      content.dialogRef = dialog
+      if(this.selectedTab == 'template' || this.selectedTab == 'task'){
+        content.isTemplate = this.selectedTab == 'template' 
+        content.isExecuteTemplate = event?.column == 'execute'
+        content.readonly = this.selectedTab == 'task' && content.id != null;
+        content.defaultRobotType = this.robotTypeFilter?.toUpperCase()
+      }
+      content.parent = this
+      content.parentRow = event?.row
+      dialog.result.subscribe(()=>{
+        this.tableRef.retrieveData()
+      })
+    }
   }
 
-  showTaskDetail(evt = null){
-    let dialog : DialogRef = this.uiSrv.openKendoDialog({content: this.selectedTab == 'schedule'? ArcsTaskScheduleComponent : CmTaskJobComponent , preventAction:()=>true});
-    const content = dialog.content.instance;
-    content.dialogRef = dialog
-    if(this.selectedTab != 'schedule'){
-      content.isTemplate = this.selectedTab == 'template' 
-      content.isExecuteTemplate = evt?.column == 'execute'
-      content.readonly = this.selectedTab == 'task' && content.id != null;
-      content.defaultRobotType = this.robotTypeFilter?.toUpperCase()
-    }
-    content.parent = this
-    content.parentRow = evt?.row
-    dialog.result.subscribe(()=>{
-      this.tableRef.retrieveData()
-    })
-  }
 
   async cancelTask(evt){
     let dialog : DialogRef = this.uiSrv.openKendoDialog({content: CmTaskCancelComponent , preventAction:()=>true});
@@ -625,12 +642,6 @@ export class ArcsDashboardComponent implements OnInit {
     dialog.result.subscribe(()=>{
       this.tableRef.retrieveData()
     })
-    // if(await this.uiSrv.showConfirmDialog(this.uiSrv.translate("Are you sure to cancel task") + ` ${evt?.['row']?.['name']} [${taskId}] ?` )){
-    //   let ticket = this.uiSrv.loadAsyncBegin()
-    //   await this.httpSrv.rvRequest('DELETE' , 'task/v1/task/' + taskId , undefined, true , this.uiSrv.translate("Cancel Task") + ` [${taskId}]`)
-    //   this.tableRef?.retrieveData()
-    //   this.uiSrv.loadAsyncDone(ticket)
-    // }
   }
 
   async delete(){

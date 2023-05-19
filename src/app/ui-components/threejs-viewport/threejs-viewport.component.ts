@@ -30,11 +30,14 @@ import { ArcsLiftIotComponent } from 'src/app/arcs/arcs-iot/arcs-lift-iot/arcs-l
 import { ArcsTurnstileIotComponent } from 'src/app/arcs/arcs-iot/arcs-turnstile-iot/arcs-turnstile-iot.component';
 import {GetImageDimensions} from 'src/app/utils/graphics/image'
 import { TransformControls } from 'three/examples/jsm/controls/TransformControls.js';
-import { DropListRobot, JFloorPlan, JMap, JPoint } from 'src/app/services/data.models';
+import { DropListRobot, FloorPlanAlertTypeDescMap, JFloorPlan, JMap, JPoint } from 'src/app/services/data.models';
 import { MqService , MQType} from 'src/app/services/mq.service';
 import { RobotService } from 'src/app/services/robot.service';
-import { MapService } from 'src/app/services/map.service';
+import { FloorPlanState, MapService } from 'src/app/services/map.service';
 import { CustomButtonComponent } from './custom-button/custom-button.component';
+import { State } from '@progress/kendo-data-query';
+import { DialogRef } from '@progress/kendo-angular-dialog';
+import { ArcsEventDetectionDetailComponent } from 'src/app/arcs/arcs-dashboard/arcs-event-detection-detail/arcs-event-detection-detail.component';
 
 const NORMAL_ANGLE_ADJUSTMENT =  - 90 / radRatio
 const ASSETS_ROOT = 'assets/3D'
@@ -99,13 +102,15 @@ export class ThreejsViewportComponent implements OnInit , OnDestroy{
     to2D?: boolean,
     fullScreen?: boolean ,
     transformControl ? : boolean
+    alert? : boolean
   } = {
       showWall: true,
       showWaypoint: true,
       showWaypointName: true,
       showIot: false,
       to2D: false,
-      fullScreen: false
+      fullScreen: false,
+      alert : true
     }
 
   @Input() locationTree : {
@@ -142,8 +147,8 @@ export class ThreejsViewportComponent implements OnInit , OnDestroy{
   }
 
 
-  get waypointMeshes() : MarkerObject3D[]{
-    return this.floorplan?  <any>this.floorplan?.children.filter(c=>c instanceof MarkerObject3D) :[]
+  get waypointMeshes() : WaypointMarkerObject3D[]{
+    return this.floorplan?  <any>this.floorplan?.children.filter(c=>c instanceof WaypointMarkerObject3D) :[]
   }
   get mapMeshes() : MapMesh[]{
     return this.scene ? <any>this.scene.children.filter(c=> c instanceof MapMesh) : []
@@ -165,6 +170,10 @@ export class ThreejsViewportComponent implements OnInit , OnDestroy{
 
   get turnstiles() : TurnstileObject3D[] {
     return this.floorplan? <any>this.floorplan?.children.filter(b=>b instanceof TurnstileObject3D) : []
+  }
+
+  get eventMarkers() : EventMarkerObject3D[]{
+    return Array.prototype.concat.apply([], this.mapMeshes?.map(m => m.children.filter(e => e instanceof EventMarkerObject3D)))
   }
 
   get width() {
@@ -264,6 +273,16 @@ export class ThreejsViewportComponent implements OnInit , OnDestroy{
         this.scene.remove(this.transformCtrl)
  
       }
+    }else if(key == 'alert'){
+      console.log( this.eventMarkers)
+      this.eventMarkers.forEach(m=>{
+        if(this.uiToggles.alert){
+          m.showToolTip()
+        }else{
+          console.log('hide')
+          m.hideToolTip()
+        }
+      })
     }
   }
 
@@ -281,15 +300,15 @@ export class ThreejsViewportComponent implements OnInit , OnDestroy{
     let firstObj : Object3DCommon = mouseIntersects.map(i=>this.getParentObj(i.object)).filter(o=>o && o.visible)[0]
     if (firstObj) {
       firstObj.setMousOverEffect()
-      if (IoTClassList.some(c=>firstObj instanceof c) || firstObj instanceof MarkerObject3D) {
+      if (IoTClassList.some(c=>firstObj instanceof c) || firstObj instanceof WaypointMarkerObject3D) {
         firstObj.addMouseListener()
-        let toolTipContent = IoTClassList.some(c=>firstObj instanceof c) ? firstObj.toolTipSettings.customEl : (firstObj instanceof MarkerObject3D ? firstObj.pointCode : null)
+        let toolTipContent = IoTClassList.some(c=>firstObj instanceof c) ? firstObj.toolTipSettings.customEl : (firstObj instanceof WaypointMarkerObject3D ? firstObj.pointCode : null)
         if (!(firstObj instanceof Object3DCommon && firstObj.toolTipAlwaysOn)) {
           firstObj.showToolTip(toolTipContent, firstObj.getToolTipPos(true))
         }
       }
     }
-    this.focusedObj = firstObj && (IoTClassList.some(c=>firstObj instanceof c) || firstObj instanceof MarkerObject3D) ? firstObj : null
+    this.focusedObj = firstObj && (IoTClassList.some(c=>firstObj instanceof c) || firstObj instanceof WaypointMarkerObject3D) ? firstObj : null
     let blocks = firstObj ? this.getIntersectedObjs(this.focusedRaycaster , firstObj ).filter(o=> o instanceof Extruded2DMesh) : []
     this.blockMeshes.forEach((b: Extruded2DMesh) => {
       b.blockedFocusedObject = blocks.includes(b)
@@ -298,7 +317,7 @@ export class ThreejsViewportComponent implements OnInit , OnDestroy{
     this.scene.traverse((object: any) => {
       if (object instanceof Object3DCommon && object!=firstObj) {
         object.removeMouseOverEffect()
-        if(IoTClassList.some(c=>object instanceof c)  || object instanceof MarkerObject3D){
+        if(IoTClassList.some(c=>object instanceof c)  || object instanceof WaypointMarkerObject3D){
           object.removeMouseListener()
           if(!(object instanceof Object3DCommon && object.toolTipAlwaysOn)){
             object.hideToolTip()
@@ -378,9 +397,9 @@ export class ThreejsViewportComponent implements OnInit , OnDestroy{
 
   ngOnDestroy(){
     this.$onDestroy.next()
-    this.unsubscribeIot()
+    // this.unsubscribeIot()
     this.$mapCodeChanged.next()
-    this.unsubscribeRobotPoses()
+    // this.unsubscribeRobotPoses()
     this.resetScene()
     this.cleanUp()
     this.labelRenderer = null
@@ -407,12 +426,17 @@ export class ThreejsViewportComponent implements OnInit , OnDestroy{
       }
     })
     this.orbitCtrl?.reset()
+    this.scene.traverse(obj =>{
+      if(obj instanceof CSS2DObject){
+        obj.parent?.remove(obj)
+      }
+    })
     // this.transformCtrl?.parent?.remove( this.transformCtrl)
     // this.transformCtrl = null
     this.scene.remove(this.floorplan)
     this.mapMeshes.forEach(m=>this.scene.remove(m))
     this.waypointMeshes.forEach(w=>w.hideToolTip())
-    this.unsubscribeRobotPoses()
+    this.$mapCodeChanged.next()
   }
 
   async loadFloorPlan(floorplan: JFloorPlan, subscribePoses = true , glb : Blob = null) {
@@ -420,10 +444,13 @@ export class ThreejsViewportComponent implements OnInit , OnDestroy{
     let tmpDims = await GetImageDimensions(floorplan.base64Image)
     let dimension = {width : tmpDims[0] , height : tmpDims[1]}
     this.initFloorPlan(floorplan , dimension.width , dimension.height);
-    this.camera.position.set(0, this.floorplan.height  , this.floorplan.height * 0.7 )
-    this.camera.lookAt(1, -0.9 , -0.5)
+    this.orbitCtrl.enabled = false;
+    this.camera.position.set(0, this.floorplan.height, this.floorplan.height * 0.8)
+    this.camera.lookAt(1, -0.9 , -0.5 )
     this.orbitCtrl.update()
-    this.camera.position.z += this.floorplan.height * 0.1
+    this.camera.position.set(this.camera.position.x, this.camera.position.y  , this.camera.position.z + this.floorplan.height * 0.15)
+    this.orbitCtrl.update()
+    this.orbitCtrl.enabled = true;
     this.pointLight.position.set(dimension.width / 2 ,  dimension.height  ,  dimension.height / 2)
 
     if (glb) {
@@ -439,26 +466,14 @@ export class ThreejsViewportComponent implements OnInit , OnDestroy{
 
     if(subscribePoses && this.mapCode){
       this.subscribeRobotPoses()
+      await this.subscribeFloorPlanState()
+      this.updateFloorPlanEventMarkers()
     }
     this.parent?.refreshRobotStatus();
-    //this.testOutline()
     
     // TBR
-    ['waypoint', 'waypointName', 'wall'].forEach(k => this.uiToggled(k))
-    // this.orbitCtrl.target.set(1, -0.9 , -0.5)
-    // var lookAtVector = new THREE.Vector3(0, 0, -1);
-    // lookAtVector.applyQuaternion(this.camera.quaternion);
-    // this.orbitCtrl.target.set(1, -0.9 , -0.5)
-    //this.orbitCtrl.update()
-
-    // TBR : HOW TO UPDATE CONTROL WITHOUT CHANGING BACK ITS POSITION Z AGAIN??
-
-    //v TESTING v
-    await this.load3DFloorPlanFromAzureStorage(floorplan.floorPlanCode)
-    let testAlert = new AlertObject3D(this)
-    this.floorplan.add(testAlert)
-    //^ TESTING ^
-    
+    ['waypoint', 'waypointName', 'wall' , 'alert'].forEach(k => this.uiToggled(k))
+    await this.load3DFloorPlanFromAzureStorage(floorplan.floorPlanCode)    
   }
 
   onObjProgress = ( xhr )=>{
@@ -537,8 +552,8 @@ export class ThreejsViewportComponent implements OnInit , OnDestroy{
   }
 
   async subscribeElevators(){
-    await this.mqSrv.subscribeMQTT('arcsLift')
-    this.subcribedIotSignalRTypes.push('arcsLift')
+    await this.mqSrv.subscribeMQTTUntil('arcsLift' , undefined, this.$mapCodeChanged)
+    // this.subcribedIotSignalRTypes.push('arcsLift')
     this.mqSrv.data.arcsLift.pipe( filter(v=> v!=null),takeUntil(this.$onDestroy)).subscribe((v)=>{
       Object.keys(v).forEach(k=>{
         const liftObj = this.elevators.filter(e=>e.liftId == k)[0]
@@ -574,8 +589,8 @@ export class ThreejsViewportComponent implements OnInit , OnDestroy{
   }
 
   async subscribeTurnstile(){
-    await this.mqSrv.subscribeMQTT('arcsTurnstile')
-    this.subcribedIotSignalRTypes.push('arcsTurnstile')
+    await this.mqSrv.subscribeMQTTUntil('arcsTurnstile', undefined, this.$mapCodeChanged)
+    // this.subcribedIotSignalRTypes.push('arcsTurnstile')
   }
 
 
@@ -640,7 +655,7 @@ export class ThreejsViewportComponent implements OnInit , OnDestroy{
 
   initWaypoints(waypoints : JPoint[]){
     waypoints.forEach(p=>{
-      var marker = new MarkerObject3D(this , p.pointCode , p.pointType);
+      var marker = new WaypointMarkerObject3D(this , p.pointCode , p.pointType);
       marker.position.set( p.guiX -this.floorplan.width/2 , this.floorplan?.height/2 - p.guiY , 5)
       this.floorplan.add(marker)
     })
@@ -675,7 +690,7 @@ export class ThreejsViewportComponent implements OnInit , OnDestroy{
 
   public subscribeRobotPoses(mapCode = this.mapCode){ //Assume 1 Map per robot per floor plan
     //TBR : dont add robot if it is inside lift
-    this.mqSrv.subscribeMQTT('arcsPoses' , mapCode)
+    this.mqSrv.subscribeMQTTUntil('arcsPoses' , mapCode , this.$mapCodeChanged)
     this.mqSrv.data.arcsPoses.pipe(filter(v => v) , takeUntil(this.$mapCodeChanged)).subscribe(async (poseObj) => { //{mapCode : robotId : pose}
       Object.keys(poseObj[mapCode]).forEach((robotCode)=>{
         if(this.elevators.filter(e=>e.robotCode == robotCode).length > 0){ //wont display robot on map if it is shown in a lift
@@ -683,12 +698,6 @@ export class ThreejsViewportComponent implements OnInit , OnDestroy{
         }
         let isNewRobot = !this.getRobot(robotCode) 
         let robotData : DropListRobot = this.robotLists.filter(r=>r.robotCode == robotCode)[0]
-
-        // if(robotData.robotCode == 'RV-ROBOT-103'){
-        //   robotData.robotType = 'PATROL'
-        // } else if(robotData.robotCode == 'DUMMY-TEST-1'){
-        //   return
-        // }
 
         if(!robotData){
           console.log(`ERROR : Robot not found : ${robotCode}`)
@@ -722,22 +731,81 @@ export class ThreejsViewportComponent implements OnInit , OnDestroy{
         }
      })
     })
-    this.subscribedPoseMapCode = mapCode
+    // this.subscribedPoseMapCode = mapCode
   }
   
-  unsubscribeRobotPoses() {
-    if (this.subscribedPoseMapCode) {
-      this.$mapCodeChanged.next()
-      this.mqSrv.unsubscribeMQTT('arcsPoses', false, this.subscribedPoseMapCode)
-      this.subscribedPoseMapCode = null
+  // unsubscribeRobotPoses() {
+  //   if (this.subscribedPoseMapCode) {
+  //     this.$mapCodeChanged.next()
+  //     this.mqSrv.unsubscribeMQTT('arcsPoses', false, this.subscribedPoseMapCode)
+  //     this.subscribedPoseMapCode = null
+  //   }
+  // }
+
+  async subscribeFloorPlanState() {
+    await this.mqSrv.subscribeMQTTUntil('arcsAiDetectionAlert', undefined, this.$mapCodeChanged)
+    this.mapSrv.floorPlanStateChanged.pipe(filter(state => state.floorPlanCode == this.floorPlanDataset?.floorPlanCode), takeUntil(this.$mapCodeChanged)).subscribe((state) => {
+        this.updateFloorPlanEventMarkers()
+    })
+  }
+
+  async updateFloorPlanEventMarkers() {
+    const state = await this.mapSrv.floorPlanState(this.floorPlanDataset?.floorPlanCode)
+    if(!state){
+      return 
     }
+    state.alerts.filter(a=>a.noted == false && !this.eventMarkers.some(m=> m.robotId == a.robotId && m.eventId == a.timestamp)).forEach(a=>{
+      let robotData : DropListRobot = this.robotLists.filter(r=>r.robotCode == a.robotId)[0]
+      const mapMesh = this.mapMeshes.filter(m => m.mapCode == a.mapCode && m.robotBase == robotData.robotBase)[0]
+      if(mapMesh){
+        const newMarker = new EventMarkerObject3D(this , a.robotId , a.timestamp)
+        const instance : CustomButtonComponent = newMarker.toolTipCompRef.instance
+        instance.cssClass = 'mdi mdi-alert alert-3d'
+        instance.toolTipMsgBinding = ()=> {
+          let datetime = new Date(a.timestamp )
+          let timeStr = `${datetime.getHours().toString().padStart(2, '0')}:${datetime.getMinutes().toString().padStart(2, '0')}` 
+          const dateStr = this.uiSrv.datePipe.transform(datetime , (datetime?.getFullYear() == new Date().getFullYear() ? 'd MMM' : 'd MMM yyyy'))
+          const dateTimeStr =`${ datetime.toDateString() != new Date().toDateString() ?  (dateStr + ' ') : '' }${timeStr}`
+          return `- ${ this.uiSrv.translate(FloorPlanAlertTypeDescMap[a.alertType])}\n [${dateTimeStr}] ${a.robotId}` 
+        }
+
+        if(!this.uiToggles.alert){
+          newMarker.hideToolTip()
+        }
+
+        instance.clicked.pipe(takeUntil(this.$mapCodeChanged)).subscribe(() => {
+          state.markAlertAsNoted(a.robotId, a.timestamp)
+          newMarker.hideToolTip()
+          newMarker.parent?.remove(newMarker)
+          this.ngZone.run(()=>{
+            let dialog : DialogRef = this.uiSrv.openKendoDialog({content: ArcsEventDetectionDetailComponent , preventAction:()=>true});
+            const content : ArcsEventDetectionDetailComponent = dialog.content.instance;
+            content.robotCode = newMarker.robotId
+            content.timestamp = newMarker.eventId
+            content.data = {floorPlanCode : state.floorPlanCode}
+          })
+        })
+        
+        const pos = this.getConvertedRobotVector(a.rosX , a.rosY , mapMesh)
+        newMarker.position.set(pos.x , pos.y , 10)
+        mapMesh.add(newMarker)
+      }
+    })
+    
+    state.alerts.filter(a=>a.noted == true).forEach((a)=>{
+      const markerObj = this.eventMarkers.filter(m=> m.robotId == a.robotId && m.eventId == a.timestamp)[0]
+      if(markerObj){
+        markerObj.hideToolTip()
+        markerObj.parent?.remove(markerObj)
+      }
+    })
   }
 
-  unsubscribeIot(){
-    this.mqSrv.unsubscribeMQTTs(this.subcribedIotSignalRTypes , true)
-  }
+  // unsubscribeIot(){
+  //   this.mqSrv.unsubscribeMQTTs(this.subcribedIotSignalRTypes , true)
+  // }
 
-   refreshRobotColors(){
+  refreshRobotColors(){
     Object.keys(this._robotColorMapping).forEach(robotCode=>{
       if(this._robotColorMapping[robotCode]){
         let robot : RobotObject3D = this.robotObjs.filter(r=>r.robotCode == robotCode)[0]
@@ -1225,7 +1293,7 @@ class Object3DCommon extends Object3D{
   }
 }
 
-class MarkerObject3D extends Object3DCommon {
+class WaypointMarkerObject3D extends Object3DCommon {
   // 95 37 159
   readonly color = 0x60259f
   readonly transparentOpacity = 0.3
@@ -1911,10 +1979,14 @@ class TurnstileObject3D extends Object3DCommon{
   }
 }
 
-class AlertObject3D extends Object3DCommon{
+class EventMarkerObject3D extends Object3DCommon{
   toolTipCompRef : ComponentRef<CustomButtonComponent>
-  constructor(public master : ThreejsViewportComponent ){    
+  robotId : string
+  eventId : any
+  constructor(public master : ThreejsViewportComponent , robotId : string , eventId : any){    
     super(master)
+    this.robotId = robotId
+    this.eventId = eventId
     this.initInfoToolTipEl()
   }
 
@@ -1922,11 +1994,8 @@ class AlertObject3D extends Object3DCommon{
     this.toolTipSettings.style = {}
     this.toolTipSettings.staticComp = true
     this.toolTipCompRef = this.master.vcRef.createComponent(this.master.compResolver.resolveComponentFactory(CustomButtonComponent))
-    this.toolTipCompRef.instance.cssClass = 'mdi mdi-alert alert-3d'
-    this.toolTipCompRef.instance.toolTipMsg = 'Test Alert'
     this.toolTipSettings.customEl = this.toolTipCompRef.instance.elRef.nativeElement 
     this.toolTipAlwaysOn = true
-    this.toolTipSettings.position = new Vector3(0 , 0 , 10)
   }
   
   

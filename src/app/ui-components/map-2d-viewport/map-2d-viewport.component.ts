@@ -44,6 +44,8 @@ import { GetResizedBase64, GetResizedCanvas, GetSpriteFromUrl } from 'src/app/ut
 import { MqService } from 'src/app/services/mq.service';
 import { RobotService, RobotState } from 'src/app/services/robot.service';
 import { FloorPlanState, MapService } from 'src/app/services/map.service';
+import { DialogRef } from '@progress/kendo-angular-dialog';
+import { ArcsEventDetectionDetailComponent } from 'src/app/arcs/arcs-dashboard/arcs-event-detection-detail/arcs-event-detection-detail.component';
 
 // adapted from
 // http://jsfiddle.net/eZQdE/43/
@@ -2547,15 +2549,26 @@ export class DataModule{
         const pos = this.master.viewport.mainContainer.toLocal(pixiMap.toGlobal(new PIXI.Point(pixiMap.calculateMapX(a.rosX) , pixiMap.calculateMapY(a.rosY)))) 
         const alertMarker = new PixiEventMarker(this.master.viewport , undefined , a.robotId ,  a.timestamp )
         alertMarker.toolTip.contentBinding = ()=> {
-          let datetime = new Date(a.timestamp * 1000)
+          let datetime = new Date(a.timestamp )
           let timeStr = `${datetime.getHours().toString().padStart(2, '0')}:${datetime.getMinutes().toString().padStart(2, '0')}` 
           const dateStr = this.master.uiSrv.datePipe.transform(datetime , (datetime?.getFullYear() == new Date().getFullYear() ? 'd MMM' : 'd MMM yyyy'))
           const dateTimeStr =`${ datetime.toDateString() != new Date().toDateString() ?  (dateStr + ' ') : '' }${timeStr}`
           return `- ${ this.master.uiSrv.translate(FloorPlanAlertTypeDescMap[a.alertType])}\n [${dateTimeStr}] ${a.robotId}` 
         }
         alertMarker.events.click.pipe(takeUntil(this.activeFloorPlanCodeChange)).subscribe((evt)=>{
-          floorPlanState.markAlertAsNoted(a.robotId , a.timestamp)
-          this.showAlertsOnFloorPlan()
+          this.master.ngZone.run(()=>{
+            floorPlanState.markAlertAsNoted(a.robotId , a.timestamp)
+            let dialog : DialogRef = this.master.uiSrv.openKendoDialog({content: ArcsEventDetectionDetailComponent , preventAction:()=>true});
+            const content : ArcsEventDetectionDetailComponent = dialog.content.instance;
+            content.robotCode = alertMarker.robotCode
+            content.timestamp = alertMarker.eventId
+            content.data = {floorPlanCode : floorPlanState.floorPlanCode}
+            setTimeout(()=>{
+              alertMarker.toolTip.hide()
+              alertMarker?.parent?.removeChild(alertMarker)
+            })
+            // content.dialogRef = dialog
+          })
         })
         alertMarker.toolTip.enabled = true
         alertMarker.zIndex = 5

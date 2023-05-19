@@ -187,6 +187,7 @@ export class UiService {
   openKendoDialog(arg){
     let dialog : DialogRef = this.dialogSrv.open(arg);
     let suspendedPixis = this.suspendBackgroundPixis()
+    dialog.content.instance['dialogRef'] = dialog
     dialog.result.subscribe(() => {
       suspendedPixis.forEach((orginalSuspended, component) => {
         if (component) {

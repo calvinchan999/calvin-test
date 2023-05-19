@@ -237,6 +237,7 @@ import { ArcsSetupFloorplan3dComponent } from './arcs/arcs-setup/arcs-setup-floo
 import { ArcsPatrolPlaybackComponent } from './arcs/arcs-dashboard/arcs-patrol-playback/arcs-patrol-playback.component';
 import { ArcsRobotIotComponent } from './arcs/arcs-iot/todo-arcs-robot-iot/arcs-robot-iot.component';
 import { CustomButtonComponent } from './ui-components/threejs-viewport/custom-button/custom-button.component';
+import { ArcsEventDetectionDetailComponent } from './arcs/arcs-dashboard/arcs-event-detection-detail/arcs-event-detection-detail.component';
 // import { WorkflowComponent } from './ui-components/workflow/workflow.component';
 // import { SequentialWorkflowDesignerModule } from 'sequential-workflow-designer-angular';
 
@@ -342,6 +343,7 @@ import { CustomButtonComponent } from './ui-components/threejs-viewport/custom-b
         ArcsPatrolPlaybackComponent,
         ArcsRobotIotComponent,
         CustomButtonComponent,
+        ArcsEventDetectionDetailComponent,
         // WorkflowComponent        
     ],
     imports: [

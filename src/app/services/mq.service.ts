@@ -14,7 +14,7 @@ import { DatePipe } from '@angular/common'
 import { ConfigService } from './config.service';
 import { HttpEventType, HttpHeaders } from '@angular/common/http';
 
-import { RobotStateTypes, DropListMap, JTask, RobotStatusARCS, RobotTaskInfoARCS, TaskItem } from './data.models';
+import { RobotStateTypes, DropListMap, JTask, RobotStatusARCS, RobotTaskInfoARCS, TaskItem, FloorPlanAlertTypeDescMap } from './data.models';
 import { DataService } from './data.service';
 import {RobotService, RobotState} from './robot.service'
 import {MapService} from './map.service'
@@ -418,8 +418,11 @@ export class MqService {
     arcsAiDetectionAlert : {
       topic : "rvautotech/fobo/armitage/vision/detection",
       mapping : {
-        execute: async(d : {pose  : {mapName : string} , detectionType : string})=>{
+        execute: async(d : {robotId : string , pose  : {mapName : string} , detectionType : string})=>{
           const floorPlanState = await this.mapSrv.getFloorPlanStateByMapCode(d.pose?.mapName)
+          const msg = this.uiSrv.translate(`${FloorPlanAlertTypeDescMap[d.detectionType]}`) + `${floorPlanState ? (this.uiSrv.translate(' at ') + floorPlanState?.data.name) : ''}`
+          this.onLoggedNotificationReceived( msg , d.robotId , "info")
+          //TBD Play sound 'DING'
           if(floorPlanState){
             floorPlanState.addAlert(<any>d)
             console.log(`ARMITAGE DETECTED : ${d.detectionType} - Floor Plan : ` + floorPlanState.floorPlanCode)

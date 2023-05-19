@@ -139,7 +139,6 @@ export class DataService {
     if (this.util.standaloneApp) {
       let profile : {robotId: string , robotType : string , robotSubtype:string, serviceList : { name : string , enabled : boolean}[]} = await this.httpSrv.fmsRequest('GET', 'baseControl/v1/profile' , undefined, false)
       this.robotMaster = { robotCode: profile.robotId, robotType: profile.robotType, robotSubType: profile.robotSubtype }
-
       profile.serviceList.forEach(s=> this.configSrv.disabledModule_SA[s.name] = !s.enabled) 
       // this.getRobotMaster(profile)
       // let lidarStatusResp = await this.httpSrv.fmsRequest('GET', this.mqMaster.lidarStatus.api, undefined, false)
@@ -161,6 +160,11 @@ export class DataService {
     // await this.subscribeMQTTs(<any>this.mqGeneralConfig.backgroundSubscribeTypes)
     this.uiSrv.loadAsyncDone(ticket)
    }
+
+  public async getDropListData(type: dropListType, filterBy: string = null) {
+    let data = (await this.getDropList(type)).data
+    return data.filter(d => filterBy == null || d[this.dropListApiMap[type].valFld ? this.dropListApiMap[type].valFld : 'id'] == filterBy)
+  }
 
 
   public getDropListOptions(type: dropListType, dropListData: any[], filterBy: object = null) {

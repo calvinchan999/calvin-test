@@ -1,0 +1,7 @@
+<div class="dialog-content robot-detection">
+    <kendo-dialog-titlebar (close)="dialogRef.close()">
+        <div>{{title  | label: uiSrv.langPack}}</div>
+    </kendo-dialog-titlebar>
+    <div>{{message}}</div>
+    <img *ngIf="data?.base64Image" [src]="data.base64Image" />
+</div>
