@@ -1,11 +1,12 @@
 import { Injectable, NgZone } from '@angular/core';
 import { DataStateChangeEvent } from '@progress/kendo-angular-grid';
 import { RvHttpService } from './rv-http.service';
+import { IndexedDBService } from './indexed-db.service';
 import { EnumNamePipe, UiService } from './ui.service';
 import { GeneralUtil, getLocalStorage, getSessionStorage, setLocalStorage, setSessionStorage } from 'src/app/utils/general/general.util';
 import { toDataSourceRequestString, toODataString } from '@progress/kendo-data-query';
 import { SignalRService } from './signal-r.service';
-import { BehaviorSubject , Observable, Subject , pipe, of} from 'rxjs';
+import { BehaviorSubject , Observable, Subject , pipe, of, fromEvent} from 'rxjs';
 import { filter, skip, takeUntil , map ,  take , catchError} from 'rxjs/operators';
 import { ticker } from 'pixi.js';
 import { Router } from '@angular/router';
@@ -13,7 +14,7 @@ import { AzurePubsubService } from './azure-pubsub.service';
 import { DatePipe } from '@angular/common'
 import { ConfigService } from './config.service';
 import { HttpEventType, HttpHeaders } from '@angular/common/http';
-import { RobotStateTypes, DropListBuilding, DropListFloorplan, DropListMap, DropListPointIcon, DropListRobot, JFloorPlan, JTask, RobotMaster, RobotStatusARCS, RobotTaskInfoARCS, SaveRecordResp, TaskItem, floorPlan3DSettings } from './data.models';
+import { RobotStateTypes, DropListBuilding, DropListFloorplan, DropListMap, DropListPointIcon, DropListRobot, JFloorPlan, JTask, RobotMaster, RobotStatusARCS, RobotTaskInfoARCS, SaveRecordResp, TaskItem, JFloorPlan3DSettings } from './data.models';
 
 export const ObjectTypes = ['ROBOT','FLOOR_PLAN' , 'FLOOR_PLAN_POINT' , 'MAP' , 'MAP_POINT' , 'TASK' , 'OPERATION' , 'MISSION']
 export type syncStatus = 'TRANSFERRED' | 'TRANSFERRING' | 'MALFUNCTION'
@@ -88,7 +89,7 @@ export class DataService {
     return this.util.arcsApp && !this.util.config.USE_SIGNALR
   }
 
-  constructor(public httpSrv : RvHttpService , private uiSrv : UiService, private util: GeneralUtil , private router : Router  , private datePipe : DatePipe , public configSrv : ConfigService , public ngZone : NgZone) {     
+  constructor(  public iDbSrv : IndexedDBService , public httpSrv : RvHttpService , private uiSrv : UiService, private util: GeneralUtil , private router : Router  , private datePipe : DatePipe , public configSrv : ConfigService , public ngZone : NgZone) {     
     this.uiSrv.dataSrv = this
     // this.loadDataFromLocalStorage()
     if(this.util.$initDone.value == true){
@@ -102,7 +103,6 @@ export class DataService {
     })
   }
 
-  
 
   setLocalStorage(key : localStorageKey , value : string){ //Manage All LocalStorage Keys here!!!
     setLocalStorage(key, value)
@@ -301,31 +301,11 @@ export class DataService {
     //                          resp == true ? undefined: 'warning', resp == true ? undefined: 'orange')
   }
 
-  public async deleteRecordsV2(endPoint, rows){    
+  public async deleteRecords(endPoint, rows){    
     let ticket = this.uiSrv.loadAsyncBegin()
     let resp 
     try{
       resp  = await this.httpSrv.delete(endPoint,rows)
-    }catch(err){
-      this.uiSrv.showWarningDialog(this.uiSrv.translate("Save Failed") + (err?.error?.message ? ' : ' + err?.error?.message : (this.uiSrv.translate(' (Activate debug console for further details)'))))
-      console.log('****** v DELETE RECORD ERROR LOG v *****')
-      console.log(err)
-      console.log('****** ^ DELETE RECORD ERROR LOG ^ *****')
-      this.uiSrv.loadAsyncDone(ticket)
-      return
-    }
-    this.uiSrv.loadAsyncDone(ticket)
-    let msg = resp?.msg
-    msg = msg ? msg : (this.uiSrv.translate(resp?.result == true ?"Record(s) deleted successfully" : "Fail to delete record(s)"))
-    this.uiSrv.showMsgDialog(msg)
-    return resp?.result
-  }
-
-  public async deleteRecords(endPoint, primaryKeys){    
-    let ticket = this.uiSrv.loadAsyncBegin()
-    let resp 
-    try{
-      resp  = await this.httpSrv.delete(endPoint,{ids: primaryKeys})
     }catch(err){
       this.uiSrv.showWarningDialog(this.uiSrv.translate("Save Failed") + (err?.error?.message ? ' : ' + err?.error?.message : (this.uiSrv.translate(' (Activate debug console for further details)'))))
       console.log('****** v DELETE RECORD ERROR LOG v *****')

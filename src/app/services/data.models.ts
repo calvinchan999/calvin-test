@@ -1,17 +1,6 @@
 import { BehaviorSubject } from "rxjs"
 
-export class floorPlan3DSettings {
-    floorPlanCode
-    fileName
-    scale
-    positionX
-    positionY
-    positionZ
-    rotationX
-    rotationY
-    rotationZ
-  }
-  
+
   export class robotPose{
     x
     y
@@ -321,7 +310,22 @@ export class floorPlan3DSettings {
     mapList?:JMap[]
     defaultPerBuilding? : boolean
     base64Image: string
-    modifiedDateTime?: Date
+    modifiedDateTime?: string
+  }
+
+  export class JFloorPlan3DSettings {
+    floorPlanCode : string
+    name? : string
+    fileName? : string
+    scale : number
+    positionX : number
+    positionY : number
+    positionZ : number
+    rotationX : number
+    rotationY : number
+    rotationZ : number
+    remark: string
+    modifiedDateTime?: string
   }
   
   export class JPoint {

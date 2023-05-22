@@ -4,8 +4,8 @@ import { HttpClient } from '@angular/common/http';
 import { Injectable, LOCALE_ID ,Inject} from '@angular/core';
 import {Pipe, PipeTransform} from "@angular/core";
 import { FormGroup } from '@angular/forms';
-import { BehaviorSubject, Subject } from 'rxjs';
-import { filter, take } from 'rxjs/operators';
+import { BehaviorSubject, Subject, fromEvent } from 'rxjs';
+import { filter, map, take } from 'rxjs/operators';
 import { localStorageKey, sessionStorageKey } from 'src/app/services/data.service';
 import { environment } from 'src/environments/environment';
 
@@ -352,3 +352,30 @@ export function getSessionStorage(key: sessionStorageKey) {
 	return sessionStorage.getItem(key)
 }
 
+
+export async function blobToBase64(blob: Blob) {
+	const reader = new FileReader();
+	reader.readAsDataURL(blob);
+	return fromEvent(reader, 'load').pipe(take(1), map(() => (reader.result as string).split(',')[1])).toPromise();
+}
+
+export async function base64ToBlob(b64Data : string, contentType = '', sliceSize = 512) {
+	const byteCharacters = atob(b64Data);
+	const byteArrays = [];
+
+	for (let offset = 0; offset < byteCharacters.length; offset += sliceSize) {
+		const slice = byteCharacters.slice(offset, offset + sliceSize);
+
+		const byteNumbers = new Array(slice.length);
+		for (let i = 0; i < slice.length; i++) {
+			byteNumbers[i] = slice.charCodeAt(i);
+		}
+
+		const byteArray = new Uint8Array(byteNumbers);
+		byteArrays.push(byteArray);
+	}
+
+	const blob = new Blob(byteArrays, { type: contentType });
+	return blob;
+
+}

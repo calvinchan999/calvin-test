@@ -136,7 +136,7 @@ export class CmUserComponent implements OnInit {
       usergroup: 'api/user/userGroup/v1' ,
     }
    
-    let resp = await this.dataSrv.deleteRecordsV2(urlMapping[this.selectedTab] ,   this.data.filter(r => r['select'] == true))
+    let resp = await this.dataSrv.deleteRecords(urlMapping[this.selectedTab] ,   this.data.filter(r => r['select'] == true))
     if (resp == true) {
       this.loadData()
     }

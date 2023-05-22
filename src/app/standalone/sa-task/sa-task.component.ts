@@ -140,7 +140,7 @@ export class SaTaskComponent implements OnInit {
     if(!await this.uiSrv.showConfirmDialog(this.uiSrv.translate('Are you sure to delete the selected items?'))){
       return
     }
-    let resp = await this.dataSrv.deleteRecordsV2('api/task/mission/v1',   this.data.filter(r => r['select'] == true))
+    let resp = await this.dataSrv.deleteRecords('api/task/mission/v1',   this.data.filter(r => r['select'] == true))
     if (resp == true) {
       this.loadData()
     }

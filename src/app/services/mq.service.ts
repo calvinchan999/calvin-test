@@ -420,7 +420,7 @@ export class MqService {
       mapping : {
         execute: async(d : {robotId : string , pose  : {mapName : string} , detectionType : string})=>{
           const floorPlanState = await this.mapSrv.getFloorPlanStateByMapCode(d.pose?.mapName)
-          const msg = this.uiSrv.translate(`${FloorPlanAlertTypeDescMap[d.detectionType]}`) + `${floorPlanState ? (this.uiSrv.translate(' at ') + floorPlanState?.data.name) : ''}`
+          const msg = this.uiSrv.translate(`${FloorPlanAlertTypeDescMap[d.detectionType]}`) + `${floorPlanState ? (this.uiSrv.translate(' at ') + floorPlanState?.dataWithoutImage.name) : ''}`
           this.onLoggedNotificationReceived( msg , d.robotId , "info")
           //TBD Play sound 'DING'
           if(floorPlanState){

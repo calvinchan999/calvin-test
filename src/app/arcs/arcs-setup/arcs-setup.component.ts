@@ -271,7 +271,7 @@ export class ArcsSetupComponent implements OnInit {
     }
 
    
-    let resp = await this.dataSrv.deleteRecordsV2(urlMapping[this.selectedTab] ,   this.tableElRef.selectedData)
+    let resp = await this.dataSrv.deleteRecords(urlMapping[this.selectedTab] ,   this.tableElRef.selectedData)
     if (resp == true) {
       this.loadData()
     }

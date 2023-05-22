@@ -274,7 +274,6 @@ export class ThreejsViewportComponent implements OnInit , OnDestroy{
  
       }
     }else if(key == 'alert'){
-      console.log( this.eventMarkers)
       this.eventMarkers.forEach(m=>{
         if(this.uiToggles.alert){
           m.showToolTip()
