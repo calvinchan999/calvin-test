@@ -290,7 +290,7 @@ export class MqService {
                             return ret
                           } , 
                           charging: (d) => { return d['powerSupplyStatus'] == 'CHARGING' || d['powerSupplyStatus'] == 'FULL' } ,
-                          status : (d) => {return d['powerSupplyStatus'] == 'CHARGING' ? 'Charging' : 
+                          status : this.util.arcsApp ? undefined : (d) => {return d['powerSupplyStatus'] == 'CHARGING' ? 'Charging' : 
                                                     (this.robotSrv.robotState(d.robotId).taskActive.value ? 'Working' : 
                                                       this.robotSrv.robotState(d.robotId).navigationDisabled.value? 'Moving' : 
                                                         (d['powerSupplyStatus'] == 'FULL' ? 'Fully Charged' : 'Idle'))
@@ -422,6 +422,7 @@ export class MqService {
           const floorPlanState = await this.mapSrv.getFloorPlanStateByMapCode(d.pose?.mapName)
           const msg = this.uiSrv.translate(`${FloorPlanAlertTypeDescMap[d.detectionType]}`) + `${floorPlanState ? (this.uiSrv.translate(' at ') + floorPlanState?.dataWithoutImage.name) : ''}`
           this.onLoggedNotificationReceived( msg , d.robotId , "info")
+          this.uiSrv.playAudio()
           //TBD Play sound 'DING'
           if(floorPlanState){
             floorPlanState.addAlert(<any>d)
@@ -623,7 +624,7 @@ export class MqService {
     if(robotStateMapping){
       let robotCode = data?.robotId == null ? data?.robotCode : data?.robotId
       Object.keys(robotStateMapping).forEach(k=>{
-        if (robotStateMapping[k] == null) {
+        if (robotStateMapping[k] === null) {
           this.robotSrv.robotState(robotCode)[k].next(data)
         } else if (this.util.isString(robotStateMapping[k])) {
           this.robotSrv.robotState(robotCode)[k].next(data?.[robotStateMapping[k]])

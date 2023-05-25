@@ -38,6 +38,7 @@ import { CustomButtonComponent } from './custom-button/custom-button.component';
 import { State } from '@progress/kendo-data-query';
 import { DialogRef } from '@progress/kendo-angular-dialog';
 import { ArcsEventDetectionDetailComponent } from 'src/app/arcs/arcs-dashboard/arcs-event-detection-detail/arcs-event-detection-detail.component';
+import { ArcsRobotIotComponent } from 'src/app/arcs/arcs-iot/arcs-robot-iot/arcs-robot-iot.component';
 
 const NORMAL_ANGLE_ADJUSTMENT =  - 90 / radRatio
 const ASSETS_ROOT = 'assets/3D'
@@ -1360,7 +1361,7 @@ class WaypointMarkerObject3D extends Object3DCommon {
 export class RobotObject3D extends Object3DCommon{
   robotSubType
   destroyed = false
-  dashboardDtlCompRef : ComponentRef<ArcsDashboardRobotDetailComponent>
+  robotIotCompRef : ComponentRef<ArcsRobotIotComponent>
   aabb = new THREE.Box3() //Axis Align Bounding Box
   loader : GLTFLoader
   alertIcon : Group
@@ -1631,9 +1632,11 @@ export class RobotObject3D extends Object3DCommon{
   }
 
   initInfoToolTipEl() { 
-    this.dashboardDtlCompRef = this.master.vcRef.createComponent(this.master.compResolver.resolveComponentFactory(ArcsDashboardRobotDetailComponent))
-    this.dashboardDtlCompRef.instance.robotId = this.robotCode
-    this.toolTipSettings.customEl = this.dashboardDtlCompRef.instance.elRef.nativeElement 
+    this.robotIotCompRef = this.master.vcRef.createComponent(this.master.compResolver.resolveComponentFactory(ArcsRobotIotComponent))
+    this.robotIotCompRef.instance.robotId = this.robotCode
+    this.robotIotCompRef.instance.robotType = this.robotType
+    this.robotIotCompRef.instance.robotSubType = this.robotSubType
+    this.toolTipSettings.customEl = this.robotIotCompRef.instance.elRef.nativeElement 
     this.toolTipSettings.customEl.hidden = true
   }
 
@@ -1785,7 +1788,7 @@ export class RobotObject3D extends Object3DCommon{
     this.master.composer?.removePass(this.outlinePass)
     this.hideToolTip()
     this.toolTip?.element?.remove()
-    this.dashboardDtlCompRef?.destroy()
+    this.robotIotCompRef?.destroy()
    }
 
 }

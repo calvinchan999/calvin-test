@@ -17,13 +17,26 @@ import { RobotService, RobotState } from 'src/app/services/robot.service';
 })
 export class ArcsRobotIotComponent implements OnInit , OnDestroy {
   @Input() robotId : string
-  robotSubj : RobotState
+  @Input() robotType : string
+  @Input() robotSubType : string
+  robotState : RobotState
+  ARCS_STATUS_MAP = ARCS_STATUS_MAP
+
   unsubscriber = new Subject()
   constructor( public robotSrv : RobotService, public uiSrv: UiService , public mqSrv : MqService , public dataSrv : DataService , public util : GeneralUtil , public elRef : ElementRef) { 
   }
 
   ngOnInit(): void {
-    this.robotSubj = this.robotSrv.robotState(this.robotId)
+    console.log(this.robotType)
+    console.log(this.robotSubType)
+    this.robotState = this.robotSrv.robotState(this.robotId)
+    this.mqSrv.subscribeMQTTsUntil(<any>['battery' , 'speed' , 'state' , 'arcsRobotDestination'] , this.robotId, this.unsubscriber )
+    if(this.robotType?.toUpperCase() == 'PATROL'){
+      this.mqSrv.subscribeMQTTUntil( 'ieq', this.robotId , this.unsubscriber )
+    }else if((this.robotSubType?.toUpperCase() == 'DELIVERY') || (this.robotSubType?.toUpperCase() == 'CABINET_DELIVERY' || this.robotSubType?.toUpperCase() == 'TRAY_DELIVERY') ){
+      this.mqSrv.subscribeMQTTUntil(<any>(this.robotSubType?.toUpperCase() == 'CABINET_DELIVERY' ? 'cabinet'  : 'trayRack' ), this.util.arcsApp ? this.robotId : undefined  , this.unsubscriber)
+    }
+    // subscribe top module
   }
 
   ngOnDestroy(){

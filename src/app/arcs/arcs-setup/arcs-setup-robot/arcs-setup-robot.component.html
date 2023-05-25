@@ -3,27 +3,45 @@
         <div>{{'Robot' | label: uiSrv.langPack}}</div>
     </kendo-dialog-titlebar>
 
-    <div class="form-container">
-        <form [formGroup]="frmGrp" class="content">
-            <div class="form-row">
-                <uc-txtbox lab="Robot Code" [disabled]="true" [frmGrp]="frmGrp" frmCtrl="robotCode"></uc-txtbox>
-                <uc-txtbox lab="Robot Base" [disabled]="true" [frmGrp]="frmGrp" frmCtrl="robotBase"></uc-txtbox>
-            </div>
-            <div class="form-row">
-                <uc-txtbox lab="Robot Name" [frmGrp]="frmGrp" frmCtrl="name"></uc-txtbox>
-            </div>
-            <div class="form-row">
-                <uc-dropdown lab="Type" [frmGrp]="frmGrp" frmCtrl="robotType" [options]="dropdownOptions.types" (valueChange) = "refreshSubTypeOptions()" [disabled]="true">
-                </uc-dropdown>
-                <uc-txtbox lab="Sub Type" [disabled]="true" [frmGrp]="frmGrp" frmCtrl="robotSubType"></uc-txtbox>
-                <!-- <uc-dropdown lab="Sub Type" [frmGrp]="frmGrp" frmCtrl="robotSubTypeId" [options]="dropdownOptions.subTypes" [disabled]="true">
-                </uc-dropdown> -->
-            </div>
-        </form>
-    </div>
-
-    <div class="button-container">
-        <button kendoButton (click)="onClose()"> {{'Cancel' | label : uiSrv.langPack}}</button>
-        <button kendoButton (click)="saveToDB()" >{{'Save' | label : uiSrv.langPack}}</button>
-    </div>
+    <ng-container *ngIf="!parentRow && dropdownOptions.robots.length == 0">
+        <div class="no-new-robot-msg">
+            {{'No new robot detected. Please make sure that your robot is turned on and discoverable by our system. ' | label: uiSrv.langPack}}
+        </div>
+            
+        <div class="button-container">        
+            <button kendoButton (click)="getNewRobotCodes()"> {{'Refresh' | label : uiSrv.langPack}}</button>
+        </div>
+    </ng-container>
+    <ng-container *ngIf=" parentRow || dropdownOptions.robots.length > 0">
+        <div class="form-container">
+            <form [formGroup]="frmGrp" class="content">
+                <div class="form-row">
+                    <uc-txtbox *ngIf="parentRow" lab="Robot Code" [disabled]="true" [frmGrp]="frmGrp" frmCtrl="robotCode"></uc-txtbox>
+                    <uc-dropdown  *ngIf="!parentRow" lab="Robot Code" [frmGrp]="frmGrp" frmCtrl="robotCode" [options]="dropdownOptions.robots" (valueChange) = "onNewRobotSelected()">
+                    </uc-dropdown>
+                    <uc-txtbox lab="Robot Base" [disabled]="true" [frmGrp]="frmGrp" frmCtrl="robotBase" [disabled] ="true"></uc-txtbox>
+                </div>
+                <div class="form-row">
+                    <uc-txtbox lab="Robot Name" [frmGrp]="frmGrp" frmCtrl="name"></uc-txtbox>
+                </div>
+                <div class="form-row">
+                    <uc-dropdown lab="Type" [frmGrp]="frmGrp" frmCtrl="robotType" [options]="dropdownOptions.types" (valueChange) = "refreshSubTypeOptions()" [disabled]="true">
+                    </uc-dropdown>
+                    <uc-txtbox lab="Sub Type" [disabled]="true" [frmGrp]="frmGrp" frmCtrl="robotSubType"></uc-txtbox>
+                    <!-- <uc-dropdown lab="Sub Type" [frmGrp]="frmGrp" frmCtrl="robotSubTypeId" [options]="dropdownOptions.subTypes" [disabled]="true">
+                    </uc-dropdown> -->
+                </div>
+                <div  class="form-row">
+                    <uc-txtbox lab="Battery Upper Limit"  [frmGrp]="frmGrp" frmCtrl="batteryLevelUpperLimit" [numeric]="true" [numDecimals] = 6 [numMin]="0" [numMax]="1"></uc-txtbox>
+                    <uc-txtbox lab="Battery Lower Limit"  [frmGrp]="frmGrp" frmCtrl="batteryLevelLowerLimit"  [numeric]="true" [numDecimals] = 6 [numMin]="0"  [numMax]="1"></uc-txtbox>
+                    <uc-txtbox lab="Battery Critical Limit"  [frmGrp]="frmGrp" frmCtrl="batteryLevelCriticalLimit"  [numeric]="true" [numDecimals] = 6 [numMin]="0"  [numMax]="1"></uc-txtbox>
+                </div>
+            </form>
+        </div>
+    
+        <div class="button-container">
+            <button kendoButton (click)="onClose()"> {{'Cancel' | label : uiSrv.langPack}}</button>
+            <button kendoButton (click)="saveToDB()" >{{'Save' | label : uiSrv.langPack}}</button>
+        </div>
+    </ng-container>
 </div>

@@ -59,7 +59,7 @@ export class ArcsDashboardRobotDetailComponent implements OnInit  {
 
   async ngOnInit() {
     this.initDataSource()
-    this.cameraStreamUrl = this.util.config.CAMERA_STREAM_URL
+    this.cameraStreamUrl = this.util.config.CAMERA_STREAM_URL + this.robotId + '.'
     this.cameraLayout = [
       [
         { id: '1', rowSpan: 2, colSpan: 2, col: 1, row: 1, streamingUrl: this.cameraStreamUrl + '1/ws?authorization=' + this.util.getUserAccessToken() },
@@ -77,13 +77,12 @@ export class ArcsDashboardRobotDetailComponent implements OnInit  {
     // this.robotType = 'PATROL'
     this.robotSubType = robot?.robotSubType
     this.tabs = this.tabs.concat(this.topModuleTabs[this.robotType] && !(this.robotType == 'DELIVERY' && this.robotSubType == 'NA') ? this.topModuleTabs[this.robotType ] : [])
-    this.mqSrv.subscribeMQTTs(this.topics, this.robotId)
+    this.mqSrv.subscribeMQTTsUntil(this.topics, this.robotId,this.$onDestroy)
     this.refreshRobotStatus(this.parent)
   }
 
   ngOnDestroy(){
     this.$onDestroy.next()
-    this.mqSrv.unsubscribeMQTTs(this.topics, true ,  this.robotId )
   }
 
   

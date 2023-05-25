@@ -1,5 +1,6 @@
 import { Component, OnInit } from '@angular/core';
 import { FormControl, FormGroup, Validators } from '@angular/forms';
+import { DropListRobot } from 'src/app/services/data.models';
 import { DataService } from 'src/app/services/data.service';
 import { RvHttpService } from 'src/app/services/rv-http.service';
 import { UiService } from 'src/app/services/ui.service';
@@ -17,25 +18,30 @@ export class ArcsSetupRobotComponent implements OnInit {
   constructor(public uiSrv : UiService , private dataSrv : DataService, public httpSrv : RvHttpService, public util : GeneralUtil){ }
   frmGrp = new FormGroup({
     robotId: new FormControl(null),
-    robotCode: new FormControl('', Validators.required),
+    robotCode: new FormControl(null, Validators.required),
     robotBase: new FormControl('', Validators.required),
     name: new FormControl(''),
     robotType: new FormControl(null, Validators.required),
     robotSubType: new FormControl(null),
     robotStatus: new FormControl(null),
+    batteryLevelUpperLimit: new FormControl(null),
+    batteryLevelLowerLimit: new FormControl(null),
+    batteryLevelCriticalLimit: new FormControl(null),
     modifiedDateTime: new FormControl(null),
   })
 
   dropdownData = {
     types:[],
     subTypes : [],
-    status : []
+    status : [], 
+    robots: []
   }
 
   dropdownOptions = {
     types:[],
     subTypes : [],
-    status : []
+    status : [] ,
+    robots: []
   }
   primaryKey = 'robotCode'
 
@@ -47,11 +53,23 @@ export class ArcsSetupRobotComponent implements OnInit {
     this.frmGrp.controls[this.primaryKey].setValue(v)
   }
 
+  async getNewRobotCodes(){
+    let ticket = this.uiSrv.loadAsyncBegin()
+    this.dropdownData.robots = await this.dataSrv.httpSrv.fmsRequest("GET" , "robot/v1/nonexist" , undefined , false)
+    this.dropdownOptions.robots = this.dropdownData.robots.map((r:DropListRobot)=> {return {value : r.robotCode , text : r.robotCode}})
+    this.uiSrv.loadAsyncDone(ticket)
+  }
 
+  async onNewRobotSelected(){
+    let robot : DropListRobot = this.dropdownData.robots.filter((r: DropListRobot)=> r.robotCode == this.frmGrp.controls['robotCode'].value)[0]
+    this.frmGrp.controls['robotBase'].setValue(robot?.robotBase === undefined ? null : robot?.robotBase )
+    this.frmGrp.controls['robotType'].setValue(robot?.robotType === undefined ? null : robot?.robotType )
+    this.frmGrp.controls['robotSubType'].setValue(robot?.robotSubType  === undefined ? null : robot?.robotSubType )
+  }
 
   async ngOnInit() {
+    await this.getNewRobotCodes()
     await this.initDropdown()
-
     if (this.parentRow) {
       this.loadData()
     }
@@ -83,7 +101,7 @@ export class ArcsSetupRobotComponent implements OnInit {
 
 
   async onClose() {
-    if (await this.uiSrv.showConfirmDialog('Do you want to quit without saving ?')) {
+    if ( (!this.parentRow && this.dropdownOptions.robots.length == 0) || await this.uiSrv.showConfirmDialog('Do you want to quit without saving ?')) {
       this.windowRef.close()
     }
   }

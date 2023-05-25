@@ -282,12 +282,12 @@ export class DataService {
     this.uiSrv.loadAsyncDone(ticket)
     if (resp?.result == true) {
       this.uiSrv.showNotificationBar("Save Successful" , 'success' , undefined , undefined, true)
-    } else{
-      if(resp?.validationResults ){
-        this.util.showErrors(resp.validationResults , errorMap, resp)
+    } else {
+      if (resp?.validationResults) {
+        this.util.showErrors(resp.validationResults, errorMap, resp)
       }
-      resp.msg = resp.msg                           ? resp.msg : this.uiSrv.translate('Save Failed')
-      if(resp.exceptionDetail){
+      resp.msg = resp.msg ? resp.msg : this.uiSrv.translate('Save Failed')
+      if (resp.exceptionDetail) {
         console.log(resp.exceptionDetail)
       }
       // this.uiSrv.showWarningDialog("Save Failed" + (resp?.msg ? (' : ' + resp.msg) : ''))

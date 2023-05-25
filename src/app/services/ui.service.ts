@@ -234,11 +234,6 @@ export class UiService {
     if( document.hidden && !popWhenResumeFromHidden){
       return
     }
-    // let audio = new Audio();
-    // audio.src = "../../assets/audio/notification.mp3";
-    // audio.load();
-    // audio.play();
-
 
     this.notificationService.show({
       cssClass: "notification" + (type == 'none' ? '' : (' ' + type)),
@@ -249,6 +244,13 @@ export class UiService {
       closable: closable,
       hideAfter: 2000,
     });
+  }
+
+  public playAudio( path : string = "../../assets/audio/notification.mp3"){
+    let audio = new Audio();
+    audio.src = path;
+    audio.load();
+    audio.play();
   }
 
   // public fullScreen() {

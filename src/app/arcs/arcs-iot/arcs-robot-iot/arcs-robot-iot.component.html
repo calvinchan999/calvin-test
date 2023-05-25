@@ -1,0 +1,55 @@
+<div class="iot" >
+    <span class="iot-id">
+       <i class="mdi mdi-robot"></i>
+       <span> {{robotId}} </span>
+    </span>
+    <div *ngIf="robotState" class="iot-content">
+        <div class="iot-row">
+            <span class="status"  *ngIf="robotState.status?.value"> 
+                <i [class]="'status mdi mdi-circle ' +  ( robotState.status?.value ? (ARCS_STATUS_MAP[robotState.status?.value ]| cssClassName) : '')  " ></i> 
+                <span>{{ARCS_STATUS_MAP[robotState.status.value] | label : uiSrv.langPack}}</span>
+            </span>
+    
+            <span class="battery" *ngIf="robotState.batteryRounded?.value">
+                <i [class]="'mdi mdi-battery' + ( robotState.batteryRounded?.value == 100 ? '' : ('-' + ( robotState.batteryRounded?.value < 10 ? '10' : ((robotState.batteryRounded?.value / 10) | roundDown) * 10))) "></i> 
+                <span>{{robotState.batteryRounded?.value}}%</span>
+            </span>
+        </div>
+
+        <div class="iot-row" [style.display] = "robotState.obstacleDetected?.value ||  robotState.tiltActive?.value || robotState.estop?.value ? 'none' : null">
+            <span *ngIf="robotType == 'PATROL'" [class] ="'aqlevel ' +  (  robotState.topModule?.patrol?.airQualityOverall?.value ? (robotState.topModule?.patrol?.airQualityOverall?.value | cssClassName) : '')">
+                <span>{{'IEQ' | label : uiSrv.langPack }} : </span> 
+                <span>{{ robotState.topModule?.patrol?.airQualityOverall?.value | label : uiSrv.langPack }} </span>
+            </span>
+        
+            <span *ngIf="robotType == 'DELIVERY' && robotState.topModule?.delivery?.totalContainersCount?.value">
+                <span>{{((robotSubType == 'TRAY_DELIVERY' ? 'Trays': 'Cabinet') + ' Avail.') | label : uiSrv.langPack }} : </span> 
+                <span>{{ robotState.topModule.delivery.availContainersCount.value | label : uiSrv.langPack }} / {{  robotState.topModule.delivery.totalContainersCount.value | label : uiSrv.langPack }}</span>
+            </span>
+        </div> 
+
+        <div *ngIf="robotState.status?.value != 'UNKNOWN' && robotState.destination?.value"  class="iot-row">         
+            <span class="loading-dots">
+                <i class="loading-dots--dot"></i>
+                <i class="loading-dots--dot"></i>
+                <i class="loading-dots--dot"></i>
+            </span>
+
+            <span class="destination">
+                <i class="mdi mdi-map-marker"></i>
+                <span>{{robotState.destination.value}}</span>
+            </span>
+        </div> 
+
+        <div class="iot-row" *ngIf="robotState.obstacleDetected?.value || robotState.tiltActive?.value || robotState.estop?.value">
+            <span class="warning">
+                <i class="mdi mdi-alert"></i>
+                <span>{{(robotState.estop?.value ? uiSrv.commonAlertMessages.estopped : (
+                            robotState.tiltActive?.value ?  uiSrv.commonAlertMessages.tiltDetected : uiSrv.commonAlertMessages.obstacleDetected
+                            )
+                         ) | label : uiSrv.langPack}}
+                </span>
+            </span>
+        </div>
+    </div>
+</div>
