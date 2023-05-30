@@ -32,6 +32,7 @@ export class ArcsTaskScheduleComponent implements OnInit {
     remark: new FormControl(""),
     guiGenerated : new FormControl(true),
     modifiedDateTime: new FormControl(null),
+    enabled: new FormControl(true),
   })
 
   dialogRef

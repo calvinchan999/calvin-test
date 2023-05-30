@@ -7,6 +7,10 @@
             <form [formGroup]="frmGrp" class="content">
                 <div class="form-row">
                     <uc-dropdown lab = "Template" [frmGrp] = "frmGrp" frmCtrl = "missionId"  [options] = "dropdownOptions.missions" [allowClear]="false" [showValue]="true"></uc-dropdown>
+                    <div class="form-group margin-20">                   
+                        <input type="checkbox" kendoCheckBox  formControlName="enabled" />                     
+                        <span >{{ 'Enabled' | label: uiSrv.langPack}}</span>
+                    </div> 
                     <uc-date-input lab = "Start Date" [frmGrp] = "frmGrp" frmCtrl = "startDateTime"></uc-date-input>
                     <uc-date-input lab = "End Date"  [frmGrp] = "frmGrp" frmCtrl = "endDateTime"></uc-date-input>
                 </div>

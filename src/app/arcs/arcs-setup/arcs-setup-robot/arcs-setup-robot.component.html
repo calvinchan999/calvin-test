@@ -1,6 +1,6 @@
 <div class="dialog-content robot">
     <kendo-dialog-titlebar (close)="onClose()">
-        <div>{{'Robot' | label: uiSrv.langPack}}</div>
+        <div>{{ !parentRow ? (('New' | label: uiSrv.langPack) + ' ') : ''}}{{'Robot' | label: uiSrv.langPack}}</div>
     </kendo-dialog-titlebar>
 
     <ng-container *ngIf="!parentRow && dropdownOptions.robots.length == 0">

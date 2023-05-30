@@ -344,6 +344,7 @@ import { BehaviorSubject } from "rxjs"
     groupMemberPointList? : JPoint []
     groupPointCode? : string
     groupProperties? : string
+    enabled ? : boolean
   }
   
   export class JChildPoint{

@@ -56,12 +56,14 @@ export class MapService {
       return
     }
     // await this.updateFloorPlanStoreWithIdb()
-    await this.getSite()
-    // this.updateFloorPlansAlert_ARCS()
-    if (!this.dataSrv.getSessionStorage("arcsDefaultBuilding")) {
-      await this.getDefaultBuilding()
-    }
-    this.defaultBuilding = this.dataSrv.getSessionStorage("arcsDefaultBuilding")
+    if(this.util.arcsApp){
+      await this.getSite()
+      // this.updateFloorPlansAlert_ARCS()
+      if (!this.dataSrv.getSessionStorage("arcsDefaultBuilding")) {
+        await this.getDefaultBuilding()
+      }
+      this.defaultBuilding = this.dataSrv.getSessionStorage("arcsDefaultBuilding")
+    }  
   }
 
   // async updateFloorPlanStoreWithIdb(){

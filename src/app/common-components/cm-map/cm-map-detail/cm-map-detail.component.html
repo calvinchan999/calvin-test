@@ -46,6 +46,12 @@
                         [suffixButton] = "{icon : 'k-icon mdi mdi-upload'}" 
                         (suffixButtonClick) = "pixiElRef? pixiElRef.uploader.nativeElement.click() : null">
             </uc-txtbox>
+            
+            <div *ngIf="!parentRow"  class="form-row col default-checkbox-create-floorplan ">
+                <input type="checkbox" kendoCheckBox [ngModelOptions]="{standalone: true}"   [(ngModel)] = "createFloorPlan" (ngModelChange) = "!createFloorPlan ? frmGrp.controls['floorPlanCode'].setValue(null) : null"/>                    
+                <span >{{ 'Create Floor Plan' | label: uiSrv.langPack}}</span>
+            </div>              
+            <uc-txtbox *ngIf="!parentRow && createFloorPlan" lab = "Floor Plan Code" [frmGrp] = "frmGrp" frmCtrl = "floorPlanCode" [upper] = "true" ></uc-txtbox>
         </form>    
 </ng-template>
 

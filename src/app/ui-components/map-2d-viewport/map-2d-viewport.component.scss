@@ -10,6 +10,14 @@
   flex-direction: column;
 }
 
+// :host .row{
+//   display: flex;
+// }
+
+:host .rows-container{
+  width: 100%;
+}
+
 :host .slider-wrapper .display-value {
   text-align: center;
   margin-top: -15px;
@@ -23,6 +31,10 @@
 :host .drawing-board{
   background: rgba($color: #000000, $alpha: 0.25);
   // backdrop-filter: blur(2px);
+}
+
+:host ::ng-deep .robot-base .k-multiselect-wrap.k-floatwrap {
+  min-height: 0px!important;
 }
 
 
@@ -47,4 +59,8 @@
 
 :host ::ng-deep .fullscreen.wrapper .buttons-container.t2{
   margin-top: 25px;
+}
+
+:host .margin-20{
+  margin : 20px
 }

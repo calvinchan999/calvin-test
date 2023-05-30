@@ -48,10 +48,10 @@
     "Retrict the resue of recent passwords (times)":"重用限制（回溯次數）",
     "Expire after (days)":"有效日數",
     "Notify user password expiring in (days)":"密碼逾期提醒-提前日數",
-    "Event Type":"事件類型",
+    "Event":"事件",
     "Date and Time":"時間",
     "Message":"訊息",
-    "Event Log":"系統日誌",
+    "Event Log":"事件日誌",
     "Download":"下載",
     "Export":"導出",
     "Export map as ZIP file": "導出地圖為ZIP檔案",
@@ -274,7 +274,7 @@
     "Code": "編號",
     "Map Name": "地圖名稱",
     "Map Image File Name": "地圖檔案名稱",
-    "Dashboard": "儀表板",
+    "Dashboard": "實時總覽",
     "Task": "工作",
     "Task Template":"工作範本",
     "Control": "控制",
@@ -438,5 +438,8 @@
     "Map changed successfully": "地圖更改成功",
     "Select Starting Position": "選擇初始位置",
     "Are you sure to delete the selected item ?": "您確定要刪除所選項目嗎？",
-    "No Executing Task":"沒有執行中的任務"
+    "No Executing Task":"沒有執行中的任務",
+    "Enabled" : "啟用",
+    "Playback" : "重播錄像",
+    "System Log":"系統日誌"
 }

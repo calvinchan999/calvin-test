@@ -503,6 +503,14 @@ export class PixiWayPoint extends PixiMapGraphics implements IDraw, IReColor {
   pixiText = new PIXI.Text("")
   rosX
   rosY
+  get enabled(){
+    return this._enabled
+  }
+  set enabled(v){
+    this._enabled = v
+    this.alpha = this._enabled ? 1 : 0.4
+  }
+  _enabled = true
   iconDimension
   txtBg = new PIXI.Graphics()
 

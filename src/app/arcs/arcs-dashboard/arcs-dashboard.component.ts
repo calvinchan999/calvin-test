@@ -131,6 +131,7 @@ export class ArcsDashboardComponent implements OnInit {
           { title: "Start Date", id: "startDateTime",  type: "date" , width: 100 },
           { title: "End Date", id: "endDateTime", type: "date" , width: 100 },
           { title: "Recurring", id: "recurring", width: 50 , dropdownOptions:[{text : "Yes" , value :true},{text : "No" , value :false} ]},
+          { title: "Enabled", id: "enabled", width: 50 , dropdownOptions:[{text : "Yes" , value :true},{text : "No" , value :false} ]},
           { title: "Active", id: "active", width: 50 , dropdownOptions:[{text : "Yes" , value :true},{text : "No" , value :false} ]},
           { title: "Expired", id: "expired", width: 50 , dropdownOptions:[{text : "Yes" , value :true},{text : "No" , value :false} ]},
         ],
@@ -179,7 +180,7 @@ export class ArcsDashboardComponent implements OnInit {
       { id: 'dashboard', label: 'Dashboard', authorized: false } , 
       { id: 'usability', label: 'Usability', authorized: false },
       { id: 'utilization', label: 'Utilization', authorized: false },      
-      { id: 'robot_detection' , label : 'Alerts' , authorized : false },
+      { id: 'robot_detection' , label : 'Event' , authorized : false },
       // { id: 'analysis', label: 'Analysis', authorized: false },
       { id: 'group', label: 'Group' , functionId :  this.gridSettings.group.functionId},
     ]).

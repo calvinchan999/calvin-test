@@ -654,7 +654,7 @@ export class ThreejsViewportComponent implements OnInit , OnDestroy{
       
 
   initWaypoints(waypoints : JPoint[]){
-    waypoints.forEach(p=>{
+    waypoints.filter(p=>p.enabled).forEach(p=>{
       var marker = new WaypointMarkerObject3D(this , p.pointCode , p.pointType);
       marker.position.set( p.guiX -this.floorplan.width/2 , this.floorplan?.height/2 - p.guiY , 5)
       this.floorplan.add(marker)

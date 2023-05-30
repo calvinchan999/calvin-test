@@ -58,7 +58,7 @@ export class ArcsSetupComponent implements OnInit {
     // { id: 'robotCoop' , label : 'Robot Collaboration'},
     { id: 'pointType', label: 'Waypoint Type'},
     { id: 'synclog', label: 'Data Sync Log' },
-    { id: 'log', label: 'Event Log' , authorized : false},
+    { id: 'log', label: 'System Log' , authorized : false},
   ]
   selectedTab = 'floorplan' 
   tableCustomButtons = {

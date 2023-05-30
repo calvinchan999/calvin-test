@@ -420,6 +420,10 @@ export class CmMapFloorplanComponent implements OnInit {
       pixiMap.interactive = this.selectedTab == 'maps' && visible
     }
     item['hidden'] = !visible
+    this.pixiElRef.viewport.allPixiWayPoints.forEach(p=> {
+      var toggledRobotBases = this.mapTree.data.filter(d=>d.mapCode == this.mapCode)[0]?.robotBases?.filter(b=>!b['hidden']).map(b=> b.robotBase)
+      p.visible = p.robotBases.some(b=>toggledRobotBases.length == 0 || toggledRobotBases.includes(b))
+    })
   }
 
   renderMapBordersOnPixi(){

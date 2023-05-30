@@ -30,6 +30,7 @@ export class CmMapDetailComponent implements OnInit {
              }
 
   frmGrp = new FormGroup({
+    floorPlanCode : new FormControl(null),
     mapCode: new FormControl('' , Validators.compose([Validators.required, Validators.pattern(this.dataSrv.codeRegex)])),
     name: new FormControl(''),
     robotBase : new FormControl( this.util.arcsApp ? null : this.util.config.ROBOT_BASE),
@@ -40,6 +41,8 @@ export class CmMapDetailComponent implements OnInit {
     imageHeight : new FormControl(null),
     modifiedDateTime: new FormControl(null),
   })
+
+  createFloorPlan = true
 
   windowRef
   @Input() parent : SaMapComponent
@@ -160,6 +163,10 @@ export class CmMapDetailComponent implements OnInit {
     let ret = new JMap()
     Object.keys(this.frmGrp.controls).forEach(k=> ret[k] = this.frmGrp.controls[k].value)
     ret.base64Image = await this.pixiElRef.getMainContainerImgBase64()
+    if(!this.parentRow && this.createFloorPlan){
+      this.frmGrp.controls['floorPlanCode'].setValue(this.frmGrp.controls['floorPlanCode'].value?.length > 0 ? this.frmGrp.controls['floorPlanCode'].value : this.frmGrp.controls['mapCode'].value )
+      ret.floorPlanCode =  this.frmGrp.controls['floorPlanCode'].value
+    }
     // ret.originX = this.isCreate ? this.metaData.x : ret.originX
     // ret.originY = this.isCreate ? this.metaData.y : ret.originY
     return ret

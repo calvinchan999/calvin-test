@@ -246,39 +246,50 @@
                                                              ((( viewport.createData?.type == 'location' || viewport.createData?.type == 'waypoint' || !viewport.createData?.type ) &&  
                                                              (selectedGraphics?.type == 'location' || selectedGraphics?.type ==  'waypoint' ))|| selectedGraphics?.type == 'mapLayer' )" >
           <ng-container *ngIf=" selectedGraphics?.type == 'location' || selectedGraphics?.type == 'waypoint' ">
-              <uc-txtbox #ucPointTextBox class="waypoint-name-textbox" customClass="txtbox-container"
-                         lab="Waypoint Name" [(value)] = "selectedGraphics.text" [upper] = "true" [class]=" util.arcsApp ? 'col-2' : ''" > 
-              </uc-txtbox>
-            <div  *ngIf="uiSrv.isTablet" class="form-group">            
-              <label class="col-form-label">{{'Orientation' | label : uiSrv.langPack}}</label>
-              <div class="slider-wrapper">
-                <span class="display-value">{{selectedGraphics?.angleIndicator.angle | number:'1.0-1'}}°</span>
-                <kendo-slider [smallStep]="0.5" [largeStep]="60" [min]="0" [max]="360" [fixedTickWidth]="0.25" tickPlacement="none"
-                  [(ngModel)]="selectedGraphics?.angleIndicator.angle" [showButtons]="uiSrv.isTablet" [matTooltip]="'Orientation'| label : uiSrv.langPack"
-                  matTooltipPosition="below">
-                </kendo-slider>            
+            <div class="form-group rows-container">
+              <div class="form-row">
+                <uc-txtbox #ucPointTextBox class="waypoint-name-textbox" customClass="txtbox-container"   lab="Waypoint Name" [(value)] = "selectedGraphics.text" [upper] = "true" [class]="util.arcsApp? 'col-6': ''"> 
+                </uc-txtbox>
+                <div  *ngIf="uiSrv.isTablet" class="form-group">            
+                  <label class="col-form-label">{{'Orientation' | label : uiSrv.langPack}}</label>
+                  <div class="slider-wrapper">
+                    <span class="display-value">{{selectedGraphics?.angleIndicator.angle | number:'1.0-1'}}°</span>
+                    <kendo-slider [smallStep]="0.5" [largeStep]="60" [min]="0" [max]="360" [fixedTickWidth]="0.25" tickPlacement="none"
+                      [(ngModel)]="selectedGraphics?.angleIndicator.angle" [showButtons]="uiSrv.isTablet" [matTooltip]="'Orientation'| label : uiSrv.langPack"
+                      matTooltipPosition="below">
+                    </kendo-slider>            
+                  </div>
+                </div>
+            
+              <!-- <uc-txtbox  lab="Position X" [(value)] = "selectedGraphics.position.x" (valueChange) = "refreshArrows(selectedGraphics)"  [numeric] = 'true' [numDecimals] = '0' ></uc-txtbox>
+              <uc-txtbox  lab="Position Y" [(value)] = "selectedGraphics.position.y" (valueChange) = "refreshArrows(selectedGraphics)"  [numeric] = 'true' [numDecimals] = '0'></uc-txtbox> -->
+                <uc-txtbox *ngIf="util.standaloneApp && selectedGraphics.rosX !== undefined" lab="ROS Position X" [(value)] = "selectedGraphics.rosX" (valueChange)="selectedGraphics.refreshPositionByRosValue()"  [numeric] = 'true' [numDecimals] = '5' ></uc-txtbox>
+                <uc-txtbox *ngIf="util.standaloneApp && selectedGraphics.rosY !== undefined"  lab="ROS Position Y" [(value)] = "selectedGraphics.rosY" (valueChange)="selectedGraphics.refreshPositionByRosValue()"   [numeric] = 'true' [numDecimals] = '5'></uc-txtbox>
+                <uc-txtbox *ngIf="selectedGraphics.angleIndicator" lab="Angle" [(value)] = "selectedGraphics.angleIndicator.angle"  [numeric] = 'true'  [numDecimals] = '3' [class]="util.arcsApp? 'col-4': ''"></uc-txtbox>
+                <div *ngIf="util.arcsApp" class="form-group margin-20">                   
+                  <input type="checkbox" kendoCheckBox  [(ngModel)] = "selectedGraphics.enabled" />                     
+                  <span >{{ 'Enabled' | label: uiSrv.langPack}}</span>
+                </div>               
               </div>
-            </div>
-            <uc-dropdown lab="Icon" [options]="module.data.dropdownOptions.iconTypes" [allowClear]="false" [(value)]="selectedGraphics.iconType" 
-                         (valueChange)="selectedGraphics.iconUrl = commonModule.data.getIconBase64($event)" (open)="suspendViewportPlugin('wheel')" 
-                         (close)="resumeViewportPlugin('wheel')">
-            </uc-dropdown>
-            <uc-dropdown *ngIf="showWaypointType" lab="Waypoint Type" [options]="module.data.dropdownOptions.pointTypes" [allowClear]="false" [(value)]="selectedGraphics.pointType"
-                          (open)="suspendViewportPlugin('wheel')" (close)="resumeViewportPlugin('wheel')" [class]=" util.arcsApp ? 'col-2' : ''">
-            </uc-dropdown>
-            <!-- <uc-txtbox  lab="Position X" [(value)] = "selectedGraphics.position.x" (valueChange) = "refreshArrows(selectedGraphics)"  [numeric] = 'true' [numDecimals] = '0' ></uc-txtbox>
-            <uc-txtbox  lab="Position Y" [(value)] = "selectedGraphics.position.y" (valueChange) = "refreshArrows(selectedGraphics)"  [numeric] = 'true' [numDecimals] = '0'></uc-txtbox> -->
-            <uc-txtbox *ngIf="util.standaloneApp && selectedGraphics.rosX !== undefined" lab="ROS Position X" [(value)] = "selectedGraphics.rosX" (valueChange)="selectedGraphics.refreshPositionByRosValue()"  [numeric] = 'true' [numDecimals] = '5' ></uc-txtbox>
-            <uc-txtbox *ngIf="util.standaloneApp && selectedGraphics.rosY !== undefined"  lab="ROS Position Y" [(value)] = "selectedGraphics.rosY" (valueChange)="selectedGraphics.refreshPositionByRosValue()"   [numeric] = 'true' [numDecimals] = '5'></uc-txtbox>
-            <uc-txtbox *ngIf="selectedGraphics.angleIndicator" lab="Angle" [(value)] = "selectedGraphics.angleIndicator.angle"  [numeric] = 'true'  [numDecimals] = '3' [class]=" util.arcsApp ? 'col-2' : ''" ></uc-txtbox>
-            <uc-multiselect *ngIf="util.arcsApp" lab="Robot Bases" [useSummaryTag]="true" [checkboxes]="true" [options]="robotBasesOptions" [(value)]="selectedGraphics.robotBases"   (open)="suspendViewportPlugin('wheel')" (close)="resumeViewportPlugin('wheel')" ></uc-multiselect>
-            <div  *ngIf="util.arcsApp && withMapLayer" class="checkbox group" >
-              <input class="checkbox"  type="checkbox" kendoCheckBox [disabled] = "readonly"  [(ngModel)]="selectedGraphics.hasPointGroup"/>
-              <div  class="label" >{{ 'Parking Spot' | label : uiSrv.langPack}}</div>
-            </div>
-            <button *ngIf="util.arcsApp && withMapLayer && selectedGraphics.hasPointGroup" kendoButton class="wp-zoom" [matTooltip]="'zoom and center'| label : uiSrv.langPack" matTooltipPosition="right" (click)="selectedGraphics.centerAndZoom()">
-              <span class="mdi mdi-crop-free"></span>
-            </button>
+              
+              <div class="form-row">
+                <uc-dropdown lab="Icon" [options]="module.data.dropdownOptions.iconTypes" [allowClear]="false" [(value)]="selectedGraphics.iconType" 
+                           (valueChange)="selectedGraphics.iconUrl = commonModule.data.getIconBase64($event)" (open)="suspendViewportPlugin('wheel')" 
+                           (close)="resumeViewportPlugin('wheel')">
+                </uc-dropdown>
+                <uc-dropdown *ngIf="showWaypointType" lab="Waypoint Type" [options]="module.data.dropdownOptions.pointTypes" [allowClear]="false" [(value)]="selectedGraphics.pointType"
+                            (open)="suspendViewportPlugin('wheel')" (close)="resumeViewportPlugin('wheel')" >
+                </uc-dropdown>
+                <uc-multiselect class="robot-base" *ngIf="util.arcsApp" lab="Robot Bases" [useSummaryTag]="true" [checkboxes]="true" [options]="robotBasesOptions" [(value)]="selectedGraphics.robotBases"   (open)="suspendViewportPlugin('wheel')" (close)="resumeViewportPlugin('wheel')" ></uc-multiselect>
+                <div  *ngIf="util.arcsApp && withMapLayer" class="checkbox group" >
+                  <input class="checkbox"  type="checkbox" kendoCheckBox [disabled] = "readonly"  [(ngModel)]="selectedGraphics.hasPointGroup"/>
+                  <div  class="label" >{{ 'Parking Spot' | label : uiSrv.langPack}}</div>
+                </div>
+                <button *ngIf="util.arcsApp && withMapLayer && selectedGraphics.hasPointGroup" kendoButton class="wp-zoom" [matTooltip]="'zoom and center'| label : uiSrv.langPack" matTooltipPosition="right" (click)="selectedGraphics.centerAndZoom()">
+                  <span class="mdi mdi-crop-free"></span>
+                </button>
+              </div>
+            </div>                     
             <button  *ngIf="uiSrv.isTablet" kendoButton class='done-btn'>
               {{ 'Done' | label : uiSrv.langPack}}
             </button>

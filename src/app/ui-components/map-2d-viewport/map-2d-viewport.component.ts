@@ -1006,7 +1006,10 @@ export class Map2DViewportComponent implements OnInit , AfterViewInit , OnDestro
       pixiPoint.position.set(data.guiX , data.guiY)
       pixiPoint.dataObj = data
       pixiPoint.pointType = data.pointType
-      addPixiGraphic(pixiPoint)
+      pixiPoint.enabled = data.enabled
+      if(!this.showRobot || pixiPoint.enabled){
+        addPixiGraphic(pixiPoint)
+      }
       if(data.groupProperties && data.groupProperties!= "" ){
         pixiPoint.hasPointGroup = true
         let group =  pixiPoint.pixiPointGroup
@@ -1085,6 +1088,7 @@ export class Map2DViewportComponent implements OnInit , AfterViewInit , OnDestro
       pt.pointCode = point.code
       pt.userDefinedPointType = point.iconType
       pt.pointType = point.pointType
+      pt.enabled = point.enabled
       pt.groupProperties = hasMap && point.hasPointGroup ? JSON.stringify(point.pixiPointGroup.settings) : ""
       if(hasMap && point.hasPointGroup){
         let group = point.pixiPointGroup
