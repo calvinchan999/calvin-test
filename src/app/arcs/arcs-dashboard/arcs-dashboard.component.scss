@@ -45,3 +45,13 @@
     font-size: 1.7em;
     line-height: 1;
 }
+
+:host .bottom-panel-overlay{    
+    position: absolute;
+    height: 70px;
+    width: fit-content;
+    bottom: 5px;
+    left: 0px;
+    right: 0px;
+    margin: 0 auto;
+}

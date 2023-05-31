@@ -100,7 +100,7 @@ import {MatToolbarModule} from '@angular/material/toolbar';
 import {MatTooltipModule} from '@angular/material/tooltip';
 import {MatTreeModule} from '@angular/material/tree';
 import {OverlayModule} from '@angular/cdk/overlay';
-import {MsgDialogContent, SafePipe} from  './services/ui.service';
+import {JoinPipe, MsgDialogContent, SafePipe} from  './services/ui.service';
 import { PowerBIEmbedModule } from 'powerbi-client-angular';
 import { RECAPTCHA_V3_SITE_KEY, RecaptchaV3Module } from "ng-recaptcha";
 
@@ -238,6 +238,7 @@ import { ArcsPatrolPlaybackComponent } from './arcs/arcs-dashboard/arcs-patrol-p
 import { ArcsRobotIotComponent } from './arcs/arcs-iot/arcs-robot-iot/arcs-robot-iot.component';
 import { CustomButtonComponent } from './ui-components/threejs-viewport/custom-button/custom-button.component';
 import { ArcsEventDetectionDetailComponent } from './arcs/arcs-dashboard/arcs-event-detection-detail/arcs-event-detection-detail.component';
+import { ArcsDashboardMapPanelComponent } from './arcs/arcs-dashboard/arcs-dashboard-map-panel/arcs-dashboard-map-panel.component';
 // import { WorkflowComponent } from './ui-components/workflow/workflow.component';
 // import { SequentialWorkflowDesignerModule } from 'sequential-workflow-designer-angular';
 
@@ -256,6 +257,7 @@ import { ArcsEventDetectionDetailComponent } from './arcs/arcs-dashboard/arcs-ev
         // PatrolComponent,
         Map2DViewportComponent,
         SaHomeComponent,
+        JoinPipe,
         DynamicPipe,
         RepalcePipe,
         DateStringPipe,
@@ -344,6 +346,7 @@ import { ArcsEventDetectionDetailComponent } from './arcs/arcs-dashboard/arcs-ev
         ArcsRobotIotComponent,
         CustomButtonComponent,
         ArcsEventDetectionDetailComponent,
+        ArcsDashboardMapPanelComponent,
         // WorkflowComponent        
     ],
     imports: [

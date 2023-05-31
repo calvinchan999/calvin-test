@@ -1,0 +1,29 @@
+<div *ngIf="panelType=='BOTTOM'" class="bottom-panel">
+
+    <div class="waypoint-state-container" *ngIf="waypointState">
+        <div class="point-header">
+            <span [class]="waypointState.pointType == 'CHARGING_STATION' ?  'mdi mdi-battery-charging' : 'mdi mdi-map-marker-outline' ">  {{waypointState.pointCode}} </span>
+            <!-- <span class="point-code"> {{waypointState.pointCode}} </span> -->
+            <a class="close mdi mdi-close-circle" (click)="selectedMapObjChange(null)"></a>
+        </div>
+        <div class="bottom-content" >
+            <div class="reserve">
+                <span *ngIf="waypointState.reserve">{{'Reserved By : ' |  label: uiSrv.langPack}} {{waypointState.reserve}}</span>
+                <button kendoButton class="button" *ngIf="!waypointState.reserve" > {{'Reserve' |  label: uiSrv.langPack}}</button>
+            </div>
+            
+            <div class="wait">
+                <span *ngIf="waypointState.wait.length == 0">{{'No Robots Waiting' |  label: uiSrv.langPack}} </span>
+                <span *ngIf="waypointState.wait.length == 1">{{'Waiting : ' |  label: uiSrv.langPack}} {{waypointState.wait[0]}}</span>
+                <span *ngIf="waypointState.wait.length > 1">
+                    <a class="underline" [matTooltip]="(waypointState.wait | join : ' , ')">{{waypointState.wait.length}}</a>
+                    {{'Robots Waiting' |  label: uiSrv.langPack}}
+                </span>
+            </div>
+        </div>
+    </div>   
+</div>
+
+<div *ngIf="panelType=='LEFT'" class="left-panel">
+
+</div>

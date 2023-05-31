@@ -1,7 +1,7 @@
 import { ChangeDetectorRef, Component, ElementRef, Input, NgZone, OnInit, ViewChild , HostBinding } from '@angular/core';
 import { FormControl, FormGroup, Validators } from '@angular/forms';
 import { DialogService } from '@progress/kendo-angular-dialog';
-import { filter, retry, take } from 'rxjs/operators';
+import { filter, retry, take, takeUntil } from 'rxjs/operators';
 import { DataService} from 'src/app/services/data.service';
 import {  DropListBuilding, DropListMap, JFloorPlan, JMap, MapJData, ShapeJData } from 'src/app/services/data.models';
 import { RvHttpService } from 'src/app/services/rv-http.service';
@@ -14,12 +14,13 @@ import { AuthService } from 'src/app/services/auth.service';
 import { SaMapComponent } from 'src/app/standalone/sa-map/sa-map.component';
 import { toJSON } from '@progress/kendo-angular-grid/dist/es2015/filtering/operators/filter-operator.base';
 import { trimAngle } from 'src/app/utils/math/functions';
-import { Observable, of } from 'rxjs';
+import { Observable, Subject, of } from 'rxjs';
 import { PixiGraphicStyle , DRAWING_STYLE} from 'src/app/utils/ng-pixi/ng-pixi-viewport/ng-pixi-styling-util';
 import { PixiEditableMapImage, PixiWayPoint } from 'src/app/utils/ng-pixi/ng-pixi-viewport/ng-pixi-map-graphics';
 import { HttpEventType } from '@angular/common/http';
 import { ThreejsViewportComponent } from 'src/app/ui-components/threejs-viewport/threejs-viewport.component';
 import { DEFAULT_WAYPOINT_NAME } from 'src/app/utils/ng-pixi/ng-pixi-viewport/ng-pixi-map-viewport';
+import { PixiDashedLine } from 'src/app/utils/ng-pixi/ng-pixi-viewport/ng-pixi-base-graphics';
 
 @Component({
   selector: 'app-cm-map-floorplan',
@@ -145,9 +146,9 @@ export class CmMapFloorplanComponent implements OnInit {
       this.uiSrv.loadAsyncDone(this.loadingTicket)
 
     })
-
     this.pixiElRef.init()
   }
+
 
   async loadData(id , data : JFloorPlan = null){
     let ticket = this.uiSrv.loadAsyncBegin()
@@ -322,10 +323,25 @@ export class CmMapFloorplanComponent implements OnInit {
     await this.changeTab(originalTab)
   }
 
+
+
   async loadMapsToPixi(mapCode : string = this.mapCode , select = true){
     let maps = this.mapsStore.get(this.mapCode)
+    let pixiMaps : PixiEditableMapImage[] = []
     for (let i = 0; i < maps.length ; i++) {
-      var map = await this.pixiElRef.loadMap(maps[i])
+      const map = await this.pixiElRef.loadMap(maps[i])
+      pixiMaps.push(map)      
+
+      map.events.selected.pipe(takeUntil(map.events.removed)).subscribe(()=>{ //Resize All ROS 
+        this.pixiElRef.viewport.events.zoomed.next(true)
+        map.events.resizing.pipe(takeUntil(map.events.unselected)).subscribe(()=>{
+          pixiMaps.filter(m=>m!=map && m.ROS?.alpha > 0).forEach(m=>{
+            let scale = map.scale.x * (map.dataObj?.resolution ? map.dataObj?.resolution : 0.05 )/(m.dataObj?.resolution ? m.dataObj?.resolution : 0.05)
+            m.scale.set(scale , scale)
+          })
+        })
+      })
+
       if(select && !this.readonly && i == maps.length - 1){
         setTimeout(()=>{
           if(this.selectedTab == 'maps'){         
@@ -422,7 +438,7 @@ export class CmMapFloorplanComponent implements OnInit {
     item['hidden'] = !visible
     this.pixiElRef.viewport.allPixiWayPoints.forEach(p=> {
       var toggledRobotBases = this.mapTree.data.filter(d=>d.mapCode == this.mapCode)[0]?.robotBases?.filter(b=>!b['hidden']).map(b=> b.robotBase)
-      p.visible = p.robotBases.some(b=>toggledRobotBases.length == 0 || toggledRobotBases.includes(b))
+      p.alpha =  p.robotBases.length > 0 && p.robotBases.some(b=>toggledRobotBases.length == 0 || toggledRobotBases.includes(b)) && p.enabled ? 1 : 0.4
     })
   }
 

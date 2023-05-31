@@ -268,7 +268,6 @@ export class UiService {
 
 
 
-
 @Pipe({
   name: 'highlight'
 })
@@ -401,6 +400,14 @@ export class SafePipe implements PipeTransform {
     return this.sanitizer.bypassSecurityTrustResourceUrl(url);
   }
 }
+
+@Pipe({name: 'join'})
+export class JoinPipe implements PipeTransform {
+  transform(value: string[], delimiter : string): string {
+    return value.join(delimiter)
+  }
+}
+
 
 
 

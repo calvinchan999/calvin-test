@@ -481,6 +481,14 @@ import { BehaviorSubject } from "rxjs"
     
   }
 
+  export class WaypointState { // NO MQ YET . TBD
+    floorPlanCode : string
+    pointCode : string
+    reserve : string //ROBOT CODE
+    wait : string[] //ROBOT CODES
+    pointType? : string
+  }
+
   export const FloorPlanAlertTypeDescMap = {
     SMOKE: "Smoke Detected",
     FIRE: "Fire Detected",

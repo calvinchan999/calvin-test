@@ -64,6 +64,7 @@ export class ThreejsViewportComponent implements OnInit , OnDestroy{
   @ViewChild('canvas') canvas : ElementRef
   @Output() robotClicked = new EventEmitter<any>();
   @Output() to2D =  new EventEmitter<{floorPlanCode? : string, showSite? : boolean}>();
+  @Output() objClicked = new EventEmitter<any>();
   @Input() floorPlanDataset : JFloorPlan= null;
   @Input() floorPlanOptions : any[]
   @Input() parent : ArcsDashboardComponent
@@ -1117,6 +1118,7 @@ class Object3DCommon extends Object3D{
     this.master = master
     this._color = this.master.util.config.robot?.visuals?.[0].fillColor ?  Number(this.master.util.config.robot?.visuals?.[0].fillColor) : 0x00CED1
     this.initToolTip()
+    this.onClick.subscribe(()=>this.master.objClicked.emit(this)) 
   }
 
   
@@ -1293,7 +1295,7 @@ class Object3DCommon extends Object3D{
   }
 }
 
-class WaypointMarkerObject3D extends Object3DCommon {
+export class WaypointMarkerObject3D extends Object3DCommon {
   // 95 37 159
   readonly color = 0x60259f
   readonly transparentOpacity = 0.3

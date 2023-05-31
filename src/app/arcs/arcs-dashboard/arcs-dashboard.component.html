@@ -141,17 +141,21 @@
             <uc-drawing-board #pixi [arcsParent] = "me" [showRobot] = "true" [hideButton] = "{ all : true}" [readonly] = "true" (robotClicked)="showRobotDetailDialog($event?.id)" 
                                     [arcsRobotType] = "robotTypeFilter"  [(selectedFloorPlanCode)]="selectedFloorPlanCode" 
                                     [arcsRobotColors]="robotIconColorMap" [arcsLocationTree] = "locationTree"
-                                    (onSiteSelected) = "loadSite()" 
-                                    (to3D)="dropdownOptions.floorplans = pixiElRef.module.data.dropdownOptions.floorplans ; locationTree = pixiElRef.module.site.locationTree ; use3DMap = true ;">
+                                    (onSiteSelected) = "btmMapPanel.selectedMapObjChange(null); loadSite()" 
+                                    (selectedGraphicsChange) = "btmMapPanel.selectedMapObjChange($event)"
+                                    (to3D)="btmMapPanel.selectedMapObjChange(null); dropdownOptions.floorplans = pixiElRef.module.data.dropdownOptions.floorplans ; locationTree = pixiElRef.module.site.locationTree ; use3DMap = true ;">
             </uc-drawing-board> 
         </div>
         <div *ngIf="use3DMap" class="three-d-container">
             <uc-3d-viewport #threeJs [parent] = "me" (robotClicked)="showRobotDetailDialog($event?.id)" [arcsRobotType] = "robotTypeFilter"
-                            (to2D)="use3DMap = false ; initPixi($event.floorPlanCode , $event.showSite )" 
+                            (to2D)="btmMapPanel.selectedMapObjChange(null); use3DMap = false ; initPixi($event.floorPlanCode , $event.showSite )" 
+                            (objClicked) = "btmMapPanel.selectedMapObjChange($event)"
                             [floorPlanOptions] = "dropdownOptions.floorplans" [robotColorMapping] = "robotIconColorMap"
                             [floorPlanDataset] = "currentFloorPlan" [locationTree] = "locationTree">
             </uc-3d-viewport>
         </div>
+        <app-arcs-dashboard-map-panel #btmMapPanel panelType="BOTTOM" class = "bottom-panel-overlay" [floorPlanCode] = "selectedFloorPlanCode"> </app-arcs-dashboard-map-panel>
+        <app-arcs-dashboard-map-panel #leftMapPanel panelType="LEFT" class = "left-panel-overlay" [floorPlanCode] = "selectedFloorPlanCode"> </app-arcs-dashboard-map-panel>
         <!-- loadFloorPlan(currentFloorPlan?.floorPlanCode) -->
     </kendo-tilelayout-item>
 </kendo-tilelayout>

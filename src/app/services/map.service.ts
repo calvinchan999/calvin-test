@@ -13,7 +13,7 @@ import { AzurePubsubService } from './azure-pubsub.service';
 import { DatePipe } from '@angular/common'
 import { ConfigService } from './config.service';
 import { HttpEventType, HttpHeaders } from '@angular/common/http';
-import { RobotStateTypes, DropListBuilding, DropListFloorplan, DropListMap, DropListPointIcon, DropListRobot, JFloorPlan, JTask, RobotMaster, RobotStatusARCS, RobotTaskInfoARCS, SaveRecordResp, TaskItem, LiftState, TurnstileState, JFloorPlan3DSettings } from './data.models';
+import { RobotStateTypes, DropListBuilding, DropListFloorplan, DropListMap, DropListPointIcon, DropListRobot, JFloorPlan, JTask, RobotMaster, RobotStatusARCS, RobotTaskInfoARCS, SaveRecordResp, TaskItem, LiftState, TurnstileState, JFloorPlan3DSettings, WaypointState } from './data.models';
 import { DataService } from './data.service';
 import { timeStamp } from 'console';
 import { stat } from 'fs';
@@ -69,6 +69,11 @@ export class MapService {
   // async updateFloorPlanStoreWithIdb(){
 
   // }
+
+  public async getWayPointState(floorPlanCode: string, waypointCode: string): Promise<WaypointState> {
+    let states: WaypointState[] = await this.dataSrv.httpSrv.fmsRequest('GET', `resource/v1?floorPlanCode=${floorPlanCode}`, undefined, false)
+    return states.filter(s => s.floorPlanCode == floorPlanCode && s.pointCode == waypointCode)[0]
+  }
 
   public async getFloorPlanStateByMapCode(mapCode) : Promise<FloorPlanState>{
     let floorPlanState = Object.values(this.floorPlanStore).filter(v=>v.dataWithoutImage.mapList.some(m=>m.mapCode == mapCode))[0]
@@ -221,6 +226,8 @@ export class FloorPlanState {
     turnstile : TurnstileState[]
   }
 
+  points : WaypointState[]
+
   alerts : {
     robotId : string ,
     timestamp : number ,
@@ -239,6 +246,10 @@ export class FloorPlanState {
     this.getOldAlertsFromLocalStorage()
   }
   
+  // async getWaypointState(){
+  //   this.resource = await this.mapSrv.dataSrv.httpSrv.fmsRequest('GET' , 'resource/v1?floorPlanCode=' + this.floorPlanCode, undefined , false)
+  //   return this.resource 
+  // }
 
   async setIDBCache(cache : FloorPlanCache){
     if(cache?.model?.blob){

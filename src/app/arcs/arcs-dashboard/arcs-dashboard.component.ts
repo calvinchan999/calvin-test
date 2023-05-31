@@ -26,6 +26,7 @@ import * as PIXI from 'pixi.js';
 import { RobotService } from 'src/app/services/robot.service';
 import { MapService } from 'src/app/services/map.service';
 import { ArcsEventDetectionDetailComponent } from './arcs-event-detection-detail/arcs-event-detection-detail.component';
+import { ArcsDashboardMapPanelComponent } from './arcs-dashboard-map-panel/arcs-dashboard-map-panel.component';
 
 type robotTypeInfo = { //A group can be an individual robot (when filtered by robot type) OR robot type (no filter applied) 
   robotType: string
@@ -63,6 +64,9 @@ export class ArcsDashboardComponent implements OnInit {
   @ViewChild('mainContainer') mainContainer 
   @ViewChild('table') tableRef : TableComponent
   @ViewChild('robotDetailComp') robotDetailCompRef : ArcsDashboardRobotDetailComponent
+  @ViewChild('btmMapPanel') btmMapPanel : ArcsDashboardMapPanelComponent
+  @ViewChild('leftMapPanel') leftMapPanel : ArcsDashboardMapPanelComponent
+  
   totalRobotCount
   activeRobotCount
   totalTaskCount
@@ -415,6 +419,7 @@ export class ArcsDashboardComponent implements OnInit {
   }
 
   async loadFloorPlan(code = null) {
+    this.btmMapPanel?.selectedMapObjChange(null)
     let ticket = this.uiSrv.loadAsyncBegin()
     code = code ? code :  await this.getDefaultFloorPlanCode()
     if(!code &&  this.pixiElRef){

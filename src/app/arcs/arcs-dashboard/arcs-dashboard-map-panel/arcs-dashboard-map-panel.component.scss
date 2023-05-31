@@ -1,0 +1,45 @@
+:host .bottom-panel{
+    background: rgba(0,0,0,0.5);
+    height: 100%;
+    width: 100%;
+    border-radius: 5px;
+}
+
+:host .point-header{ 
+    font-size: 17px;
+    padding: 5px 10px 10px 10px;
+    // display: flex;
+    // align-content: space-between;
+    .mdi{
+        margin: 3px;
+    }
+    .close{
+        position: absolute;
+        top: 0px;
+        right: 5px;
+    }
+}
+
+:host .underline{
+    text-decoration: underline;
+}
+
+:host .bottom-content{
+    padding: 0px 10px 5px 10px;
+    display: flex;
+    gap: 50px;
+    align-content: center;
+    font-size: 14px;
+    padding : 0px 15px 0px 15px ;
+    .button{
+        height: 25px;
+        margin: -5px 0px 0px 0px;
+    }
+     
+    // div {
+    //     padding: 10px;
+    // }
+    // .wait , .reserve{
+    //     line-height: 24px;
+    // }
+}
