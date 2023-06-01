@@ -7,10 +7,10 @@
             <a class="close mdi mdi-close-circle" (click)="selectedMapObjChange(null)"></a>
         </div>
         <div class="bottom-content" >
-            <div class="reserve">
+            <!-- <div class="reserve">
                 <span *ngIf="waypointState.reserve">{{'Reserved By : ' |  label: uiSrv.langPack}} {{waypointState.reserve}}</span>
-                <!-- <button kendoButton class="button" *ngIf="!waypointState.reserve" > {{'Reserve' |  label: uiSrv.langPack}}</button> -->
-            </div>
+                <button kendoButton class="button" *ngIf="!waypointState.reserve" > {{'Reserve' |  label: uiSrv.langPack}}</button>
+            </div> -->
             
             <div class="wait">
                 <span *ngIf="waypointState.wait.length == 0">{{'No Robots Waiting' |  label: uiSrv.langPack}} </span>

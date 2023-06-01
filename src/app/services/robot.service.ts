@@ -4,6 +4,7 @@ import { BehaviorSubject } from 'rxjs';
 import { RvHttpService } from './rv-http.service';
 import { UiService } from './ui.service';
 import { GeneralUtil } from '../utils/general/general.util';
+import { RobotStatusARCS } from './data.models';
 
 // @ts-ignore
 @Injectable({
@@ -15,8 +16,8 @@ export class RobotService {
     data : RobotState
 
     constructor( public util : GeneralUtil,   public httpSrv : RvHttpService, public uiSrv : UiService) {
-        this.ARCS = new ArcsRobotServiceModule(  httpSrv , uiSrv )
-        this.STANDALONE = new StandaloneRobotServiceModule(  httpSrv , uiSrv )
+        this.ARCS = new ArcsRobotServiceModule(  httpSrv , uiSrv , util )
+        this.STANDALONE = new StandaloneRobotServiceModule(  httpSrv , uiSrv , util )
         this.data = this.STANDALONE.state
     }
     
@@ -43,14 +44,14 @@ class ArcsRobotServiceModule {
     public robotStore: { [key: string]: RobotState } = {
 
     }
-    constructor( public httpSrv : RvHttpService, public uiSrv : UiService) {
+    constructor( public httpSrv : RvHttpService, public uiSrv : UiService , public util : GeneralUtil) {
 
     }
 
     public initRobotState(robotCode: string) {
         let obj = this.robotStore[robotCode]
         if (!obj && robotCode) {
-            obj = new RobotState(robotCode)
+            obj = new RobotState(robotCode , this.util)
             this.robotStore[robotCode] = obj
         }
     } 
@@ -65,14 +66,14 @@ class ArcsRobotServiceModule {
         tiltDetected: boolean,
         estopped: boolean,
     }> {
-        return await this.httpSrv.fmsRequest("GET", "robot/v1/robotDetail/" + robotCode, undefined, false)
+        return await this.httpSrv.fmsRequest("GET", "robot/v1/info/" + robotCode, undefined, false)
     }
 }
 
 class StandaloneRobotServiceModule{
     state : RobotState
-    constructor(  public httpSrv : RvHttpService, public uiSrv : UiService) {
-        this.state = new RobotState(null)
+    constructor(  public httpSrv : RvHttpService, public uiSrv : UiService , public util : GeneralUtil)  {
+        this.state = new RobotState(null , this.util)
     }
     
     public async connectWifi(ssid, pw) {
@@ -85,6 +86,8 @@ class StandaloneRobotServiceModule{
 
 
 export class RobotState {
+    util : GeneralUtil
+
     robotCode : string
     // robotType : string
     // robotSubType : string
@@ -207,7 +210,26 @@ export class RobotState {
 
     //DELIVERY
      
-    constructor(robotCode : string) {
+    constructor(robotCode : string , util : GeneralUtil) {
         this.robotCode = robotCode
+        this.util = util
     }
-  }
+
+    updateRobotInfo(s: RobotStatusARCS) {
+        this.status.next(s.robotStatus)
+        this.estop.next(s.estopped)
+        this.tiltActive.next(s.tiltDetected)
+        this.obstacleDetected.next(s.obstacleDetected)
+        this.batteryRounded.next((s.batteryPercentage * 100).toFixed(0))
+        this.destination.next(s.pointCode)
+        if (s.ieqDTO) {
+            this.topModule.patrol.updateAirQuality(s.ieqDTO, this.util.config.IEQ_LEVELS, this.util.config.IEQ_STANDARD)
+        }
+        if (s.cabinetDTO) {
+            this.topModule.delivery.updateContainers(s.cabinetDTO)
+        }
+        if (s.trayRackDTO) {
+            this.topModule.delivery.updateContainers(s.trayRackDTO)
+        }
+    }
+}

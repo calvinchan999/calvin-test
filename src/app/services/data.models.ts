@@ -417,10 +417,16 @@ import { BehaviorSubject } from "rxjs"
   //   waitingTaskCount: number
   //   robotCode: string
   // }
-  
   export class RobotStatusARCS {
+    speed : number
+    modeState : string
+    batteryPercentage : number
+    reservingPoints: string
+    reservedPoint : string
+    waitingPoint : string
     robotType: string
     robotCode: string
+    pointCode: string
     floorPlanCode: string
     robotStatus: string
     obstacleDetected : boolean
@@ -428,6 +434,7 @@ import { BehaviorSubject } from "rxjs"
     estopped : boolean
     cabinetDTO? : any
     ieqDTO ? : any
+    trayRackDTO : any
     executingTaskCount: number
     completedTaskCount: number
     waitingTaskCount: number

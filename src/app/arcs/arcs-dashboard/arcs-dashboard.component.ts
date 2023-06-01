@@ -394,7 +394,7 @@ export class ArcsDashboardComponent implements OnInit {
 
   async setFloorplanRobotCount(options :  { value: string, text: string, suffix: string }[]) {
     let ticket = this.uiSrv.loadAsyncBegin()
-    let robotInfo: RobotStatusARCS[] = await this.dataSrv.httpSrv.fmsRequest('GET', 'robot/v1/robotInfo' + (this.robotTypeFilter ? `?robotType=${this.robotTypeFilter.toUpperCase()}` : ''), undefined, false)
+    let robotInfo: RobotStatusARCS[] = await this.dataSrv.httpSrv.fmsRequest('GET', 'robot/v1/Info' + (this.robotTypeFilter ? `?robotType=${this.robotTypeFilter.toUpperCase()}` : ''), undefined, false)
     options.forEach((o) => {
       let count = robotInfo.filter(r => r.robotStatus != "UNKNOWN" &&  r.floorPlanCode == o.value).length
       o.suffix = count == 0 ? undefined : count.toString()
@@ -492,49 +492,19 @@ export class ArcsDashboardComponent implements OnInit {
     return ret == ''? '' : '?' + ret
   }
 
-  // async refreshTaskInfo(data : RobotTaskInfoARCS[] = null) {
-  //   const filters = this.getStatusListUrlParam() 
-  //   data = data == null ? await this.dataSrv.httpSrv.fmsRequest('GET', 'task/v1/taskInfo' + filters, undefined, false) : data   
-  //   if(filters!= this.getStatusListUrlParam()){ //validate concurrency
-  //     return
-  //   }
-
-  //   this.addAndRemoveRobotInfos(data)
-
-  //   this.robotInfos.forEach(i=>{
-  //     let robot = data.filter(t=>t.robotCode == i.robotCode)[0]
-  //     i.robotType = robot ?.robotType
-  //     i.floorPlanCode = robot?.floorPlanCode
-  //     i.waitingTaskCount = robot?.waitingTaskCount 
-  //     i.completedTaskCount = robot?.completedTaskCount
-  //   })
-
-  //   this.robotTypeInfos.forEach(i=>{
-  //     i.executingTaskCount = data.filter(t=>t.robotType == i.robotType).reduce((acc, i)=>  acc += i.executingTaskCount , 0)
-  //     i.completedTaskCount = data.filter(t=>t.robotType == i.robotType).reduce((acc, i)=>  acc += i.completedTaskCount , 0)
-  //   })    
-  //   this.executingTaskCount = data.filter(t => !this.robotTypeFilter || t?.robotType == this.robotTypeFilter?.toUpperCase()).map(t => t.executingTaskCount).reduce((acc, i) => acc += i, 0)
-  //   this.totalTaskCount = data.filter(t => !this.robotTypeFilter || t?.robotType == this.robotTypeFilter?.toUpperCase()).map(t => t.executingTaskCount + t.completedTaskCount).reduce((acc, i) => acc += i, 0)
-  //   if (this.pixiElRef && this.pixiElRef.module.site.locationTree.currentLevel == 'site') {
-  //     this.refreshBuildingRobotCountTag((<any>data))
-  //   }
-  // }
-
   async refreshStats(data: RobotStatus[] = null){
 
-    // if(!this.currentFloorPlan){
-    //   return
-    // }
+ 
     const filters = this.getStatusListUrlParam()
-    data = data == null ?  await this.dataSrv.httpSrv.fmsRequest('GET', 'robot/v1/robotInfo' + this.getStatusListUrlParam(), undefined, false) : data
+    data = data == null ?  await this.dataSrv.httpSrv.fmsRequest('GET', 'robot/v1/info' + this.getStatusListUrlParam(), undefined, false) : data
     if(filters!= this.getStatusListUrlParam()){ //validate concurrency
       console.log(filters)
       return
     }
 
     this.addAndRemoveRobotInfos(data)  
-
-    this.refreshRobotDetail(data)
+    data.forEach(d=> this.robotSrv.robotState(d.robotCode).updateRobotInfo(d))
+    // this.refreshRobotDetail(data)
 
     if(this.threeJsElRef){
       this.threeJsElRef.robotObjs.filter(r=>! data.map(r2=>r2.robotCode).includes(r.robotCode)).forEach(r=>r.destroy())
@@ -621,12 +591,12 @@ export class ArcsDashboardComponent implements OnInit {
     if(this.pixiElRef &&  this.locationTree.currentLevel == 'site'){
       this.refreshBuildingRobotCountTag()
     }
-    
-    console.log(  this.robotInfos)
   }
 
   showDialog(event){
-    if ( this.selectedTab == 'task' &&  event?.column == 'cancel') {
+    if (event?.column == 'select'){
+      return
+    }else  if ( this.selectedTab == 'task' &&  event?.column == 'cancel') {
       this.cancelTask(event)
     }else{
       const compMap =  {
@@ -699,23 +669,26 @@ export class ArcsDashboardComponent implements OnInit {
     })
   }
   
-  refreshRobotDetail(data : RobotStatus[] ){
-    data.forEach(s=>{
-      this.robotSrv.robotState(s.robotCode).status.next(s.robotStatus)
-      this.robotSrv.robotState(s.robotCode).estop.next(s.estopped)
-      this.robotSrv.robotState(s.robotCode).tiltActive.next(s.tiltDetected)
-      this.robotSrv.robotState(s.robotCode).obstacleDetected.next(s.obstacleDetected)
-
-      // this.mqSrv.initArcsRobotDataMap(s.robotCode)
-      // this.mqSrv.updateArcsRobotDataMap(s.robotCode , 'status' , s.robotStatus)
-      // this.mqSrv.updateArcsRobotDataMap(s.robotCode , 'estop' , s.estopped)
-      // this.mqSrv.updateArcsRobotDataMap(s.robotCode , 'tiltActive' , s.tiltDetected)
-      // this.mqSrv.updateArcsRobotDataMap(s.robotCode , 'obstacleDetected' , s.obstacleDetected)
-    })
-    // if(this.robotDetailCompRef){
-    //   this.robotDetailCompRef.refreshRobotStatus(false)
-    // }
-  }
+  // refreshRobotDetail(data : RobotStatus[] ){
+  //   data.forEach(s=>{
+  //     this.robotSrv.robotState(s.robotCode).status.next(s.robotStatus)
+  //     this.robotSrv.robotState(s.robotCode).estop.next(s.estopped)
+  //     this.robotSrv.robotState(s.robotCode).tiltActive.next(s.tiltDetected)
+  //     this.robotSrv.robotState(s.robotCode).obstacleDetected.next(s.obstacleDetected)
+  //     this.robotSrv.robotState(s.robotCode).batteryRounded.next(this.mqSrv.mqMaster.battery.robotState.batteryRounded({ robotId : s.robotCode , percentage: s.batteryPercentage }))
+  //     this.robotSrv.robotState(s.robotCode).destination.next(s.pointCode)
+  //     if(s.ieqDTO){
+  //       this.robotSrv.robotState(s.robotCode).topModule.patrol.updateAirQuality(s.ieqDTO , this.util.config.IEQ_LEVELS  , this.util.config.IEQ_STANDARD)
+  //     }
+  //     if(s.cabinetDTO){
+  //       this.robotSrv.robotState(s.robotCode).topModule.delivery.updateContainers(s.cabinetDTO)
+  //     }
+  //     if(s.trayRackDTO){
+  //       this.robotSrv.robotState(s.robotCode).topModule.delivery.updateContainers(s.trayRackDTO)
+  //     }
+  //     this.robotSrv.robotState(s.robotCode).topModule.patrol.updateAirQuality(s.ieqDTO , this.util.config.IEQ_LEVELS  , this.util.config.IEQ_STANDARD)
+  //   })
+  // }
 
 
   async loadData(evt = null) {

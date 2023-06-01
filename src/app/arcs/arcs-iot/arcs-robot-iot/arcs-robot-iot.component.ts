@@ -27,8 +27,6 @@ export class ArcsRobotIotComponent implements OnInit , OnDestroy {
   }
 
   ngOnInit(): void {
-    console.log(this.robotType)
-    console.log(this.robotSubType)
     this.robotState = this.robotSrv.robotState(this.robotId)
     this.mqSrv.subscribeMQTTsUntil(<any>['battery' , 'speed' , 'state' , 'arcsRobotDestination'] , this.robotId, this.unsubscriber )
     if(this.robotType?.toUpperCase() == 'PATROL'){

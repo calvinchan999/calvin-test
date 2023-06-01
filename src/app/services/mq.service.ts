@@ -346,7 +346,7 @@ export class MqService {
                           }
                   }
                },
-    arcsRobotStatusChange :{ topic : 'rvautotech/fobo/ARCS/robot/info' ,mapping: { arcsRobotStatusChange : null} , api : 'robot/v1/robotInfo' , apiQueryParam : 'floorPlanCode'},
+    arcsRobotStatusChange :{ topic : 'rvautotech/fobo/ARCS/robot/info' ,mapping: { arcsRobotStatusChange : null} , api : 'robot/v1/info' , apiQueryParam : 'floorPlanCode'},
     // arcsTaskInfoChange :{ topic : 'rvautotech/fobo/ARCS/task/info' ,mapping: { arcsTaskInfoChange : null} , api : 'task/v1/taskInfo'},
     arcsSyncLog : { topic: "rvautotech/fobo/ARCS/data/sync/log" , mapping : {arcsSyncLog : (d:syncLog)=>{
                         var ret :syncLog[] = this.data.arcsSyncLog.value ? JSON.parse(JSON.stringify(this.data.arcsSyncLog.value))  : [] 
@@ -365,16 +365,16 @@ export class MqService {
                     api:'api/sync/log/processing/v1'
                   },
     arcsRobotDestination: {
-      topic: "rvautotech/fobo/ARCS/task/bo",
+      topic: "rvautotech/fobo/ARCS/robot/nextPoint",
       robotState: {
-        destination: (d: { robotCode: string, movementDTOList: TaskItem[], currentTaskItemIndex: number }) => {
-          let ret = d.movementDTOList?.[d.currentTaskItemIndex]?.movement?.pointCode
+        destination: (d: { robotCode: string, pointCode : string }) => {
+          //let ret = d.movementDTOList?.[d.currentTaskItemIndex]?.movement?.pointCode
           // this.updateArcsRobotDataMap(d.robotCode, 'destination', ret)
-          return ret
+          return d.pointCode
         }
       },
-      api: 'task/v1/executing/bo',
-      apiPathParam : true
+      // api: 'robot/nextPoint',
+      // apiPathParam : true
     },
     arcsLift: {
       topic: "rvautotech/fobo/lift",
@@ -392,7 +392,7 @@ export class MqService {
           return ret
         }
       },
-      api:'lift/v1/null' //TBR
+      // api:'lift/v1/null' //TBR
     },
     arcsTurnstile: {
       topic: "rvautotech/fobo/turnstile",
@@ -410,7 +410,7 @@ export class MqService {
           return ret
         }
       },
-      api:'turnstile/v1/null'  //TBR
+      // api:'turnstile/v1/null'  //TBR
     },
     poseDeviation: {
       topic: "rvautotech/fobo/poseDeviation",
@@ -601,6 +601,8 @@ export class MqService {
     return ret
   }
 
+
+  test 
   updateMqBehaviorSubject(type , data , param = '') {
     let mapping = this.mqMaster[type].mapping
     let robotStateMapping =  this.mqMaster[type].robotState
