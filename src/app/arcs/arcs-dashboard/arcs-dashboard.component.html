@@ -68,9 +68,9 @@
                         <span>{{ r.name }} </span>
                     </label>
                            
-                    <kendo-progressbar class="ts-progress-bar"  [max]="r.completedTaskCount + r.executingTaskCount" [value]="r.completedTaskCount">
+                    <kendo-progressbar class="ts-progress-bar"  [max]="r.completedTaskCount + r.executingTaskCount + r.waitingTaskCount" [value]="r.completedTaskCount">
                     </kendo-progressbar>
-                    <label class="ts-total">{{r.completedTaskCount + r.executingTaskCount}}</label>
+                    <label class="ts-total">{{r.completedTaskCount + r.executingTaskCount + r.waitingTaskCount}}</label>
                 </div>
             </div>
         </kendo-tilelayout-item-body>
@@ -125,7 +125,7 @@
                         <span class="mdi"></span>
                     </label>
                     <!-- <label class="ts-location">{{r.floorPlanCode}}</label> -->
-                    <label class="ts-pending">{{r.waitingTaskCount}}</label>
+                    <label class="ts-pending">{{r.waitingTaskCount + r.executingTaskCount}}</label>
                     <label class="ts-completed">{{r.completedTaskCount}}</label>
                     <label class="ts-alert">
                         <span *ngIf="r.alert && r.alert.length > 0" class="mdi mdi-alert"  [matTooltip] = "r.alert | label : uiSrv.langPack " matTooltipClass="alert">

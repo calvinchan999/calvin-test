@@ -14,7 +14,7 @@ import { DatePipe } from '@angular/common'
 import { ConfigService } from './config.service';
 import { HttpEventType, HttpHeaders } from '@angular/common/http';
 
-import { RobotStateTypes, DropListMap, JTask, RobotStatusARCS, RobotTaskInfoARCS, TaskItem, FloorPlanAlertTypeDescMap } from './data.models';
+import { RobotStateTypes, DropListMap, JTask, RobotStatusARCS, TaskItem, FloorPlanAlertTypeDescMap } from './data.models';
 import { DataService } from './data.service';
 import {RobotService, RobotState} from './robot.service'
 import {MapService} from './map.service'
@@ -31,7 +31,7 @@ export type MQType = 'activeMap' | 'occupancyGridMap' | 'navigationMove' | 'char
                     'followMeAoa' | 'digitalOutput' | 'wifi' | 'cellular' | 'ieq' | 'rfid' | 'cabinet' | 'rotaryHead' | 'nirCamera' | 'nirCameraDetection' |
                     'thermalCamera' | 'thermalCameraDetection' | 'webcam' | 'heartbeatServer' | 'heartbeatClient' | 'arcsPoses' | 'taskActive' | 'lidarStatus' |
                     'led' | 'fan' | 'pauseResume' | 'taskComplete' | 'taskDepart' | 'taskArrive' | 'destinationReached' | 'taskProgress' | 'moving' | 'lidar'| 'taskPopups'|
-                    'arcsRobotStatusChange' | 'arcsTaskInfoChange' | 'arcsSyncLog' | 'arcsRobotDestination' | 'arcsLift' | 'arcsTurnstile' | 'arcsAiDetectionAlert'
+                    'arcsRobotStatusChange' | 'arcsSyncLog' | 'arcsRobotDestination' | 'arcsLift' | 'arcsTurnstile' | 'arcsAiDetectionAlert'
 
 @Injectable({
   providedIn: 'root'
@@ -43,7 +43,7 @@ export class MqService {
     unreadMsgCnt: new BehaviorSubject<any>(0),
     arcsPoses : new BehaviorSubject<any>(null),   
     arcsRobotStatusChange : new BehaviorSubject<RobotStatusARCS[]>([]),
-    arcsTaskInfoChange : new BehaviorSubject<RobotTaskInfoARCS[]>([]),
+    // arcsTaskInfoChange : new BehaviorSubject<RobotTaskInfoARCS[]>([]),
     arcsWarningChangedRobotCode : new BehaviorSubject<string | null>(null),
     arcsSyncLog : new BehaviorSubject<syncLog[]>([]),
     arcsLift: new BehaviorSubject<{ [key: string]: { floor: string, opened: boolean, robotCode: string } }>({}),
@@ -59,7 +59,7 @@ export class MqService {
   // public arcsRobotDataMap : { [key: string] : RobotState} = {}
   //api pending : tilt , pose , obstacle detection , arcsPoses
   
-  public mqMaster : { [key: string] : {topic? : string , mapping ? : any , robotState ? : any , api ? :any , subscribedCount ? : any}}= {
+  public mqMaster : { [key: string] : {topic? : string , mapping ? : any , robotState ? : any , api ? :any , subscribedCount ? : any , apiQueryParam ? : string , apiPathParam ? : boolean}}= {
     trayRack : { topic : "rvautotech/fobo/trayRack" ,   
                  robotState:{ execute: (d : {robotId : string})=> {
                              this.robotSrv.robotState(d.robotId).topModule.delivery.updateContainers(d)
@@ -88,7 +88,7 @@ export class MqService {
                                                         return d;
                                                      } 
                                                   } , 
-                                          api:'ieqSensor/v1/read' 
+                                          api:'ieqSensor/v1/read' , apiPathParam : true
     },
     rfid: { topic: "rvautotech/fobo/rfid" },
     rotaryHead: { topic: "rvautotech/fobo/rotaryHead" },
@@ -346,8 +346,8 @@ export class MqService {
                           }
                   }
                },
-    arcsRobotStatusChange :{ topic : 'rvautotech/fobo/ARCS/robot/info' ,mapping: { arcsRobotStatusChange : null}},
-    arcsTaskInfoChange :{ topic : 'rvautotech/fobo/ARCS/task/info' ,mapping: { arcsTaskInfoChange : null} , api : 'task/v1/taskInfo'},
+    arcsRobotStatusChange :{ topic : 'rvautotech/fobo/ARCS/robot/info' ,mapping: { arcsRobotStatusChange : null} , api : 'robot/v1/robotInfo' , apiQueryParam : 'floorPlanCode'},
+    // arcsTaskInfoChange :{ topic : 'rvautotech/fobo/ARCS/task/info' ,mapping: { arcsTaskInfoChange : null} , api : 'task/v1/taskInfo'},
     arcsSyncLog : { topic: "rvautotech/fobo/ARCS/data/sync/log" , mapping : {arcsSyncLog : (d:syncLog)=>{
                         var ret :syncLog[] = this.data.arcsSyncLog.value ? JSON.parse(JSON.stringify(this.data.arcsSyncLog.value))  : [] 
                         if(ret.filter(l=>l.dataSyncId != d.dataSyncId || l.dataSyncStatus != d.dataSyncStatus).length > 0 ){
@@ -373,7 +373,8 @@ export class MqService {
           return ret
         }
       },
-      api: 'task/v1/executing/bo'
+      api: 'task/v1/executing/bo',
+      apiPathParam : true
     },
     arcsLift: {
       topic: "rvautotech/fobo/lift",
@@ -564,23 +565,19 @@ export class MqService {
     let $unsubscribed = this.signalRSrv.getUnsubscribedSubject(this.mqMaster[type].topic + topicSfx)
 
     if (subscribedCount == 0 || getLatestFromApi) {
-      if (this.util.standaloneApp && this.mqMaster[type].api && subscribedCount == 0) {
+      if ((this.util.standaloneApp && this.mqMaster[type].api && subscribedCount == 0) || (this.util.arcsApp && subscribedCount == 0 && ['arcsLift', 'arcsTurnstile'].includes(type))) {
         let resp = await this.httpSrv.fmsRequest('GET', this.mqMaster[type].api)
         if (resp && resp.status == 200) {
           this.updateMqBehaviorSubject(type, JSON.parse(resp.body), paramString)
         }
       } else if (this.util.arcsApp && subscribedCount == 0) {
-          const mqTypesRequiredApiByRobot: MQType[] = ['ieq', 'arcsRobotDestination'];
-          const mqTypesQueryParamMap: { [key: string]: string } = {
-            arcsTaskInfoChange: 'floorPlanCode'
-          }
-          if (mqTypesRequiredApiByRobot.includes(type)) {
+          if (this.mqMaster[type].apiPathParam) {
             let resp = await this.httpSrv.fmsRequest('GET', this.mqMaster[type].api + '/' + paramString)
             if (resp && resp.status == 200 && resp.body?.length > 0) {
               this.updateMqBehaviorSubject(type, JSON.parse(resp.body), paramString)
             }
-          } else if (mqTypesQueryParamMap[type]) {
-            let resp = await this.httpSrv.fmsRequest('GET', this.mqMaster[type].api + `?${mqTypesQueryParamMap[type]}=` + paramString)
+          } else if (this.mqMaster[type].apiQueryParam) {
+            let resp = await this.httpSrv.fmsRequest('GET', this.mqMaster[type].api + `?${this.mqMaster[type].apiQueryParam}=` + paramString)
             if (resp && resp.status == 200 && resp.body?.length > 0) {
               this.updateMqBehaviorSubject(type, JSON.parse(resp.body), paramString)
             }
@@ -589,12 +586,7 @@ export class MqService {
             let resp = await this.httpSrv.get(this.mqMaster[type].api);
             this.data.arcsSyncLog.next((this.dataSrv.getLocalStorage('syncDoneLog') ? JSON.parse(this.dataSrv.getLocalStorage('syncDoneLog')) : []).concat(resp))
             this.uiSrv.loadAsyncDone(ticket)
-          } else if (['arcsLift', 'arcsTurnstile'].includes(type)) {
-            let resp = await this.httpSrv.fmsRequest('GET', this.mqMaster[type].api)
-            if (resp && resp.status == 200) {
-              this.updateMqBehaviorSubject(type, JSON.parse(resp.body), paramString)
-            }
-          }        
+          }     
       }
 
 

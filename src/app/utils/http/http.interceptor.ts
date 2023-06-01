@@ -46,6 +46,7 @@ export class CustomHttpInterceptor implements HttpInterceptor {
         }
         return next.handle(authReq).pipe(catchError(error => {
           console.log(error)
+          console.trace()
           if (error instanceof HttpErrorResponse && error.status == 401 && !authReq.url.endsWith('/api/Auth/refreshtoken') && !authReq.url.startsWith('assets/')) {
             return this.handle401Error(authReq, next);
           }          

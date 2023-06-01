@@ -14,7 +14,7 @@ import { AzurePubsubService } from './azure-pubsub.service';
 import { DatePipe } from '@angular/common'
 import { ConfigService } from './config.service';
 import { HttpEventType, HttpHeaders } from '@angular/common/http';
-import { RobotStateTypes, DropListBuilding, DropListFloorplan, DropListMap, DropListPointIcon, DropListRobot, JFloorPlan, JTask, RobotMaster, RobotStatusARCS, RobotTaskInfoARCS, SaveRecordResp, TaskItem, JFloorPlan3DSettings } from './data.models';
+import { RobotStateTypes, DropListBuilding, DropListFloorplan, DropListMap, DropListPointIcon, DropListRobot, JFloorPlan, JTask, RobotMaster, RobotStatusARCS, SaveRecordResp, TaskItem, JFloorPlan3DSettings } from './data.models';
 
 export const ObjectTypes = ['ROBOT','FLOOR_PLAN' , 'FLOOR_PLAN_POINT' , 'MAP' , 'MAP_POINT' , 'TASK' , 'OPERATION' , 'MISSION']
 export type syncStatus = 'TRANSFERRED' | 'TRANSFERRING' | 'MALFUNCTION'

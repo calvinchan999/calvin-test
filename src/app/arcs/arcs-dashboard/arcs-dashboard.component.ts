@@ -5,7 +5,7 @@ import { MqService } from 'src/app/services/mq.service';
 import { Map2DViewportComponent, Robot } from 'src/app/ui-components/map-2d-viewport/map-2d-viewport.component';
 import { GeneralUtil } from 'src/app/utils/general/general.util';
 import { DataService } from 'src/app/services/data.service';
-import {DropListBuilding, DropListFloorplan, DropListType, FloorPlanAlertTypeDescMap, FloorPlanDataset, JFloorPlan, JSite, RobotStatusARCS as RobotStatus, RobotStatusARCS, RobotTaskInfoARCS, ShapeJData, TaskStateOptions} from 'src/app/services/data.models';
+import {DropListBuilding, DropListFloorplan, DropListType, FloorPlanAlertTypeDescMap, FloorPlanDataset, JFloorPlan, JSite, RobotStatusARCS as RobotStatus, RobotStatusARCS, ShapeJData, TaskStateOptions} from 'src/app/services/data.models';
 import { Router } from '@angular/router';
 import { DialogRef } from '@progress/kendo-angular-dialog';
 import { CmTaskJobComponent } from 'src/app/common-components/cm-task/cm-task-job/cm-task-job.component';
@@ -31,6 +31,7 @@ import { ArcsDashboardMapPanelComponent } from './arcs-dashboard-map-panel/arcs-
 type robotTypeInfo = { //A group can be an individual robot (when filtered by robot type) OR robot type (no filter applied) 
   robotType: string
   name : string | null
+  waitingTaskCount? : number | null
   executingTaskCount? : number | null
   completedTaskCount? : number | null
   processCount ? : number | null
@@ -45,6 +46,7 @@ type robotInfo = { //A group can be an individual robot (when filtered by robot 
   robotType : string
   floorPlanCode : string
   robotCode: string
+  executingTaskCount? : number | null
   waitingTaskCount? : number | null
   completedTaskCount? : number | null
   robotStatus : string
@@ -244,7 +246,7 @@ export class ArcsDashboardComponent implements OnInit {
 
     this.mqSrv.data.arcsRobotStatusChange.pipe(skip(1),  filter(v=>v!=null), takeUntil(this.$onDestroy)).subscribe((c)=>{
       if(this.selectedTab == 'dashboard' ){
-        this.refreshRobotStatus(c.filter(c=>!this.robotTypeFilter || c?.robotType == this.robotTypeFilter?.toUpperCase()))
+        this.refreshStats(c.filter(c=>!this.robotTypeFilter || c?.robotType == this.robotTypeFilter?.toUpperCase()))
       }
       if(this.selectedTab == 'group'){
         this.tableRef?.retrieveData();
@@ -257,20 +259,20 @@ export class ArcsDashboardComponent implements OnInit {
     //   }
     // })
 
-    this.mqSrv.data.arcsTaskInfoChange.pipe(filter(v=>v!=null), takeUntil(this.$onDestroy)).subscribe((c)=>{
-      if(this.selectedTab == 'dashboard'){        
-        this.refreshTaskInfo(c.filter(c=>!this.robotTypeFilter || c?.robotType == this.robotTypeFilter?.toUpperCase()))
-      }
-      if(this.selectedTab == 'task' && this.tableRef){
-        this.tableRef.retrieveData();
-      }
-    })
+    // this.mqSrv.data.arcsTaskInfoChange.pipe(filter(v=>v!=null), takeUntil(this.$onDestroy)).subscribe((c)=>{
+    //   if(this.selectedTab == 'dashboard'){        
+    //     this.refreshTaskInfo(c.filter(c=>!this.robotTypeFilter || c?.robotType == this.robotTypeFilter?.toUpperCase()))
+    //   }
+    //   if(this.selectedTab == 'task' && this.tableRef){
+    //     this.tableRef.retrieveData();
+    //   }
+    // })
     // this.loadingTicket = this.uiSrv.loadAsyncBegin()
   }
 
   ngOnDestroy(){
     if(this.currentFloorPlan){
-      this.mqSrv.unsubscribeMQTT('arcsTaskInfoChange', false , this.currentFloorPlan.floorPlanCode)
+      // this.mqSrv.unsubscribeMQTT('arcsTaskInfoChange', false , this.currentFloorPlan.floorPlanCode)
       this.mqSrv.unsubscribeMQTT('arcsRobotStatusChange', false , this.currentFloorPlan.floorPlanCode)
     }
     this.$onDestroy.next()    
@@ -345,8 +347,8 @@ export class ArcsDashboardComponent implements OnInit {
       
       this.pixiElRef.setViewportCamera(this.site.viewX, this.site.viewY, this.site.viewZoom)
     }
-    this.refreshTaskInfo()
-    this.refreshRobotStatus()
+    // this.refreshTaskInfo()
+    this.refreshStats()
   }
 
   async loadBuildingPolygons(){
@@ -379,13 +381,14 @@ export class ArcsDashboardComponent implements OnInit {
         })
       })
     })
+    this.refreshBuildingRobotCountTag()
     this.uiSrv.loadAsyncDone(ticket)
   }
 
-  refreshBuildingRobotCountTag(robotList : {floorPlanCode : string}[]){
-    this.pixiElRef.module.data.dropdownData.floorplans.map((b:DropListBuilding)=> b.buildingCode).filter(b=>this.pixiElRef.viewport.allPixiPolygons.map(p=>p.buildingCode).includes(b)).forEach(buildingCode=>{
-      let floorPlanList = (<DropListFloorplan[]>this.pixiElRef.module.data.dropdownData.floorplans).filter((fp) => fp.buildingCode == buildingCode).map(fp=>fp.floorPlanCode)
-      this.pixiElRef.setBuildingRobotCount(buildingCode , robotList.filter(r=> floorPlanList.includes(r.floorPlanCode)).length)
+  refreshBuildingRobotCountTag(){ 
+    this.pixiElRef.viewport.allPixiPolygons.forEach(b=>{
+      let floorPlanList = (<DropListFloorplan[]>this.pixiElRef.module.data.dropdownData.floorplans).filter((fp) => fp.buildingCode == b.buildingCode).map(fp=>fp.floorPlanCode)
+      this.pixiElRef.setBuildingRobotCount(b.buildingCode , this.robotInfos.filter(r=> r.robotStatus!= 'UNKNOWN' && floorPlanList.includes(r.floorPlanCode)).length)
     })
   }
 
@@ -393,7 +396,7 @@ export class ArcsDashboardComponent implements OnInit {
     let ticket = this.uiSrv.loadAsyncBegin()
     let robotInfo: RobotStatusARCS[] = await this.dataSrv.httpSrv.fmsRequest('GET', 'robot/v1/robotInfo' + (this.robotTypeFilter ? `?robotType=${this.robotTypeFilter.toUpperCase()}` : ''), undefined, false)
     options.forEach((o) => {
-      let count = robotInfo.filter(r => r.floorPlanCode == o.value).length
+      let count = robotInfo.filter(r => r.robotStatus != "UNKNOWN" &&  r.floorPlanCode == o.value).length
       o.suffix = count == 0 ? undefined : count.toString()
     })
     this.ngZone.run(()=>{
@@ -428,7 +431,7 @@ export class ArcsDashboardComponent implements OnInit {
       return 
     }
     if (this.currentFloorPlan?.floorPlanCode) {
-      this.mqSrv.unsubscribeMQTT('arcsTaskInfoChange', false , this.currentFloorPlan?.floorPlanCode)
+      // this.mqSrv.unsubscribeMQTT('arcsTaskInfoChange', false , this.currentFloorPlan?.floorPlanCode)
       this.mqSrv.unsubscribeMQTT('arcsRobotStatusChange', false , this.currentFloorPlan?.floorPlanCode)
     }
     let floorplan = await this.mapSrv.getFloorPlan(code);
@@ -451,8 +454,8 @@ export class ArcsDashboardComponent implements OnInit {
    
     this.floorPlanFilter = floorplan.floorPlanCode
     // await this.refreshTaskInfo()
-    await this.refreshRobotStatus()
-    this.mqSrv.subscribeMQTT('arcsTaskInfoChange' ,  floorplan.floorPlanCode )
+    // await this.refreshStats()
+    // this.mqSrv.subscribeMQTT('arcsTaskInfoChange' ,  floorplan.floorPlanCode )
     this.mqSrv.subscribeMQTT('arcsRobotStatusChange' ,  floorplan.floorPlanCode )
     // this.tabs = (floorplan.mapList.length == 0 ? [] : [{ id: '3dMap', label: '3D Map', authorized: false }]).concat(<any>this.getTabs())
     this.uiSrv.loadAsyncDone(ticket)
@@ -489,35 +492,36 @@ export class ArcsDashboardComponent implements OnInit {
     return ret == ''? '' : '?' + ret
   }
 
-  async refreshTaskInfo(data : RobotTaskInfoARCS[] = null) {
-    const filters = this.getStatusListUrlParam() 
-    data = data == null ? await this.dataSrv.httpSrv.fmsRequest('GET', 'task/v1/taskInfo' + filters, undefined, false) : data   
-    if(filters!= this.getStatusListUrlParam()){ //validate concurrency
-      return
-    }
+  // async refreshTaskInfo(data : RobotTaskInfoARCS[] = null) {
+  //   const filters = this.getStatusListUrlParam() 
+  //   data = data == null ? await this.dataSrv.httpSrv.fmsRequest('GET', 'task/v1/taskInfo' + filters, undefined, false) : data   
+  //   if(filters!= this.getStatusListUrlParam()){ //validate concurrency
+  //     return
+  //   }
 
-    this.addAndRemoveRobotInfos(data)
+  //   this.addAndRemoveRobotInfos(data)
 
-    this.robotInfos.forEach(i=>{
-      let robot = data.filter(t=>t.robotCode == i.robotCode)[0]
-      i.robotType = robot ?.robotType
-      i.floorPlanCode = robot?.floorPlanCode
-      i.waitingTaskCount = robot?.waitingTaskCount 
-      i.completedTaskCount = robot?.completedTaskCount
-    })
+  //   this.robotInfos.forEach(i=>{
+  //     let robot = data.filter(t=>t.robotCode == i.robotCode)[0]
+  //     i.robotType = robot ?.robotType
+  //     i.floorPlanCode = robot?.floorPlanCode
+  //     i.waitingTaskCount = robot?.waitingTaskCount 
+  //     i.completedTaskCount = robot?.completedTaskCount
+  //   })
 
-    this.robotTypeInfos.forEach(i=>{
-      i.executingTaskCount = data.filter(t=>t.robotType == i.robotType).reduce((acc, i)=>  acc += i.executingTaskCount , 0)
-      i.completedTaskCount = data.filter(t=>t.robotType == i.robotType).reduce((acc, i)=>  acc += i.completedTaskCount , 0)
-    })    
-    this.executingTaskCount = data.filter(t => !this.robotTypeFilter || t?.robotType == this.robotTypeFilter?.toUpperCase()).map(t => t.executingTaskCount).reduce((acc, i) => acc += i, 0)
-    this.totalTaskCount = data.filter(t => !this.robotTypeFilter || t?.robotType == this.robotTypeFilter?.toUpperCase()).map(t => t.executingTaskCount + t.completedTaskCount).reduce((acc, i) => acc += i, 0)
-    if (this.pixiElRef && this.pixiElRef.module.site.locationTree.currentLevel == 'site') {
-      this.refreshBuildingRobotCountTag((<any>data))
-    }
-  }
+  //   this.robotTypeInfos.forEach(i=>{
+  //     i.executingTaskCount = data.filter(t=>t.robotType == i.robotType).reduce((acc, i)=>  acc += i.executingTaskCount , 0)
+  //     i.completedTaskCount = data.filter(t=>t.robotType == i.robotType).reduce((acc, i)=>  acc += i.completedTaskCount , 0)
+  //   })    
+  //   this.executingTaskCount = data.filter(t => !this.robotTypeFilter || t?.robotType == this.robotTypeFilter?.toUpperCase()).map(t => t.executingTaskCount).reduce((acc, i) => acc += i, 0)
+  //   this.totalTaskCount = data.filter(t => !this.robotTypeFilter || t?.robotType == this.robotTypeFilter?.toUpperCase()).map(t => t.executingTaskCount + t.completedTaskCount).reduce((acc, i) => acc += i, 0)
+  //   if (this.pixiElRef && this.pixiElRef.module.site.locationTree.currentLevel == 'site') {
+  //     this.refreshBuildingRobotCountTag((<any>data))
+  //   }
+  // }
 
-  async refreshRobotStatus(data: RobotStatus[] = null){
+  async refreshStats(data: RobotStatus[] = null){
+
     // if(!this.currentFloorPlan){
     //   return
     // }
@@ -551,12 +555,19 @@ export class ArcsDashboardComponent implements OnInit {
       i.robotType = robot?.robotType
       i.robotStatus = robot?.robotStatus
       i.floorPlanCode = robot?.floorPlanCode
+      i.executingTaskCount = robot?.executingTaskCount
+      i.waitingTaskCount = robot?.waitingTaskCount
+      i.completedTaskCount = robot?.completedTaskCount
       i.robotStatusCssClass =  robotStatusCssClassMap[robot?.robotStatus]
       i.alert = (robot.estopped ? [this.uiSrv.commonAlertMessages.estopped] :[]).concat(robot.obstacleDetected ? [this.uiSrv.commonAlertMessages.obstacleDetected] :[]).concat(robot.tiltDetected ? [this.uiSrv.commonAlertMessages.tiltDetected] :[]).join(" ,\n")
     })    
+    
 
     let alerted = (s : RobotStatus)=> s.obstacleDetected || s.estopped || s.tiltDetected
     this.robotTypeInfos.forEach(i => {
+      i.executingTaskCount = data.filter(t => t.robotType == i.robotType).reduce((acc, i) => acc += i.executingTaskCount, 0)
+      i.completedTaskCount = data.filter(t => t.robotType == i.robotType).reduce((acc, i) => acc += i.completedTaskCount, 0)
+      i.waitingTaskCount = data.filter(t => t.robotType == i.robotType).reduce((acc, i) => acc += i.waitingTaskCount, 0)
       i.idleCount = data.filter(s => !alerted(s) && s.robotType == i.robotType && s.robotStatus == 'IDLE').length
       i.processCount = data.filter(s => !alerted(s) && s.robotType == i.robotType && s.robotStatus == 'EXECUTING').length
       i.chargingCount = data.filter(s => !alerted(s) && s.robotType == i.robotType && s.robotStatus == 'CHARGING').length
@@ -564,6 +575,9 @@ export class ArcsDashboardComponent implements OnInit {
       i.reservedCount = data.filter(s => !alerted(s) && s.robotType == i.robotType && s.robotStatus == 'HOLD').length
       i.alertCount = data.filter(s => alerted(s) && s.robotType == i.robotType).length
     })    
+
+    this.executingTaskCount = data.filter(t => !this.robotTypeFilter || t?.robotType == this.robotTypeFilter?.toUpperCase()).map(t => t.executingTaskCount).reduce((acc, i) => acc += i, 0)
+    this.totalTaskCount = data.filter(t => !this.robotTypeFilter || t?.robotType == this.robotTypeFilter?.toUpperCase()).map(t => t.executingTaskCount + t.completedTaskCount).reduce((acc, i) => acc += i, 0)
     
     if( this.currentFloorPlan){
       for(let i = 0 ; i < data.length ; i ++){
@@ -605,8 +619,10 @@ export class ArcsDashboardComponent implements OnInit {
     this.activeRobotCount = data.filter(s=>s.robotStatus != 'UNKNOWN' && (!this.robotTypeFilter || s?.robotType == this.robotTypeFilter?.toUpperCase())).length
     this.totalRobotCount = data.filter(s=>!this.robotTypeFilter || s?.robotType == this.robotTypeFilter?.toUpperCase()).length
     if(this.pixiElRef &&  this.locationTree.currentLevel == 'site'){
-      this.refreshBuildingRobotCountTag(<any> data.filter(s=>s.robotStatus != 'UNKNOWN'))
+      this.refreshBuildingRobotCountTag()
     }
+    
+    console.log(  this.robotInfos)
   }
 
   showDialog(event){

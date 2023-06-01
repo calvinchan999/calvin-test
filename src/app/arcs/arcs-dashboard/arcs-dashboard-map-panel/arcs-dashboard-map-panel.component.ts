@@ -27,7 +27,7 @@ export class ArcsDashboardMapPanelComponent implements OnInit {
     if (obj instanceof PixiWayPoint || obj instanceof WaypointMarkerObject3D) {
       let pointCode = obj instanceof PixiWayPoint ? obj.code : obj.pointCode
       this.waypointState = await this.mapSrv.getWayPointState(this.floorPlanCode, pointCode)
-      this.waypointState =   this.waypointState ?  this.waypointState : {
+      this.waypointState =  this.waypointState ?  this.waypointState : {
         floorPlanCode : this.floorPlanCode,
         pointCode : pointCode,
         reserve : null ,

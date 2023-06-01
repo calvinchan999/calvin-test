@@ -13,7 +13,7 @@ import { AzurePubsubService } from './azure-pubsub.service';
 import { DatePipe } from '@angular/common'
 import { ConfigService } from './config.service';
 import { HttpEventType, HttpHeaders } from '@angular/common/http';
-import { RobotStateTypes, DropListBuilding, DropListFloorplan, DropListMap, DropListPointIcon, DropListRobot, JFloorPlan, JTask, RobotMaster, RobotStatusARCS, RobotTaskInfoARCS, SaveRecordResp, TaskItem, LiftState, TurnstileState, JFloorPlan3DSettings, WaypointState } from './data.models';
+import { RobotStateTypes, DropListBuilding, DropListFloorplan, DropListMap, DropListPointIcon, DropListRobot, JFloorPlan, JTask, RobotMaster, RobotStatusARCS, SaveRecordResp, TaskItem, LiftState, TurnstileState, JFloorPlan3DSettings, WaypointState } from './data.models';
 import { DataService } from './data.service';
 import { timeStamp } from 'console';
 import { stat } from 'fs';

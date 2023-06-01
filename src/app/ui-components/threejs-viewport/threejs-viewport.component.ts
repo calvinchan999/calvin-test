@@ -470,7 +470,7 @@ export class ThreejsViewportComponent implements OnInit , OnDestroy{
       await this.subscribeFloorPlanState()
       this.updateFloorPlanEventMarkers()
     }
-    this.parent?.refreshRobotStatus();
+    this.parent?.refreshStats();
     
     // TBR
     ['waypoint', 'waypointName', 'wall' , 'alert'].forEach(k => this.uiToggled(k))

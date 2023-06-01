@@ -55,3 +55,12 @@
     right: 0px;
     margin: 0 auto;
 }
+
+:host .ts-robot-id a{
+    color: inherit;
+    padding-left: 5px;
+}
+
+:host .ts-row{
+    padding: 1px 0px 1px 0px;
+}

@@ -409,14 +409,14 @@ import { BehaviorSubject } from "rxjs"
     remark: string
   }
   
-  export class RobotTaskInfoARCS{
-    robotType: string
-    floorPlanCode: string
-    executingTaskCount: number
-    completedTaskCount: number
-    waitingTaskCount: number
-    robotCode: string
-  }
+  // export class RobotTaskInfoARCS{
+  //   robotType: string
+  //   floorPlanCode: string
+  //   executingTaskCount: number
+  //   completedTaskCount: number
+  //   waitingTaskCount: number
+  //   robotCode: string
+  // }
   
   export class RobotStatusARCS {
     robotType: string
@@ -428,6 +428,9 @@ import { BehaviorSubject } from "rxjs"
     estopped : boolean
     cabinetDTO? : any
     ieqDTO ? : any
+    executingTaskCount: number
+    completedTaskCount: number
+    waitingTaskCount: number
   }
   
   // export class RobotDetailARCS{
