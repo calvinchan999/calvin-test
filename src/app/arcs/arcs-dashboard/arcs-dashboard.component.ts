@@ -394,7 +394,7 @@ export class ArcsDashboardComponent implements OnInit {
 
   async setFloorplanRobotCount(options :  { value: string, text: string, suffix: string }[]) {
     let ticket = this.uiSrv.loadAsyncBegin()
-    let robotInfo: RobotStatusARCS[] = await this.dataSrv.httpSrv.fmsRequest('GET', 'robot/v1/Info' + (this.robotTypeFilter ? `?robotType=${this.robotTypeFilter.toUpperCase()}` : ''), undefined, false)
+    let robotInfo: RobotStatusARCS[] = await this.dataSrv.httpSrv.fmsRequest('GET', 'robot/v1/info' + (this.robotTypeFilter ? `?robotType=${this.robotTypeFilter.toUpperCase()}` : ''), undefined, false)
     options.forEach((o) => {
       let count = robotInfo.filter(r => r.robotStatus != "UNKNOWN" &&  r.floorPlanCode == o.value).length
       o.suffix = count == 0 ? undefined : count.toString()
