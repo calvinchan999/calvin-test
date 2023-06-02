@@ -107,7 +107,7 @@ export class PixiToolTip extends PIXI.Graphics implements IDraw{
       this.stage?.addChild(this)
     }
 
-    if(mouseEvt != null || position != null || this.positionBinding != null ){
+    if( this.stage && (mouseEvt != null || position != null || this.positionBinding != null )){
       this.position = this.positionBinding ? this.positionBinding() : (position? this.stage.toLocal(position) : mouseEvt?.data?.getLocalPosition(this.stage))
       this.position.y += this.position.y < 40 ? 40 : (-40)
     }

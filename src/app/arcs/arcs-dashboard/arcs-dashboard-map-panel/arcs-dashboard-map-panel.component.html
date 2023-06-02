@@ -1,16 +1,19 @@
-<div *ngIf="panelType=='BOTTOM'" class="bottom-panel">
-
+<div *ngIf="bottomPanel" class="bottom-panel">
     <div class="waypoint-state-container" *ngIf="waypointState">
-        <div class="point-header">
+        <div class="header">
             <span [class]="waypointState.pointType == 'CHARGING_STATION' ?  'mdi mdi-battery-charging' : 'mdi mdi-map-marker-outline' ">  {{waypointState.pointCode}} </span>
             <!-- <span class="point-code"> {{waypointState.pointCode}} </span> -->
             <a class="close mdi mdi-close-circle" (click)="selectedMapObjChange(null)"></a>
         </div>
         <div class="bottom-content" >
-            <!-- <div class="reserve">
+            <div class="send-robot">         
+                <button kendoButton class="button" (click)="sendRobotClicked()" > {{'Send Robot' |  label: uiSrv.langPack}}</button>
+            </div>
+            
+            <div class="reserve">
                 <span *ngIf="waypointState.reserve">{{'Reserved By : ' |  label: uiSrv.langPack}} {{waypointState.reserve}}</span>
                 <button kendoButton class="button" *ngIf="!waypointState.reserve" > {{'Reserve' |  label: uiSrv.langPack}}</button>
-            </div> -->
+            </div>
             
             <div class="wait">
                 <span *ngIf="waypointState.wait.length == 0">{{'No Robots Waiting' |  label: uiSrv.langPack}} </span>
@@ -22,8 +25,37 @@
             </div>
         </div>
     </div>   
+
+    <div class="robot-state-container" *ngIf="robotState && parent.rightMapPanel?.panelMode != 'CREATE-TASK'">
+        <div class="header">
+            <span class="mdi mdi-robot">  {{robotState.robotCode}} </span>
+            <a class="close mdi mdi-close-circle" (click)="selectedMapObjChange(null)"></a>
+        </div>
+
+        <div class="bottom-content" >
+            <!-- <div class="robot-type" *ngIf="parent.iconMap[robotType] ">         
+                <span [class] ="  parent.iconMap[robotType]">  {{robotType}} </span>
+            </div> -->
+
+            <div class="create-task">         
+                <button kendoButton class="button" (click)="showNewTaskPanel = true ; " > {{'Create Task' |  label: uiSrv.langPack}}</button>
+            </div>
+            
+            <div class="details">
+                 <button kendoButton class="button" (click) = "parent.showRobotDetailDialog(robotState.robotCode)"> {{'Details' |  label: uiSrv.langPack}}</button>
+            </div>            
+        </div>
+    </div>   
 </div>
 
-<div *ngIf="panelType=='LEFT'" class="left-panel">
 
+<kendo-dialog *ngIf="showNewTaskDialog" class="new-task-dialog" [title]="('Send Robot To ' | label: uiSrv.langPack) + waypointState.pointCode" (close)="showNewTaskDialog = false" [minWidth]="250" [width]="450">
+    <app-arcs-dashboard-new-task [dashboardCompRef] = "parent" [singleMovementPointCode]="waypointState.pointCode" (close) = "showNewTaskDialog = false"></app-arcs-dashboard-new-task >
+</kendo-dialog>
+
+
+<div *ngIf="rightPanel" [class]="'right-panel ' + (panelMode | cssClassName)">
+    <div [class]="'task-container'" *ngIf="panelMode == 'CREATE-TASK'">
+        <app-arcs-dashboard-new-task #newTaskComp [dashboardCompRef] = "parent" [multiMovement]="true" [selectedRobotCode] = "robotState.robotCode" (close) = "showNewTaskPanel = false"></app-arcs-dashboard-new-task>
+    </div>
 </div>

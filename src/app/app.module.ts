@@ -239,6 +239,7 @@ import { ArcsRobotIotComponent } from './arcs/arcs-iot/arcs-robot-iot/arcs-robot
 import { CustomButtonComponent } from './ui-components/threejs-viewport/custom-button/custom-button.component';
 import { ArcsEventDetectionDetailComponent } from './arcs/arcs-dashboard/arcs-event-detection-detail/arcs-event-detection-detail.component';
 import { ArcsDashboardMapPanelComponent } from './arcs/arcs-dashboard/arcs-dashboard-map-panel/arcs-dashboard-map-panel.component';
+import { ArcsDashboardNewTaskComponent } from './arcs/arcs-dashboard/arcs-dashboard-new-task/arcs-dashboard-new-task.component';
 // import { WorkflowComponent } from './ui-components/workflow/workflow.component';
 // import { SequentialWorkflowDesignerModule } from 'sequential-workflow-designer-angular';
 
@@ -347,6 +348,7 @@ import { ArcsDashboardMapPanelComponent } from './arcs/arcs-dashboard/arcs-dashb
         CustomButtonComponent,
         ArcsEventDetectionDetailComponent,
         ArcsDashboardMapPanelComponent,
+        ArcsDashboardNewTaskComponent,
         // WorkflowComponent        
     ],
     imports: [

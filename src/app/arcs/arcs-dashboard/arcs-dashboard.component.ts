@@ -67,7 +67,7 @@ export class ArcsDashboardComponent implements OnInit {
   @ViewChild('table') tableRef : TableComponent
   @ViewChild('robotDetailComp') robotDetailCompRef : ArcsDashboardRobotDetailComponent
   @ViewChild('btmMapPanel') btmMapPanel : ArcsDashboardMapPanelComponent
-  @ViewChild('leftMapPanel') leftMapPanel : ArcsDashboardMapPanelComponent
+  @ViewChild('rightMapPanel') rightMapPanel : ArcsDashboardMapPanelComponent
   
   totalRobotCount
   activeRobotCount
@@ -244,30 +244,18 @@ export class ArcsDashboardComponent implements OnInit {
     this.selectedTab = 'dashboard'
     // this.mqSrv.subscribeMQTTs([ 'obstacleDetection' , 'tilt' , 'estop'])
 
-    this.mqSrv.data.arcsRobotStatusChange.pipe(skip(1),  filter(v=>v!=null), takeUntil(this.$onDestroy)).subscribe((c)=>{
-      if(this.selectedTab == 'dashboard' ){
-        this.refreshStats(c.filter(c=>!this.robotTypeFilter || c?.robotType == this.robotTypeFilter?.toUpperCase()))
+    this.mqSrv.data.arcsRobotStatusChange.pipe(skip(1), filter(v => v != null), takeUntil(this.$onDestroy)).subscribe((c) => {
+      if (this.selectedTab == 'dashboard') {
+        this.refreshStats(c.filter(c => !this.robotTypeFilter || c?.robotType == this.robotTypeFilter?.toUpperCase()))
       }
-      if(this.selectedTab == 'group'){
+      if (this.selectedTab == 'group') {
         this.tableRef?.retrieveData();
+      }
+      if (this.selectedTab == 'task' && this.tableRef) {
+        this.tableRef.retrieveData();
       }
     })
 
-    // this.mqSrv.data.arcsWarningChangedRobotCode.pipe(skip(1), takeUntil(this.$onDestroy)).subscribe((c)=>{
-    //   if(this.selectedTab == 'dashboard' &&  this.robotInfos.map(r=>r.robotCode).includes(c)){
-    //     this.refreshRobotStatus()
-    //   }
-    // })
-
-    // this.mqSrv.data.arcsTaskInfoChange.pipe(filter(v=>v!=null), takeUntil(this.$onDestroy)).subscribe((c)=>{
-    //   if(this.selectedTab == 'dashboard'){        
-    //     this.refreshTaskInfo(c.filter(c=>!this.robotTypeFilter || c?.robotType == this.robotTypeFilter?.toUpperCase()))
-    //   }
-    //   if(this.selectedTab == 'task' && this.tableRef){
-    //     this.tableRef.retrieveData();
-    //   }
-    // })
-    // this.loadingTicket = this.uiSrv.loadAsyncBegin()
   }
 
   ngOnDestroy(){
@@ -668,28 +656,6 @@ export class ArcsDashboardComponent implements OnInit {
       this.robotDetailCompRef = null
     })
   }
-  
-  // refreshRobotDetail(data : RobotStatus[] ){
-  //   data.forEach(s=>{
-  //     this.robotSrv.robotState(s.robotCode).status.next(s.robotStatus)
-  //     this.robotSrv.robotState(s.robotCode).estop.next(s.estopped)
-  //     this.robotSrv.robotState(s.robotCode).tiltActive.next(s.tiltDetected)
-  //     this.robotSrv.robotState(s.robotCode).obstacleDetected.next(s.obstacleDetected)
-  //     this.robotSrv.robotState(s.robotCode).batteryRounded.next(this.mqSrv.mqMaster.battery.robotState.batteryRounded({ robotId : s.robotCode , percentage: s.batteryPercentage }))
-  //     this.robotSrv.robotState(s.robotCode).destination.next(s.pointCode)
-  //     if(s.ieqDTO){
-  //       this.robotSrv.robotState(s.robotCode).topModule.patrol.updateAirQuality(s.ieqDTO , this.util.config.IEQ_LEVELS  , this.util.config.IEQ_STANDARD)
-  //     }
-  //     if(s.cabinetDTO){
-  //       this.robotSrv.robotState(s.robotCode).topModule.delivery.updateContainers(s.cabinetDTO)
-  //     }
-  //     if(s.trayRackDTO){
-  //       this.robotSrv.robotState(s.robotCode).topModule.delivery.updateContainers(s.trayRackDTO)
-  //     }
-  //     this.robotSrv.robotState(s.robotCode).topModule.patrol.updateAirQuality(s.ieqDTO , this.util.config.IEQ_LEVELS  , this.util.config.IEQ_STANDARD)
-  //   })
-  // }
-
 
   async loadData(evt = null) {
     this.tableRef?.retrieveData()

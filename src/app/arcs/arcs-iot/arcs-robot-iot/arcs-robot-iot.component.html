@@ -28,7 +28,7 @@
             </span>
         </div> 
 
-        <div *ngIf="robotState.status?.value != 'UNKNOWN' && robotState.destination?.value"  class="iot-row">         
+        <div *ngIf="robotState.status?.value != 'UNKNOWN' && robotState.status?.value != 'CHARGING'  && robotState.destination?.value"  class="iot-row">         
             <span class="loading-dots">
                 <i class="loading-dots--dot"></i>
                 <i class="loading-dots--dot"></i>

@@ -138,27 +138,33 @@
 
     <kendo-tilelayout-item class = "ts-map" [col]="3" [row]="1" [rowSpan] = "5" [colSpan] = "5">
         <div *ngIf="!use3DMap" class = "viewport-container" (wheel)="$event.preventDefault()">
-            <uc-drawing-board #pixi [arcsParent] = "me" [showRobot] = "true" [hideButton] = "{ all : true}" [readonly] = "true" (robotClicked)="showRobotDetailDialog($event?.id)" 
+            <uc-drawing-board #pixi [arcsParent] = "me" [showRobot] = "true" [hideButton] = "{ all : true}" [readonly] = "true" 
                                     [arcsRobotType] = "robotTypeFilter"  [(selectedFloorPlanCode)]="selectedFloorPlanCode" 
                                     [arcsRobotColors]="robotIconColorMap" [arcsLocationTree] = "locationTree"
                                     (onSiteSelected) = "btmMapPanel.selectedMapObjChange(null); loadSite()" 
+                                    (robotClicked)="btmMapPanel.selectedMapObjChange($event.robot) " 
                                     (selectedGraphicsChange) = "btmMapPanel.selectedMapObjChange($event)"
                                     (to3D)="btmMapPanel.selectedMapObjChange(null); dropdownOptions.floorplans = pixiElRef.module.data.dropdownOptions.floorplans ; locationTree = pixiElRef.module.site.locationTree ; use3DMap = true ;">
             </uc-drawing-board> 
+            <!-- showRobotDetailDialog($event?.id) -->
         </div>
         <div *ngIf="use3DMap" class="three-d-container">
-            <uc-3d-viewport #threeJs [parent] = "me" (robotClicked)="showRobotDetailDialog($event?.id)" [arcsRobotType] = "robotTypeFilter"
+            <uc-3d-viewport #threeJs [parent] = "me"  [arcsRobotType] = "robotTypeFilter"
                             (to2D)="btmMapPanel.selectedMapObjChange(null); use3DMap = false ; initPixi($event.floorPlanCode , $event.showSite )" 
                             (objClicked) = "btmMapPanel.selectedMapObjChange($event)"
                             [floorPlanOptions] = "dropdownOptions.floorplans" [robotColorMapping] = "robotIconColorMap"
                             [floorPlanDataset] = "currentFloorPlan" [locationTree] = "locationTree">
             </uc-3d-viewport>
+            <!-- (robotClicked)="showRobotDetailDialog($event?.id)" -->
         </div>
-        <app-arcs-dashboard-map-panel #btmMapPanel panelType="BOTTOM" class = "bottom-panel-overlay" [floorPlanCode] = "selectedFloorPlanCode"> </app-arcs-dashboard-map-panel>
-        <app-arcs-dashboard-map-panel #leftMapPanel panelType="LEFT" class = "left-panel-overlay" [floorPlanCode] = "selectedFloorPlanCode"> </app-arcs-dashboard-map-panel>
+        <app-arcs-dashboard-map-panel #btmMapPanel [bottomPanel]="true" class = "bottom-panel-overlay" [parent]="me" [floorPlanCode] = "selectedFloorPlanCode"> </app-arcs-dashboard-map-panel>
         <!-- loadFloorPlan(currentFloorPlan?.floorPlanCode) -->
+        <app-arcs-dashboard-map-panel #rightMapPanel [rightPanel]="true" class = "right-panel-overlay"  [parent]="me"  [floorPlanCode] = "selectedFloorPlanCode"> </app-arcs-dashboard-map-panel>
     </kendo-tilelayout-item>
+    
+ 
 </kendo-tilelayout>
+
 
 <div class="table-container"  *ngIf="selectedTab == 'schedule'  || selectedTab == 'task' || selectedTab == 'template' || selectedTab == 'group' || selectedTab == 'robot_detection'">
     <uc-table #table  [toolbarButtons] ="gridSettings[selectedTab]['buttons'] ? gridSettings[selectedTab]['buttons']  : tableButtons" [columnDefs] = "gridSettings[selectedTab]['columns']" [(data)]="data"    

@@ -1,0 +1,57 @@
+:host .task-list{
+    margin: -10px 10px 10px 10px;
+    border: 1px solid white;
+    height: calc(100% - 50px);
+    border-radius: 5px;
+
+    .task-list-header{
+        font-size: 14px;
+        padding: 5px 10px 5px 10px;
+    }
+}
+
+:host .header{ 
+    font-size: 17px;
+    padding: 5px 10px 10px 10px;
+    // display: flex;
+    // align-content: space-between;
+    .mdi{
+        margin: 3px;
+    }
+    .close{
+        position: absolute;
+        top: 0px;
+        right: 5px;
+    }
+}
+
+:host .point-list{
+    display: flex;
+    flex-direction: column;
+}
+
+:host ::ng-deep .cdk-drag-placeholder {
+    opacity: 0;
+}
+
+:host .point-button{
+    background: rgba(0,0,0,0.5);
+    width: 70%;
+    display: flex;
+    justify-content: space-between;
+}
+
+
+
+:host .font-20{
+    font-size: 20px;
+}
+
+:host .font-25{
+    font-size: 25px;
+}
+
+:host .point{
+    margin: 5px;
+    display: flex;
+}

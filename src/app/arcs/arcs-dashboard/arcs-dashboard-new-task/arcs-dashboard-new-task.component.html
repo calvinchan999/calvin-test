@@ -1,0 +1,31 @@
+<ng-container *ngIf="singleMovementPointCode" >
+    <uc-dropdown lab="Robot"  [options]= "dropdownOptions.robots" [(value)] = "selectedRobotCode" [allowClear]="false"></uc-dropdown>
+  
+    <div class="button-container">
+        <button kendoButton (click)="createSinglePointTask()" > {{'Go' | label : uiSrv.langPack}}</button>
+    </div>
+</ng-container>
+
+
+<ng-container *ngIf="multiMovement" >
+    <div class="header">
+        <span class="mdi mdi-robot">  {{selectedRobotCode}} </span>
+        <a class="close mdi mdi-close-circle" (click)="close.emit()"></a>
+    </div>
+    <div class="task-list">
+        <div class="task-list-header">
+            <span class="mdi mdi-clipboard">  {{ 'New Task' | label : uiSrv.langPack}} </span>
+        </div>
+        <div class="point-list" cdkDropList (cdkDropListDropped)="drop($event)">
+            <span class="point" *ngFor="let taskItem of taskItems ; let i = index;">
+                <span class="index">{{ i + 1 }}</span>
+                <button kendoButton class="point-button"  cdkDrag>
+                    <span class="mdi mdi-map-marker font-20"></span>
+                    <span>{{taskItem.movement?.pointCode}}</span>
+                    <span class="mdi mdi-chevron-down font-25"></span>
+                </button>
+            </span>
+        </div>
+    </div>
+</ng-container>
+

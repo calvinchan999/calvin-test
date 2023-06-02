@@ -941,7 +941,7 @@ export class Map2DViewportComponent implements OnInit , AfterViewInit , OnDestro
     this.ngZone.runOutsideAngular(async () => {
       ticket = this.uiSrv.loadAsyncBegin()
       this.reset()
-      this.robotBasesOptions = dataset.mapList.map(m=>{return {value : m.robotBase , text : m.robotBase}})
+      this.robotBasesOptions = dataset.mapList?.map(m=>{return {value : m.robotBase , text : m.robotBase}})
       await this.loadToMainContainer(dataset.base64Image, undefined, undefined, showFloorPlanName ? dataset.name : null , dataset.floorPlanCode)
       this.module.task.dijkstra = getDijkstraGraph(dataset.pathList)
       if (setCamera && dataset.viewX && dataset.viewY && dataset.viewZoom) {
@@ -1561,7 +1561,7 @@ export class RobotModule {
     }
     this.robots.push(ret)
     ret.pixiGraphics.events.click.pipe(takeUntil(ret.pixiGraphics.events.destroyed)).subscribe((evt) => {
-      this.viewport.ngZone.run(() => this.master.robotClicked.emit({ id: id, event: evt }))
+      this.viewport.ngZone.run(() => this.master.robotClicked.emit({ id: id, event: evt , robot : ret}))
     })
     ret.pixiGraphics.buttonMode = true
     ret.pixiGraphics.autoScaleEnabled = true
@@ -2530,7 +2530,7 @@ export class DataModule{
                                 this.dataSrv.getLocalStorage('lastLoadedFloorplanCode') : 
                                 this.dropdownOptions.floorplans[0].value
       // this.onFloorplanSelected_SA()
-      await this.master.loadDataset(this.selectedFloorPlanCode)
+      await this.master.loadDataset(await this.master.mapSrv.getFloorPlan(this.selectedFloorPlanCode))
       // this.loadFloorPlan(this.selectedFloorPlanCode)
     }
   }

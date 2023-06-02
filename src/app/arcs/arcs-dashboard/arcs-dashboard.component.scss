@@ -56,9 +56,18 @@
     margin: 0 auto;
 }
 
+:host .right-panel-overlay{
+    position: absolute;
+    right: 10px;
+    height: 60%;
+    top: 100px
+}
+
 :host .ts-robot-id a{
     color: inherit;
     padding-left: 5px;
+    width: fit-content;
+    top: 80px;
 }
 
 :host .ts-row{
