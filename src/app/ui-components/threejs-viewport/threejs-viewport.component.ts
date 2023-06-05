@@ -204,7 +204,7 @@ export class ThreejsViewportComponent implements OnInit , OnDestroy{
 
   toggleFullScreen(){
     const fullscreenCssClassName = 'full-screen-viewport'
-    this.fullScreen = !this.fullScreen
+    this.ngZone.run(()=> this.fullScreen = !this.fullScreen)
     let parentEl = this.elRef.nativeElement.parentElement
     if(this.fullScreen && !parentEl.className.includes(fullscreenCssClassName)){
       parentEl.className += ' ' + fullscreenCssClassName
@@ -1565,7 +1565,7 @@ export class RobotObject3D extends Object3DCommon{
     // this.master.robots = this.master.robots.filter(r=>r != this).concat(this)
     this.loader = new GLTFLoader();
     //
-    let ticket = this.robotCode ? this.master.uiSrv.loadAsyncBegin() : null
+    // let ticket = this.robotCode ? this.master.uiSrv.loadAsyncBegin() : null
     let setting : Import3DModelSettings = this.importSetting ;
     if(setting?.pointer){
       Object.keys(setting?.pointer).forEach(k=> this.pointerSetting[k] = setting?.pointer[k])
@@ -1610,9 +1610,9 @@ export class RobotObject3D extends Object3DCommon{
         let robotInfo = this.master.parent.robotInfos.filter(r=>r.robotCode == this.robotCode)[0]
         this.offline = !this.robotCode || robotInfo?.robotStatus == 'UNKNOWN'
         this.alert = robotInfo?.alert!= null && robotInfo.alert.length > 0 
-        if(ticket){
-          this.master.uiSrv.loadAsyncDone(ticket)
-        }
+        // if(ticket){
+        //   this.master.uiSrv.loadAsyncDone(ticket)
+        // }
         if(this.destroyed){
           this.destroy()
         }

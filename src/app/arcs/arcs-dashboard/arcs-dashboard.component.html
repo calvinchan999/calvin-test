@@ -157,9 +157,9 @@
             </uc-3d-viewport>
             <!-- (robotClicked)="showRobotDetailDialog($event?.id)" -->
         </div>
-        <app-arcs-dashboard-map-panel #btmMapPanel [bottomPanel]="true" class = "bottom-panel-overlay" [parent]="me" [floorPlanCode] = "selectedFloorPlanCode"> </app-arcs-dashboard-map-panel>
+        <app-arcs-dashboard-map-panel #btmMapPanel [bottomPanel]="true"  [class] = "'bottom-panel-overlay ' + (threeJsElRef?.fullScreen ? 'full-screen-panel' : '')" [parent]="me" [floorPlanCode] = "selectedFloorPlanCode"> </app-arcs-dashboard-map-panel>
         <!-- loadFloorPlan(currentFloorPlan?.floorPlanCode) -->
-        <app-arcs-dashboard-map-panel #rightMapPanel [rightPanel]="true" class = "right-panel-overlay"  [parent]="me"  [floorPlanCode] = "selectedFloorPlanCode"> </app-arcs-dashboard-map-panel>
+        <app-arcs-dashboard-map-panel #rightMapPanel [rightPanel]="true" [class] = "'right-panel-overlay ' + (threeJsElRef?.fullScreen ? 'full-screen-panel' : '')"  [parent]="me"  [floorPlanCode] = "selectedFloorPlanCode"> </app-arcs-dashboard-map-panel>
     </kendo-tilelayout-item>
     
  

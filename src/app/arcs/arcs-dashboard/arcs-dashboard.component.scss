@@ -73,3 +73,8 @@
 :host .ts-row{
     padding: 1px 0px 1px 0px;
 }
+
+:host .full-screen-panel{
+    position: fixed !important;
+    z-index: 9999999 !important;
+}

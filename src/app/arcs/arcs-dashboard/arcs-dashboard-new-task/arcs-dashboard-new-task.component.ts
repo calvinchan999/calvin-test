@@ -3,7 +3,7 @@ import { DialogRef } from '@progress/kendo-angular-dialog';
 import { ArcsDashboardComponent } from '../arcs-dashboard.component';
 import { UiService } from 'src/app/services/ui.service';
 import { DataService } from 'src/app/services/data.service';
-import { TaskItem } from 'src/app/services/data.models';
+import { ActionParameter, DropListAction, TaskItem } from 'src/app/services/data.models';
 import { CdkDragDrop, moveItemInArray } from '@angular/cdk/drag-drop';
 
 @Component({
@@ -14,16 +14,24 @@ import { CdkDragDrop, moveItemInArray } from '@angular/cdk/drag-drop';
 export class ArcsDashboardNewTaskComponent implements OnInit {
   @Input() dashboardCompRef: ArcsDashboardComponent
   @Input() singleMovementPointCode
-  @Input() dropdownOptions = { robots: [] }
+  @Input() dropdownOptions = { robots: [] , actions :[]}
   @Input() selectedRobotCode 
   @Output()  close = new EventEmitter()
   @Input() multiMovement 
   taskItems : TaskItem[] = []
+  dropdownData = {actions : []}
+
+  showActionIndex
+  selectedTaskItem : {taskItem : TaskItem , actionIndex : number , taskItemIndex : number , actionParams? : ActionParameter[] , actionItem? :  {alias : string , properties : object}}
   
   constructor(public uiSrv : UiService , public dataSrv : DataService) { }
 
   ngOnInit(): void {
-    this.refreshDropDown()
+    if(this.singleMovementPointCode){
+      this.refreshDropDown()
+    }else{
+      this.initDropDown()
+    }
   } 
 
   refreshDropDown() {
@@ -33,6 +41,13 @@ export class ArcsDashboardNewTaskComponent implements OnInit {
       this.uiSrv.showNotificationBar("No idle robot available on this floor plan", 'warning')
       this.close.emit(true)
     }
+  }
+
+  async initDropDown(){
+    //let dropListData = await this.dataSrv.getDropLists(<any>(['floorplans' , 'actions', 'locations'].concat(this.util.arcsApp ? ['sites','buildings'] : [])))
+    const dropData =  await this.dataSrv.getDropLists(<any>(['actions']))
+    this.dropdownData = <any>dropData.data
+    this.dropdownOptions = <any>dropData.option
   }
 
   async createSinglePointTask(){
@@ -84,8 +99,34 @@ export class ArcsDashboardNewTaskComponent implements OnInit {
   }
 
   drop(event: CdkDragDrop<string[]>) {
+    let showActionIndexItem = this.taskItems[this.showActionIndex]
     moveItemInArray(this.taskItems, event.previousIndex, event.currentIndex);
+    this.taskItems.forEach(t => {
+      if (t.movement?.pointCode == this.taskItems[this.taskItems.indexOf(t) - 1]?.movement.pointCode) {
+        this.taskItems[this.taskItems.indexOf(t) - 1].actionList = this.taskItems[this.taskItems.indexOf(t) - 1].actionList.concat(t.actionList)
+        this.taskItems = this.taskItems.filter(t2 => t2 != t)
+      }
+    })
+    this.showActionIndex = showActionIndexItem ? this.taskItems.indexOf(showActionIndexItem) : this.showActionIndex
   }
+
+  removeTaskItem(item: TaskItem) {
+    this.selectedTaskItem = this.selectedTaskItem?.taskItem == item ? null : this.selectedTaskItem
+    this.taskItems = this.taskItems.filter(t => t != item)
+  }
+
+  actionChanged(action){
+    this.selectedTaskItem.actionParams = (<DropListAction []>this.dropdownData.actions).filter((a)=>a.alias == action)[0]?.parameterList
+    this.selectedTaskItem.actionItem = this.selectedTaskItem.actionItem  ? this.selectedTaskItem.actionItem  : {alias : action , properties : {}}
+    this.selectedTaskItem.actionItem.properties = {}
+    this.selectedTaskItem.actionParams.forEach(param=>{
+      let defaultValue : any =  param.defaultValue;
+      defaultValue = param?.parameterType == 'NUMBER' ? Number(defaultValue):  defaultValue
+      defaultValue = param?.parameterType  == 'BOOLEAN' ? defaultValue == 'true' : defaultValue
+      this.selectedTaskItem.actionItem.properties[param.parameterCode] = defaultValue === undefined ? null : defaultValue
+    })
+  }
+
 
 
 }

@@ -1,17 +1,19 @@
 :host .task-list{
+    width: 240px;
     margin: -10px 10px 10px 10px;
     border: 1px solid white;
     height: calc(100% - 50px);
     border-radius: 5px;
 
     .task-list-header{
-        font-size: 14px;
+        font-size: 16px;
         padding: 5px 10px 5px 10px;
     }
 }
 
 :host .header{ 
-    font-size: 17px;
+    display: flex;
+    font-size: 18px;
     padding: 5px 10px 10px 10px;
     // display: flex;
     // align-content: space-between;
@@ -28,20 +30,49 @@
 :host .point-list{
     display: flex;
     flex-direction: column;
+    height: calc(100% - 35px);
+    overflow: auto;
 }
 
 :host ::ng-deep .cdk-drag-placeholder {
-    opacity: 0;
+    opacity: 0;  
+}
+
+::ng-deep .cdk-drag-preview {
+    .action-list{
+        display: none;
+    }
 }
 
 :host .point-button{
     background: rgba(0,0,0,0.5);
-    width: 70%;
-    display: flex;
-    justify-content: space-between;
+    width: 190px;
+    border-radius: 5px;
+    cursor: pointer;
+    .location{
+        display: flex;
+        justify-content: space-between;
+        height: 34px;
+        line-height: 34px;
+        width: 100%;
+        .point-name{
+            padding-left: 5px;
+        }
+    }
 }
 
+:host .point-button.selected {
+    background: darkturquoise !important;
+    color: white !important;
+    font-weight: 900;
+    a {
+        color: white !important
+    }
+}
 
+:host .font-16{
+    font-size: 16px;
+}
 
 :host .font-20{
     font-size: 20px;
@@ -54,4 +85,92 @@
 :host .point{
     margin: 5px;
     display: flex;
+    font-size: 14px;
+    .point-button{
+        height: fit-content;
+        display: block;
+    }
+}
+
+:host .hints{
+    font-size: 12px;
+    padding : 5px;
+}
+
+:host .index{   
+    box-sizing: initial;
+    border: 0.1em solid #fff;
+    color: #fff;
+    text-align: center;
+    border-radius: 50%;    
+    box-sizing: content-box;   
+    margin: 6px 10px 6px 2px;
+    display: block;
+    width: 1.4em;
+    height: 1.4em;
+    line-height: 1.4em;
+}
+
+:host .font-13{
+    font-size: 13px;
+}
+
+:host .index.selected{
+    background: darkturquoise;
+    font-weight: 900;
+    border-color: darkturquoise;
+}
+
+
+:host .action-list-button-container {
+    display: flex;
+    justify-content: space-between;
+    font-size: 13px;
+}
+
+:host .action-list {
+    width: 160px;
+    margin: 7px;
+}
+
+:host .action-item-dialog {
+    position: absolute;
+    right: 270px;
+    top: 70px;
+    min-width: 250px;
+    height: fit-content;
+    background: rgba(0, 0, 0, 0.7);
+    border-radius: 5px;
+}
+
+:host .action-header-name{
+    line-height: 32px;
+}
+
+:host .action-content{
+    padding: 0px 10px 10px 10px;
+}
+
+:host ::ng-deep .detail {
+    border: 1px rgb(200,200,200) solid;
+    border-radius: 5px;
+    margin-top: 10px;
+    label {
+        color:  rgb(230,230,230)!important;
+    }
+}
+
+:host .param-checkbox{
+    display: flex;
+}
+
+:host .param-enum {
+    padding : 3px 0px 3px 0px;
+    .radio-label{
+    margin: -2px 0px 0px 5px  
+}
+}
+
+:host .param-container{
+    margin: 10px;
 }

@@ -70,6 +70,7 @@ export class ArcsDashboardMapPanelComponent implements OnInit {
             navigationMode : "AUTONOMY"
           }
           this.parent.rightMapPanel.newTaskCompRef.taskItems.push(taskItem)
+          this.parent.rightMapPanel.newTaskCompRef.showActionIndex = this.parent.rightMapPanel.newTaskCompRef.taskItems.length - 1
         }
       }
       return
