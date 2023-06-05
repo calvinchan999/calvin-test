@@ -1,8 +1,9 @@
 var replace = require('replace-in-file');
 var app = process.argv[2];
-var isArcs = app.toUpperCase() == "ARCS" || app.toUpperCase() == "AZURE";
-var isAzure = app.toUpperCase() == "AZURE"
-app = app.toUpperCase() == "AZURE" ? "arcs" : app
+var isArcs = app.toUpperCase() == "ARCS" || app.toUpperCase() == "AZURE" || app.toUpperCase() == "QMH";
+var isAzure = app.toUpperCase() == "AZURE";
+const isOther = (app.toUpperCase() === 'ARCS' || app.toUpperCase() === 'AZURE') ? null : 'QMH';
+app = (app.toUpperCase() == "AZURE" || app.toUpperCase() == "QMH") ? "arcs" : app
 var date = new Date();
 const buildDateString = (new Date(date.getTime() - (date.getTimezoneOffset() * 60000))).toISOString().replace(/[^0-9]/g, "");
 const buildVersion = `${buildDateString.slice(0, 8)}-${buildDateString.slice(8, 12)}`
@@ -34,13 +35,23 @@ async function main() {
       }
     });
     try {
-      fs.copyFile(`src/assets/config/config_${isAzure ? 'azure' : (isArcs? 'arcs': 'sa')}.json`, 'src/assets/config/config.json', async (err) => {
-        if (err) {
-          console.log('Warning : Config File Not Replaced');
-          console.log(err)
-          throw err;
-        }
-      });
+      if(isOther){
+        fs.copyFile(`src/assets/config/config_${isOther}.json`, 'src/assets/config/config.json', async (err) => {
+          if (err) {
+            console.log('Warning : Config File Not Replaced');
+            console.log(err)
+            throw err;
+          }
+        });
+      }else {
+        fs.copyFile(`src/assets/config/config_${isAzure ? 'azure' : (isArcs? 'arcs': 'sa')}.json`, 'src/assets/config/config.json', async (err) => {
+          if (err) {
+            console.log('Warning : Config File Not Replaced');
+            console.log(err)
+            throw err;
+          }
+        });
+      }
     } catch { }
     fs.copyFile(`src/assets/base_${isArcs ? 'arcs' : 'sa'}.css`, 'src/assets/base.css', async (err) => {
       if (err) {
