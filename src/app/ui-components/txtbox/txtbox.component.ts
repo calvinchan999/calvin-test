@@ -47,7 +47,7 @@ export class TxtboxComponent implements OnInit , OnDestroy{
   @Input() width 
   @Input() detectChangeByUserOnly = true //added 20220902 to prevent programmatic valuechange emit 
   subscriptions = []
-  maxlength = null
+  @Input() maxlength = null
   errMsg = null
   
 

@@ -1297,6 +1297,7 @@ class Object3DCommon extends Object3D{
 
 export class WaypointMarkerObject3D extends Object3DCommon {
   // 95 37 159
+  custom2Dobj : Css2DObject3D
   readonly color = 0x60259f
   readonly transparentOpacity = 0.3
   pointCode : string
@@ -1358,7 +1359,36 @@ export class WaypointMarkerObject3D extends Object3DCommon {
   getToolTipPos(isMouseOver = false){
     return new Vector3(0, (isMouseOver ? 0.7 : -0.2) * (this.glbSettings.size * 20) * this.master.ROSmapScale, 0)
   }
+
+  appendCustom2DObject(x= 0 , y = 0 , z = 0){
+    this.custom2Dobj = new Css2DObject3D(this.master)
+    this.custom2Dobj.position.set(x , y , z)
+    this.add(this.custom2Dobj)
+  }
+
+  removeCustom2DObject(){
+    this.custom2Dobj?.hideToolTip()
+    this.remove(this.custom2Dobj)    
+    this.custom2Dobj = null
+  }
 }
+
+export class Css2DObject3D extends Object3DCommon{
+  toolTipCompRef : ComponentRef<CustomButtonComponent>
+  constructor(public master : ThreejsViewportComponent ){    
+    super(master)
+    this.initInfoToolTipEl()
+  }
+
+  initInfoToolTipEl() { 
+    this.toolTipSettings.style = {}
+    this.toolTipSettings.staticComp = true
+    this.toolTipCompRef = this.master.vcRef.createComponent(this.master.compResolver.resolveComponentFactory(CustomButtonComponent))
+    this.toolTipSettings.customEl = this.toolTipCompRef.instance.elRef.nativeElement 
+    this.toolTipAlwaysOn = true
+  } 
+}
+
 
 export class RobotObject3D extends Object3DCommon{
   robotSubType
@@ -2000,9 +2030,7 @@ class EventMarkerObject3D extends Object3DCommon{
     this.toolTipCompRef = this.master.vcRef.createComponent(this.master.compResolver.resolveComponentFactory(CustomButtonComponent))
     this.toolTipSettings.customEl = this.toolTipCompRef.instance.elRef.nativeElement 
     this.toolTipAlwaysOn = true
-  }
-  
-  
+  } 
 }
 
 

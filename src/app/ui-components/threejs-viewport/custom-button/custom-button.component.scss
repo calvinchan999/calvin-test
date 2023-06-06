@@ -10,3 +10,12 @@
     font-size : 28px  !important
 }
 
+:host .task-item-seq{
+    color: white;
+    background: #FF6358;
+    padding: 1px 5px;
+    border-radius: 20px;
+    font-size: 12px;
+    font-weight: 900;
+    border: 1px solid white;
+}

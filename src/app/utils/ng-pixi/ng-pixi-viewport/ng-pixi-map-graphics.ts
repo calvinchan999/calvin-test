@@ -658,7 +658,7 @@ export class PixiWayPoint extends PixiMapGraphics implements IDraw, IReColor {
     }
     this.refreshPixiText()
 
-    if (this.taskSeq.length == 0) {
+    if (this.taskSeq?.length == 0) {
       if (this.icon) {
         // console.log(this.icon.scale.x)
         this.iconContainer?.parent?.removeChild(this.iconContainer)
@@ -738,7 +738,7 @@ export class PixiWayPoint extends PixiMapGraphics implements IDraw, IReColor {
     if (this.taskItemSeqLabel) {
       this.removeChild(this.taskItemSeqLabel)
     }
-    if (this.taskSeq.length > 0) {
+    if (this.taskSeq?.length > 0) {
       this.taskItemSeqLabel = new PixiTaskSeqMarker()
       this.taskItemSeqLabel.isHollow = hollow
       this.addChild(this.taskItemSeqLabel)

@@ -12,72 +12,104 @@
         <span class="mdi mdi-robot">  {{selectedRobotCode}} </span>
         <a class="close mdi mdi-close-circle" (click)="close.emit()"></a>
     </div>
+    <div class="task-list-header">
+        <!-- <span class="mdi mdi-clipboard"></span> -->
+        <uc-txtbox [(value)] = "taskName" [maxlength] = "50" [prefixButton] = "{icon: 'mdi mdi-clipboard'}" ></uc-txtbox>
+    </div>
     <div class="task-list">
-        <div class="task-list-header">
-            <span class="mdi mdi-clipboard">  {{ 'New Task' | label : uiSrv.langPack}} </span>
-        </div>
         <span class="hints" *ngIf="taskItems.length == 0"> {{'(Please click the waypoints on the map)' | label : uiSrv.langPack }}</span>
         <div class="point-list" cdkDropList (cdkDropListDropped)="drop($event)">
             <span class="point" *ngFor="let taskItem of taskItems ; let i = index;">
-                <span [class]="'index ' + (selectedTaskItem?.taskItem == taskItem ? 'selected':'') ">{{ i + 1 }}</span>
-                <div  [class]="'point-button ' + (selectedTaskItem?.taskItem == taskItem ? 'selected':'')" cdkDrag (cdkDragStarted) = "showActionIndex = showActionIndex ==  i ? null : showActionIndex"  >
-                    <div class="location"  (click)="showActionIndex = showActionIndex == i ? null : i ;">
+                <span [class]="'index ' + (showActionIndex == i ? 'selected':'') ">{{ i + 1 }}</span>
+                <div  [class]="'point-button ' + (showActionIndex == i? 'selected':'')" cdkDrag (cdkDragStarted) = "showActionIndex = showActionIndex ==  i ? null : showActionIndex"  [cdkDragPreviewClass] = "'task-item-drag-preview'">
+                    <div class="location"  
+                        (click)="showActionIndex = showActionIndex == i ? null : i ; 
+                                 selectedAction = selectedAction?.taskItem != taskItem || showActionIndex != i ? null : selectedAction;
+                                 refreshDropDown();"
+                    >
                         <span></span>
-                        <span class="mdi mdi-map-marker font-16"> 
-                            <span class="point-name">{{taskItem.movement?.pointCode}}</span>
+                        <span class="point-name mdi mdi-map-marker font-16"> 
+                            <span class="point-text">{{taskItem.movement?.pointCode}}</span>
                         </span>
                         <span [class]="showActionIndex == i  ?  'mdi mdi-chevron-up font-25' : 'mdi mdi-chevron-down font-25' " >
                         </span>
                     </div>
         
                     <div class="action-list" *ngIf="showActionIndex == i">
-                        <div *ngFor="let action of taskItem.actionList;  let j = index;">
-                            <span>{{action.alias | dropdownDesc : dropdownOptions.actions}} </span>
-                        </div>
-                        <div class="action-list-button-container">
-                            <a [style.visibility]="selectedTaskItem?.taskItem == taskItem && selectedTaskItem.actionIndex == selectedTaskItem.taskItem.actionList.length ? 'hidden' : ''">
-                                <span class="mdi mdi-plus" (click)=" taskItem.actionList[taskItem.actionList.length] = {alias : 'NIL' , properties : {}} ; selectedTaskItem = {actionIndex : taskItem.actionList.length - 1, taskItemIndex : i + 1 , taskItem : taskItem , actionItem : taskItem.actionList[taskItem.actionList.length - 1]}">{{'New Action'}}</span>
-                            </a>
-                            <a>
-                                <span class="mdi mdi-close" (click)="removeTaskItem(taskItem)">{{'Remove'}}</span>
-                            </a>
-                        </div>                      
+                        <ul>
+                            <li *ngFor="let action of taskItem.actionList;  let j = index;" [class]="selectedAction?.taskItem == taskItem && selectedAction?.actionIndex == j ? 'selected' :''">
+                                <a  [class]="selectedAction?.taskItem == taskItem && selectedAction?.actionIndex == j ? 'selected' :''"
+                                     (click) = "selectedAction = {taskItem : taskItem ,  actionIndex : j , taskItemIndex : i ,  actionItem : taskItem.actionList[j] } ;
+                                                refreshDropDown();
+                                                actionAliasChanged(selectedAction.actionItem.alias); ">
+                                     {{ (action.alias | dropdownDesc : dropdownOptions.actions )  === false ? '' :  (action.alias | dropdownDesc : dropdownOptions.actions ) }}
+                                </a>
+                            </li>
+                        </ul>                     
                     </div>
+
+                    <div class="action-list-button-container" *ngIf="showActionIndex == i">
+                        <a [style.visibility]="selectedAction?.taskItem == taskItem && selectedAction.actionIndex == selectedAction.taskItem.actionList.length ? 'hidden' : ''">
+                            <span class="mdi mdi-plus" 
+                                    (click)=" taskItem.actionList[taskItem.actionList.length] = {alias : 'NIL' , properties : {}} ; 
+                                             selectedAction = {actionIndex : taskItem.actionList.length - 1, taskItemIndex : i  , taskItem : taskItem , actionItem : taskItem.actionList[taskItem.actionList.length - 1]} ; 
+                                             refreshDropDown();
+                                             actionAliasChanged(selectedAction.actionItem.alias) ;">
+                                    {{'New Action' | label : uiSrv.langPack}}
+                            </span>
+                        </a>
+                        <a>
+                            <span class="mdi mdi-close" (click)="removeTaskItem(taskItem)">{{'Remove'}}</span>
+                        </a>
+                    </div> 
                 </div>
             </span>
         </div>
     </div>
+    <div class="task-button-container">
+        <button kendoButton (click)="createStandardTask()">
+            <span class="mdi mdi-check-circle-outline" ></span>
+            <span>{{'Execute' | label : uiSrv.langPack }}</span>
+        </button>
+    </div>
 </ng-container>
 
-<div class="action-item-dialog" *ngIf="selectedTaskItem">
+<div class="action-item-dialog" *ngIf="selectedAction">
     <div class="header">
-        <span class="index font-13 selected" >{{selectedTaskItem.taskItemIndex }}</span>
+        <span class="index font-13 selected" >{{selectedAction.taskItemIndex + 1}}</span>  
         <span class="mdi mdi-map-marker font-20"></span>
-        <span class="action-header-name">{{selectedTaskItem.taskItem.movement.pointCode }}</span>
-        <a class="close mdi mdi-close-circle" (click) = "selectedTaskItem = null"></a>
+        <span class="action-header-name">{{selectedAction.taskItem.movement.pointCode }}</span>
+        <a class="close mdi mdi-close-circle" (click) = "selectedAction = null"></a>
     </div>
     <div class="action-content">
-        <span>  {{ 'Action ' | label : uiSrv.langPack}} {{selectedTaskItem.actionIndex + 1}} : </span>
-        <uc-dropdown  [options]= "dropdownOptions.actions" [(value)] = "selectedTaskItem.taskItem.actionList[selectedTaskItem.actionIndex].alias" (valueChange) = "actionChanged($event)"  [allowClear]="false"></uc-dropdown>
-        <div class="detail" *ngIf="selectedTaskItem.actionParams?.length > 0">
-            <div *ngFor="let param of selectedTaskItem.actionParams ?  selectedTaskItem.actionParams  : []" class="param-container">
+        <span class="action-number">  {{ 'Action ' | label : uiSrv.langPack}} {{selectedAction.actionIndex + 1}} : </span>
+        <uc-dropdown  [options]= "dropdownOptions.actions" [(value)] = "selectedAction.actionItem.alias" (valueChange) = " selectedAction.actionItem.alias = $event ;selectedAction.actionItem.properties = {} ; actionAliasChanged($event)"  [allowClear]="false"></uc-dropdown>
+        <div class="detail" *ngIf="selectedAction.actionParams?.length > 0">
+            <div *ngFor="let param of selectedAction.actionParams ?  selectedAction.actionParams  : []" class="param-container">
                 <ng-container *ngIf=" param.enumList.length > 0" >
                     <div *ngFor="let enum of param.enumList"  class="param-enum">
-                        <input class="radio-button" type="radio" [value]="enum.value" [(ngModel)]="selectedTaskItem.actionItem.properties[param.parameterCode]"  kendoRadioButton />
+                        <input class="radio-button" type="radio" [value]="enum.value" [(ngModel)]="selectedAction.actionItem.properties[param.parameterCode]"  kendoRadioButton />
                         <label class="radio-label">{{enum.label | label: uiSrv.langPack}}</label>
                     </div>  
                 </ng-container> 
                 <uc-txtbox *ngIf="(param.parameterType == 'STRING' || param.parameterType  == 'NUMBER') && param.enumList.length == 0"
-                     [lab]="param.name"
+                     [lab]="param.name" 
+                     [numMin] = "param.parameterType == 'NUMBER' &&  param.min != null ? param.min  : undefined " 
+                     [numMax] = "param.parameterType == 'NUMBER' && param.max != null ? param.max  : undefined "
                     [numeric] = "param.parameterType == 'NUMBER'"                                        
-                    [(value)]="selectedTaskItem.actionItem.properties[param.parameterCode]">
+                    [(value)]="selectedAction.actionItem.properties[param.parameterCode]">
                 </uc-txtbox>
                 <span *ngIf="param.parameterType == 'BOOLEAN' && param.enumList.length == 0" class="param-checkbox">
                     <label class="col-form-label">{{param.name | label: uiSrv.langPack }}</label>
-                    <input type="checkbox" kendoCheckBox  [(ngModel)]="selectedTaskItem.actionItem.properties[param.parameterCode]" />
+                    <input type="checkbox" kendoCheckBox  [(ngModel)]="selectedAction.actionItem.properties[param.parameterCode]" />
                 </span>       
             </div>              
         </div>
+    </div>
+    <div class="action-button-container">
+        <button kendoButton>
+            <span class="mdi mdi-close" (click)="removeSelectedAction()">{{'Remove'}}</span>
+        </button>
     </div>
 </div> 
 

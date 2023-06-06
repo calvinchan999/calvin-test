@@ -59,19 +59,7 @@ export class ArcsDashboardMapPanelComponent implements OnInit {
     if(this.isCreatingTask){
       if (obj instanceof PixiWayPoint || obj instanceof WaypointMarkerObject3D) {
         const pointCode = obj instanceof PixiWayPoint ? obj.code : obj.pointCode
-        if(this.taskComp.taskItems[this.taskComp.taskItems.length - 1 ]?.movement?.pointCode != pointCode){
-          const taskItem = new TaskItem()
-          taskItem.actionList = []
-          taskItem.movement = {
-            floorPlanCode: this.parent.selectedFloorPlanCode,
-            pointCode: pointCode,
-            fineTuneIgnored: true,
-            orientationIgnored: true,
-            navigationMode : "AUTONOMY"
-          }
-          this.parent.rightMapPanel.newTaskCompRef.taskItems.push(taskItem)
-          this.parent.rightMapPanel.newTaskCompRef.showActionIndex = this.parent.rightMapPanel.newTaskCompRef.taskItems.length - 1
-        }
+        this.taskComp.addTaskItem(pointCode)
       }
       return
     }

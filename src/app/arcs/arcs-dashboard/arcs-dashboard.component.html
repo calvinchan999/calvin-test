@@ -144,13 +144,13 @@
                                     (onSiteSelected) = "btmMapPanel.selectedMapObjChange(null); loadSite()" 
                                     (robotClicked)="btmMapPanel.selectedMapObjChange($event.robot) " 
                                     (selectedGraphicsChange) = "btmMapPanel.selectedMapObjChange($event)"
-                                    (to3D)="btmMapPanel.selectedMapObjChange(null); dropdownOptions.floorplans = pixiElRef.module.data.dropdownOptions.floorplans ; locationTree = pixiElRef.module.site.locationTree ; use3DMap = true ;">
+                                    (to3D)="btmMapPanel.selectedMapObjChange(null); dropdownOptions.floorplans = pixiElRef.module.data.dropdownOptions.floorplans ; locationTree = pixiElRef.module.site.locationTree ; use3DMap = true ; rightMapPanel?.taskComp?.refreshMapPoints()">
             </uc-drawing-board> 
             <!-- showRobotDetailDialog($event?.id) -->
         </div>
         <div *ngIf="use3DMap" class="three-d-container">
             <uc-3d-viewport #threeJs [parent] = "me"  [arcsRobotType] = "robotTypeFilter"
-                            (to2D)="btmMapPanel.selectedMapObjChange(null); use3DMap = false ; initPixi($event.floorPlanCode , $event.showSite )" 
+                            (to2D)="btmMapPanel.selectedMapObjChange(null); use3DMap = false ; initPixi($event.floorPlanCode , $event.showSite ) ; rightMapPanel?.taskComp?.refreshMapPoints()" 
                             (objClicked) = "btmMapPanel.selectedMapObjChange($event)"
                             [floorPlanOptions] = "dropdownOptions.floorplans" [robotColorMapping] = "robotIconColorMap"
                             [floorPlanDataset] = "currentFloorPlan" [locationTree] = "locationTree">

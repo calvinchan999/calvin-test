@@ -1,20 +1,24 @@
 :host .task-list{
-    width: 240px;
-    margin: -10px 10px 10px 10px;
+    min-width: 240px;
+    width: fit-content;
+    margin: 10px ;
     border: 1px solid white;
-    height: calc(100% - 50px);
+    height: calc(100% - 130px);
     border-radius: 5px;
 
-    .task-list-header{
-        font-size: 16px;
-        padding: 5px 10px 5px 10px;
-    }
+  
+}
+
+:host .task-list-header{
+    margin: 0px 10px;
 }
 
 :host .header{ 
+    min-width: calc(100% - 40px);
     display: flex;
-    font-size: 18px;
-    padding: 5px 10px 10px 10px;
+    width: fit-content;
+    font-size: 17px;
+    padding: 5px 10px 0px 10px;
     // display: flex;
     // align-content: space-between;
     .mdi{
@@ -38,33 +42,69 @@
     opacity: 0;  
 }
 
-::ng-deep .cdk-drag-preview {
-    .action-list{
+::ng-deep .task-item-drag-preview {
+    width: fit-content;
+    padding: 10px;
+    border: 1px solid darkturquoise;
+    border-radius: 5px;
+    background: rgba(0,0,0,0.7);
+    max-height: 25px;
+    .point-text{
+        margin-left: 10px;
+    }
+    .mdi {
+        text-align: center;
+    }
+    .action-list-button-container , .action-list, .mdi-chevron-down , .mdi-chevron-up{
         display: none;
     }
 }
 
 :host .point-button{
     background: rgba(0,0,0,0.5);
-    width: 190px;
+    min-width: 190px;
+    width: fit-content;
     border-radius: 5px;
     cursor: pointer;
     .location{
+        min-width: 100%;
+        width: fit-content;
         display: flex;
         justify-content: space-between;
         height: 34px;
         line-height: 34px;
-        width: 100%;
         .point-name{
+            min-width: 150px;
+            text-align: center;
+        }
+        .point-text{
+            display: inline-block;
             padding-left: 5px;
+        }
+    }
+    ul {
+        margin: 0;
+        max-width: 150px;
+        width: calc(100% - 40px);
+        li{
+            margin:3px 0px;
         }
     }
 }
 
+
 :host .point-button.selected {
-    background: darkturquoise !important;
+    .location{
+        color: darkturquoise;
+    }
     color: white !important;
-    font-weight: 900;
+    border: 1px darkturquoise solid;
+    a.selected  {
+        text-decoration: underline;
+    }
+    a.selected  ,li.selected{
+        color: darkturquoise !important;
+    }
     a {
         color: white !important
     }
@@ -126,14 +166,17 @@
     display: flex;
     justify-content: space-between;
     font-size: 13px;
+    margin: 10px;
 }
 
-:host .action-list {
-    width: 160px;
-    margin: 7px;
-}
+// :host .action-list {
+
+// }
 
 :host .action-item-dialog {
+    .header{
+        color: darkturquoise;
+    }
     position: absolute;
     right: 270px;
     top: 70px;
@@ -149,6 +192,9 @@
 
 :host .action-content{
     padding: 0px 10px 10px 10px;
+    .action-number{
+        padding: 5px;
+    }
 }
 
 :host ::ng-deep .detail {
@@ -173,4 +219,28 @@
 
 :host .param-container{
     margin: 10px;
+}
+
+:host .flex-between{
+    display: flex;
+    justify-content: space-between;
+}
+
+:host .action-button-container{
+    display: flex;
+    justify-content: flex-end;
+    padding: 10px;
+    button{
+        font-size: 14px;
+        height: 28px;
+    }
+}
+
+:host .task-button-container{
+    display: flex;
+    justify-content: flex-end;
+    padding: 0px 10px 0px 10px;
+    .mdi{
+        padding: 0px 3px 0px 0px;
+    }
 }
