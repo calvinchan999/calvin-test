@@ -3,9 +3,9 @@ name: CI
 on:
   push:
     tags:
-      - "v*"
+      - "*-urgent"
   pull_request:
-    branches: [master]
+    branches: [urgent]
 
 jobs:
   build:
