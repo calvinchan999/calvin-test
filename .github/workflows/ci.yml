@@ -5,7 +5,7 @@ on:
     tags:
       - "*-urgent"
   pull_request:
-    branches: [urgent]
+    branches: [master]
 
 jobs:
   build:
