@@ -3,14 +3,14 @@
 	"CLIENT_ID":"11B7ED76-B978-411B-8ECB-36B21220DE3E",
 	"DEBUG_SIGNALR":false,
 	"DEBUG_SIGNALR_TYPE": "",
-	"SIGNALR_URLx":"https://localhost:5001/signalR",
+	"SIGNALR_URL":"https://rv-dev.eastasia.cloudapp.azure.com/signalR",
 	"SIGNALR_PORT":"5001",
 	"SIGNALR_ENDPOINT" : "signalR",
 	"PROTOCOL"    : "https",
+	"SERVER_URL": "rv-arcs-api-qmh.azurewebsites.net", 
 	"PORT_NO"     : "",
 	"APPLICATION_RV" : "/api",
-	"APPLICATION" : "/arcs_dotnet_api_dev",
-
+	"APPLICATION" : "",
 	"API_KEY"     : "f05914ea33124ba7a6cab301627c8adf",
 	"PAGE_SIZE"   : 10,
 	"PAGE_CONFIG" : {
