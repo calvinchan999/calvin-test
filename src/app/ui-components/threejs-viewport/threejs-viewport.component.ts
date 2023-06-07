@@ -475,6 +475,9 @@ export class ThreejsViewportComponent implements OnInit , OnDestroy{
     // TBR
     ['waypoint', 'waypointName', 'wall' , 'alert'].forEach(k => this.uiToggled(k))
     await this.load3DFloorPlanFromAzureStorage(floorplan.floorPlanCode)    
+    if(this.parent?.rightMapPanel?.taskComp){
+      this.parent.rightMapPanel.taskComp.refreshMapPoints()
+    }
   }
 
   onObjProgress = ( xhr )=>{

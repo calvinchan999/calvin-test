@@ -42,7 +42,7 @@ type robotTypeInfo = { //A group can be an individual robot (when filtered by ro
   alertCount?: number | null
 } 
 
-type robotInfo = { //A group can be an individual robot (when filtered by robot type) OR robot type (no filter applied) 
+export type RobotInfo = { //A group can be an individual robot (when filtered by robot type) OR robot type (no filter applied) 
   robotType : string
   floorPlanCode : string
   robotCode: string
@@ -75,7 +75,7 @@ export class ArcsDashboardComponent implements OnInit {
   executingTaskCount
 
 
-  robotInfos: robotInfo[] = []
+  robotInfos: RobotInfo[] = []
   robotTypeInfos: robotTypeInfo[] = []
 
   scrollToBottom = ()=> this.mainContainer.nativeElement.scrollTop = this.mainContainer.nativeElement.scrollHeight
@@ -418,6 +418,11 @@ export class ArcsDashboardComponent implements OnInit {
       this.uiSrv.loadAsyncDone(ticket)
       return 
     }
+    if(code != this.selectedFloorPlanCode){
+      this.rightMapPanel.panelMode = null
+      this.btmMapPanel.waypointState = null
+      this.btmMapPanel.robotState = null
+    }
     if (this.currentFloorPlan?.floorPlanCode) {
       // this.mqSrv.unsubscribeMQTT('arcsTaskInfoChange', false , this.currentFloorPlan?.floorPlanCode)
       this.mqSrv.unsubscribeMQTT('arcsRobotStatusChange', false , this.currentFloorPlan?.floorPlanCode)
@@ -438,7 +443,9 @@ export class ArcsDashboardComponent implements OnInit {
       this.threeJsElRef.floorPlanDataset = floorplan
       this.threeJsElRef.loadFloorPlan(floorplan)
     }    
-    
+    if(this.rightMapPanel?.taskComp){
+      this.rightMapPanel.taskComp.refreshMapPoints()
+    }
    
     this.floorPlanFilter = floorplan.floorPlanCode
     // await this.refreshTaskInfo()
@@ -447,6 +454,7 @@ export class ArcsDashboardComponent implements OnInit {
     this.mqSrv.subscribeMQTT('arcsRobotStatusChange' ,  floorplan.floorPlanCode )
     // this.tabs = (floorplan.mapList.length == 0 ? [] : [{ id: '3dMap', label: '3D Map', authorized: false }]).concat(<any>this.getTabs())
     this.uiSrv.loadAsyncDone(ticket)
+    
   }
 
   

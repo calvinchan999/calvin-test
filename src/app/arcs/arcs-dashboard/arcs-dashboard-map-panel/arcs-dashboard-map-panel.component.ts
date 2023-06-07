@@ -1,4 +1,4 @@
-import { Component, Input, OnInit, ViewChild } from '@angular/core';
+import { Component, Input, OnDestroy, OnInit, ViewChild } from '@angular/core';
 import { DialogRef } from '@progress/kendo-angular-dialog';
 import { TaskItem, WaypointState } from 'src/app/services/data.models';
 import { MapService } from 'src/app/services/map.service';
@@ -6,9 +6,11 @@ import { UiService } from 'src/app/services/ui.service';
 import { RobotObject3D, WaypointMarkerObject3D } from 'src/app/ui-components/threejs-viewport/threejs-viewport.component';
 import { PixiRobotMarker, PixiWayPoint } from 'src/app/utils/ng-pixi/ng-pixi-viewport/ng-pixi-map-graphics';
 import { ArcsDashboardNewTaskComponent } from '../arcs-dashboard-new-task/arcs-dashboard-new-task.component';
-import { ArcsDashboardComponent } from '../arcs-dashboard.component';
+import { ArcsDashboardComponent, RobotInfo } from '../arcs-dashboard.component';
 import { Robot } from 'src/app/ui-components/map-2d-viewport/map-2d-viewport.component';
 import { RobotService, RobotState } from 'src/app/services/robot.service';
+import { filter, skip, takeUntil } from 'rxjs/operators';
+import { Subject } from 'rxjs';
 
 
 @Component({
@@ -16,7 +18,7 @@ import { RobotService, RobotState } from 'src/app/services/robot.service';
   templateUrl: './arcs-dashboard-map-panel.component.html',
   styleUrls: ['./arcs-dashboard-map-panel.component.scss']
 })
-export class ArcsDashboardMapPanelComponent implements OnInit {
+export class ArcsDashboardMapPanelComponent implements OnInit , OnDestroy {
   @Input() waypointState : WaypointState 
   @Input() robotState : RobotState
   @Input() floorPlanCode : string
@@ -47,12 +49,17 @@ export class ArcsDashboardMapPanelComponent implements OnInit {
   
   @Input() bottomPanel = false
   @Input() rightPanel = false
-
+  $onDestroy = new Subject()
+  robotInfo : RobotInfo
   constructor(public mapSrv : MapService , public uiSrv : UiService , public robotSrv : RobotService) { 
 
   }
 
   ngOnInit(): void {
+  }
+
+  ngOnDestroy(): void {
+    this.$onDestroy.next()
   }
 
   async selectedMapObjChange(obj) {
@@ -88,6 +95,7 @@ export class ArcsDashboardMapPanelComponent implements OnInit {
     const robotCode = obj instanceof Robot  ? obj.id : obj.robotCode
     this.robotType = this.parent.robotInfos.filter(r=>r.robotCode == robotCode)[0]?.robotType
     this.robotState = this.robotSrv.robotState(robotCode)
+    this.robotInfo = this.parent.robotInfos.filter(r=>r.robotCode == this.robotState?.robotCode)[0]
   }
 
   sendRobotClicked(){

@@ -45,9 +45,10 @@
                  <button kendoButton class="button" (click) = "parent.showRobotDetailDialog(robotState.robotCode)"> {{'Details' |  label: uiSrv.langPack}}</button>
             </div>            
 
-            <!-- <div class="task-count">
-                <span></span>
-            </div> -->
+            <div class="task-count" *ngIf="robotInfo">
+                <span *ngIf="robotInfo.waitingTaskCount == 0">{{'No Pending Task' | label: uiSrv.langPack}}</span>
+                <span *ngIf="robotInfo.waitingTaskCount > 0">{{robotInfo.waitingTaskCount }} {{' Pending Task' | label: uiSrv.langPack}}</span>
+            </div>
         </div>
     </div>   
 </div>

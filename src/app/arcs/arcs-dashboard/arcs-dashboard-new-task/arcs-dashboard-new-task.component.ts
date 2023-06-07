@@ -164,6 +164,7 @@ export class ArcsDashboardNewTaskComponent implements OnInit , OnDestroy {
         let text = this.taskItems.filter(t=>t.movement?.pointCode == point.waypointName).map(t=> (this.taskItems.indexOf(t) + 1).toString()).join(" , ")
         point.setTaskItemSeq(text)
       })
+      this.dashboardCompRef.pixiElRef.viewport.selectedGraphics = null
     }
   }
 
