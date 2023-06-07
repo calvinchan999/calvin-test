@@ -262,5 +262,5 @@
 			}
 		}
 	},
-	"CAMERA_STREAM_URL":"wss://calvinchan999.eastasia.cloudapp.azure.com/"
+	"CAMERA_STREAM_URL":"wss:///qmh-rg-openresty-container-app.azurewebsites.net/"
 }
