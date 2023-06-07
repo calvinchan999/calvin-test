@@ -1082,25 +1082,31 @@ class Object3DCommon extends Object3D{
   onClick = new Subject()
   defaultOpacity = 1
   _color: number
-  toolTipSettings: { customEl?: HTMLElement, position?: any, style?: any , staticComp? : boolean} = {
+  toolTipSettings: { customEl?: HTMLElement, position?: any, style?: any , staticComp? : boolean , cssClass ? : string} = {
     customEl: null,
     staticComp : false,
     position: new Vector3(0, 0, 0),
+    cssClass  : 'label-3js',
     style: {
       padding: '8px',
       borderRadius: '5px',
       lineHeight: '0px',
       fontSize: '10px',
-      background: 'rgba( 0, 0, 0, 0.45)',
       whiteSpace: 'pre',
+      background : 'rgba(0 , 0 , 0 , 0.45)'
     }
   }
 
   set toolTipText(v){
-    this.toolTip.element.textContent = v
+    if(this.toolTip.element.firstChild == null ){
+      const span = document.createElement('span')
+      span.className = 'content'
+      this.toolTip.element.appendChild(span)
+    }
+    this.toolTip.element.firstChild.textContent = v
   }
   get toolTipText() {
-    return this.toolTip?.element?.textContent
+    return this.toolTip?.element?.firstChild?.textContent
   }
 
   set toolTipAlwaysOn(v) { //to be refractored in commonObj
@@ -1156,6 +1162,9 @@ class Object3DCommon extends Object3D{
       this.toolTipText = <any>content 
     }else if(content instanceof HTMLElement){
       content.hidden = false
+      for (var i = 0; i < this.toolTip.element.children.length; i++) {
+        this.toolTip.element.removeChild(this.toolTip.element.children[i]);
+      }
       this.toolTip.element.innerText = null
       this.toolTip.element.appendChild(content)
     }
@@ -1163,6 +1172,7 @@ class Object3DCommon extends Object3D{
     Object.keys(this.toolTipSettings.style).forEach(k=>{
       this.toolTip.element.style[k] = this.toolTipSettings.style[k]
     })
+    this.toolTip.element.className = this.toolTipSettings.cssClass
     if(addonStyle){
       Object.keys(addonStyle).forEach(k=>{
         this.toolTip.element.style[k] = addonStyle[k]
@@ -1184,9 +1194,13 @@ class Object3DCommon extends Object3D{
   initToolTip() {
     this.layers.enableAll()
     const div = document.createElement('div');
-    div.className = 'label-3js';
+    div.className = this.toolTipSettings.cssClass ?  this.toolTipSettings.cssClass : 'label-3js';
     div.textContent = '';
     this.toolTip = new CSS2DObject(div);
+    div.addEventListener('click', (evt)=> {
+      evt.stopPropagation();
+      this.onClick.next(div);
+    })
     this.toolTip.position.set(0, 40 / this.scale.y , 0);
     this.toolTip.layers.set(0);
   }
@@ -1671,6 +1685,7 @@ export class RobotObject3D extends Object3DCommon{
     this.robotIotCompRef.instance.robotId = this.robotCode
     this.robotIotCompRef.instance.robotType = this.robotType
     this.robotIotCompRef.instance.robotSubType = this.robotSubType
+    this.robotIotCompRef.instance.threejsElRef = this.master
     this.toolTipSettings.customEl = this.robotIotCompRef.instance.elRef.nativeElement 
     this.toolTipSettings.customEl.hidden = true
   }

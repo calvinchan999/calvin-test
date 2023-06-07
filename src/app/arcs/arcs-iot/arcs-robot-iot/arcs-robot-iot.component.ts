@@ -9,6 +9,7 @@ import { VideoPlayerComponent } from 'src/app/ui-components/video-player/video-p
 import { GeneralUtil } from 'src/app/utils/general/general.util';
 import { MqService } from 'src/app/services/mq.service';
 import { RobotService, RobotState } from 'src/app/services/robot.service';
+import { ThreejsViewportComponent } from 'src/app/ui-components/threejs-viewport/threejs-viewport.component';
 
 @Component({
   selector: 'app-arcs-robot-iot',
@@ -21,9 +22,11 @@ export class ArcsRobotIotComponent implements OnInit , OnDestroy {
   @Input() robotSubType : string
   robotState : RobotState
   ARCS_STATUS_MAP = ARCS_STATUS_MAP
+  threejsElRef : ThreejsViewportComponent
 
   unsubscriber = new Subject()
   constructor( public robotSrv : RobotService, public uiSrv: UiService , public mqSrv : MqService , public dataSrv : DataService , public util : GeneralUtil , public elRef : ElementRef) { 
+    
   }
 
   ngOnInit(): void {

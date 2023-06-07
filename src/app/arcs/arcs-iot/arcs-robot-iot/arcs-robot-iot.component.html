@@ -1,5 +1,5 @@
-<div class="iot" >
-    <span class="iot-id">
+<div [class] = "'iot ' + (threejsElRef?.parent?.btmMapPanel?.robotState?.robotCode == robotId? 'selected' : '') " >
+    <span  class = "iot-id">
        <i class="mdi mdi-robot"></i>
        <span> {{robotId}} </span>
     </span>

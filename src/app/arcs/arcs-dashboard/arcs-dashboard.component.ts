@@ -420,8 +420,7 @@ export class ArcsDashboardComponent implements OnInit {
     }
     if(code != this.selectedFloorPlanCode){
       this.rightMapPanel.panelMode = null
-      this.btmMapPanel.waypointState = null
-      this.btmMapPanel.robotState = null
+      this.btmMapPanel.selectedMapObjChange(null)
     }
     if (this.currentFloorPlan?.floorPlanCode) {
       // this.mqSrv.unsubscribeMQTT('arcsTaskInfoChange', false , this.currentFloorPlan?.floorPlanCode)
@@ -563,10 +562,10 @@ export class ArcsDashboardComponent implements OnInit {
             timeStamp: new Date().getTime(),
             interval: 0
           }
-          if (this.pixiElRef && this.pixiElRef.getMapContainer(mapCode, robotInfo.robotBase)) {
+          if (robotInfo && this.pixiElRef && this.pixiElRef.getMapContainer(mapCode, robotInfo.robotBase)) {
             robot = this.pixiElRef.robotModule.addRobot(d.robotCode, mapCode, robotInfo.robotBase)
             // robot.observed = true
-          } else if (this.threeJsElRef && this.threeJsElRef.getMapMesh(robotInfo.robotBase)) {
+          } else if (robotInfo && this.threeJsElRef && this.threeJsElRef.getMapMesh(robotInfo.robotBase)) {
             robot = this.threeJsElRef.getRobot(d.robotCode) ? this.threeJsElRef.getRobot(d.robotCode) : new RobotObject3D(this.threeJsElRef, d.robotCode, robotInfo.robotBase, robotInfo.robotType , robotInfo.robotSubType)
             this.threeJsElRef.getMapMesh(robotInfo.robotBase).add(robot)
             this.threeJsElRef.refreshRobotColors()

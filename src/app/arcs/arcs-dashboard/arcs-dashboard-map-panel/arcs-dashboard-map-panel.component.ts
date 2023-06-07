@@ -63,6 +63,14 @@ export class ArcsDashboardMapPanelComponent implements OnInit , OnDestroy {
   }
 
   async selectedMapObjChange(obj) {
+    const waypointObj = this.parent.threeJsElRef?.waypointMeshes?.filter(w => w.pointCode == this.waypointState?.pointCode)[0]
+    if (waypointObj) {
+      waypointObj.toolTipSettings.cssClass = 'label-3js'
+      if (this.parent.threeJsElRef.uiToggles.showWaypoint && !this.parent.threeJsElRef.uiToggles.showWaypointName) {
+        waypointObj.toolTipAlwaysOn = false
+      }
+    }
+
     if(this.isCreatingTask){
       if (obj instanceof PixiWayPoint || obj instanceof WaypointMarkerObject3D) {
         const pointCode = obj instanceof PixiWayPoint ? obj.code : obj.pointCode
@@ -89,6 +97,10 @@ export class ArcsDashboardMapPanelComponent implements OnInit , OnDestroy {
       wait : [],
       pointType : obj.pointType
     }
+    if(obj instanceof WaypointMarkerObject3D){
+      obj.toolTipSettings.cssClass = 'label-3js selected'
+      obj.toolTipAlwaysOn = true 
+    }
   }
 
   async setRobotInfoAtBottomPanel(obj : Robot | RobotObject3D ){
@@ -96,6 +108,9 @@ export class ArcsDashboardMapPanelComponent implements OnInit , OnDestroy {
     this.robotType = this.parent.robotInfos.filter(r=>r.robotCode == robotCode)[0]?.robotType
     this.robotState = this.robotSrv.robotState(robotCode)
     this.robotInfo = this.parent.robotInfos.filter(r=>r.robotCode == this.robotState?.robotCode)[0]
+    if(obj instanceof RobotObject3D){
+      obj.toolTipAlwaysOn = true 
+    }
   }
 
   sendRobotClicked(){

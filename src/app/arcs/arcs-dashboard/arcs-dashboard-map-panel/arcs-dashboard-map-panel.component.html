@@ -37,8 +37,8 @@
                 <span [class] ="  parent.iconMap[robotType]">  {{robotType}} </span>
             </div> -->
 
-            <div class="create-task">         
-                <button kendoButton class="button" (click)="showNewTaskPanel = true ; " > {{'Create Task' |  label: uiSrv.langPack}}</button>
+            <div class="create-task" *ngIf="robotInfo?.robotStatus != 'UNKNOWN'">         
+                <button kendoButton class="button" (click)="showNewTaskPanel = true ; " > {{'New Task' |  label: uiSrv.langPack}}</button>
             </div>
             
             <div class="details">

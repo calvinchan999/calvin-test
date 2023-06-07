@@ -7,6 +7,14 @@
     margin-top: 5px;    
 }
 
+:host .selected{
+    margin: -8px;
+    padding: 8px;
+    border-radius: 5px;
+    border: 1px solid darkturquoise;
+    background: rgba(0, 206, 209, 0.35);
+}
+
 
 
 // :host .iot-row{

@@ -25,7 +25,27 @@
     display: flex;
 }
 
+::ng-deep .label-3js.selected span.content ::ng-deep {
+    background: rgba(0, 206, 209, 0.35);
+    border: 1px solid darkturquoise;
+    padding: 0px 8px;
+}
+
+::ng-deep .label-3js span.content ::ng-deep {
+    padding: 8px;
+    margin: -8px;
+    line-height: 0px;
+    white-space: pre;
+    font-size: '10px';
+    border-radius: 5px;
+}
+
+::ng-deep .label-3js.selected ::ng-deep {
+    background:rgba(0, 0, 0, 0.45);
+}
+
 ::ng-deep .label-3js ::ng-deep {
+    cursor: pointer;
     .iot-row {
         justify-content: space-between;
         display: flex;
