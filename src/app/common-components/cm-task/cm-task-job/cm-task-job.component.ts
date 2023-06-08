@@ -403,8 +403,12 @@ export class CmTaskJobComponent implements OnInit {
       row.floorPlanCode = null
       row.pointCode = null
       row.orientation = prevRow.orientation
+    }else if(!prevRow && (!row.floorPlanCode || !row.pointCode)){
+        this.listview.setNewRowError(this.uiSrv.translate('Please select location'))
+        return
     }
     row.navigationMode =  row.navigationMode ?  row.navigationMode  : 'AUTONOMY'
+    row.actionAlias = row.actionAlias  ? row.actionAlias : null
     this.jobListData.push(row) 
     this.jobListData = JSON.parse(JSON.stringify(this.jobListData)) // refresh grid , trigger change detection
     this.actionNewRow.actionAlias = null
@@ -489,7 +493,7 @@ export class CmTaskJobComponent implements OnInit {
         return false
       }
       
-      if(!this.getActionDropListData(row).map(r=>r.alias).includes(row?.actionAlias)){
+      if(row?.actionAlias && !this.getActionDropListData(row).map(r=>r.alias).includes(row?.actionAlias)){
         this.listview.setErrors(i, 'actionAlias', 'Action not match with the selected robot type / location')
         return false
       }
@@ -529,12 +533,12 @@ export class CmTaskJobComponent implements OnInit {
             orientationIgnored: !r.orientation,
             fineTuneIgnored: true
           },
-          actionList: [
+          actionList: r.actionAlias ? [
             {
               alias : r.actionAlias,
               properties: getActionProperties(r)              
             }
-          ]
+          ] : []
         }
       })
     }

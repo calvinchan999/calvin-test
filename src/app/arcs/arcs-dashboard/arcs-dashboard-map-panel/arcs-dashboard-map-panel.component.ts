@@ -63,12 +63,9 @@ export class ArcsDashboardMapPanelComponent implements OnInit , OnDestroy {
   }
 
   async selectedMapObjChange(obj) {
-    const waypointObj = this.parent.threeJsElRef?.waypointMeshes?.filter(w => w.pointCode == this.waypointState?.pointCode)[0]
-    if (waypointObj) {
-      waypointObj.toolTipSettings.cssClass = 'label-3js'
-      if (this.parent.threeJsElRef.uiToggles.showWaypoint && !this.parent.threeJsElRef.uiToggles.showWaypointName) {
-        waypointObj.toolTipAlwaysOn = false
-      }
+    const originalSelectedPoint : WaypointMarkerObject3D =  this.parent.threeJsElRef?.waypointMeshes?.filter(w => w.pointCode == this.waypointState?.pointCode)[0]
+    if(originalSelectedPoint && !this.parent.threeJsElRef.uiToggles.showWaypointName){
+      originalSelectedPoint.toolTipAlwaysOn = false
     }
 
     if(this.isCreatingTask){
@@ -85,6 +82,10 @@ export class ArcsDashboardMapPanelComponent implements OnInit , OnDestroy {
     }else if(obj instanceof Robot || obj instanceof RobotObject3D){
       this.setRobotInfoAtBottomPanel(obj)
     }
+    this.parent.threeJsElRef?.waypointMeshes?.filter(w => w.pointCode != this.waypointState?.pointCode).forEach(w=>{
+      w.toolTipSettings.cssClass = 'label-3js'
+      w.toolTip.element.className =  'label-3js'
+    })
   }
 
   async setWaypointInfoAtBottomPanel(obj){

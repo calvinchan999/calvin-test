@@ -7,7 +7,7 @@
 </ng-container>
 
 
-<ng-container *ngIf="multiMovement" >
+<div #taskContainer class = "task-container" *ngIf="multiMovement" >
     <div class="header">
         <span class="mdi mdi-robot">  {{selectedRobotCode}} </span>
         <a class="close mdi mdi-close-circle" (click)="taskItems = []; refreshMapPoints(); close.emit()"></a>
@@ -72,9 +72,9 @@
             <span>{{'Execute' | label : uiSrv.langPack }}</span>
         </button>
     </div>
-</ng-container>
+</div>
 
-<div class="action-item-dialog" *ngIf="selectedAction">
+<div class="action-item-dialog" *ngIf="selectedAction" [style.right]="((taskContainer.nativeElement.offsetWidth ? taskContainer.nativeElement.offsetWidth : 260) + 10 )+ 'px'">
     <div class="header">
         <span class="index font-13 selected" >{{selectedAction.taskItemIndex + 1}}</span>  
         <span class="mdi mdi-map-marker font-20"></span>

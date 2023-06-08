@@ -4,7 +4,7 @@
     </kendo-dialog-titlebar>
         <div class="form-container">
             <div class="list-container">
-                <uc-listview #listview [columnDef]="actionListDef" [customAddRow] = "true" [disableAdd] = "actionNewRow['actionAlias'] == null" [editable] = "!readonly"
+                <uc-listview #listview [columnDef]="actionListDef" [customAddRow] = "true"  [editable] = "!readonly"
                             (buttonClick)="$event.row == actionNewRow && $event.id == 'add' ? addRow() : null ;
                                            $event.id == parent.actionRowCfg.parentRowKey ? parent.showActionDetailDialog($event) : null;"  
                             [rowDetailCfg] = "parent.actionRowCfg"

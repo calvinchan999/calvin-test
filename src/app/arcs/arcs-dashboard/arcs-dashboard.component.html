@@ -136,7 +136,7 @@
         </kendo-tilelayout-item-body>
     </kendo-tilelayout-item>
 
-    <kendo-tilelayout-item class = "ts-map" [col]="3" [row]="1" [rowSpan] = "5" [colSpan] = "5">
+    <kendo-tilelayout-item class = "ts-map drag-boundary" [col]="3" [row]="1" [rowSpan] = "5" [colSpan] = "5">
         <div *ngIf="!use3DMap" class = "viewport-container" (wheel)="$event.preventDefault()">
             <uc-drawing-board #pixi [arcsParent] = "me" [showRobot] = "true" [hideButton] = "{ all : true}" [readonly] = "true" 
                                     [arcsRobotType] = "robotTypeFilter"  [(selectedFloorPlanCode)]="selectedFloorPlanCode" 
@@ -157,9 +157,9 @@
             </uc-3d-viewport>
             <!-- (robotClicked)="showRobotDetailDialog($event?.id)" -->
         </div>
-        <app-arcs-dashboard-map-panel #btmMapPanel [bottomPanel]="true"  [class] = "'bottom-panel-overlay ' + (threeJsElRef?.fullScreen ? 'full-screen-panel' : '')" [parent]="me" [floorPlanCode] = "selectedFloorPlanCode"> </app-arcs-dashboard-map-panel>
+        <app-arcs-dashboard-map-panel [cdkDragBoundary]="threeJsElRef?.fullScreen ? '.full-screen-viewport' : '.drag-boundary'" cdkDrag #btmMapPanel [bottomPanel]="true"  [class] = "'bottom-panel-overlay ' + (threeJsElRef?.fullScreen ? 'full-screen-panel' : '')" [parent]="me" [floorPlanCode] = "selectedFloorPlanCode"> </app-arcs-dashboard-map-panel>
         <!-- loadFloorPlan(currentFloorPlan?.floorPlanCode) -->
-        <app-arcs-dashboard-map-panel #rightMapPanel [rightPanel]="true" [class] = "'right-panel-overlay ' + (threeJsElRef?.fullScreen ? 'full-screen-panel' : '')"  [parent]="me"  [floorPlanCode] = "selectedFloorPlanCode"> </app-arcs-dashboard-map-panel>
+        <app-arcs-dashboard-map-panel [cdkDragBoundary]="threeJsElRef?.fullScreen ? '.full-screen-viewport' : '.drag-boundary'" cdkDrag  #rightMapPanel [rightPanel]="true" [class] = "'right-panel-overlay ' + (threeJsElRef?.fullScreen ? 'full-screen-panel' : '')"  [parent]="me"  [floorPlanCode] = "selectedFloorPlanCode"> </app-arcs-dashboard-map-panel>
     </kendo-tilelayout-item>
     
  

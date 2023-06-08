@@ -4,13 +4,15 @@
     margin: 10px ;
     border: 1px solid white;
     height: calc(100% - 130px);
-    border-radius: 5px;
-
-  
+    border-radius: 5px;  
 }
 
 :host .task-list-header{
     margin: 0px 10px;
+}
+
+:host .task-container{
+    height: 100%;
 }
 
 :host .header{ 
@@ -62,7 +64,7 @@
 
 :host .point-button{
     background: rgba(0,0,0,0.5);
-    min-width: 190px;
+    min-width: calc(100% - 35px);
     width: fit-content;
     border-radius: 5px;
     cursor: pointer;
@@ -178,7 +180,6 @@
         color: darkturquoise;
     }
     position: absolute;
-    right: 270px;
     top: 70px;
     min-width: 250px;
     height: fit-content;

@@ -67,9 +67,7 @@
                      (dataChange)="cleanseAllRows()" 
                      [rowDetailCfg] = "actionRowCfg"
                      (buttonClick)="$event.id == actionRowCfg.parentRowKey ? showActionDetailDialog($event) : null;
-                                    $event.row == actionNewRow && $event.id == 'add' ? 
-                                        (actionNewRow.actionAlias == null ? listview.setNewRowError(uiSrv.translate('Please select an action')) : addRow()) :
-                                        null"
+                                    $event.row == actionNewRow && $event.id == 'add' ? addRow() : null"
                      (valueChange)="$event.id == 'pointCode'? cleanseAllRows() : cleanseRow($event.row);
                                     $event.id == 'pointCode' &&  $event.newValue == null? $event.row['planCode'] = null : null;
                                     $event.id ==  'actionAlias'? refreshActionParameter($event.row , $event.oldValue) : null"

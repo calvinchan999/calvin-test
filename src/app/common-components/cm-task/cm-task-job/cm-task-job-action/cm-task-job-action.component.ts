@@ -86,7 +86,7 @@ export class CmTaskJobActionComponent implements OnInit {
   }
 
   addRow(){
-    if (![null, undefined].includes(this.actionNewRow['actionAlias'])) {
+      this.actionNewRow['actionAlias'] = this.actionNewRow['actionAlias'] ? this.actionNewRow['actionAlias'] : null
       let ret = JSON.parse(JSON.stringify(this.actionNewRow));
       ret['seq'] = this.otherLocationData.length + this.actionListData.length + 1
       ret['navigationMode'] =  ret['navigationMode'] ?  ret['navigationMode'] : null
@@ -95,9 +95,10 @@ export class CmTaskJobActionComponent implements OnInit {
       // }
       this.actionListData.push(ret)
       this.actionListData = JSON.parse(JSON.stringify(this.actionListData))
+      console.log(     this.actionListData)
       delete this.actionNewRow[this.parent.actionRowCfg.parentRowKey] 
       // this.refreshNewRow()
-    }
+    
   }
 
   refreshSeq(){

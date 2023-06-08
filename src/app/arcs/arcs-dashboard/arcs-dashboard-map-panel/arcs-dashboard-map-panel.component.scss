@@ -11,9 +11,10 @@
 }
 
 
-:host .header{ 
+:host ::ng-deep .header{ 
     font-size: 17px;
-    padding: 5px 10px 10px 10px;
+    height: 32px;
+    padding: 5px 10px 5px 10px;
     // display: flex;
     // align-content: space-between;
     .mdi{

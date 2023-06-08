@@ -1103,6 +1103,7 @@ class Object3DCommon extends Object3D{
       span.className = 'content'
       this.toolTip.element.appendChild(span)
     }
+    this.toolTip.element.className = this.toolTipSettings.cssClass ? this.toolTipSettings.cssClass : 'label-3js'
     this.toolTip.element.firstChild.textContent = v
   }
   get toolTipText() {

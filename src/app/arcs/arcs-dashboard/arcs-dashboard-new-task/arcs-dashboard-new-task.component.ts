@@ -1,4 +1,4 @@
-import { Component, EventEmitter, Input, OnDestroy, OnInit, Output } from '@angular/core';
+import { Component, ElementRef, EventEmitter, Input, OnDestroy, OnInit, Output, ViewChild } from '@angular/core';
 import { DialogRef } from '@progress/kendo-angular-dialog';
 import { ArcsDashboardComponent } from '../arcs-dashboard.component';
 import { UiService } from 'src/app/services/ui.service';
@@ -23,6 +23,8 @@ export class ArcsDashboardNewTaskComponent implements OnInit , OnDestroy {
   @Input() selectedRobotCode 
   @Output()  close = new EventEmitter()
   @Input() multiMovement 
+  @ViewChild('taskContainer') taskContainer : ElementRef
+
   taskItems : TaskItem[] = []
   dropdownData = {actions : [], locations: [] , robots : []}
   taskName 
