@@ -3,7 +3,7 @@ import * as PIXI from 'pixi.js';
 import { GetImage } from '../../graphics/image';
 
 const WebGLMaxMobileTextureSize = 4096
-const WebGLMaxPcTextureSize = 16384
+const WebGLMaxPcTextureSize =  8192 //16384
 export function GetPixiAngleDescription(pixiGraphics: PIXI.Graphics): string {
     return ((pixiGraphics.angle > 0 ? pixiGraphics.angle : 360 + pixiGraphics.angle) % 360).toFixed(2) + "°"
 }

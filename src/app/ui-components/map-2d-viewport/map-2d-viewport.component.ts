@@ -2062,7 +2062,7 @@ export class LocalizationModule { //Standalone Function : change map / localize
     if(this.previewData.alignLidar && this.previewData.lidarLayer){
       this.previewData.lidarLayer.position.set(this.previewData.mapX - this.previewData.lidarPosition.x , this.previewData.mapY - this.previewData.lidarPosition.y)
       this.previewData.lidarLayer['getPivotLayer']().angle = 90 - this.previewData.rotation 
-      this.refreshPos()
+      this.refreshPos(true, false)
     }
   }
   
@@ -2082,7 +2082,12 @@ export class LocalizationModule { //Standalone Function : change map / localize
     this.refreshPos()
   }
 
-  refreshPos(refreshRosValue = true) {
+  refreshPos(refreshRosValue = true , resetSelectedWaypoint = true ) {
+    if(resetSelectedWaypoint){
+      this.master.ngZone.run(()=>{
+        this.master.commonModule.data.selectedPointCode = null   
+      })
+    }
     if (this.previewData.markerGraphic) {
       this.previewData.markerGraphic.position.set(this.previewData.mapX, this.previewData.mapY)
       this.previewData.markerGraphic.icon.angle = 90 - this.previewData.rotation  //RV default align origin robot direction align with x-axis
@@ -2098,6 +2103,19 @@ export class LocalizationModule { //Standalone Function : change map / localize
     this.previewData.mapX = mapContainer.calculateMapX(this.previewData.rosX )
     this.previewData.mapY = mapContainer.calculateMapY(this.previewData.rosY )
     this.refreshPos(false)
+  }
+
+  setPosByWaypoint(){
+    let waypoint = this.viewport.allPixiWayPoints.filter(p=>p.waypointName == this.cm.data.selectedPointCode)[0]
+    if(waypoint){
+      this.master.ngZone.run(()=>{
+        let pos = this.viewport.mapContainerStore[this.cm.data.selectedMapCode].toLocal(waypoint.parent.toGlobal( waypoint.position))
+        this.previewData.mapX = pos.x
+        this.previewData.mapY = pos.y
+        this.previewData.rotation = 90 - waypoint.dataObj.guiAngle
+        this.refreshPos(true , false)
+      })
+    }
   }
 }
 
@@ -2468,7 +2486,7 @@ export class DataModule{
     return this._activeMapCode
   }
 
-  private _selectedPointCode
+  selectedPointCode
   private _selectedFloorPlanCode
   private _selectedMapCode
 
@@ -2476,12 +2494,15 @@ export class DataModule{
     return  this._selectedMapCode
   }
 
-  set selectedPointCode(v){
-    this._selectedPointCode = v
-  }
-  get selectedPointCode(){
-    return this._selectedPointCode
-  }
+  // setSelectedPointCode(v){
+  //   this.selectedPointCode = v
+  // }
+  // set selectedPointCode(v){
+  //   this._selectedPointCode = v
+  // }
+  // get selectedPointCode(){
+  //   return this._selectedPointCode
+  // }
 
   set selectedFloorPlanCode(v){
     this._selectedFloorPlanCode = v

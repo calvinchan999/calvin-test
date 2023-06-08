@@ -334,14 +334,18 @@
 <input hidden type="file" #uploader (change)="onfileLoad($event)" #input />
 
 <ng-template #dropdownTpl>
-  <uc-dropdown *ngIf="module?.localization?.localizing" [options]="module.data.dropdownOptions?.floorplans" [(value)] = "commonModule.data.selectedFloorPlanCode" [lab]="'Floor Plan' | label :  uiSrv.langPack" [allowClear] = "false"
+  <uc-dropdown *ngIf="module?.localization?.localizing && (!module.localization.previewData.alignLidar)" [options]="module.data.dropdownOptions?.floorplans" [(value)] = "commonModule.data.selectedFloorPlanCode" [lab]="'Floor Plan' | label :  uiSrv.langPack" [allowClear] = "false"
                      (valueChange)="module.data.loadFloorPlan(module.data.selectedFloorPlanCode);"
                      (open)="suspendViewportPlugin('wheel')" 
                      (close)="resumeViewportPlugin('wheel')">
   </uc-dropdown>
-  <uc-dropdown  *ngIf="module?.localization && !module?.localization?.localizing" [options]="module.data.dropdownOptions?.locations" [(value)] = "commonModule.data.selectedPointCode"  [lab]="'Location' | label :  uiSrv.langPack"  [allowClear] = "false"
+  <uc-dropdown  *ngIf="(module?.localization && !module?.localization?.localizing) || (module.localization.previewData.alignLidar && module.localization.previewData.markerGraphic) " 
+                     [options]="module.data.dropdownOptions?.locations" 
+                     [(value)] = "commonModule.data.selectedPointCode"  
+                     [lab]="'Location' | label :  uiSrv.langPack"  [allowClear] = "false"
                      [trackMouseoverOption] = "true" 
-                     (valueChange)="selectPixiWayPoint($event)"
+                     (valueChange)="module.localization.previewData.alignLidar && module.localization.previewData.markerGraphic? module.localization.setPosByWaypoint() : selectPixiWayPoint($event) ;  
+                                    module.localization.previewData.alignLidar && module.localization.previewData.markerGraphic? module.localization.refreshLidarLayerPos() : null"
                      (mouseoverOptionChange)="refreshPixiWayPointColor($event?.value) ;"
                      (open)="suspendViewportPlugin('wheel'); refreshPixiWayPointColor();"
                      (close)="resumeViewportPlugin('wheel') ; refreshPixiWayPointColor();"
@@ -422,9 +426,12 @@
                       (move) = "module.localization.setPositionByJoystick($event)"
                       (hold) = "module.localization.setPositionByJoystick($event)">
             </uc-joystick>
-            <ng-container *ngIf="!module.localization.previewData.alignLidar">
+            <!-- <ng-container *ngIf="!module.localization.previewData.alignLidar">
               <ng-container *ngTemplateOutlet="dropdownTpl"></ng-container>
-            </ng-container>
+            </ng-container> -->
+            
+            <ng-container *ngTemplateOutlet="dropdownTpl"></ng-container>
+
             <uc-txtbox *ngIf="module.localization.previewData.alignLidar && module.localization.previewData.markerGraphic" [disabled] = "disableKendoKeyboardNavigation" lab="Position X" [numDecimals] = 6
               [(value)]="module.localization.previewData.rosX" (valueChange)="module.localization.setPosByRos(); module.localization.refreshLidarLayerPos()" [numeric]="true" [numStep] = "0.1" [numTick] = "0.1">
             </uc-txtbox>

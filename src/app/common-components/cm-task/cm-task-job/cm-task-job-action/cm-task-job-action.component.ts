@@ -95,7 +95,7 @@ export class CmTaskJobActionComponent implements OnInit {
       // }
       this.actionListData.push(ret)
       this.actionListData = JSON.parse(JSON.stringify(this.actionListData))
-      console.log(     this.actionListData)
+    console.log(this.actionListData)
       delete this.actionNewRow[this.parent.actionRowCfg.parentRowKey] 
       // this.refreshNewRow()
     
