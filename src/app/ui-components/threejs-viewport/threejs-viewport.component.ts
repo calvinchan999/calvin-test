@@ -695,7 +695,7 @@ export class ThreejsViewportComponent implements OnInit , OnDestroy{
   public subscribeRobotPoses(mapCode = this.mapCode){ //Assume 1 Map per robot per floor plan
     //TBR : dont add robot if it is inside lift
     this.mqSrv.subscribeMQTTUntil('arcsPoses' , mapCode , this.$mapCodeChanged)
-    this.mqSrv.data.arcsPoses.pipe(filter(v => v) , takeUntil(this.$mapCodeChanged)).subscribe(async (poseObj) => { //{mapCode : robotId : pose}
+    this.mqSrv.data.arcsPoses.pipe(filter(v => v?.[mapCode]) , takeUntil(this.$mapCodeChanged)).subscribe(async (poseObj) => { //{mapCode : robotId : pose}
       Object.keys(poseObj[mapCode]).forEach((robotCode)=>{
         if(this.elevators.filter(e=>e.robotCode == robotCode).length > 0){ //wont display robot on map if it is shown in a lift
           return

@@ -49,5 +49,78 @@
 			"fillColor": "0xFF66B9", 
 			"highlightColor": "0xFF66B9" 
 		}
-    }
+    },
+	"IEQ_LEVELS":["Fair" , "Good" , "Excellent"],
+	"IEQ_STANDARD": {		
+		"co2": [
+			[
+				null,
+				1440
+			],
+			[
+				null,
+				1800
+			]
+		],
+		"co": [
+			[
+				null,
+				1700
+			],
+			[
+				null,
+				6100
+			]
+		],
+		"pm10": [
+			[
+				null,
+				20
+			],
+			[
+				null,
+				100
+			]
+		],
+		"no2": [
+			[
+				null,
+				53
+			],
+			[
+				null,
+				106
+			]
+		],
+		"o3": [
+			[
+				null,
+				25
+			],
+			[
+				null,
+				61
+			]
+		],
+		"formaldehyde": [
+			[
+				null,
+				57
+			],
+			[
+				null,
+				81
+			]
+		],
+		"tvoc_pid": [
+			[
+				null,
+				87
+			],
+			[
+				null,
+				261
+			]
+		]
+	}
 }

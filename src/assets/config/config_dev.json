@@ -14,12 +14,13 @@
 	"PROTOCOL": "https",
 	"SIGNALR_URLxxxxx": "https://rv-dev.eastasia.cloudapp.azure.com:5001/signalR",
 	"SERVER_URLxxxx": "192.168.8.70",
-	"SERVER_URLx": "rv-arcs-api.azurewebsites.net",
+	"SERVER_URLx": "arcs-api-linux-test.azurewebsites.net",
 	"SERVER_URLxxx": "rv-dev.eastasia.cloudapp.azure.com",
 	"SERVER_URLxx": "rv-hkaa.eastasia.cloudapp.azure.com",
 	"SERVER_URL": "localhost", 
+	"PORT_NOx": "",
 	"PORT_NO": "44329",
-	"PORT_NOx": "5002",
+	"PORT_NOxx": "5002",
 	"APPLICATIONxx": "/standalone_api",
 	"APPLICATIONx": "/arcs_api",
 	"APPLICATION": "",
@@ -43,77 +44,76 @@
 		"o3",
 		"pressure"
 	],
-	"x_IEQ_STANDARD": {
-		"rh": [
+	"IEQ_LEVELS":["Fair" , "Good" , "Excellent"],
+	"IEQ_STANDARD": {		
+		"co2_ppm": [
 			[
-				10,
-				90
+				null,
+				1440
 			],
 			[
-				20,
-				80
-			],
-			[
-				30,
-				70
-			],
-			[
-				40,
-				60
+				null,
+				1800
 			]
 		],
-		"co2": [
+		"co_ppb": [
 			[
 				null,
-				2500
+				1700
 			],
 			[
 				null,
-				2000
-			],
-			[
-				null,
-				1500
-			],
-			[
-				null,
-				650
+				6100
 			]
 		],
-		"pm2_5": [
+		"pm10_ugPerM3": [
 			[
 				null,
-				150.5
+				20
 			],
 			[
 				null,
-				55.4
-			],
-			[
-				null,
-				35.4
-			],
-			[
-				null,
-				12
+				100
 			]
 		],
-		"tvoc_pid": [
+		"no2_ppb": [
 			[
 				null,
-				75
+				53
 			],
 			[
 				null,
-				51
+				106
+			]
+		],
+		"o3_ppb": [
+			[
+				null,
+				25
 			],
 			[
 				null,
-				26
+				61
+			]
+		],
+		"hcho_ppb": [
+			[
+				null,
+				57
 			],
 			[
 				null,
-				16
+				81
+			]
+		],
+		"tvoc_ppb": [
+			[
+				null,
+				87
+			],
+			[
+				null,
+				261
 			]
 		]
 	},
