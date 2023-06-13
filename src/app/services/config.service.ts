@@ -80,9 +80,9 @@ export class ConfigService {
             //     }
             // })
             console.log("AZURE STATIC WEB APP CONFIG : ")
-            console.log(process?.env.CONFIG)
-            if (process?.env.CONFIG) {
-                this.generalUtil.setConfig(JSON.parse(process.env.CONFIG))
+            console.log(window?.process?.env.CONFIG)
+            if (window?.process?.env.CONFIG) {
+                this.generalUtil.setConfig(JSON.parse(window?.process.env.CONFIG))
             } else {
                 this.http.get(environment.production ? "assets/config/config.json" : "assets/config/config_dev.json")
                     .subscribe((data) => {

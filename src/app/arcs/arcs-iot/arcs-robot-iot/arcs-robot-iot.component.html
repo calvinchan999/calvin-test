@@ -16,7 +16,7 @@
             </span>
         </div>
 
-        <div class="iot-row" [style.display] = "robotState.obstacleDetected?.value ||  robotState.tiltActive?.value || robotState.estop?.value ? 'none' : null">
+        <!-- <div class="iot-row" [style.display] = "robotState.obstacleDetected?.value ||  robotState.tiltActive?.value || robotState.estop?.value ? 'none' : null">
             <span *ngIf="robotType == 'PATROL'" [class] ="'aqlevel ' +  (  robotState.topModule?.patrol?.airQualityOverall?.value ? (robotState.topModule?.patrol?.airQualityOverall?.value | cssClassName) : '')">
                 <span>{{'IEQ' | label : uiSrv.langPack }} : </span> 
                 <span>{{ robotState.topModule?.patrol?.airQualityOverall?.value | label : uiSrv.langPack }} </span>
@@ -26,7 +26,7 @@
                 <span>{{((robotSubType == 'TRAY_DELIVERY' ? 'Trays': 'Cabinet') + ' Avail.') | label : uiSrv.langPack }} : </span> 
                 <span>{{ robotState.topModule.delivery.availContainersCount.value | label : uiSrv.langPack }} / {{  robotState.topModule.delivery.totalContainersCount.value | label : uiSrv.langPack }}</span>
             </span>
-        </div> 
+        </div>  -->
 
         <div *ngIf="robotState.status?.value != 'UNKNOWN' && robotState.status?.value != 'CHARGING'  && robotState.destination?.value"  class="iot-row">         
             <span class="loading-dots">

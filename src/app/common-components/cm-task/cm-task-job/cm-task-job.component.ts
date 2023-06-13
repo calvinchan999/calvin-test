@@ -200,11 +200,15 @@ export class CmTaskJobComponent implements OnInit {
         this.dropdownOptions.reason = (await this.dataSrv.getDropList('taskFailReason')).options
       }
     }
+   
     this.util.loadToFrmgrp(this.frmGrp, data)
+   
     if (this.util.standaloneApp) {
       this.frmGrp.controls['floorPlanCode'].setValue(data.taskItemList[0].movement.floorPlanCode)
       this.selectedFloorPlanCode = this.frmGrp.controls['floorPlanCode'].value
       this.refreshGridLocationOptions_SA()
+    }else{
+      this.frmGrp.controls['robotCode'].setValue(this.frmGrp.controls['robotCode'].value == "" ? null : this.frmGrp.controls['robotCode'].value)
     }
     this.listview.loadData(this.jobListDataMassage(false, null, this.getFlattenedData(data)))
     this.uiSrv.loadAsyncDone(ticket)
@@ -213,21 +217,32 @@ export class CmTaskJobComponent implements OnInit {
   getFlattenedData(data: JTask) : FlattenedTaskList{
     let ret = []
     data.taskItemList.forEach(t => {
-      t.actionList.forEach(a =>{
-        let taskItem : FlattenedTaskItem = {
-          floorPlanCode : t.movement.floorPlanCode,
-          pointCode : t.movement.pointCode,
-          navigationMode : t.movement.navigationMode,
-          actionAlias : a.alias,        
-          actionProperties : this.dropdownData.actions.filter(dda => dda.alias == a.alias)[0]?.parameterList.map(p=>{return {
-            struct: p,
-            parameterName : p.name,
-            value : a.properties[p.parameterCode]
-          }}),
-          orientation : !t.movement.orientationIgnored
-        } 
-        ret.push(taskItem)
-      })
+      if(t.actionList.length > 0){
+        t.actionList.forEach(a =>{
+          let taskItem : FlattenedTaskItem = {
+            floorPlanCode : t.movement.floorPlanCode,
+            pointCode : t.movement.pointCode,
+            navigationMode : t.movement.navigationMode,
+            actionAlias : a.alias,        
+            actionProperties : this.dropdownData.actions.filter(dda => dda.alias == a.alias)[0]?.parameterList.map(p=>{return {
+              struct: p,
+              parameterName : p.name,
+              value : a.properties[p.parameterCode]
+            }}),
+            orientation : !t.movement.orientationIgnored
+          } 
+          ret.push(taskItem)
+        })
+      }else{
+        ret.push({
+            floorPlanCode : t.movement.floorPlanCode,
+            pointCode : t.movement.pointCode,
+            navigationMode : t.movement.navigationMode,
+            actionAlias : null,        
+            actionProperties : {},
+            orientation : !t.movement.orientationIgnored
+        })
+      }  
     });
     return ret
   }  
@@ -479,7 +494,7 @@ export class CmTaskJobComponent implements OnInit {
     }
     
     let actionParamRegexMatch = true
-    let data = this.jobListDataMassage(true,null,JSON.parse(JSON.stringify(this.jobListData)))
+    let data = this.jobListDataMassage(true, null, JSON.parse(JSON.stringify(this.jobListData)))
     if(this.jobListData.length == 0){
       this.uiSrv.showMsgDialog("Please input at least 1 action")
       return false
@@ -606,7 +621,7 @@ export class CmTaskJobComponent implements OnInit {
       return rows[idx]
     }
     if(fillupLocation){
-      rows.forEach(r=>r.floorPlanCode =  this.util.standaloneApp ?this.selectedFloorPlanCode : r.floorPlanCode )
+      rows.forEach(r=>r.floorPlanCode =  this.util.standaloneApp ? this.selectedFloorPlanCode : r.floorPlanCode )
       rows.filter(r => (row == null || row == r) && (!this.util.arcsApp || [null , undefined].includes(r.floorPlanCode)) && [null , undefined].includes(r.pointCode)).forEach(r => {
         var ref = getReferenceRow(r)
         r.pointCode = ref?.pointCode
