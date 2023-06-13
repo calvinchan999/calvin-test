@@ -866,7 +866,7 @@ export class Map2DViewportComponent implements OnInit , AfterViewInit , OnDestro
     if(done.value==null){
       await done.pipe(filter(v=>v!=null),take(1)).toPromise()
     }
-    return done.value.split[","][done.value.split[","].length - 1]
+    return done.value.split(",")[done.value.split(",").length - 1]
   }
   
 

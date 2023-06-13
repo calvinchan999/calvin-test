@@ -79,19 +79,22 @@ export class ConfigService {
             //         console.error(error);
             //     }
             // })
-
-			this.http.get(environment.production ? "assets/config/config.json" : "assets/config/config_dev.json")
-                // .map(res => res.json())
-                .subscribe((data) => {
-                    this._config = data;
-					this.generalUtil.setConfig(data);
-                    // this.loadDbConfig()
-                    resolve(true);
-                },
-                (error: any) => {
-                    console.error(error);
-                    return Observable.throw(error.json().error || 'Server error');
-                });
+            console.log("AZURE STATIC WEB APP CONFIG : ")
+            console.log(window.process?.env.CONFIG)
+            if (window.process?.env.CONFIG) {
+                this.generalUtil.setConfig(JSON.parse(process.env.CONFIG))
+            } else {
+                this.http.get(environment.production ? "assets/config/config.json" : "assets/config/config_dev.json")
+                    .subscribe((data) => {
+                        this._config = data;
+                        this.generalUtil.setConfig(data);
+                        resolve(true);
+                    },
+                        (error: any) => {
+                            console.error(error);
+                            return Observable.throw(error.json().error || 'Server error');
+                        });
+            }
         });
     }
 

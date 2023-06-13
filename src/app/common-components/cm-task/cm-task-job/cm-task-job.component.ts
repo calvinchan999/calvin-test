@@ -403,7 +403,7 @@ export class CmTaskJobComponent implements OnInit {
       row.floorPlanCode = null
       row.pointCode = null
       row.orientation = prevRow.orientation
-    }else if(!prevRow && (!row.floorPlanCode || !row.pointCode)){
+    }else if(!prevRow && ( !(this.util.standaloneApp ? (this.selectedFloorPlanCode) : row.floorPlanCode) || !row.pointCode)){
         this.listview.setNewRowError(this.uiSrv.translate('Please select location'))
         return
     }
@@ -455,7 +455,7 @@ export class CmTaskJobComponent implements OnInit {
       let invalidIndex = this.jobListData.filter(d=> (this.jobListData.indexOf(d) == 0 && !d.floorPlanCode) ||(d.floorPlanCode != null && d.pointCode == null)).map(d => this.jobListData.indexOf(d))[0]
       if(invalidIndex != null && invalidIndex !=undefined){
         this.tabstrip.selectTab(0)
-        setTimeout(()=>  this.listview.setErrors(invalidIndex, 'pointCode' , 'Please input location'))
+        setTimeout(()=>  this.listview.setErrors(invalidIndex, 'pointCode' , 'Please select location'))
         return false
       }
       return true 
@@ -489,7 +489,7 @@ export class CmTaskJobComponent implements OnInit {
       let row : FlattenedTaskItem = data[i]
       if(row.pointCode == null || row.pointCode == undefined){
         this.tabstrip.selectTab(0)
-        setTimeout(()=> this.listview.setErrors(i, 'pointCode' , 'Please input location'))
+        setTimeout(()=> this.listview.setErrors(i, 'pointCode' , 'Please select location'))
         return false
       }
       
