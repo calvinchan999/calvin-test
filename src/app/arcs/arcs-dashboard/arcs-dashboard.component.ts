@@ -246,7 +246,6 @@ export class ArcsDashboardComponent implements OnInit {
     // this.mqSrv.subscribeMQTTs([ 'obstacleDetection' , 'tilt' , 'estop'])
 
     this.mqSrv.data.arcsRobotStatusChange.pipe(skip(1), filter(v => v != null), takeUntil(this.$onDestroy)).subscribe((c) => {
-      console.log(c)
       if (this.selectedTab == 'dashboard') {
         this.refreshStats(c?.filter(c => !this.robotTypeFilter || c?.robotType == this.robotTypeFilter?.toUpperCase()))
       }
@@ -266,7 +265,6 @@ export class ArcsDashboardComponent implements OnInit {
     //   this.mqSrv.unsubscribeMQTT('arcsRobotStatusChange', false , this.currentFloorPlan.floorPlanCode)
     // }
     this.stopSubscribeRobotStatus.next()
-    console.log('destroyed')
     this.$onDestroy.next()    
   }
   
@@ -338,6 +336,8 @@ export class ArcsDashboardComponent implements OnInit {
       this.loadBuildingPolygons()
       
       this.pixiElRef.setViewportCamera(this.site.viewX, this.site.viewY, this.site.viewZoom)
+      this.stopSubscribeRobotStatus.next()
+      this.mqSrv.subscribeMQTTUntil('arcsRobotStatusChange' ,  null , this.stopSubscribeRobotStatus )
     }
     // this.refreshTaskInfo()
     this.refreshStats()
@@ -430,7 +430,6 @@ export class ArcsDashboardComponent implements OnInit {
     //   // this.mqSrv.unsubscribeMQTT('arcsTaskInfoChange', false , this.currentFloorPlan?.floorPlanCode)
     //   this.mqSrv.unsubscribeMQTT('arcsRobotStatusChange', false , this.currentFloorPlan?.floorPlanCode)
     // }
-    this.stopSubscribeRobotStatus.next()
     let floorplan = await this.mapSrv.getFloorPlan(code);
     this.currentFloorPlan = floorplan
     if(floorplan?.floorPlanCode){
@@ -455,6 +454,7 @@ export class ArcsDashboardComponent implements OnInit {
     // await this.refreshTaskInfo()
     // await this.refreshStats()
     // this.mqSrv.subscribeMQTT('arcsTaskInfoChange' ,  floorplan.floorPlanCode )
+    this.stopSubscribeRobotStatus.next()
     this.mqSrv.subscribeMQTTUntil('arcsRobotStatusChange' ,  floorplan.floorPlanCode , this.stopSubscribeRobotStatus )
     // this.tabs = (floorplan.mapList.length == 0 ? [] : [{ id: '3dMap', label: '3D Map', authorized: false }]).concat(<any>this.getTabs())
     this.uiSrv.loadAsyncDone(ticket)
@@ -493,8 +493,6 @@ export class ArcsDashboardComponent implements OnInit {
   }
 
   async refreshStats(data: RobotStatus[] = null){
-
- 
     const filters = this.getStatusListUrlParam()
     data = data == null ?  await this.dataSrv.httpSrv.fmsRequest('GET', 'robot/v1/info' + this.getStatusListUrlParam(), undefined, false) : data
     if(filters!= this.getStatusListUrlParam()){ //validate concurrency

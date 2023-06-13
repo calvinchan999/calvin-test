@@ -42,7 +42,7 @@ export class MqService {
     exception : new BehaviorSubject<any>(null),
     unreadMsgCnt: new BehaviorSubject<any>(0),
     arcsPoses : new BehaviorSubject<any>(null),   
-    arcsRobotStatusChange : new BehaviorSubject<RobotStatusARCS[]>([]),
+    arcsRobotStatusChange : new BehaviorSubject<RobotStatusARCS[]>(null),
     // arcsTaskInfoChange : new BehaviorSubject<RobotTaskInfoARCS[]>([]),
     arcsWarningChangedRobotCode : new BehaviorSubject<string | null>(null),
     arcsSyncLog : new BehaviorSubject<syncLog[]>([]),
@@ -532,7 +532,7 @@ export class MqService {
 
   public async unsubscribeMQTT(type: MQType , forced = false , paramString = '') {
     //Commented 20220422 - - - Aviod duplicate subscription
-    paramString = this.util.standaloneApp ? '' : paramString
+    paramString = this.util.standaloneApp || paramString == null ? '' : paramString
     this.setSubscribedCount(type, (forced ? 0 : Math.max(0, this.getSubscribedCount(type, paramString) - 1)), paramString)
     if( this.getSubscribedCount(type , paramString) == 0 && !this.backgroundSubscribeTypes.includes(type) ){
       // let mapping = this.mqMaster[type].mapping

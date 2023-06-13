@@ -12,7 +12,7 @@
     "build-qmh": "npm run set-prod-environment -- qmh && node --max-old-space-size=10240 ./node_modules/@angular/cli/bin/ng build --prod --aot",
     "build-azure": "npm run set-prod-environment -- azure && node --max-old-space-size=10240 ./node_modules/@angular/cli/bin/ng build --prod --aot ",
     "build-arcs": "npm run set-prod-environment -- arcs && node --max-old-space-size=10240 ./node_modules/@angular/cli/bin/ng build --prod --aot --base-href \"/arcs/\"",
-    "build-sa": "npm run set-prod-environment -- standalone &&  node --max-old-space-size=10240 ./node_modules/@angular/cli/bin/ng build --prod --base-href  \"/rv_standalone/\" --source-map=false"
+    "build-sa": "npm run set-prod-environment -- sa &&  node --max-old-space-size=10240 ./node_modules/@angular/cli/bin/ng build --prod --base-href  \"/rv_standalone/\" --source-map=false"
   },
   "private": true,
   "dependencies": {
