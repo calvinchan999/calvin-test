@@ -733,14 +733,14 @@ export class ArcsChartsComponent implements OnInit, OnDestroy {
     this.usabilityData = this.usabilityData.filter(r=>r.type != 'ROBOT').concat((this.usabilityData.filter(r=>r.type == 'ROBOT').sort((a,b)=> b.value - a.value)).concat((<any>filteredRobotData)))
     this.usabilityData.forEach(r => {
       if (r.type == 'COMPLETED') {
-        this.usability.completed = this.getRoundedValue(r.value , 0)
+        this.usability.completed = this.getRoundedValue(r.value, 0)
       } else if (r.type == 'INCOMPLETE') {
-        this.usability.incomplete = this.getRoundedValue(r.value , 0)
+        this.usability.incomplete = this.getRoundedValue(r.value, 0)
       } else if (r.type == 'CANCELED') {
-        this.usability.canceled = this.getRoundedValue(r.value , 0)
+        this.usability.canceled = this.getRoundedValue(r.value, 0)
       } else if (r.type == 'DAILY') {
         let splitedDateString = r.category.split("-")
-        let index = this.daysIntoYear(new Date(Number(splitedDateString[0]), Number(splitedDateString[1]) - 1, Number(splitedDateString[2]) ))
+        let index = this.daysIntoYear(new Date(Number(splitedDateString[0]), Number(splitedDateString[1]) - 1, Number(splitedDateString[2])))
         this.usability.daily.data[index] = this.getRoundedValue(r.value)
       } else if (r.type == 'HOURLY_AVG') {
         this.usability.hourlyAvg.data[Number(r.category)] = this.getRoundedValue(r.value)
@@ -748,10 +748,10 @@ export class ArcsChartsComponent implements OnInit, OnDestroy {
         let index = Object.keys(this.usability.weeklyAvg.categoriesMap).indexOf(r.category?.toUpperCase())
         this.usability.weeklyAvg.data[index] = this.getRoundedValue(r.value)
       } else if (r.type == 'ROBOT_TYPE') {
-        this.usability.robotType.data.push({ category: r.category , value: this.getRoundedValue(r.value) })
-      }else if(r.type == 'ROBOT'){
+        this.usability.robotType.data.push({ category: r.category, value: this.getRoundedValue(r.value) })
+      } else if (r.type == 'ROBOT') {
         this.usability.robot.categories.push(r.category)
-        this.usability.robot.data.push( this.getRoundedValue(r.value))
+        this.usability.robot.data.push(this.getRoundedValue(r.value))
       }
     })
     this.usability.total = this.usability.completed + this.usability.incomplete //+ this.usability.canceled

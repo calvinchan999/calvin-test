@@ -58,7 +58,7 @@
                 <!-- <label class="ts-value">{{usability.canceled}}</label> -->
                 <!-- <label class="ts-total">/ {{usability.total}}</label> -->
             </div>
-            <a *ngIf="usability.canceled != 0" class="ts-percent" (click)="showAbnormalTasks('canceled')">{{usability.canceled}}</a> 
+            <a *ngIf="usability.canceled != 0" class="ts-percent" (click)="usability.canceled ?  showAbnormalTasks('canceled') : null">{{usability.canceled ? usability.canceled : 0}}</a> 
             <label *ngIf="usability.canceled == 0" class="ts-percent">{{usability.canceled}}</label> 
             <!-- <label class="ts-percent">{{usability.canceled * 100 / usability.total | number: '1.0-2'}}%</label> -->
         </kendo-tilelayout-item-body>

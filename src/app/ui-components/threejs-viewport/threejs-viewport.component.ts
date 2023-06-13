@@ -14,7 +14,6 @@ import { radRatio } from '../map-2d-viewport/map-2d-viewport.component';
 import { BehaviorSubject, interval, Observable, Subject, Subscription } from 'rxjs';
 import { CSS2DRenderer, CSS2DObject } from 'three/examples/jsm/renderers/CSS2DRenderer'; //three-css2drender
 import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls';
-import { BufferGeometryUtils  } from 'three/examples/jsm/utils/BufferGeometryUtils';
 import { EffectComposer  } from  'three/examples/jsm/postprocessing/EffectComposer.js' ;
 import {  RenderPass  } from  'three/examples/jsm/postprocessing/RenderPass' ;
 import {  ShaderPass  } from  'three/examples/jsm/postprocessing/ShaderPass' ;

@@ -37,7 +37,7 @@ export class ConfigService {
     }
 
 
-	constructor(private http        : HttpClient,
+	constructor(private http : HttpClient,
                 private httpSrv : RvHttpService,
 		        private generalUtil : GeneralUtil) { 
 

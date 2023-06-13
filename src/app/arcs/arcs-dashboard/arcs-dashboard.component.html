@@ -9,19 +9,11 @@
                 <button *ngFor="let tab of tabs" kendoButton [toggleable]="true"
                     [selected]="selectedTab == tab.id" 
                     (click)=" tab.id == selectedTab ? null : (selectedTab = tab.id) ;
-                              selectedTab == 'dashboard' ? initPixi() : null ">
+                              selectedTab == 'dashboard' ? null : stopSubscribeRobotStatus.next();
+                              selectedTab == 'dashboard' ? initPixi() : (selectedTab == 'task' || selectedTab == 'group' ?  mqSrv.subscribeMQTTUntil('arcsRobotStatusChange' ,  null , stopSubscribeRobotStatus ) : null) ;">
                     {{ tab.label | label : uiSrv.langPack }}
                 </button>
             </kendo-buttongroup>
-            <!-- <kendo-buttongroup *ngIf="!" class = "btn-grp-sub" selection="single">
-
-                <button kendoButton [toggleable]="true" [selected]="selectedSubTab == 'usability'"  (click)="selectedSubTab = 'usability'; scrollToBottom();">
-                    {{ 'Usability' | label : uiSrv.langPack }}
-                </button>
-                <button  kendoButton [toggleable]="true" [selected]="selectedSubTab == 'utilization'" (click)="selectedSubTab =  'utilization' ; scrollToBottom();">
-                    {{ 'Utilization' | label : uiSrv.langPack }}
-                </button>
-            </kendo-buttongroup> -->
         </div>
         <span></span>
     </div>
@@ -29,17 +21,6 @@
 
 
 
-<!-- <kendo-buttongroup  *ngIf="robotTypeFilter!=null" class = "btn-grp-main" selection="single">
-    <button kendoButton [toggleable]="true" [selected]="selectedTab == 'dashboard'"  (click)="selectedTab = 'dashboard';initPixi(true) ">
-        {{ 'Dashboard' | label : uiSrv.langPack }}
-    </button>
-    <button  kendoButton [toggleable]="true" [selected]="selectedTab == 'task'" (click)="selectedTab = 'task'; columnDef = columnsDefsMap['task']">
-        {{ 'Tasks' | label : uiSrv.langPack }}
-    </button>
-    <button  kendoButton [toggleable]="true" [selected]="selectedTab == 'template'" (click)="selectedTab = 'template'; columnDef = columnsDefsMap['template']">
-        {{ 'Task Template' | label : uiSrv.langPack }}
-    </button>
-</kendo-buttongroup> -->
 
 <kendo-tilelayout *ngIf="selectedTab == 'dashboard'" class="first-tile-layout" [columns]="7" [resizable]="false" [reorderable]="false">
     <kendo-tilelayout-item class="ts-job" [title]="'Executing Tasks' | label: uiSrv.langPack" [col]="1" [row]="1">

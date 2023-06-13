@@ -94,6 +94,7 @@ export class ArcsDashboardComponent implements OnInit {
   }
   data = []
   robotIconColorMap = {}
+  stopSubscribeRobotStatus = new Subject()
 
   gridSettings = this.getGridSettings()
   getGridSettings(){
@@ -245,8 +246,9 @@ export class ArcsDashboardComponent implements OnInit {
     // this.mqSrv.subscribeMQTTs([ 'obstacleDetection' , 'tilt' , 'estop'])
 
     this.mqSrv.data.arcsRobotStatusChange.pipe(skip(1), filter(v => v != null), takeUntil(this.$onDestroy)).subscribe((c) => {
+      console.log(c)
       if (this.selectedTab == 'dashboard') {
-        this.refreshStats(c.filter(c => !this.robotTypeFilter || c?.robotType == this.robotTypeFilter?.toUpperCase()))
+        this.refreshStats(c?.filter(c => !this.robotTypeFilter || c?.robotType == this.robotTypeFilter?.toUpperCase()))
       }
       if (this.selectedTab == 'group') {
         this.tableRef?.retrieveData();
@@ -259,10 +261,12 @@ export class ArcsDashboardComponent implements OnInit {
   }
 
   ngOnDestroy(){
-    if(this.currentFloorPlan){
-      // this.mqSrv.unsubscribeMQTT('arcsTaskInfoChange', false , this.currentFloorPlan.floorPlanCode)
-      this.mqSrv.unsubscribeMQTT('arcsRobotStatusChange', false , this.currentFloorPlan.floorPlanCode)
-    }
+    // if(this.currentFloorPlan){
+    //   // this.mqSrv.unsubscribeMQTT('arcsTaskInfoChange', false , this.currentFloorPlan.floorPlanCode)
+    //   this.mqSrv.unsubscribeMQTT('arcsRobotStatusChange', false , this.currentFloorPlan.floorPlanCode)
+    // }
+    this.stopSubscribeRobotStatus.next()
+    console.log('destroyed')
     this.$onDestroy.next()    
   }
   
@@ -422,10 +426,11 @@ export class ArcsDashboardComponent implements OnInit {
       this.rightMapPanel.panelMode = null
       this.btmMapPanel.selectedMapObjChange(null)
     }
-    if (this.currentFloorPlan?.floorPlanCode) {
-      // this.mqSrv.unsubscribeMQTT('arcsTaskInfoChange', false , this.currentFloorPlan?.floorPlanCode)
-      this.mqSrv.unsubscribeMQTT('arcsRobotStatusChange', false , this.currentFloorPlan?.floorPlanCode)
-    }
+    // if (this.currentFloorPlan?.floorPlanCode) {
+    //   // this.mqSrv.unsubscribeMQTT('arcsTaskInfoChange', false , this.currentFloorPlan?.floorPlanCode)
+    //   this.mqSrv.unsubscribeMQTT('arcsRobotStatusChange', false , this.currentFloorPlan?.floorPlanCode)
+    // }
+    this.stopSubscribeRobotStatus.next()
     let floorplan = await this.mapSrv.getFloorPlan(code);
     this.currentFloorPlan = floorplan
     if(floorplan?.floorPlanCode){
@@ -450,7 +455,7 @@ export class ArcsDashboardComponent implements OnInit {
     // await this.refreshTaskInfo()
     // await this.refreshStats()
     // this.mqSrv.subscribeMQTT('arcsTaskInfoChange' ,  floorplan.floorPlanCode )
-    this.mqSrv.subscribeMQTT('arcsRobotStatusChange' ,  floorplan.floorPlanCode )
+    this.mqSrv.subscribeMQTTUntil('arcsRobotStatusChange' ,  floorplan.floorPlanCode , this.stopSubscribeRobotStatus )
     // this.tabs = (floorplan.mapList.length == 0 ? [] : [{ id: '3dMap', label: '3D Map', authorized: false }]).concat(<any>this.getTabs())
     this.uiSrv.loadAsyncDone(ticket)
     

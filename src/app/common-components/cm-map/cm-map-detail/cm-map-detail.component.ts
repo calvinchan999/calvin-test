@@ -16,6 +16,7 @@ import { GeneralUtil } from 'src/app/utils/general/general.util';
 import { GetImageDimensions} from 'src/app/utils/graphics/image';
 import { MqService } from 'src/app/services/mq.service';
 import { RobotService } from 'src/app/services/robot.service';
+import { WebGLMaxMobileTextureSize, WebGLMaxPcTextureSize } from 'src/app/utils/ng-pixi/ng-pixi-viewport/ng-pixi-functions';
 
 @Component({
   selector: 'app-cm-map-detail',
@@ -65,6 +66,7 @@ export class CmMapDetailComponent implements OnInit {
   showTabletSaveDialog = false
   @Input() parentRow = null
   locationDataMap =  new Map()
+  base64Loaded = null
   get isCreate(){
     return this.parentRow == null
   }
@@ -131,6 +133,13 @@ export class CmMapDetailComponent implements OnInit {
     // await this.pixiElRef.convertJMapToUniversalResolution(data)
     this.orginalWidth = data.imageWidth
     this.orginalHeight = data.imageHeight
+    let maxPx = this.uiSrv.isTablet ? WebGLMaxMobileTextureSize : WebGLMaxPcTextureSize
+    if ((data.imageWidth >= maxPx || data.imageHeight > maxPx)) {
+      this.base64Loaded = data.base64Image
+      this.pixiElRef.mapHeight = data.imageHeight
+      this.pixiElRef.mapWidth = data.imageWidth
+      this.pixiElRef.hideButton = { all : true }
+    }
     await this.pixiElRef.loadToMainContainer( data.base64Image , undefined , undefined , undefined, undefined, true)
     let resolution = data.resolution ?  data.resolution : 1 /  this.util.config.METER_TO_PIXEL_RATIO
     let origin = calculateMapOrigin(data.originX , data.originY , data.imageHeight *  resolution ,  1 / resolution)
@@ -139,13 +148,19 @@ export class CmMapDetailComponent implements OnInit {
     this.uiSrv.loadAsyncDone(ticket)
   }
 
+  imageUploaded(evt: { base64: string, width: number, height: number }) {
+    if (this.pixiElRef.mapHeight || this.pixiElRef.mapWidth ) {
+      this.base64Loaded = evt.base64
+    }
+  }
+
   valueChange(evt){
 
   }
 
   async validate() {
     //TBD : check if map resolution == original map resolution if update
-    if(!this.isCreate){
+    if(!this.isCreate && !this.base64Loaded){
       let currDimension = await GetImageDimensions('data:image/png;base64,' + await this.pixiElRef?.getMainContainerImgBase64())
       if(currDimension[0] != this.orginalWidth || currDimension[1] != this.orginalHeight){
         this.uiSrv.showMsgDialog("Map dimemsion changed. Drawing is out of boundary")
@@ -162,7 +177,7 @@ export class CmMapDetailComponent implements OnInit {
   async getSubmitDataset(){
     let ret = new JMap()
     Object.keys(this.frmGrp.controls).forEach(k=> ret[k] = this.frmGrp.controls[k].value)
-    ret.base64Image = await this.pixiElRef.getMainContainerImgBase64()
+    ret.base64Image = this.base64Loaded ?`data:image/${this.frmGrp.controls['fileName'].value.split(".")[this.frmGrp.controls['fileName'].value.split(".").length - 1]};base64,${this.base64Loaded.split(",")[this.base64Loaded.split(",").length - 1]}` : await this.pixiElRef.getMainContainerImgBase64()
     if(!this.parentRow && this.createFloorPlan){
       this.frmGrp.controls['floorPlanCode'].setValue(this.frmGrp.controls['floorPlanCode'].value?.length > 0 ? this.frmGrp.controls['floorPlanCode'].value : this.frmGrp.controls['mapCode'].value )
       ret.floorPlanCode =  this.frmGrp.controls['floorPlanCode'].value
@@ -193,7 +208,7 @@ export class CmMapDetailComponent implements OnInit {
     })
   }
 
-  async saveToDB(){
+  async saveToDB(){ 
     if(this.uiSrv.isTablet && this.isCreate && !this.showTabletSaveDialog){
       this.showTabletSaveDialog = true
       return
@@ -201,7 +216,7 @@ export class CmMapDetailComponent implements OnInit {
     if(!await this.validate()){
       return
     }
-    // await this.stopScanMap(true)    
+    
     let saveResult = await this.dataSrv.saveRecord("api/map/v1" ,await this.getSubmitDataset(), this.frmGrp , this.isCreate)
     if (saveResult.result == true) {
       let mapCode = this.frmGrp.controls['mapCode'].value
@@ -215,7 +230,7 @@ export class CmMapDetailComponent implements OnInit {
         }else{      
           this.pixiElRef.reset()
           this.pixiElRef.hideButton = { arrow: true, upload: true, point: true } 
-          this.loadData( [mapCode , this.util.config.ROBOT_BASE])         
+          this.loadData([mapCode, this.util.config.ROBOT_BASE])         
         }
         this.frmGrp.reset()
       }else if(!this.uiSrv.isTablet){

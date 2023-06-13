@@ -623,25 +623,21 @@ export class TestSignalRComponent implements OnInit {
     },
     ieq:{
       content: JSON.stringify({
-        robotId: 'ROBOT-01',
-         ieq:{
-          co: 1,
-          co2 : 2,
-          hcho : 3,
-          light : 4,
-          no2 : 5,
-          noise_moy : 6,
-          noise_max : 7,
-          o3: 8,
-          p : 9,
-          pm1: 10,
-          pm2_5: 11, 
-          pm10: 12,
-          rh : 13,
-          t : 14,
-          tvoc_mos : 15,
-          tvoc_pid: 16
-         }
+        robotId: 'RV-ROBOT-104',
+          co_ppb: 1.8,
+          co2_ppm : 1600,
+          hcho_ppb : 60,
+          light_lux : 4,
+          no2_ppb : 5,
+          noise_dB : 6,
+          o3_ppb: 8,
+          p_mb : 9,
+          pm1_ugPerM3: 10,
+          pm2_ugPerM3: 11, 
+          pm10_ugPerM3: 12,
+          rh_percent : 13,
+          t_degreeC : 14,
+          tvoc_ppb : 90
       }),
       seriesInterval: 0.5,
       topic: 'rvautotech/fobo/ieq'

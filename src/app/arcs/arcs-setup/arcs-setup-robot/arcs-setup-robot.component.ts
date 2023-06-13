@@ -24,8 +24,8 @@ export class ArcsSetupRobotComponent implements OnInit {
     robotType: new FormControl(null, Validators.required),
     robotSubType: new FormControl(null),
     robotStatus: new FormControl(null),
-    batteryLevelUpperLimit: new FormControl(null),
-    batteryLevelLowerLimit: new FormControl(null),
+    batteryLevelUpperLimit: new FormControl(0),
+    batteryLevelLowerLimit: new FormControl(0),
     batteryLevelCriticalLimit: new FormControl(null),
     modifiedDateTime: new FormControl(null),
   })

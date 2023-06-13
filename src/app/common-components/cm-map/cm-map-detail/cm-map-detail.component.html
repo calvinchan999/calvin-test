@@ -14,6 +14,7 @@
                 [hideButton]="readonly ? {all : true} : { arrow: true, upload: true, point: true , manual : true}"
                 (fileLoad)=" frmGrp.controls['fileName'].setValue($event?.name)"
                 [showScanButton]="isCreate && !startedScanning" (scanClicked)="scanMapClicked()"
+                (imageUploaded) = "imageUploaded($event)"
                 [hideRelocationButton]="true">
             </uc-drawing-board>
         </div>

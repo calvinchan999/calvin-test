@@ -96,7 +96,7 @@ export class Map2DViewportComponent implements OnInit , AfterViewInit , OnDestro
     return this.util.arcsApp ? this.arcsModule : this.standaloneModule
   }
 
-
+  
   
   @ViewChild(NgPixiViewportComponent) public _ngPixi: NgPixiViewportComponent;
   @ViewChild('uploader') public uploader
@@ -141,8 +141,7 @@ export class Map2DViewportComponent implements OnInit , AfterViewInit , OnDestro
   subscriptions = []
   _pickSpawnPoint = false
   _readonly = false
-
-
+  @Output() imageUploaded = new EventEmitter<{base64 : string , width : number , height : number}>()
   
   @Input() set arcsRobotColors(v){
     if(this.module.robot && this.module.robot instanceof ARCSRobotModule){
@@ -712,11 +711,20 @@ export class Map2DViewportComponent implements OnInit , AfterViewInit , OnDestro
     this.fileLoad.emit(files[0]);
     reader.onload = async (_event) => {
       let url = reader.result;
+      
       let imgDimension = await GetImageDimensions(url.toString())
       let width = imgDimension[0]
       let height = imgDimension[1]
+      
+      this.imageUploaded.emit({
+        base64: url.toString(),
+        width : width,
+        height: height
+      })
 
-      if (this.uploadMustMatchOriginalSize && (width != this.backgroundSprite.texture.width || height != this.backgroundSprite.texture.height)) {
+      
+
+      if (this.uploadMustMatchOriginalSize && (width != (this.mapWidth ? this.mapWidth : this.backgroundSprite.texture.width) || height !=  (this.mapHeight ?  this.mapHeight : this.backgroundSprite.texture.height))) {
         this.uiSrv.showWarningDialog(this.uiSrv.translate("Uploaded image must be of same dimiension and resolution of original image"));
         this.uiSrv.loadAsyncDone(ticket)
         return
@@ -858,7 +866,7 @@ export class Map2DViewportComponent implements OnInit , AfterViewInit , OnDestro
     if(done.value==null){
       await done.pipe(filter(v=>v!=null),take(1)).toPromise()
     }
-    return done.value.replace('data:image/png;base64,' , '')
+    return done.value.split[","][done.value.split[","].length - 1]
   }
   
 
@@ -2540,7 +2548,7 @@ export class DataModule{
   }
 
   async loadFloorPlan(fpCode : string){
-    await this.master.loadDataset( await this.master.mapSrv.getFloorPlan(fpCode), true , true)
+    await this.master.loadDataset( await this.master.mapSrv.getFloorPlan(fpCode), true , false)
     this.activeFloorPlanCode = fpCode
     this.selectedFloorPlanCode = fpCode
   }

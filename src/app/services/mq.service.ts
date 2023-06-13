@@ -559,7 +559,7 @@ export class MqService {
     }
     paramString = this.util.standaloneApp ? '' : paramString
     let subscribedCount = this.getSubscribedCount(type, paramString) 
-    let topicSfx = paramString == '' ? '' : '/' + paramString 
+    let topicSfx = paramString == '' || paramString == null ? '' : '/' + paramString 
     let newSubscription =  !(this._USE_AZURE_PUBSUB ? this.pubsubSrv.getCreatedTopics() : this.signalRSrv.subscribedTopics).includes(this.mqMaster[type].topic + topicSfx)
     let ret = this._USE_AZURE_PUBSUB ? (await this.pubsubSrv.subscribeTopic(this.mqMaster[type].topic + (PUB_SUB_IGNORE_SFX_LIST.includes(type) ? '' : topicSfx))) : (await this.signalRSrv.subscribeTopic(this.mqMaster[type].topic + topicSfx, subscribedCount == 0))
     let $unsubscribed = this.signalRSrv.getUnsubscribedSubject(this.mqMaster[type].topic + topicSfx)
