@@ -8832,6 +8832,7 @@
 
 .mdi-cursor-move::before {
   content: "\F01BE";
+  font-size: 18px;
 }
 
 .mdi-cursor-pointer::before {

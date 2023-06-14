@@ -14,11 +14,65 @@
                                 [suffixButton]="{icon : 'k-icon mdi mdi-upload'}"
                                 (suffixButtonClick)="onUploadClicked()">
                     </uc-txtbox>
+
+                    <!-- <span>{{'Object Browser' | label : uiSrv.langPack }}</span> -->
+                    <div class="object-browser" *ngIf="threeJsElRef">         
+                        <div>
+                            <a [class]="threeJsElRef?.transformCtrl?.object == threeJsElRef?.floorPlanModel ? 'selected' : ''" 
+                                (click)="selectObject3D(threeJsElRef.floorPlanModel)">
+                                <span class="mdi mdi-cube-outline"></span>
+                                {{'Floor Plan' | label : uiSrv.langPack }}
+                            </a>
+                        </div>           
+
+
+                        <div class="tab-1">
+                            <span class="mdi mdi-door"> 
+                                {{'Auto Door' | label : uiSrv.langPack }}
+                                <a class="mdi mdi-plus-box" (click)="addIotObj3D('DOOR')"></a>
+                            </span>                 
+                            <ul>
+                                <li *ngFor = "let door of iotDoors" 
+                                    [class] = "threeJsElRef?.transformCtrl?.object == door.objectRef? 'selected' : ''" 
+                                    (click) = "selectObject3D(door.objectRef)">
+                                    <a>{{door.id}}</a> 
+                                </li>
+                            </ul>              
+                        </div>
+
+                        <div class="tab-1">
+                            <span class="mdi mdi-elevator-passenger-outline"> 
+                                {{'Elevator' | label : uiSrv.langPack }}
+                                <a class="mdi mdi-plus-box" (click)="addIotObj3D('LIFT')"></a>
+                            </span>
+                            <ul>
+                                <li *ngFor = "let lift of iotLifts" 
+                                     [class] = "threeJsElRef?.transformCtrl?.object == lift.objectRef? 'selected' : ''" 
+                                     (click) = "selectObject3D(lift.objectRef)">
+                                     <a>{{lift.id}}</a>
+                                </li>
+                            </ul>      
+                        </div>
+
+                        <div class="tab-1">
+                            <span class="mdi mdi-turnstile-outline">
+                                 {{'Turnstile' | label : uiSrv.langPack }}
+                                 <a class="mdi mdi-plus-box" (click)="addIotObj3D('TURNSTILE')"></a>
+                            </span>     
+                            <ul>
+                                <li *ngFor = "let turnstile of iotTurnstiles" 
+                                    [class] = "threeJsElRef?.transformCtrl?.object == turnstile.objectRef? 'selected' : ''" 
+                                    (click) = "selectObject3D(turnstile.objectRef)">
+                                    <a>{{turnstile.objectRef.turnstileId}}</a>
+                                </li>
+                            </ul>                 
+                        </div>
+                    </div>
                     <!-- <button kendoButton  class="upload-btn" (click)="onUploadClicked() ">
                         <span class="k-icon mdi mdi-upload"></span>
                         {{'Upload 3D model' | label: uiSrv.langPack}}
                     </button> -->
-                    <ng-container *ngIf="floorPlanDataset && threeJsElRef">
+                    <!-- <ng-container *ngIf="floorPlanDataset && threeJsElRef">
                         <uc-txtbox  class="scale" lab = "Scale"  [frmGrp]="frmGrp" frmCtrl="scale" [numeric]="true" [numMin]="0" [numMax] = "10000" (valueChange) = "scaleChange($event)" ></uc-txtbox>
                         <div class="form-row">
                             <uc-txtbox  class="position" lab = "Position X"  [frmGrp]="frmGrp" frmCtrl="positionX" [numeric]="true" (valueChange) = "positionChange( 'x' , $event)" ></uc-txtbox>
@@ -31,14 +85,14 @@
                             <uc-txtbox  class="rotation" lab = "Rotation Y"  [frmGrp]="frmGrp" frmCtrl="rotationY" [numeric]="true" (valueChange) = "rotationChange( 'y' , $event)" ></uc-txtbox>
                             <uc-txtbox  class="rotation" lab = "Rotation Z"  [frmGrp]="frmGrp" frmCtrl="rotationZ" [numeric]="true" (valueChange) = "rotationChange( 'z' , $event)" ></uc-txtbox>
                         </div>         
-                    </ng-container>
+                    </ng-container> -->
                  
                 </form>
             </div>
         </ng-container>
 
         <div *ngIf="file && floorPlanDataset" class="three-d-container"> 
-            <uc-3d-viewport #threeJs [uiToggles] = "{showFloorPlanImage : false , transformControl : true}">
+            <uc-3d-viewport #threeJs [uiToggles] = "{showFloorPlanImage : false , transformControl : true}" (transformEnd) = "refreshTransformation($event)">
             </uc-3d-viewport>
         </div>        
         <div *ngIf="!file && floorPlanDataset" class="upload-container">
@@ -53,6 +107,7 @@
         <button *ngIf="!readonly" kendoButton (click) = "saveToDB()"  [disabled] = "!file || !floorPlanDataset"> {{'Save' | label : uiSrv.langPack}}</button>
     </div>
 </div>
+
 
 
 

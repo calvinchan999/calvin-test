@@ -154,7 +154,7 @@ export class ArcsDashboardNewTaskComponent implements OnInit , OnDestroy {
         let pointObj = this.dashboardCompRef.threeJsElRef.waypointMeshes.filter(w=> t.movement?.pointCode == w.pointCode)[0]
         let text = this.taskItems.filter(t=>t.movement?.pointCode == pointObj.pointCode).map(t=> (this.taskItems.indexOf(t) + 1).toString()).join(" , ")
         if(!pointObj.custom2Dobj){
-          pointObj.appendCustom2DObject(0 , 0 , 100)
+          pointObj.appendCustom2DObject(0 , 0 , (pointObj.glbSettings.size * 10) * pointObj.master.ROSmapScale)
           pointObj.custom2Dobj.toolTipCompRef.instance.cssClass = 'task-item-seq'
         }
         pointObj.custom2Dobj.toolTipCompRef.instance.content = text

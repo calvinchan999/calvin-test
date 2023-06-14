@@ -61,6 +61,7 @@ export class ThreejsViewportComponent implements OnInit , OnDestroy{
   animationRequestId : number
   loadingPercent = null
   @ViewChild('canvas') canvas : ElementRef
+  @Output() transformEnd =  new EventEmitter<any>();
   @Output() robotClicked = new EventEmitter<any>();
   @Output() to2D =  new EventEmitter<{floorPlanCode? : string, showSite? : boolean}>();
   @Output() objClicked = new EventEmitter<any>();
@@ -93,6 +94,9 @@ export class ThreejsViewportComponent implements OnInit , OnDestroy{
   fullScreen = false 
   $onDestroy = new Subject()
   floorPlanModel : THREE.Group
+  radRatio = radRatio
+  transformObjIconClass : string
+  transformObjName : string
 
   @Input() uiToggles: {
     showWall?: boolean,
@@ -102,7 +106,6 @@ export class ThreejsViewportComponent implements OnInit , OnDestroy{
     showFloorPlanImage?: boolean,
     to2D?: boolean,
     fullScreen?: boolean ,
-    transformControl ? : boolean
     alert? : boolean
   } = {
       showWall: true,
@@ -143,6 +146,8 @@ export class ThreejsViewportComponent implements OnInit , OnDestroy{
   focusedRaycaster = new THREE.Raycaster();
   cameraRayCaster = new THREE.Raycaster();
   _initDone = new BehaviorSubject<boolean>(false) 
+  @ViewChild("bottomPanelContainer") bottomPanelContainer : ViewContainerRef
+
   get $initDone(){
     return this._initDone.pipe(filter(v => v == true), take(1))
   }
@@ -184,6 +189,8 @@ export class ThreejsViewportComponent implements OnInit , OnDestroy{
     return  this.elRef?.nativeElement?.parentElement?.clientHeight
   }
 
+  
+
   @HostBinding('class') customClass = 'drawing-board'
   
   @HostListener('window:resize', ['$event'])
@@ -215,7 +222,7 @@ export class ThreejsViewportComponent implements OnInit , OnDestroy{
 
   animate() {
     this.animationRequestId = requestAnimationFrame(this.animate.bind(this))
-      TWEEN.update();
+    TWEEN.update();
     if(!this.suspended){
       //this.renderer.render(this.scene, this.camera )
       this.labelRenderer?.render( this.scene, this.camera );
@@ -256,24 +263,16 @@ export class ThreejsViewportComponent implements OnInit , OnDestroy{
       this.robotObjs.forEach(r=>r.toolTipAlwaysOn = this.uiToggles.showIot)
     } else if (key == 'showFloorPlanImage') {
       (<THREE.MeshPhongMaterial>this.floorplan.material).visible = this.uiToggles.showFloorPlanImage
-    }else if(key == 'transformControl' && this.floorPlanModel ){
-      if(this.uiToggles.transformControl){
-        this.transformCtrl = new TransformControls(this.camera, this.renderer.domElement)
-        this.transformCtrl.addEventListener("dragging-changed", function (event) {
-          console.log("dragging-changed ", event);
-          // if (!event.value) {
-          //   this.transformCtrl.detach();
-          //   // console.log("check mesh", mesh);
-          // }
-          this.orbitCtrl.enabled = !event.value;
-        });
-        this.transformCtrl.attach(this.floorPlanModel)
-        this.scene.add(this.transformCtrl)
-      }else if(this.transformCtrl){       
-        this.transformCtrl.object = null
-        this.scene.remove(this.transformCtrl)
- 
-      }
+    // }else if(key == 'transformControl' && this.floorPlanModel ){
+    //   if(this.uiToggles.transformControl){
+    //     this.transformCtrl.addEventListener("dragging-changed",  (event)=> {
+    //       this.orbitCtrl.enabled = !event.value;
+    //       this.transformEnd.emit(this.transformCtrl.object)
+    //     });
+    //     this.transformCtrl.attach(this.floorPlanModel)
+    //   }else if(this.transformCtrl){       
+    //     this.transformCtrl.detach()
+    //   }
     }else if(key == 'alert'){
       this.eventMarkers.forEach(m=>{
         if(this.uiToggles.alert){
@@ -515,7 +514,7 @@ export class ThreejsViewportComponent implements OnInit , OnDestroy{
       this.floorPlanModel.scale.set((settings).scale , (settings).scale , (settings).scale)
       this.floorPlanModel.position.set((settings).positionX , (settings).positionY , (settings).positionZ)
       this.floorPlanModel.rotation.set(settings.rotationX / radRatio , settings.rotationY / radRatio , settings.rotationZ / radRatio);
-      ['showFloorPlanImage' , 'transformControl'].forEach(k => this.uiToggled(k))
+      ['showFloorPlanImage'].forEach(k => this.uiToggled(k))
       return true
     }else{
       (<THREE.MeshPhongMaterial>this.floorplan.material).visible = true
@@ -624,14 +623,14 @@ export class ThreejsViewportComponent implements OnInit , OnDestroy{
     this.initLabelRenderer()
     this.initPasses()
     this.animate()
-
-    await this.getRobotList()
-  
-
-    // this.scene.add(this.transformCtrl)
+    await this.getRobotList()  
     this.orbitCtrl = new OrbitControls( this.camera, this.labelRenderer.domElement );
-    // this.orbitCtrl.enabled  = false
-    // this.orbitCtrl.addEventListener( 'change', (v)=> this.onOrbitControlChange(v) );
+    this.transformCtrl = new TransformControls(this.camera, this.labelRenderer.domElement)
+    this.transformCtrl.addEventListener("dragging-changed", (event) => {
+      this.orbitCtrl.enabled = !event.value;
+      this.transformEnd.emit(this.transformCtrl.object)
+    });
+    this.scene.add(this.transformCtrl)
     
     document.addEventListener('pointermove', (e)=>this.onMouseMove(e), false);
     setTimeout(() => this.onResize())
@@ -1908,6 +1907,7 @@ class Extruded2DMesh extends Mesh{
 }
 
 class ElevatorObject3D extends Object3DCommon{
+  readonly type = 'LIFT'
   floorplanFloor : string
   planeMesh : Mesh
   boxMesh : Mesh
@@ -2011,9 +2011,10 @@ class ElevatorObject3D extends Object3DCommon{
   }
 }
 
-class TurnstileObject3D extends Object3DCommon{ 
+export class TurnstileObject3D extends Object3DCommon{ 
   toolTipCompRef : ComponentRef<ArcsTurnstileIotComponent>
   turnstileId : string
+  readonly type = 'TURNSTILE'
 
   constructor(public master : ThreejsViewportComponent , _id : string ){
     super(master)
@@ -2035,6 +2036,8 @@ class EventMarkerObject3D extends Object3DCommon{
   toolTipCompRef : ComponentRef<CustomButtonComponent>
   robotId : string
   eventId : any
+  readonly type = 'MARKER'
+
   constructor(public master : ThreejsViewportComponent , robotId : string , eventId : any){    
     super(master)
     this.robotId = robotId

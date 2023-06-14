@@ -91,8 +91,57 @@
     z-index: 10;
 }
 
+:host .flex-row{
+    display: flex;
+    gap: 20px;
+    .mdi{
+        margin-right: -10px;
+    }
+    span , a{
+        line-height: 60px;
+    }
+}
 
+:host .flex-col{
+    display: flex;
+    flex-direction: column;
+}
 
+:host .std-container{
+    width: 100%;
+    height: 100%;
+    padding: 10px 35px;
+    .close{
+        position: absolute;
+        top: -10px;
+        right: 20px;
+    }
+}
+
+:host .col-40{
+    width: 40%;
+}
+
+:host .col-60{
+    width: 70%;
+}
+
+:host .panel-header span{
+    line-height: 60px;
+    font-size: 20px;
+}
+
+:host .grow-1{
+    flex-grow: 1;
+}
+
+:host .selected{
+    color: darkturquoise;
+}
+
+:host .justify-end{
+    justify-content: end;
+}
 // :host ::ng-deep .tooltip {
 //     padding: '8px';
 //     border-radius: '5px';

@@ -19,8 +19,9 @@ import { Observable, of } from 'rxjs';
 import { PixiGraphicStyle, DRAWING_STYLE } from 'src/app/utils/ng-pixi/ng-pixi-viewport/ng-pixi-styling-util';
 import { PixiEditableMapImage, PixiWayPoint } from 'src/app/utils/ng-pixi/ng-pixi-viewport/ng-pixi-map-graphics';
 import { HttpEventType } from '@angular/common/http';
-import { ThreejsViewportComponent } from 'src/app/ui-components/threejs-viewport/threejs-viewport.component';
+import { ThreejsViewportComponent, TurnstileObject3D } from 'src/app/ui-components/threejs-viewport/threejs-viewport.component';
 import { MapService } from 'src/app/services/map.service';
+import { Object3D } from 'three';
 // import * as JSZIP from '@progress/jszip-esm';
 
 @Component({
@@ -87,6 +88,32 @@ export class ArcsSetupFloorplan3dComponent implements OnInit {
   subscriptions = []
   pixiMapBorders = []
   floorPlanDataset : JFloorPlan = null
+  iotObjs : {  
+    type : 'LIFT' | 'TURNSTILE' | 'DOOR',
+    id : string ,
+    scale: number , 
+    positionX : number,
+    positionY : number,
+    positionZ : number,
+    rotationX : number,
+    rotationY : number,
+    rotationZ : number,
+    objectRef : Object3D
+  } [] = []
+
+  get iotLifts(){
+    return this.iotObjs.filter(i=>i.type == 'LIFT')
+  }
+
+  
+  get iotTurnstiles(){
+    return this.iotObjs.filter(i=>i.type == 'TURNSTILE')
+  }
+
+  
+  get iotDoors(){
+    return this.iotObjs.filter(i=>i.type == 'DOOR')
+  }
 
 
   @Input() parentRow = null
@@ -175,9 +202,15 @@ export class ArcsSetupFloorplan3dComponent implements OnInit {
       setTimeout(async()=>{
         await this.threeJsElRef.$initDone.toPromise()
         await this.threeJsElRef.loadFloorPlan(this.floorPlanDataset , false , this.file)
+        this.threeJsElRef.uiToggled('showFloorPlanImage')
         this.refreshModelTransformation()
+        this.selectObject3D(this.threeJsElRef.floorPlanModel)
       })
     }
+  }
+
+  selectObject3D(obj : Object3D){
+    this.threeJsElRef.transformCtrl.attach(obj)
   }
 
   refreshModelTransformation(){
@@ -186,6 +219,33 @@ export class ArcsSetupFloorplan3dComponent implements OnInit {
     this.threeJsElRef.floorPlanModel.rotation.set(this.frmGrp.controls['rotationX'].value / radRatio , this.frmGrp.controls['rotationY'].value /radRatio ,this.frmGrp.controls['rotationZ'].value /radRatio)
   }
 
+  addIotObj3D(type: string) {
+    let autoId
+    let newObj
+    let objs = this.iotObjs.filter(i => i.type == type)
+    let ids = ([objs.length + 1]).concat(objs.map(o => objs.indexOf(o) + 1))
+    if (type == "TURNSTILE") {      
+      autoId = Math.min.apply(null, ids.filter(id => !objs.map(o => (<TurnstileObject3D>o.objectRef).turnstileId).includes(id.toString()))).toString()
+      newObj = new TurnstileObject3D(this.threeJsElRef , autoId);
+      (<TurnstileObject3D>newObj).toolTipCompRef.instance.showDetail = true
+    }else {
+      return
+    }
+    this.iotObjs.push({
+      type : <any>type,
+      id : autoId ,
+      scale: 1 , 
+      positionX : 0,
+      positionY : 0,
+      positionZ : 0,
+      rotationX : 0,
+      rotationY : 0,
+      rotationZ : 0,
+      objectRef : newObj
+    })
+    this.threeJsElRef.floorPlanModel.add(newObj)
+    this.selectObject3D(newObj)
+  }
   // async get3DModel() {
   //   let ret = new Subject()
   //   let ticket = this.uiSrv.loadAsyncBegin()
@@ -229,6 +289,7 @@ export class ArcsSetupFloorplan3dComponent implements OnInit {
     }
 
     let ticket = this.uiSrv.loadAsyncBegin()
+    this.refreshTransformation(null)
     // below to be moved to httpSrv
     const formData = new FormData();
     formData.append('file', this.file, this.floorPlanDataset.floorPlanCode + '.glb');
@@ -279,13 +340,25 @@ export class ArcsSetupFloorplan3dComponent implements OnInit {
 
   rotationChange(dim : 'x' | 'y' | 'z' ,  value : number){
     value = value/radRatio
-    const originalRotation =   this.threeJsElRef.floorPlanModel.rotation
+    const originalRotation = this.threeJsElRef.floorPlanModel.rotation
     if(dim == 'x'){
       this.threeJsElRef.floorPlanModel.rotation.set(value , originalRotation.y , originalRotation.z)
     }else if(dim == 'y'){
       this.threeJsElRef.floorPlanModel.rotation.set(originalRotation.x , value , originalRotation.z)
     }else if(dim == 'z'){
       this.threeJsElRef.floorPlanModel.rotation.set(originalRotation.x ,originalRotation.y , value)
+    }
+  }
+
+  refreshTransformation(event : Object3D){
+    if(this.threeJsElRef.floorPlanModel){
+      this.frmGrp.controls['scale'].setValue( this.util.trimNum(this.threeJsElRef.floorPlanModel.scale.x));
+      this.frmGrp.controls['positionX'].setValue( this.util.trimNum(this.threeJsElRef.floorPlanModel.position.x));
+      this.frmGrp.controls['positionY'].setValue( this.util.trimNum(this.threeJsElRef.floorPlanModel.position.y));
+      this.frmGrp.controls['positionZ'].setValue( this.util.trimNum(this.threeJsElRef.floorPlanModel.position.z));
+      this.frmGrp.controls['rotationX'].setValue( this.util.trimNum(this.threeJsElRef.floorPlanModel.rotation.x * radRatio));
+      this.frmGrp.controls['rotationY'].setValue( this.util.trimNum(this.threeJsElRef.floorPlanModel.rotation.y * radRatio));
+      this.frmGrp.controls['rotationZ'].setValue( this.util.trimNum(this.threeJsElRef.floorPlanModel.rotation.z * radRatio));
     }
   }
 }
