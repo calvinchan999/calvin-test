@@ -90,7 +90,9 @@ export class ArcsDashboardMapPanelComponent implements OnInit , OnDestroy {
 
   async setWaypointInfoAtBottomPanel(obj){
     let pointCode = obj instanceof PixiWayPoint ? obj.code : obj.pointCode
+    let ticket =  this.uiSrv.loadAsyncBegin()
     this.waypointState = await this.mapSrv.getWayPointState(this.floorPlanCode, pointCode)
+    this.uiSrv.loadAsyncDone(ticket)
     this.waypointState =  this.waypointState ?  this.waypointState : {
       floorPlanCode : this.floorPlanCode,
       pointCode : pointCode,

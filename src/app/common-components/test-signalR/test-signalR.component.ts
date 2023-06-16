@@ -233,7 +233,7 @@ export class TestSignalRComponent implements OnInit {
   sampleData = {
     ai:{
       seriesInterval: 0,
-      topic: 'rvautotech/fobo/armitage/vision/detection',
+      topic: 'rvautotech/fobo/object/detection',
       content : `{
         "robotId": "FNB-ROBOT",        
         "timestamp": 1683707877000,
