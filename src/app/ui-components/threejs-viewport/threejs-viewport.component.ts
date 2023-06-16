@@ -1066,7 +1066,8 @@ class MapMesh extends Mesh {
   }
 }
 
-class Object3DCommon extends Object3D{
+export class Object3DCommon extends Object3D{
+  $destroyed = new Subject()
   scene : THREE.Scene = new THREE.Scene()
   outlinePass : OutlinePass
   master : ThreejsViewportComponent
@@ -1309,6 +1310,14 @@ class Object3DCommon extends Object3D{
   getToolTipPos(bool: boolean = true) {
     return new Vector3(0, 0, 0)
   }
+
+  destroy(){
+    this.parent?.remove(this)
+    this.master.composer?.removePass(this.outlinePass)
+    this.hideToolTip()
+    this.toolTip?.element?.remove()
+    this.$destroyed.next()
+   }
 }
 
 export class WaypointMarkerObject3D extends Object3DCommon {
@@ -1839,7 +1848,6 @@ export class RobotObject3D extends Object3DCommon{
     this.toolTip?.element?.remove()
     this.robotIotCompRef?.destroy()
    }
-
 }
 
 
@@ -1906,7 +1914,7 @@ class Extruded2DMesh extends Mesh{
   }
 }
 
-class ElevatorObject3D extends Object3DCommon{
+export class ElevatorObject3D extends Object3DCommon{
   readonly type = 'LIFT'
   floorplanFloor : string
   planeMesh : Mesh
@@ -2014,6 +2022,7 @@ class ElevatorObject3D extends Object3DCommon{
 export class TurnstileObject3D extends Object3DCommon{ 
   toolTipCompRef : ComponentRef<ArcsTurnstileIotComponent>
   turnstileId : string
+
   readonly type = 'TURNSTILE'
 
   constructor(public master : ThreejsViewportComponent , _id : string ){

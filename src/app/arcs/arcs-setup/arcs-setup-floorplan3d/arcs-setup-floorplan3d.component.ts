@@ -19,7 +19,7 @@ import { Observable, of } from 'rxjs';
 import { PixiGraphicStyle, DRAWING_STYLE } from 'src/app/utils/ng-pixi/ng-pixi-viewport/ng-pixi-styling-util';
 import { PixiEditableMapImage, PixiWayPoint } from 'src/app/utils/ng-pixi/ng-pixi-viewport/ng-pixi-map-graphics';
 import { HttpEventType } from '@angular/common/http';
-import { ThreejsViewportComponent, TurnstileObject3D } from 'src/app/ui-components/threejs-viewport/threejs-viewport.component';
+import { ThreejsViewportComponent, TurnstileObject3D , Object3DCommon, ElevatorObject3D } from 'src/app/ui-components/threejs-viewport/threejs-viewport.component';
 import { MapService } from 'src/app/services/map.service';
 import { Object3D } from 'three';
 // import * as JSZIP from '@progress/jszip-esm';
@@ -221,14 +221,18 @@ export class ArcsSetupFloorplan3dComponent implements OnInit {
 
   addIotObj3D(type: string) {
     let autoId
-    let newObj
+    let newObj : Object3DCommon
     let objs = this.iotObjs.filter(i => i.type == type)
     let ids = ([objs.length + 1]).concat(objs.map(o => objs.indexOf(o) + 1))
     if (type == "TURNSTILE") {      
       autoId = Math.min.apply(null, ids.filter(id => !objs.map(o => (<TurnstileObject3D>o.objectRef).turnstileId).includes(id.toString()))).toString()
       newObj = new TurnstileObject3D(this.threeJsElRef , autoId);
       (<TurnstileObject3D>newObj).toolTipCompRef.instance.showDetail = true
-    }else {
+    }else if(type == "LIFT"){
+      autoId = Math.min.apply(null, ids.filter(id => !objs.map(o => (<ElevatorObject3D>o.objectRef).id.toString() ).includes(id.toString()))).toString()
+      newObj = new ElevatorObject3D(this.threeJsElRef , autoId , '');
+      (<ElevatorObject3D>newObj).boxMesh.visible = true
+    } else {
       return
     }
     this.iotObjs.push({
@@ -244,6 +248,9 @@ export class ArcsSetupFloorplan3dComponent implements OnInit {
       objectRef : newObj
     })
     this.threeJsElRef.floorPlanModel.add(newObj)
+    newObj.$destroyed.pipe(take(1)).subscribe(()=>{
+      this.iotObjs = this.iotObjs.filter(i=>i.objectRef != newObj)
+    })
     this.selectObject3D(newObj)
   }
   // async get3DModel() {

@@ -131,6 +131,15 @@
     font-size: 20px;
 }
 
+:host .panel-header {
+    button{
+        margin:  18px 0px 0px 0px;
+        .mdi {
+            margin: 0px;
+        }
+    }
+}
+
 :host .grow-1{
     flex-grow: 1;
 }
@@ -150,3 +159,5 @@
 //     background: 'rgba( 0, 0, 0, 0.5)';
 //     white-space: 'pre';
 // }
+
+
