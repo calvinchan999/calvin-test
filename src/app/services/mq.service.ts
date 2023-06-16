@@ -113,7 +113,7 @@ export class MqService {
     estop: { topic: "rvautotech/fobo/estop", 
              robotState: { estop: (d : { robotId : string , stopped : any})=>{
                                                                       if(d.stopped ){
-                                                                        this.onLoggedNotificationReceived('Emergency Stop Switched On', d['robotId'] , 'warning' , true)
+                                                                        this.onLoggedNotificationReceived('Emergency Stop Switched On', d['robotId'] , 'warning' , this.util.arcsApp)
                                                                       }; 
                                                                       // this.updateArcsRobotDataMap(d.robotId , 'estop' , d.stopped)
                                                                       return d.stopped
@@ -135,7 +135,7 @@ export class MqService {
             robotState : {
               tiltActive: (d : {robotId : any , detected : any})=> {  
                 if(d.detected ){
-                   this.onLoggedNotificationReceived('Excess tilt detected', d.robotId , 'warning' , true)                                                                             
+                   this.onLoggedNotificationReceived('Excess tilt detected', d.robotId , 'warning' ,  this.util.arcsApp)                                                                             
                 }; 
                 return d.detected;
               },
@@ -144,7 +144,7 @@ export class MqService {
     obstacleDetection: { topic: "rvautotech/fobo/obstacle/detection", 
                          robotState: { obstacleDetected: (d : {robotId : string , detected : any})=> {
                                       if(d.detected ){
-                                        this.onLoggedNotificationReceived( 'Obstacle detected' , d['robotId'] , 'warning' , true)
+                                        this.onLoggedNotificationReceived( 'Obstacle detected' , d['robotId'] , 'warning' , this.util.arcsApp)
                                       } 
                                       // this.updateArcsRobotDataMap(d.robotId , 'obstacleDetected' , d.detected)
                                       return d.detected;
@@ -158,7 +158,7 @@ export class MqService {
                         },
     exception: { topic: "rvautotech/fobo/exception", mapping: { exception: (d)=>{ let msg = `FOBO Error : ${d['message']}`;
                                                                                   // this.uiSrv.showNotificationBar(msg ,'error') ; 
-                                                                                  this.onLoggedNotificationReceived(msg , d['robotId'] , 'error'); 
+                                                                                  this.onLoggedNotificationReceived(msg , d['robotId'] , 'error' , false); 
                                                                                   console.log(d) ;
                                                                                   return d
                                                                                 } 
@@ -417,7 +417,7 @@ export class MqService {
       robotState: { poseDeviation: null }
     },
     arcsAiDetectionAlert : {
-      topic : "rvautotech/fobo/armitage/vision/detection",
+      topic : "rvautotech/fobo/object/detection",
       mapping : {
         execute: async(d : {robotId : string , pose  : {mapName : string} , detectionType : string})=>{
           const floorPlanState = await this.mapSrv.getFloorPlanStateByMapCode(d.pose?.mapName)
@@ -694,9 +694,9 @@ export class MqService {
   }
 
 
-  onLoggedNotificationReceived(msg : string , robotCode : string | undefined = undefined , msgType : 'success' | 'none' | 'warning' | 'info' | 'error' = 'info' , onlyShowNotiBarForArcs = false ){
+  onLoggedNotificationReceived(msg : string , robotCode : string | undefined = undefined , msgType : 'success' | 'none' | 'warning' | 'info' | 'error' = 'info' , showNotification = true ){
     this.data.unreadMsgCnt.next( this.data.unreadMsgCnt.value + 1)
-    if(!onlyShowNotiBarForArcs || this.util.arcsApp){
+    if(showNotification){
       this.uiSrv.showNotificationBar( robotCode? `[${robotCode}] ${msg}` : msg  , msgType)
     }
     this.addEventLogToLocalStorage(msg, robotCode, msgType) //TBR
