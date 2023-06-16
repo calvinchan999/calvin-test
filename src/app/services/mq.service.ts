@@ -577,7 +577,7 @@ export class MqService {
               this.updateMqBehaviorSubject(type, JSON.parse(resp.body), paramString)
             }
           } else if (this.mqMaster[type].apiQueryParam) {
-            let resp = await this.httpSrv.fmsRequest('GET', this.mqMaster[type].api + `?${this.mqMaster[type].apiQueryParam}=` + paramString)
+            let resp = await this.httpSrv.fmsRequest('GET', this.mqMaster[type].api + (paramString?.length > 0 ?  `?${this.mqMaster[type].apiQueryParam}=` + paramString : ""))
             if (resp && resp.status == 200 && resp.body?.length > 0) {
               this.updateMqBehaviorSubject(type, JSON.parse(resp.body), paramString)
             }

@@ -496,7 +496,6 @@ export class ArcsDashboardComponent implements OnInit {
     const filters = this.getStatusListUrlParam()
     data = data == null ?  await this.dataSrv.httpSrv.fmsRequest('GET', 'robot/v1/info' + this.getStatusListUrlParam(), undefined, false) : data
     if(filters!= this.getStatusListUrlParam()){ //validate concurrency
-      console.log(filters)
       return
     }
 

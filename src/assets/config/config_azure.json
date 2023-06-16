@@ -262,7 +262,7 @@
 			}
 		}
 	},
-	"CAMERA_STREAM_URL":"wss://calvinchan999.eastasia.cloudapp.azure.com/",
+	"CAMERA_STREAM_URL":"wss://qmh-openresty.azurewebsites.net/",
 	"IEQ_LEVELS":["Fair" , "Good" , "Excellent"],
 	"IEQ_STANDARD": {		
 		"co2_ppm": [
