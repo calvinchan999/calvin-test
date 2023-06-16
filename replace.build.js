@@ -10,7 +10,7 @@ const buildVersion = `${buildDateString.slice(0, 8)}-${buildDateString.slice(8, 
 const options1 = {
   files: 'src/environments/environment.prod.ts',
   from: /{APP}/g,
-  to: app,
+  to: app == 'sa' ? 'standalone' : app,
   allowEmptyPaths: false,
 };
 const options2 = {
