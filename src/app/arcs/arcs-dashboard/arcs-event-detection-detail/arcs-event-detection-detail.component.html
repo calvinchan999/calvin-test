@@ -6,7 +6,7 @@
         <kendo-tabstrip-tab [title]="'Log' | label : uiSrv.langPack " [selected]="true">
             <ng-template kendoTabContent>       
                 <div class="message">{{message}}</div>
-                <img *ngIf="data?.base64Image" [src]="data.base64Image" />
+                <img class="image" *ngIf="data?.base64Image" [src]="'data:image/jpeg;base64,' + data.base64Image" />
             </ng-template>
         </kendo-tabstrip-tab>
         
