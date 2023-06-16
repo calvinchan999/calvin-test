@@ -16,12 +16,14 @@
             </div>
             
             <div class="wait">
-                <span *ngIf="waypointState.wait.length == 0">{{'No Robots Waiting' |  label: uiSrv.langPack}} </span>
-                <span *ngIf="waypointState.wait.length == 1">{{'Waiting : ' |  label: uiSrv.langPack}} {{waypointState.wait[0]}}</span>
-                <span *ngIf="waypointState.wait.length > 1">
-                    <a class="underline" [matTooltip]="(waypointState.wait | join : ' , ')">{{waypointState.wait.length}}</a>
-                    {{'Robots Waiting' |  label: uiSrv.langPack}}
-                </span>
+                <ng-container *ngIf="waypointState.wait!=null">
+                    <span *ngIf="waypointState.wait.length == 0">{{'No Robots Waiting' |  label: uiSrv.langPack}} </span>
+                    <span *ngIf="waypointState.wait.length == 1">{{'Waiting : ' |  label: uiSrv.langPack}} {{waypointState.wait[0]}}</span>
+                    <span *ngIf="waypointState.wait.length > 1">
+                        <a class="underline" [matTooltip]="(waypointState.wait | join : ' , ')">{{waypointState.wait.length}}</a>
+                        {{'Robots Waiting' |  label: uiSrv.langPack}}
+                    </span>
+                </ng-container>
             </div>
         </div>
     </div>   

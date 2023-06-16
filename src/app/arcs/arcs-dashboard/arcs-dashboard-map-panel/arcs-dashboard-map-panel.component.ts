@@ -34,6 +34,7 @@ export class ArcsDashboardMapPanelComponent implements OnInit , OnDestroy {
   }
   showNewTaskDialog = false
   _showNewTaskPanel = false
+  gettingWaypointStatus = false 
   robotType = null
 
   set showNewTaskPanel(v) {
@@ -63,6 +64,9 @@ export class ArcsDashboardMapPanelComponent implements OnInit , OnDestroy {
   }
 
   async selectedMapObjChange(obj) {
+    if(  this.gettingWaypointStatus ){
+      return
+    }
     const originalSelectedPoint : WaypointMarkerObject3D =  this.parent.threeJsElRef?.waypointMeshes?.filter(w => w.pointCode == this.waypointState?.pointCode)[0]
     if(originalSelectedPoint && !this.parent.threeJsElRef.uiToggles.showWaypointName){
       originalSelectedPoint.toolTipAlwaysOn = false
@@ -90,9 +94,11 @@ export class ArcsDashboardMapPanelComponent implements OnInit , OnDestroy {
 
   async setWaypointInfoAtBottomPanel(obj){
     let pointCode = obj instanceof PixiWayPoint ? obj.code : obj.pointCode
-    let ticket =  this.uiSrv.loadAsyncBegin()
+    this.waypointState = new WaypointState()
+    this.waypointState.floorPlanCode = this.floorPlanCode
+    this.waypointState.pointCode = pointCode
+    this.waypointState.wait = null
     this.waypointState = await this.mapSrv.getWayPointState(this.floorPlanCode, pointCode)
-    this.uiSrv.loadAsyncDone(ticket)
     this.waypointState =  this.waypointState ?  this.waypointState : {
       floorPlanCode : this.floorPlanCode,
       pointCode : pointCode,
