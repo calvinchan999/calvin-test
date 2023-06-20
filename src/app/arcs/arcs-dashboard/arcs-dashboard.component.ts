@@ -402,35 +402,41 @@ export class ArcsDashboardComponent implements OnInit {
     this.uiSrv.loadAsyncDone(ticket)
   }
 
-  async getDefaultFloorPlanCode(){
-    if(this.dataSrv.getSessionStorage('dashboardFloorPlanCode')){
-      return this.dataSrv.getSessionStorage('dashboardFloorPlanCode')
-    }
-    let defaultBuilding = this.mapSrv.defaultBuilding
-    let floorPlans : DropListFloorplan[] = <any>((await this.dataSrv.getDropList('floorplans')).data)
-    let floorPlanCode = floorPlans.filter(f=>(f.buildingCode == defaultBuilding || !defaultBuilding ) && f.defaultPerBuilding)[0]?.floorPlanCode
-    floorPlanCode = floorPlanCode ? floorPlanCode : floorPlans.filter(f=> f.buildingCode == defaultBuilding || !defaultBuilding )[0]?.floorPlanCode
-    return floorPlanCode
-  }
+  // async getDefaultFloorPlanCode(){
+  //   if(this.dataSrv.getSessionStorage('dashboardFloorPlanCode')){
+  //     return this.dataSrv.getSessionStorage('dashboardFloorPlanCode')
+  //   }
+  //   let defaultBuilding = this.mapSrv.defaultBuilding
+  //   let floorPlans : DropListFloorplan[] = <any>((await this.dataSrv.getDropList('floorplans')).data)
+  //   let floorPlanCode = floorPlans.filter(f=>(f.buildingCode == defaultBuilding || !defaultBuilding ) && f.defaultPerBuilding)[0]?.floorPlanCode
+  //   floorPlanCode = floorPlanCode ? floorPlanCode : floorPlans.filter(f=> f.buildingCode == defaultBuilding || !defaultBuilding )[0]?.floorPlanCode
+  //   return floorPlanCode
+  // }
 
   async loadFloorPlan(code = null) {
     this.btmMapPanel?.selectedMapObjChange(null)
     let ticket = this.uiSrv.loadAsyncBegin()
-    code = code ? code :  await this.getDefaultFloorPlanCode()
-    if(!code &&  this.pixiElRef){
-      this.pixiElRef.overlayMsg = this.uiSrv.translate("No floorplan records found.")
+    code = code ? code :  await this.mapSrv.getDefaultFloorPlanCode()
+    if(!code){
       this.uiSrv.loadAsyncDone(ticket)
+      if(this.pixiElRef){
+        this.pixiElRef.overlayMsg = this.uiSrv.translate("No floorplan records found.")
+      }else{
+        this.dataSrv.setLocalStorage('dashboardMapType' , '2D') 
+        this.ngAfterViewInit()
+      }
       return 
     }
     if(code != this.selectedFloorPlanCode){
       this.rightMapPanel.panelMode = null
       this.btmMapPanel.selectedMapObjChange(null)
     }
-    // if (this.currentFloorPlan?.floorPlanCode) {
-    //   // this.mqSrv.unsubscribeMQTT('arcsTaskInfoChange', false , this.currentFloorPlan?.floorPlanCode)
-    //   this.mqSrv.unsubscribeMQTT('arcsRobotStatusChange', false , this.currentFloorPlan?.floorPlanCode)
-    // }
+
     let floorplan = await this.mapSrv.getFloorPlan(code);
+    if(!floorplan){
+      location.reload()
+      return
+    }
     this.currentFloorPlan = floorplan
     if(floorplan?.floorPlanCode){
       this.dataSrv.setSessionStorage('dashboardFloorPlanCode', floorplan.floorPlanCode);  

@@ -38,6 +38,7 @@ import { State } from '@progress/kendo-data-query';
 import { DialogRef } from '@progress/kendo-angular-dialog';
 import { ArcsEventDetectionDetailComponent } from 'src/app/arcs/arcs-dashboard/arcs-event-detection-detail/arcs-event-detection-detail.component';
 import { ArcsRobotIotComponent } from 'src/app/arcs/arcs-iot/arcs-robot-iot/arcs-robot-iot.component';
+import { CLICK_EVENTS } from 'src/app/utils/ng-pixi/ng-pixi-viewport/ng-pixi-constants';
 
 const NORMAL_ANGLE_ADJUSTMENT =  - 90 / radRatio
 const ASSETS_ROOT = 'assets/3D'
@@ -1022,7 +1023,7 @@ class FloorPlanMesh extends Mesh{
   maxDepth = null
   settings :  { tabletPath?: string, withModel? : boolean, wallHeight : number ,walls : {x:number , y:number}[][], path?: string, scale?: number, position?: { x?: number, y?: number, z?: number }, rotate?: { x?: number, y?: number, z?: number } }
   constructor(public master: ThreejsViewportComponent , base64Image : string , width : number , height : number){
-    super(new THREE.PlaneGeometry(width, height), new THREE.MeshPhongMaterial({ map: THREE.ImageUtils.loadTexture(base64Image), side : DoubleSide }))
+    super(new THREE.PlaneGeometry(width, height), new THREE.MeshPhongMaterial({ map: THREE.ImageUtils.loadTexture(base64Image), side : DoubleSide , transparent : true }))
     this.width = width;
     this.height = height;
     (<any>this).material.side = THREE.DoubleSide;
@@ -1197,9 +1198,11 @@ export class Object3DCommon extends Object3D{
     div.className = this.toolTipSettings.cssClass ?  this.toolTipSettings.cssClass : 'label-3js';
     div.textContent = '';
     this.toolTip = new CSS2DObject(div);
-    div.addEventListener('click', (evt)=> {
-      evt.stopPropagation();
-      this.onClick.next(div);
+    ['touchstart', 'click'].forEach(e=>{
+      div.addEventListener(e, (evt)=> {
+        evt.stopPropagation();
+        this.onClick.next(div);
+      })
     })
     this.toolTip.position.set(0, 40 / this.scale.y , 0);
     this.toolTip.layers.set(0);

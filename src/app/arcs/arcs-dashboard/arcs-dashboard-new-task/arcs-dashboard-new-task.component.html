@@ -67,7 +67,7 @@
         </div>
     </div>
     <div class="task-button-container">
-        <button kendoButton (click)="createStandardTask()">
+        <button kendoButton (click)="createStandardTask()" [disabled]="!taskItems || taskItems.length == 0">
             <span class="mdi mdi-check-circle-outline" ></span>
             <span>{{'Execute' | label : uiSrv.langPack }}</span>
         </button>

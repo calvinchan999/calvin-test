@@ -503,7 +503,7 @@ export class Map2DViewportComponent implements OnInit , AfterViewInit , OnDestro
           ui : this.commonModule.ui
         }  
       }
-
+      this.loadingTicket = this.uiSrv.loadAsyncBegin()
   }
 
   
@@ -585,6 +585,7 @@ export class Map2DViewportComponent implements OnInit , AfterViewInit , OnDestro
       // this.onViewportZoomed.pipe(filter(v=>v!=null), takeUntil(this.onDestroy)).subscribe(()=>{
       //   this.refreshRobotScale()
       // })      
+      this.uiSrv.loadAsyncDone(this.loadingTicket)
       this.initDone.next(true)
       ret.next(true)
     })

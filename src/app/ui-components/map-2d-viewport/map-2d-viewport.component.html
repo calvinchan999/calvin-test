@@ -10,7 +10,7 @@
     <ng-container *ngIf="viewport">
       <div class="overlay" *ngIf="robotSrv.data.isFollowMeWithoutMap.value || (showRobot && robotSrv.data.isMappingMode.value)  || commonModule.ui.overlayMessage "> 
         <div class="overlay-button-container">
-          <button kendoButton class="pick-map" *ngIf="robots && !robotSrv.data.isFollowMeWithoutMap.value && showRobot && !(robots[0] && robots[0]['mapCode']) && authSrv.username && !robotSrv.data.isMappingMode.value" 
+          <button kendoButton class="pick-map" *ngIf="util.standaloneApp && robots && !robotSrv.data.isFollowMeWithoutMap.value && showRobot && !(robots[0] && robots[0]['mapCode']) && authSrv.username && !robotSrv.data.isMappingMode.value" 
                   [disabled]="authSrv.isGuestMode"
                   (click)="  module.localization.localizing = true ; commonModule.ui.fullScreen = true; module.data.loadDefaultFloorPlan() ; commonModule.ui.overlayMessage =  null" > 
                   <!-- pending : init -->

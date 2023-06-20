@@ -6,7 +6,7 @@ import { GeneralUtil, base64ToBlob, blobToBase64, getLocalStorage, getSessionSto
 import { toDataSourceRequestString, toODataString } from '@progress/kendo-data-query';
 import { SignalRService } from './signal-r.service';
 import { BehaviorSubject , Observable, Subject , pipe, of} from 'rxjs';
-import { filter, skip, takeUntil , map ,  take , catchError} from 'rxjs/operators';
+import { filter, skip, takeUntil , map ,  take , catchError, retry} from 'rxjs/operators';
 import { ticker } from 'pixi.js';
 import { Router } from '@angular/router';
 import { AzurePubsubService } from './azure-pubsub.service';
@@ -111,15 +111,15 @@ export class MapService {
   
   public async getFloorPlan(code : string | null = null, blockUI = true): Promise<JFloorPlan>{
     let ticket
-    code = code ? code : Object.keys(this.floorPlanStore).filter(k=>this.floorPlanStore[k]?.dataWithoutImage?.defaultPerBuilding)[0]
+    // code = code ? code : Object.keys(this.floorPlanStore).filter(k=>this.floorPlanStore[k]?.dataWithoutImage?.defaultPerBuilding)[0]
     if(blockUI){
       ticket = this.uiSrv.loadAsyncBegin()
     }
-    let cache : FloorPlanCache = await this.dataSrv.iDbSrv.floorPlans.get(code)
+    let cache : FloorPlanCache = code ?  await this.dataSrv.iDbSrv.floorPlans.get(code) : null
 
-    if (code && cache) {
+    if (cache) {
       let noImgFp: JFloorPlan = await this.httpSrv.get('api/map/plan/v1/' + code + '?mapImage=false&floorPlanImage=false');
-      if (noImgFp.modifiedDateTime == cache.floorPlan?.modifiedDateTime && noImgFp.mapList.every(m => cache.floorPlan?.mapList && cache.floorPlan?.mapList.filter(m2 => m2.mapCode == m.mapCode && m2.robotBase == m.robotBase)[0]?.modifiedDateTime == m.modifiedDateTime)) {
+      if (noImgFp?.modifiedDateTime == cache.floorPlan?.modifiedDateTime && noImgFp.mapList.every(m => cache.floorPlan?.mapList && cache.floorPlan?.mapList.filter(m2 => m2.mapCode == m.mapCode && m2.robotBase == m.robotBase)[0]?.modifiedDateTime == m.modifiedDateTime)) {
         if (blockUI) {
           this.uiSrv.loadAsyncDone(ticket) 
         }
@@ -127,11 +127,18 @@ export class MapService {
       }
     }
     console.log(`Get Floor Plan Image - ${code}`)
-    let ret : JFloorPlan = await this.httpSrv.get(code ? ('api/map/plan/v1/' +  code): 'api/map/plan/default/v1');
-    let newCache = await this.dataSrv.iDbSrv.floorPlans.get(code)
-    newCache = newCache ? newCache : new FloorPlanCache()
-    newCache.floorPlan = JSON.parse(JSON.stringify(ret)) 
-    await this.dataSrv.iDbSrv.floorPlans.set(code , newCache)
+    let ret : JFloorPlan = await this.httpSrv.get('api/map/plan/v1/' +  code);
+    if (ret) {
+      let newCache = await this.dataSrv.iDbSrv.floorPlans.get(code)
+      newCache = newCache ? newCache : new FloorPlanCache()
+      newCache.floorPlan = JSON.parse(JSON.stringify(ret))
+      await this.dataSrv.iDbSrv.floorPlans.set(code, newCache)
+    } else if (code) {
+      delete this.floorPlanStore[code]
+      await this.dataSrv.iDbSrv.floorPlans.del(code)
+      sessionStorage.removeItem('dashboardFloorPlanCode')
+    }
+
     if(blockUI){
       this.uiSrv.loadAsyncDone(ticket)
     }
@@ -143,7 +150,7 @@ export class MapService {
     if(builidngDDL.length > 0){
       var code = builidngDDL.filter(b=>b.defaultPerSite)[0]?.buildingCode
       code = code ? code : builidngDDL[0].buildingCode
-      this.dataSrv.setSessionStorage('arcsDefaultBuilding',JSON.stringify(code))
+      this.dataSrv.setSessionStorage('arcsDefaultBuilding',code)
     }
   }
 
@@ -203,6 +210,17 @@ export class MapService {
       }
     })
     this.dataSrv.setLocalStorage('unreadSyncMsgCount', this.dataSrv.unreadSyncMsgCount.value.toString())
+  }
+
+  async getDefaultFloorPlanCode(){
+    if(this.dataSrv.getSessionStorage('dashboardFloorPlanCode')){
+      return this.dataSrv.getSessionStorage('dashboardFloorPlanCode')
+    }
+    let defaultBuilding = this.defaultBuilding
+    let floorPlans : DropListFloorplan[] = <any>((await this.dataSrv.getDropList('floorplans')).data)
+    let floorPlanCode = floorPlans.filter(f=>(f.buildingCode == defaultBuilding || !defaultBuilding ) && f.defaultPerBuilding)[0]?.floorPlanCode
+    floorPlanCode = floorPlanCode ? floorPlanCode : floorPlans.filter(f=> f.buildingCode == defaultBuilding || !defaultBuilding )[0]?.floorPlanCode
+    return floorPlanCode
   }
 }
 
