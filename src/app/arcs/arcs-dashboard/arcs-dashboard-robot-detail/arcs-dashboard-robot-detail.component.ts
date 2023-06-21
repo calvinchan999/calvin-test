@@ -48,7 +48,7 @@ export class ArcsDashboardRobotDetailComponent implements OnInit  {
   robotSubType 
   topics : MQType[] =  ['battery' , 'speed' , 'state' , 'arcsRobotDestination'] 
   topModuleTabs = {
-    PATROL : [{id : 'topModule' , label : 'Module'} , {id : 'camera' , label : 'Cameras'}],
+    PATROL : [{id : 'camera' , label : 'Cameras'}], //{id : 'topModule' , label : 'Module'} , 
     DELIVERY :[{ id :'topModule' , label : 'Module'}]
   }
   alertMsg = null
