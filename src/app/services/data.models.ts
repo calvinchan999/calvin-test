@@ -144,14 +144,39 @@ import { BehaviorSubject } from "rxjs"
       validationResults?:[]
   }
   
-  export class RobotMaster{
+  export class RobotProfile{
     robotCode
+    robotBase
     name?
     robotType
     robotSubType
+    ip
   }
+
+export class RobotProfileResp {
+  tenantId: string
+  robotId: string
+  robotBase: string
+  robotType: string
+  robotSubtype: string
+  fms: {
+    enabled: boolean,
+    baseUrl: string
+  }
+  networkList: [
+    {
+      name: string,
+      ipAddress: string
+    }
+  ]
+  serviceList: {
+    name: string
+    enabled: boolean
+  }[]
+}
   
   export class DropListDataset {
+    missions?: any[]
     actions?: DropListAction[]
     buildings?: DropListBuilding[]
     floorplans? : DropListFloorplan[]
@@ -264,6 +289,11 @@ import { BehaviorSubject } from "rxjs"
     modifiedDateTime: number
   }
   
+  export class DropListMission{
+    missionId : string
+    name: string
+    floorPlanCode: string
+  }
   
   
   

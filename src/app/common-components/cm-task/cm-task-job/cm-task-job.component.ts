@@ -4,7 +4,7 @@ import { DialogRef, DialogService, WindowRef } from '@progress/kendo-angular-dia
 import { ListViewComponent } from '@progress/kendo-angular-listview';
 import { filter, take, takeUntil } from 'rxjs/operators';
 import { DataService} from 'src/app/services/data.service';
-import { DropListAction, DropListDataset, DropListLocation, FloorPlanDataset, RobotMaster, ShapeJData, JTask, ActionParameter, TaskStateOptions } from 'src/app/services/data.models';
+import { DropListAction, DropListDataset, DropListLocation, FloorPlanDataset, RobotProfile, ShapeJData, JTask, ActionParameter, TaskStateOptions, DropListMission } from 'src/app/services/data.models';
 import { RvHttpService } from 'src/app/services/rv-http.service';
 import { TranslatePipe, UiService } from 'src/app/services/ui.service';
 import { Map2DViewportComponent } from 'src/app/ui-components/map-2d-viewport/map-2d-viewport.component';
@@ -138,7 +138,7 @@ export class CmTaskJobComponent implements OnInit {
 
   validatePathFollowing = true
   compRef : ComponentRef<any>
-  robotInfo : RobotMaster
+  robotInfo : RobotProfile
   get isCreate(){
     return this.parentRow == null || this.parentRow == undefined
   }
@@ -167,12 +167,15 @@ export class CmTaskJobComponent implements OnInit {
   async ngAfterViewInit() {
     let ticket = this.uiSrv.loadAsyncBegin()
     if(!this.util.arcsApp){
-      this.robotInfo = await this.dataSrv.getRobotMaster()
+      this.robotInfo = await this.dataSrv.getRobotProfile()
     }
     await this.initDropDown()
     if (!this.isCreate) {
       await this.loadData(this.parentRow[this.pk])
     } else {
+      let activeFloorPlan = await this.mapSrv.getStandaloneActiveFloorPlan();
+      this.selectedFloorPlanCode = activeFloorPlan.floorPlanCode
+      this.onFloorplanChange_SA(this.selectedFloorPlanCode)
       this.refreshGridLocationOptions_SA()
     }
     if(this.util.arcsApp || this.robotInfo){
@@ -757,6 +760,27 @@ export class CmTaskJobComponent implements OnInit {
       let actionLocations = this.getAggregatedActions()
       this.pixiElRef.module.task.drawTaskPaths(actionLocations)
     
+  }
+
+  importModule = {
+    showPopup : false,
+    missionsOptions : [],
+    selectedMissionId : null,
+    getMissions : async ()=>{
+      let ticket = this.uiSrv.loadAsyncBegin()
+      this.importModule.missionsOptions = this.dataSrv.getDropListOptions('missions', (<DropListMission[]>(await this.dataSrv.getDropList('missions')).data) , {floorPlanCode : this.selectedFloorPlanCode })      
+      this.uiSrv.loadAsyncDone(ticket)
+    },
+    importRows: async () => {
+      let ticket = this.uiSrv.loadAsyncBegin()
+      let mission: JTask = await this.httpSrv.get("api/task/mission/v1/" + this.importModule.selectedMissionId)
+      this.uiSrv.loadAsyncDone(ticket)
+      let rows = this.jobListDataMassage(false, null, this.getFlattenedData(mission))
+      let newRows = this.listview.data.concat(rows)
+      this.listview.loadData(newRows)
+      this.uiSrv.showNotificationBar(newRows.length  + this.uiSrv.translate(` rows imported`) , 'info')
+      this.importModule.showPopup = false
+    }
   }
 }
 

@@ -65,7 +65,7 @@ export class ArcsTaskScheduleComponent implements OnInit {
     if(this.readonly){
       Object.keys(this.frmGrp.controls).forEach(k=>this.frmGrp.controls[k].disable())
     }
-    let missionDDL =  await this.dataSrv.getDropList('missions')
+    let missionDDL = await this.dataSrv.getDropList('missions')
     this.dropdownData.missions = missionDDL.data
     this.dropdownOptions.missions = missionDDL.options
     if(this.parentRow){

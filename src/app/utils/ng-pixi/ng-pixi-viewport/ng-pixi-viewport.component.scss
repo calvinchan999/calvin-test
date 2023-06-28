@@ -33,7 +33,7 @@
     max-height: 100vh;
 }
 
-.fullscreen{
+.popupscreen{
     position: fixed!important;
     z-index: 99999!important;
     height: 90vh!important;
@@ -45,7 +45,29 @@
     }
 }
 
+.fullscreen {
+    position: fixed !important;
+    z-index: 99999 !important;
+    height: 100vh !important;
+    width: 100vw !important;
+    top: 0vh !important;
+    left: 0vw !important;
+
+    .overlay {
+        height: 100vh !important;
+        width: 100vw !important;
+        top: 0vh !important;
+        left: 0vw !important;
+        background: url("../../../../assets/bg-black.png");
+    }
+
+    .canvas-div {
+        background: rgba(255, 255, 255, 0.2) !important;
+    }
+}
+
 .canvas-div {
+    backdrop-filter: blur(2px);
     position: absolute;
     left: 0;
     right: 0;

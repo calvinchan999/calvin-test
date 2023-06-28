@@ -1225,7 +1225,7 @@ export class PixiRobotMarker extends PixiMapGraphics {
     this.pixiAlertBadge.icon.beginFill(0xFF0000).drawCircle(0 + badgeOffset.x, 0 + badgeOffset.y, 75).endFill()
     this.pixiAlertBadge.icon.beginFill(0xFFFFFF).drawRect(-10 + badgeOffset.x, -50 + badgeOffset.y, 20, 60).endFill()
     this.pixiAlertBadge.icon.beginFill(0xFFFFFF).drawRect(-10 + badgeOffset.x, 30 + badgeOffset.y, 20, 20).endFill()
-    this.pixiAlertBadge.icon.angle = -90
+    // this.pixiAlertBadge.icon.angle = -90
     this.pixiAlertBadge.scale.set(0.1)
     //this.pixiAlertBadge.addChild(new PIXI.Sprite(PIXI.Texture.from('assets/icons/alert.svg')))
     this.pixiAlertBadge.visible = false

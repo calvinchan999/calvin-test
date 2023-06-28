@@ -14,7 +14,7 @@ import { AzurePubsubService } from './azure-pubsub.service';
 import { DatePipe } from '@angular/common'
 import { ConfigService } from './config.service';
 import { HttpEventType, HttpHeaders } from '@angular/common/http';
-import { RobotStateTypes, DropListBuilding, DropListFloorplan, DropListMap, DropListPointIcon, DropListRobot, JFloorPlan, JTask, RobotMaster, RobotStatusARCS, SaveRecordResp, TaskItem, JFloorPlan3DSettings } from './data.models';
+import { RobotStateTypes, DropListBuilding, DropListFloorplan, DropListMap, DropListPointIcon, DropListRobot, JFloorPlan, JTask, RobotProfile as RobotProfile, RobotStatusARCS, SaveRecordResp, TaskItem, JFloorPlan3DSettings, RobotProfileResp } from './data.models';
 
 export const ObjectTypes = ['ROBOT','FLOOR_PLAN' , 'FLOOR_PLAN_POINT' , 'MAP' , 'MAP_POINT' , 'TASK' , 'OPERATION' , 'MISSION']
 export type syncStatus = 'TRANSFERRED' | 'TRANSFERRING' | 'MALFUNCTION'
@@ -37,7 +37,7 @@ export class DataService {
   public objectTypeDropDownOptions = ObjectTypes.map(t=> {return {value : t , text : this.enumPipe.transform(t)}})
 
   public get robotId (){
-    return this.robotMaster?.robotCode
+    return this.robotProfile?.robotCode
   }
   private _withDashboard = false
   public set withDashboard(v){
@@ -48,8 +48,7 @@ export class DataService {
   public get withDashboard(){
     return this._withDashboard
   }
-  public robotTypesWithDashboard = ['DELIVERY' , 'PATROL' ];
-  public robotMaster : RobotMaster
+  public robotProfile : RobotProfile
   private allDropListTypes = ['floorplans' , 'buildings' , 'sites' , 'maps' , 'actions', 'types' , 'subTypes' , 'userGroups' , 'missions']
   private dropListApiMap = {
     taskCancelReason: { url: 'task/v1/userCancelReason', valFld: 'enumName', descFld: 'enumName', fromRV: true , enumPipe : true},
@@ -137,9 +136,7 @@ export class DataService {
     let ticket = this.uiSrv.loadAsyncBegin()
 
     if (this.util.standaloneApp) {
-      let profile : {robotId: string , robotType : string , robotSubtype:string, serviceList : { name : string , enabled : boolean}[]} = await this.httpSrv.fmsRequest('GET', 'baseControl/v1/profile' , undefined, false)
-      this.robotMaster = { robotCode: profile.robotId, robotType: profile.robotType, robotSubType: profile.robotSubtype }
-      profile.serviceList.forEach(s=> this.configSrv.disabledModule_SA[s.name] = !s.enabled) 
+      await this.getRobotProfile()
       // this.getRobotMaster(profile)
       // let lidarStatusResp = await this.httpSrv.fmsRequest('GET', this.mqMaster.lidarStatus.api, undefined, false)
       // if (lidarStatusResp?.SwitchOn) {
@@ -325,14 +322,25 @@ export class DataService {
    return criteria? '?' + toDataSourceRequestString(criteria) : ''
   }
 
-  public async getRobotMaster() : Promise<RobotMaster>{
-    if(!this.robotMaster?.robotCode){
+  public async getRobotProfile() : Promise<RobotProfile>{
+    if(!this.robotProfile?.robotCode){
+      let profile : RobotProfileResp = await this.httpSrv.fmsRequest('GET', 'baseControl/v1/profile' , undefined, false)
+      this.robotProfile = { 
+        robotCode: profile.robotId, 
+        robotBase : profile.robotBase , 
+        robotType: profile.robotType , 
+        robotSubType : profile.robotSubtype,
+        ip : profile.networkList.filter(n=>n.name.toLowerCase().startsWith('w')).length == 1 ? profile.networkList.filter(n=>n.name.toLowerCase().startsWith('w'))[0].ipAddress : profile.networkList.map(n=>n.ipAddress).join('; ')
+      }
+     profile.serviceList.forEach(s=> this.configSrv.disabledModule_SA[s.name] = !s.enabled) 
+     
+     
       //let ret = (await this.httpSrv.get("api/robot/v1"))
-      let ret : {robotId: string , robotType : string , robotSubtype:string} = ( await this.httpSrv.fmsRequest('GET', 'baseControl/v1/profile' , undefined, false))
-      this.robotMaster = {robotCode : ret.robotId , robotType : ret.robotType , robotSubType : ret.robotSubtype}
+      // let ret : RobotProfileResp = ( await this.httpSrv.fmsRequest('GET', 'baseControl/v1/profile' , undefined, false))
+      // this.robotMaster = {robotCode : ret.robotId , robotBase : ret.robotBase , robotType : ret.robotType , robotSubType : ret.robotSubtype}
     }
-    this.withDashboard = this.robotTypesWithDashboard.includes(this.robotMaster?.robotType?.toUpperCase())
-    return  this.robotMaster 
+    this.withDashboard = this.robotProfile.robotType == 'PATROL' || (this.robotProfile.robotType == 'DELIVERY' && ['TRAY_DELIVERY','CABINET_DELIVERY'].includes(this.robotProfile.robotSubType))
+    return  this.robotProfile 
   }
 
   public async getFloorPlanCode(mapCode : string){

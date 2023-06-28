@@ -1,8 +1,9 @@
-<div [class]="fullScreen? 'fullscreen wrapper' : 'wrapper'" #stageWrapper 
+<div [class]="fullScreen ? 'fullscreen wrapper'  : (popupScreen? 'popupscreen wrapper' : 'wrapper')" #stageWrapper 
   (contextmenu)="$event.preventDefault() ; !viewport.MOBILE_MODE && viewport.selectedGraphics ? viewport.selectedGraphics = null : null ;"
 >
+
 <!-- drawObj?.type ? $event.preventDefault() : null; endDraw(); -->
-  <div class="overlay" *ngIf="fullScreen"></div>
+  <div class="overlay" *ngIf="popupScreen || fullScreen"></div>
   <ng-content></ng-content>
   <div #stageDiv class="canvas-div"></div>
 </div>

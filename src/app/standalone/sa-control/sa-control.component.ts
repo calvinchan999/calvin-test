@@ -14,6 +14,8 @@ import { Map2DViewportComponent } from 'src/app/ui-components/map-2d-viewport/ma
 import { TableComponent } from 'src/app/ui-components/table/table.component';
 import { GeneralUtil } from 'src/app/utils/general/general.util';
 import { ConfigService } from 'src/app/services/config.service';
+import { MqService } from 'src/app/services/mq.service';
+import { RobotService } from 'src/app/services/robot.service';
 
 @Component({
   selector: 'app-sa-control',
@@ -46,8 +48,8 @@ export class SaControlComponent implements OnInit , OnDestroy  {
     { value: 'CUSTOM_2', text: 'Custom 2' }
   ]
 
-  constructor(public authSrv : AuthService, public uiSrv : UiService, public windowSrv: DialogService, private util : GeneralUtil , private router : Router,
-              private httpSrv : RvHttpService, public dataSrv:DataService , private route : ActivatedRoute , public configSrv : ConfigService) { 
+  constructor(public authSrv : AuthService, public uiSrv : UiService, public windowSrv: DialogService, private util : GeneralUtil , private router : Router, public mqSrv : MqService,
+              private httpSrv : RvHttpService, public dataSrv:DataService , private route : ActivatedRoute , public configSrv : ConfigService , public robotSrv : RobotService) { 
     if(this.uiSrv.isTablet){
       this.tabs = [
         {id: 'controls' , label : 'Controls', functionId : 'CONTROLS'},
@@ -129,7 +131,10 @@ export class SaControlComponent implements OnInit , OnDestroy  {
     });
     this.initDropdown()
     this.onTabChange(this.selectedTab)
+    this.mqSrv.subscribeMQTTUntil('cpuTemp' , undefined , this.$onDestroy)
   }
+
+
 
   onButtonClicked(id){
     console.log(id)
@@ -141,6 +146,13 @@ export class SaControlComponent implements OnInit , OnDestroy  {
     this.data = []
     this.loadData()
     this.router.navigate([this.router.url.split(";")[0]])
+    if (this.selectedTab == 'robot') {
+      setTimeout(() => {
+        this.frmGrpRobot.controls['robotMaxSpeed']['uc'].textbox.input.nativeElement.disabled = true
+        this.frmGrpRobot.controls['robotSafetyZone']['uc'].textbox.input.nativeElement.disabled = true
+      })
+    }
+
     // this.columnDef = this.columnsDefsMap[id]
   }
 
@@ -176,8 +188,9 @@ export class SaControlComponent implements OnInit , OnDestroy  {
   async loadData() {
     let ticket = this.uiSrv.loadAsyncBegin()
     if(this.selectedTab == 'robot'){
-      let data = await this.dataSrv.getRobotMaster()
+      let data = await this.dataSrv.getRobotProfile()
       this.util.loadToFrmgrp(this.frmGrpRobot , data)
+      await this.loadSafety()
     }else if(this.selectedTab == 'type'){
       
     }else if(this.selectedTab == 'action'){
@@ -223,9 +236,11 @@ export class SaControlComponent implements OnInit , OnDestroy  {
   async loadSafety(){
     let ticket = this.uiSrv.loadAsyncBegin()
     let data : {safetyZoneMode : string , maximumSpeed : number} = await this.httpSrv.fmsRequest('GET', 'baseControl/v1/safety' , undefined , false)
-    if(this.configObj.type == 'safetyZone'){
-      this.configObj.safetyZone.mode = data.safetyZoneMode 
-    }else if(this.configObj.type == 'maxSpeed'){
+    this.frmGrpRobot.controls['robotMaxSpeed'].setValue(data.maximumSpeed)
+    this.frmGrpRobot.controls['robotSafetyZone'].setValue(this.safetyZoneOptions.filter(o => o.value == data.safetyZoneMode).length > 0 ? this.safetyZoneOptions.filter(o => o.value == data.safetyZoneMode)[0].text : data.safetyZoneMode)
+    if (this.configObj.type == 'safetyZone') {
+      this.configObj.safetyZone.mode = data.safetyZoneMode
+    } else if (this.configObj.type == 'maxSpeed') {
       this.configObj.maxSpeed.limit = data.maximumSpeed
     }
     this.uiSrv.loadAsyncDone(ticket)

@@ -35,6 +35,7 @@ import { CLICK_END_EVENTS, CLICK_EVENTS, MOVE_EVENTS } from './ng-pixi-constants
 export class NgPixiViewportComponent implements OnInit, AfterViewInit, OnDestroy {
     @ViewChild('stageWrapper') wrapper: ElementRef;
     @ViewChild('stageDiv') stageDiv: ElementRef;
+    @Input() popupScreen
     @Input() fullScreen
     @Output() cursorMove = new EventEmitter()
     @Output() clickEnd = new EventEmitter()
@@ -106,7 +107,7 @@ export class NgPixiViewportComponent implements OnInit, AfterViewInit, OnDestroy
 
     @HostListener('window:resize', ['$event'])
     onResize(event = null) {
-        if (!!this._size && this.size && !this.fullScreen) {
+        if (!!this._size && this.size && !this.popupScreen && !this.fullScreen) {
             this.resizeViewport(this.size.width, this.size.height);
         } else {
             this.resizeViewport(this.wrapper.nativeElement.offsetWidth, this.wrapper.nativeElement.offsetHeight);

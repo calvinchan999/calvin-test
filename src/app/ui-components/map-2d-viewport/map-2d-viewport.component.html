@@ -6,20 +6,20 @@
   <div #container 
        (contextmenu)=" viewport.createData?.type ? $event.preventDefault() : null; !viewport.preventContextMenu ? viewport.mode = null : null;"
        style="width: 100%; height: 100%;" class="drawing-board" [style.cursor]="mode == 'create'? 'crosshair':''">
-  <ng-pixi-viewport [fullScreen] = "commonModule.ui.fullScreen" [background] = "background">
+  <ng-pixi-viewport [popupScreen] = "commonModule.ui.popupScreen" [fullScreen] = "commonModule.ui.fullScreen" [background] = "background">
     <ng-container *ngIf="viewport">
       <div class="overlay" *ngIf="robotSrv.data.isFollowMeWithoutMap.value || (showRobot && robotSrv.data.isMappingMode.value)  || commonModule.ui.overlayMessage "> 
         <div class="overlay-button-container">
           <button kendoButton class="pick-map" *ngIf="util.standaloneApp && robots && !robotSrv.data.isFollowMeWithoutMap.value && showRobot && !(robots[0] && robots[0]['mapCode']) && authSrv.username && !robotSrv.data.isMappingMode.value" 
                   [disabled]="authSrv.isGuestMode"
-                  (click)="  module.localization.localizing = true ; commonModule.ui.fullScreen = true; module.data.loadDefaultFloorPlan() ; commonModule.ui.overlayMessage =  null" > 
+                  (click)="  module.localization.localizing = true ; commonModule.ui.popupScreen = true; module.data.loadDefaultFloorPlan() ; commonModule.ui.overlayMessage =  null" > 
                   <!-- pending : init -->
             <span class="mdi mdi-crosshairs"></span>
           </button>
           <button kendoButton class="scan"  *ngIf="!robotSrv.data.isFollowMeWithoutMap.value && showScanButton" (click)="scanClicked.emit()">
             <span class="mdi mdi-focus-field"></span>
           </button>
-          <button kendoButton class="cancel"  *ngIf="commonModule.ui.fullScreen && !showScanButton"  (click)="commonModule.ui.fullScreen = false">
+          <button kendoButton class="cancel"  *ngIf="commonModule.ui.popupScreen && !showScanButton"  (click)="commonModule.ui.popupScreen = false">
             <span class="mdi mdi-logout"></span>
           </button>
         </div>
@@ -69,11 +69,16 @@
         <button *ngIf="showRobot && !util.arcsApp  &&  !hideButton['tools']" kendoButton class="engineer-mode"  [matTooltip]="'More Options'| label : uiSrv.langPack" (click)="engineerMode = !engineerMode" [ngClass]="{'btn-active': engineerMode}">
           <span class="mdi mdi-eye"></span>
         </button>
-        <button  *ngIf="showRobot && !commonModule.ui.fullScreen && robotSrv.data.poseDeviation.value?.poseValid == false " kendoButton class="relocation-reminder" [style.background]="'red'"  [matTooltip]="'Poor Positioning Detected. Relocation Required'| label : uiSrv.langPack">
+
+        <button kendoButton class="full-screen" [matTooltip]="'Full Screen' | label : uiSrv.langPack" (click)="commonModule.ui.fullScreen = !commonModule.ui.fullScreen"  [ngClass]="{'btn-active':commonModule.ui.fullScreen}" >
+          <span [class]="'mdi mdi-' + (commonModule.ui.fullScreen ? 'fullscreen-exit' : 'fullscreen')"></span>
+        </button>    
+
+        <button  *ngIf="showRobot && !commonModule.ui.popupScreen && robotSrv.data.poseDeviation.value?.poseValid == false " kendoButton class="relocation-reminder" [style.background]="'red'"  [matTooltip]="'Poor Positioning Detected. Relocation Required'| label : uiSrv.langPack">
           <span  class="mdi mdi-reload-alert"></span>
         </button>
 
-        <ng-container  *ngIf="commonModule.ui.fullScreen || engineerMode || showRosToggle">
+        <ng-container  *ngIf="commonModule.ui.popupScreen || engineerMode || showRosToggle">
           <button *ngIf="engineerMode && showRobot" kendoButton class="lidar" [matTooltip]="'Show Lidar Point Cloud'| label : uiSrv.langPack" [disabled]="disableButton['lidar']"   matTooltipPosition="right" 
                   [ngClass]="{'btn-active':module.lidarPointCloud.show}" (click)=" module.lidarPointCloud.show ? module.lidarPointCloud.unsubscribeLiveLidar() : module.lidarPointCloud.subscribeLiveLidar()">
                   <span class="mdi mdi-border-none"></span>
@@ -90,17 +95,17 @@
             <span class="mdi mdi-floor-plan"></span>
           </button>
   
-          <button *ngIf="commonModule.ui.fullScreen || (engineerMode && showRobot) " kendoButton class="show-waypoint" [matTooltip]="((module.ui.toggle.showWaypoint && module.ui.toggle.showWaypointName) ? 'Hide Waypoint Name' : ((module.ui.toggle.showWaypoint && !module.ui.toggle.showWaypointName) ? 'Hide Waypoint' : 'Show Waypoint'))| label : uiSrv.langPack"  
+          <button *ngIf="commonModule.ui.popupScreen || (engineerMode && showRobot) " kendoButton class="show-waypoint" [matTooltip]="((module.ui.toggle.showWaypoint && module.ui.toggle.showWaypointName) ? 'Hide Waypoint Name' : ((module.ui.toggle.showWaypoint && !module.ui.toggle.showWaypointName) ? 'Hide Waypoint' : 'Show Waypoint'))| label : uiSrv.langPack"  
                   [disabled]="disableButton['showWaypoint']" matTooltipPosition="right" 
                   (click)=" module.ui.toggle.showWaypointName = !(module.ui.toggle.showWaypoint && module.ui.toggle.showWaypointName); module.ui.toggle.showWaypoint = !(module.ui.toggle.showWaypoint && module.ui.toggle.showWaypointName) ; module.ui.toggleWaypoint()"  
-                  [ngClass]="{'btn-intermediate': module.ui.toggle.showWaypoint && !module.ui.toggle.showWaypointName , 'btn-active': module.ui.toggle.showWaypoint && module.ui.toggle.showWaypointName , 'show-waypoint-commonModule.ui.fullScreen' : commonModule.ui.fullScreen}">
+                  [ngClass]="{'btn-intermediate': module.ui.toggle.showWaypoint && !module.ui.toggle.showWaypointName , 'btn-active': module.ui.toggle.showWaypoint && module.ui.toggle.showWaypointName , 'show-waypoint-commonModule.ui.popupScreen' : commonModule.ui.popupScreen}">
             <span class="mdi mdi-map-marker"></span>
           </button>
-           <button *ngIf="showRobot && !commonModule.ui.fullScreen" kendoButton class="dark-mode-switch" [matTooltip]="'Light / Dark Map' | label : uiSrv.langPack"  
+           <button *ngIf="showRobot && !commonModule.ui.popupScreen" kendoButton class="dark-mode-switch" [matTooltip]="'Light / Dark Map' | label : uiSrv.langPack"  
                   (click)="module.ui.toggleDarkMode(!module.ui.toggle.darkMode)"  [ngClass]="{'btn-active': module.ui.toggle.darkMode}">
                <span [class]="'mdi mdi-theme-light-dark'"></span>
           </button>
-           <button *ngIf="engineerMode && showRobot && !commonModule.ui.fullScreen " kendoButton class="show-pose-dev" [matTooltip]="'Show Positioning Accuracy'| label : uiSrv.langPack"   
+           <button *ngIf="engineerMode && showRobot && !commonModule.ui.popupScreen " kendoButton class="show-pose-dev" [matTooltip]="'Show Positioning Accuracy'| label : uiSrv.langPack"   
                   matTooltipPosition="right" (click) = "module.ui.toggle.showPoseDeviation = !module.ui.toggle.showPoseDeviation; module.ui.updateLocalStorage()"  [ngClass]="{'btn-active': module.ui.toggle.showPoseDeviation }">
             <span class="mdi mdi-crosshairs-question"></span>
           </button>
@@ -367,7 +372,7 @@
     <button kendoButton class="show-waypoint" [matTooltip]="((module.ui.toggle.showWaypoint && module.ui.toggle.showWaypointName) ? 'Hide Waypoint Name' : ((module.ui.toggle.showWaypoint && !module.ui.toggle.showWaypointName) ? 'Hide Waypoint' : 'Show Waypoint'))| label : uiSrv.langPack"  
     [disabled]="disableButton['showWaypoint']" matTooltipPosition="right" 
     (click)=" module.ui.toggle.showWaypointName = !(module.ui.toggle.showWaypoint && module.ui.toggle.showWaypointName); module.ui.toggle.showWaypoint = !(module.ui.toggle.showWaypoint && module.ui.toggle.showWaypointName) ; module.ui.toggleWaypoint()"  
-    [ngClass]="{'status-1': module.ui.toggle.showWaypoint && !module.ui.toggle.showWaypointName , 'btn-active': module.ui.toggle.showWaypoint && module.ui.toggle.showWaypointName , 'show-waypoint-fullScreen' : commonModule.ui.fullScreen}">
+    [ngClass]="{'status-1': module.ui.toggle.showWaypoint && !module.ui.toggle.showWaypointName , 'btn-active': module.ui.toggle.showWaypoint && module.ui.toggle.showWaypointName , 'show-waypoint-popupScreen' : commonModule.ui.popupScreen}">
     <span [class]="'mdi mdi-map-marker'"></span>
     </button>
     
@@ -459,7 +464,7 @@
             <button  kendoButton [disabled]="module.localization.previewData.footprint.length == 0" class='undo-btn' (click)="module.localization.undoPos();">
              {{ 'Undo' | label : uiSrv.langPack}}
             </button>
-            <button kendoButton (click)="commonModule.ui.fullScreen = false ; module.localization.localizing = false; module.localization.endLocalize(); cancelFullScreen.emit()"
+            <button kendoButton (click)="commonModule.ui.popupScreen = false ; module.localization.localizing = false; module.localization.endLocalize(); cancelPopupScreen.emit()"
               class="cancel-btn">
              {{ 'Cancel' | label : uiSrv.langPack}}
             </button>

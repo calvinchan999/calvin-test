@@ -15,78 +15,30 @@
     </div>
 
     <app-sa-control-buttons *ngIf="selectedTab == 'controls'"  class="controls-container" ></app-sa-control-buttons>
-    <!-- <div *ngIf="selectedTab == 'controls'" class="controls-container">
-        <div *ngFor="let row of layout" [class]="'row' +  ' ' + (row['title'] | cssClassName : 'sc-')">
-            <div class="title">
-                <span [class]="'icon ' + row['icon']"></span>
-                <span class="text">{{row['title'] | label: uiSrv.langPack}}</span>
-            </div>
-            <div class="button-container">
-                <button kendoButton *ngFor="let button of row['buttons']" [style.display] = "!button['display'] || button['display'].value ? '' : 'none'"
-                        [disabled]= "readonly.controls || (button['disabled'] && button['disabled']['value']) || 
-                                    (robotSrv.data.navigationDisabled.value && (button['id'] == 'followMe' ||  button['id'] == 'auto' || button['id'] == 'changeMap')) ||
-                                    (button['id'] == 'changeMap' && robotSrv.data.isMappingMode.value) ||
-                                    (button['id'] == 'charge' && robotSrv.data.isMappingMode.value) ||
-                                    ((button['id'] == 'stop' || button['id'] == 'pause' ) && !robotSrv.data.isAutoMode.value) "
-                        (click)="triggerControl(button['id'], (button['active']?.value ? button['textActive'] : button['text']) , button['active'])" 
-                        [class]="(button['text']  | cssClassName) +  (button['active']?.value ? ' active' : '')">
-                    <span [class]="'icon ' + button['icon']"></span>
-                    <span class="text">{{ button['active']?.value &&  button['textActive'] ? button['textActive'] : button['text'] | label: uiSrv.langPack}}</span>
-                </button>
-            </div>
-        </div>
-    </div> -->
+ 
 
     <div *ngIf="selectedTab == 'robot'" class="robot-container">
         <div class="form-container">
             <form [formGroup]="frmGrpRobot" class="content">
                 <div class="form-row">
                     <uc-txtbox lab="Robot Code" [frmGrp]="frmGrpRobot" frmCtrl="robotCode"  [disabled]="true"></uc-txtbox>
-                    <!-- <uc-txtbox lab="Robot Name" [frmGrp]="frmGrpRobot" frmCtrl="name"  [disabled]="true"></uc-txtbox> -->
                 </div>
                 <div class="form-row">
                     <uc-txtbox lab="Robot Type" [frmGrp]="frmGrpRobot" frmCtrl="robotType"  [disabled]="true"></uc-txtbox>
                     <uc-txtbox lab="Robot Sub Type" [frmGrp]="frmGrpRobot" frmCtrl="robotSubType"  [disabled]="true"></uc-txtbox>
-                    <!-- <uc-dropdown lab="Status" [frmGrp]="frmGrpRobot" frmCtrl="robotStatus"></uc-dropdown> -->
                 </div>
-                <ng-container *ngIf="!readonly.robot && (!configSrv.disabledModule_SA.maxSpeed || !configSrv.disabledModule_SA.safetyZone)">
-                    <div class="form-row">
-                        <label>{{ "Configuration" | label : uiSrv.langPack }}</label>
-                    </div>
-                    <div class="form-row">
-                        <button *ngIf="!configSrv.disabledModule_SA.maxSpeed" kendoButton (click) = "loadSafety(); configObj.type = 'maxSpeed' ;  configObj.title = 'Set Maximum Speed'" >{{ "Maximum Speed" | label : uiSrv.langPack }}</button>
-                        <button *ngIf="!configSrv.disabledModule_SA.safetyZone" kendoButton (click) = "loadSafety(); configObj.type = 'safetyZone' ; configObj.title = 'Set Safety Zone'" >{{ "Safety Zone" | label : uiSrv.langPack }}</button>
-                        <!-- <uc-txtbox lab="Maximum Speed" [frmGrp]="frmGrpRobot" frmCtrl="robotMaxSpeed" [numeric]="true"></uc-txtbox>
-                        <uc-txtbox lab="Safety Zone" [frmGrp]="frmGrpRobot" frmCtrl="robotSafetyZone" [numeric]="true"></uc-txtbox> -->
-                    </div>
-                </ng-container>
-               
-                <!-- <div class="form-row">
-                    <uc-txtbox lab="IP Address" [frmGrp]="frmGrpRobot" frmCtrl="robotIPAddress" [disabled]='true'></uc-txtbox>
-                </div> -->
+                <div class="form-row">
+                    <uc-txtbox lab="Network" [value]="dataSrv.robotProfile.ip" [disabled]="true" customClass="col txtbox-container"></uc-txtbox>
+                    <uc-txtbox lab="CPU Temp." [value]="robotSrv.STANDALONE.state.cpuTemp.value" [disabled]="true"  customClass="col txtbox-container" [suffixButton] = "{text : ' °C'}"></uc-txtbox>
+                </div>
+                <div class="form-row">                   
+                    <uc-txtbox *ngIf="!configSrv.disabledModule_SA.maxSpeed" lab="Maximum Speed" [frmGrp]="frmGrpRobot" frmCtrl="robotMaxSpeed"  [suffixButton] = "{icon : 'mdi mdi-tools'}" (suffixButtonClick) = "loadSafety(); configObj.type = 'maxSpeed' ;  configObj.title = 'Set Maximum Speed'"></uc-txtbox>
+                    <uc-txtbox *ngIf="!configSrv.disabledModule_SA.safetyZone" lab="Safety Zone" [frmGrp]="frmGrpRobot" frmCtrl="robotSafetyZone"  [suffixButton] = "{icon : 'mdi mdi-tools'}" (suffixButtonClick) = "loadSafety(); configObj.type = 'safetyZone' ; configObj.title = 'Set Safety Zone'" ></uc-txtbox>
+                </div>
             </form>
         </div>
-        <!-- <ng-container *ngTemplateOutlet = "buttons"></ng-container> -->
     </div>
 
-    <!-- <div *ngIf="selectedTab == 'type'" class="type-container">
-        <div class="form-container">
-            <form [formGroup]="frmGrpType">
-                <div class="form-row">
-                    <uc-dropdown lab="Type" [frmGrp]="frmGrpType" frmCtrl="type"></uc-dropdown>
-                    <uc-dropdown lab="Status" [frmGrp]="frmGrpType" frmCtrl="status"></uc-dropdown>
-                </div>
-                <div class="form-row">
-                    <uc-dropdown lab="Code" [frmGrp]="frmGrpType" frmCtrl="code"></uc-dropdown>
-                    <uc-txtbox lab="Sub Type Name" [frmGrp]="frmGrpType" frmCtrl="subtype"></uc-txtbox>
-                </div>
-                <div class="form-row">
-                    <uc-multiselect lab="Actions" [options] = "dropdownOptions.types" [frmGrp]="frmGrpType" frmCtrl="actionIds"></uc-multiselect>
-                </div>          
-            </form>
-        </div>
-        <ng-container *ngTemplateOutlet = "buttons"></ng-container>
-    </div> -->
 
     <div *ngIf="selectedTab == 'action'" class="action table-container">
         <uc-table #table  [toolbarButtons] ="{new : true , action: false}" [columnDefs] = "columnDef" [(data)]="data" 

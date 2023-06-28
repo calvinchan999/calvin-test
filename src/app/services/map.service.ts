@@ -13,7 +13,7 @@ import { AzurePubsubService } from './azure-pubsub.service';
 import { DatePipe } from '@angular/common'
 import { ConfigService } from './config.service';
 import { HttpEventType, HttpHeaders } from '@angular/common/http';
-import { RobotStateTypes, DropListBuilding, DropListFloorplan, DropListMap, DropListPointIcon, DropListRobot, JFloorPlan, JTask, RobotMaster, RobotStatusARCS, SaveRecordResp, TaskItem, LiftState, TurnstileState, JFloorPlan3DSettings, WaypointState } from './data.models';
+import { RobotStateTypes, DropListBuilding, DropListFloorplan, DropListMap, DropListPointIcon, DropListRobot, JFloorPlan, JTask, RobotProfile, RobotStatusARCS, SaveRecordResp, TaskItem, LiftState, TurnstileState, JFloorPlan3DSettings, WaypointState } from './data.models';
 import { DataService } from './data.service';
 import { timeStamp } from 'console';
 import { stat } from 'fs';
@@ -69,6 +69,12 @@ export class MapService {
   // async updateFloorPlanStoreWithIdb(){
 
   // }
+  public async getStandaloneActiveFloorPlan(): Promise<{ floorPlanCode: string, name: string }> {
+    let currentMap = (<{ id: string }>await this.httpSrv.fmsRequest('GET', "map/v1/activeMap", undefined, false))?.id
+    let currentFloorPlan = (<DropListMap[]>(await this.dataSrv.getDropList('maps')).data).filter(m => m.mapCode == currentMap)[0]?.floorPlanCode
+    let currentFloorPlanName = (<DropListFloorplan[]>(await this.dataSrv.getDropList('floorplans')).data).filter(f => f.floorPlanCode == currentFloorPlan)[0]?.name
+    return { floorPlanCode: currentFloorPlan, name: currentFloorPlanName }
+  }
 
   public async getWayPointState(floorPlanCode: string, waypointCode: string): Promise<WaypointState> {
     let states: WaypointState[] = await this.dataSrv.httpSrv.fmsRequest('GET', `resource/v1?floorPlanCode=${floorPlanCode}`, undefined, false)

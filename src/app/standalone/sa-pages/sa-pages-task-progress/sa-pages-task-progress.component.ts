@@ -29,8 +29,8 @@ export class SaPagesTaskProgressComponent implements OnInit , OnDestroy {
 
   async ngOnInit() {
     let ticket  = this.uiSrv.loadAsyncBegin()
-    await this.dataSrv.getRobotMaster()
-    this.scrollViewIndices = this.dataSrv.robotMaster.robotType?.toUpperCase() == 'DELIVERY' || !this.uiSrv.withDashboard? [1] : [1,2]
+    await this.dataSrv.getRobotProfile()
+    this.scrollViewIndices = this.dataSrv.robotProfile.robotType?.toUpperCase() == 'DELIVERY' || !this.uiSrv.withDashboard? [1] : [1,2]
     this.mqSrv.subscribeMQTTs(this.mqtopics)
     let actionDdld = await this.dataSrv.getDropList('actions')
     actionDdld.data.forEach((a: DropListAction) => this.actions[a.alias] = a.name)

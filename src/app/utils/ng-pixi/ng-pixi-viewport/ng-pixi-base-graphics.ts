@@ -785,7 +785,7 @@ export class PixiLine extends Pixi1DGraphics implements IDraw{
   }
   
   setHitArea(){
-    const size = 10
+    const size = 10 / this.viewport.scale.x
     let p1 =  this.endpointsPositions[0]
     let p2 =  this.endpointsPositions[1]
     let height =  Math.abs(p2.y - p1.y)

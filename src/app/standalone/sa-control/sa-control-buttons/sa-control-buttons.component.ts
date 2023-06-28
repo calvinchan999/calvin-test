@@ -1,6 +1,6 @@
 import { Component, Input, OnDestroy, OnInit, ViewChild } from '@angular/core';
 import { DialogService } from '@progress/kendo-angular-dialog';
-import { Subject } from 'rxjs';
+import { BehaviorSubject, Subject } from 'rxjs';
 import { filter, skip, take, takeUntil } from 'rxjs/operators';
 import { ConfigService } from 'src/app/services/config.service';
 import { DataService } from 'src/app/services/data.service';
@@ -57,7 +57,7 @@ export class SaControlButtonsComponent implements OnInit ,  OnDestroy {
     //   this.layout.forEach(l => l.buttons =(<any>l.buttons).filter(b => b.id != k))
     // })
   }
-  
+
   layout = [
     {
       title: 'Power',  icon : 'mdi mdi-power-plug', buttons: [
@@ -166,6 +166,9 @@ export class SaControlButtonsComponent implements OnInit ,  OnDestroy {
           }          
         }
         await this.httpSrv.fmsRequest(requestMap[id]['method'].toUpperCase(), requestMap[id]['url'] , ( requestMap[id]['body'] ? requestMap[id]['body'] : null) , true, label)
+        if(id == 'auto' && this.robotSrv.data.isAutoMode){
+          this.triggerControl('changeMap' , 'Change' )
+        }
       }
       catch(err){
         console.log(err)
@@ -189,7 +192,7 @@ export class SaControlButtonsComponent implements OnInit ,  OnDestroy {
         if (floorPlanCode == null) {
           this.uiSrv.loadAsyncDone(this.pixiElRef.module.common.ui.loadingTicket)
            this.uiSrv.showNotificationBar("No valid active map detected. Please change map first", 'error')
-          this.pixiElRef.cancelFullScreen.emit()
+          this.pixiElRef.cancelPopupScreen.emit()
           return
         } else {
           this.pixiElRef.module.localization.localizing = true

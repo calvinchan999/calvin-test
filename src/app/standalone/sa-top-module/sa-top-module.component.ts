@@ -110,7 +110,9 @@ export class SaTopModuleComponent implements OnInit , OnDestroy {
   constructor( public robotSrv : RobotService , public util : GeneralUtil, public uiSrv : UiService ,  public authSrv : AuthService, public mqSrv : MqService,
                public router: Router , public dataSrv :  DataService ,  private configSrv : GeneralUtil) { }
                
-  async ngOnInit(){}
+  async ngOnInit(){
+
+  }
   async ngAfterViewInit(){
     this.patrolFlvSrc = this.configSrv.config.IP_CAMERA_URL
     // if(this.authSrv.isGuestMode){
@@ -125,10 +127,10 @@ export class SaTopModuleComponent implements OnInit , OnDestroy {
     if(this.util.arcsApp){
       this.robotType = this.arcsRobotType.toLowerCase()
     }else{
-      await this.dataSrv.getRobotMaster()
-      this.robotType = this.dataSrv.robotMaster.robotType.toLowerCase()//data?.['robotTypeName']?.toLowerCase()//TO BE REVISED
+      await this.dataSrv.getRobotProfile()
+      this.robotType = this.dataSrv.robotProfile.robotType.toLowerCase()//data?.['robotTypeName']?.toLowerCase()//TO BE REVISED
     }
-    this.robotSubType = this.util.arcsApp ? this.arcsRobotSubType : this.dataSrv.robotMaster.robotSubType
+    this.robotSubType = this.util.arcsApp ? this.arcsRobotSubType : this.dataSrv.robotProfile.robotSubType
     this.customClass += ' ' + this.robotType
     // this.arcsRobotSubType == 'CABINET_DELIVERY' //TESTING
     // if(this.subTypeTopicMap[this.robotType]){

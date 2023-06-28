@@ -82,8 +82,8 @@ export class SaHomeComponent implements OnInit {
       return
     }
     this.loadingTicket = this.uiSrv.loadAsyncBegin()
-    await this.dataSrv.getRobotMaster()
-    this.robotType = this.dataSrv.robotMaster.robotType  //TO BE REVISED
+    await this.dataSrv.getRobotProfile()
+    this.robotType = this.dataSrv.robotProfile.robotType  //TO BE REVISED
     this.mqSrv.subscribeMQTTs(<any>this.mqSubscribedTopics)
     this.initDataSource()
     // this.dashboardLayout = this.dashboardLayout.concat(this.topModule[this.robotType]) 

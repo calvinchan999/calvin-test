@@ -136,7 +136,7 @@ export class RobotState {
     taskPopupRequest = new BehaviorSubject<{ guiId: string, invisible: boolean } | null>(null)
     nextTaskAction = new BehaviorSubject<string | null>(null)
     poseDeviation = new BehaviorSubject<{ poseValid: boolean, translationDeviation: boolean, angleDeviation: boolean } | null>(null)
-
+    cpuTemp = new BehaviorSubject<number|null> (null)
 
     // topModules
 

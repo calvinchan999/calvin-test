@@ -24,7 +24,7 @@
 
 }
 
-:host button.show-waypoint-fullscreen {
+:host button.show-waypoint-popupscreen {
   margin-top: 30px;
 }
 
@@ -57,7 +57,7 @@
     -1px  0   0 #000;
 }
 
-:host ::ng-deep .fullscreen.wrapper .buttons-container.t2{
+:host ::ng-deep .popupscreen.wrapper .buttons-container.t2{
   margin-top: 25px;
 }
 

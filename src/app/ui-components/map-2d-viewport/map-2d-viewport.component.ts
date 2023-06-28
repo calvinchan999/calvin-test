@@ -221,7 +221,7 @@ export class Map2DViewportComponent implements OnInit , AfterViewInit , OnDestro
   @Output() onSiteSelected: EventEmitter<any> = new EventEmitter(); 
   @Output() confirmSpawnPick : EventEmitter<any> = new EventEmitter(); 
   @Output() addLocalWayPointClicked:  EventEmitter<any> = new EventEmitter(); 
-  @Output() cancelFullScreen : EventEmitter<any> = new EventEmitter(); 
+  @Output() cancelPopupScreen : EventEmitter<any> = new EventEmitter(); 
   @Output() terminateRemoteControl :  EventEmitter<any> = new EventEmitter(); 
   @Output() demoWaypointLoaded :  EventEmitter<any> = new EventEmitter(); 
   @Output() to3D :  EventEmitter<any> = new EventEmitter(); 
@@ -233,9 +233,10 @@ export class Map2DViewportComponent implements OnInit , AfterViewInit , OnDestro
     this.module.ui.toggle = v
   }
 
-  @Input() set fullScreen(b) {
-    this.commonModule.ui._fullScreen = b
+  @Input() set popupScreen(b) {
+    this.commonModule.ui._popupScreen = b
   }
+  
 
   public lastActiveMapId_SA
   private _suspended
@@ -637,7 +638,7 @@ export class Map2DViewportComponent implements OnInit , AfterViewInit , OnDestro
       if (this.showRobot && this.robots.length == 0) {
         this.overlayMsg = this.uiSrv.translate("Select Starting Postion")
         // this.mqPoseSubscribed = true
-        this.module.robot.addRobot(this.dataSrv.robotMaster?.robotCode, null)
+        this.module.robot.addRobot(this.dataSrv.robotProfile?.robotCode, null)
 
         this.standaloneModule.robot.subscribeRobotPose()
         // await this.pixiElRef.loadFloorPlanFullDataset(await this.dataSrv.getFloorplanFullDs(fpId) , true , true)
@@ -1298,10 +1299,10 @@ export class Robot {
   //         this.uiModule.loadingTicket = null
   //       }
   //       this.uiModule.overlay.message = null
-  //       if(this.uiModule._fullScreen && !this.parent._remoteControl){
+  //       if(this.uiModule._popupScreen && !this.parent._remoteControl){
   //         this.parent.removeSpawnMarker()                  
   //         this.parent.module.localization?.pickingMap = false
-  //         this.parent.fullScreen = false
+  //         this.parent.popupScreen = false
   //         this.parent.changeMode(null)
   //         this.parent.toggleRosMap(false)
   //       }
@@ -1349,10 +1350,10 @@ export class Robot {
           this.cm.ui.loadingTicket = null
         }
         this.cm.ui.overlayMessage = null
-        // if (this.uiModule._fullScreen && !this.parent._remoteControl) {
+        // if (this.uiModule._popupScreen && !this.parent._remoteControl) {
         //   this.parent.removeSpawnMarker()
         //   this.parent.module.localization?.pickingMap = false
-        //   this.parent.fullScreen = false
+        //   this.parent.popupScreen = false
         //   this.parent.changeMode(null)
         //   this.parent.toggleRosMap(false)
         // }
@@ -1638,11 +1639,11 @@ export class ARCSRobotModule extends RobotModule {
 
         robotsToRemove.forEach(r => this.removeRobot(r))
         robotCodesToAdd.forEach(code => {
-          let robotMaster = (<DropListRobot[]>this.cm.data.dropdownData.robots).filter(r2 => r2.robotCode == code)[0]
-          if (this.robotType && robotMaster.robotType.toUpperCase() != this.robotType.toUpperCase()) {
+          let robotProfile = (<DropListRobot[]>this.cm.data.dropdownData.robots).filter(r2 => r2.robotCode == code)[0]
+          if (this.robotType && robotProfile.robotType.toUpperCase() != this.robotType.toUpperCase()) {
             return
           }
-          let r = this.addRobot(code, mapCode, robotMaster?.robotBase)
+          let r = this.addRobot(code, mapCode, robotProfile?.robotBase)
           r.observed.next(true)
           robotsAdded.push(r)
           setTimeout(() => refreshPose(r))
@@ -1912,7 +1913,7 @@ export class LocalizationModule { //Standalone Function : change map / localize
   set localizing(v){
     this._localizing = v
     if(!v &&  !this.cm.data.activeFloorPlanCode){ //this.showRobot &&
-      this.cm.ui.fullScreen = false
+      this.cm.ui.popupScreen = false
       this.viewport.mode = null
       Object.values(this.viewport.mapContainerStore).filter(v => v).forEach(v => (<any>v).visible = true)
       this.cm.ui.overlayMessage = this.cm.uiSrv.translate("Select Starting Position")
@@ -1945,7 +1946,7 @@ export class LocalizationModule { //Standalone Function : change map / localize
 
   async changeMap(){
     let ticket = this.cm.uiSrv.loadAsyncBegin()
-    if (!this.cm.robotSrv.data.isFollowMeMode) {
+    if (this.cm.robotSrv.data.isFollowMeMode?.value != true) {
       await this.cm.httpSrv.fmsRequest('POST', 'mode/v1/navigation')
     }
     await this.cm.httpSrv.fmsRequest('POST', 'map/v1/change', { mapName: this.cm.data.selectedMapCode, useInitialPose: false, waypointName: null })
@@ -2658,7 +2659,20 @@ export class UiModule {
   loadingTicket = null
   cm : CommonModule
 
+  _popupScreen = false
   _fullScreen = false
+  get popupScreen() {
+    return this._popupScreen
+  }
+  set popupScreen(v) {
+    this.master.ngZone.run(() => {
+      this._popupScreen = v
+      setTimeout(() => {
+        this.master._ngPixi.onResize()
+      })
+    })
+    this._popupScreen = v
+  }
   get fullScreen() {
     return this._fullScreen
   }
@@ -2701,7 +2715,7 @@ export class UiModule {
   }
 
   toggleDarkMode(on ) {
-    this.toggle.darkMode = this.fullScreen? false : on
+    this.toggle.darkMode = this.popupScreen? false : on
     const vertexShader = null;
     const fragmentShader = [
       "varying vec2 vTextureCoord;",

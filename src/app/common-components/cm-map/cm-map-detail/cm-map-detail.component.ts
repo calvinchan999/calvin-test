@@ -34,7 +34,7 @@ export class CmMapDetailComponent implements OnInit {
     floorPlanCode : new FormControl(null),
     mapCode: new FormControl('' , Validators.compose([Validators.required, Validators.pattern(this.dataSrv.codeRegex)])),
     name: new FormControl(''),
-    robotBase : new FormControl( this.util.arcsApp ? null : this.util.config.ROBOT_BASE),
+    robotBase : new FormControl( this.util.arcsApp ? null : this.dataSrv.robotProfile.robotBase),
     fileName: new FormControl(null),
     originX : new FormControl(null),
     originY : new FormControl(null),
@@ -177,7 +177,7 @@ export class CmMapDetailComponent implements OnInit {
   async getSubmitDataset(){
     let ret = new JMap()
     Object.keys(this.frmGrp.controls).forEach(k=> ret[k] = this.frmGrp.controls[k].value)
-    ret.base64Image = this.base64Loaded ?`data:image/${this.frmGrp.controls['fileName'].value.split(".")[this.frmGrp.controls['fileName'].value.split(".").length - 1]};base64,${this.base64Loaded.split(",")[this.base64Loaded.split(",").length - 1]}` : await this.pixiElRef.getMainContainerImgBase64()
+    ret.base64Image = this.base64Loaded ?`${this.base64Loaded.split(",")[this.base64Loaded.split(",").length - 1]}` : await this.pixiElRef.getMainContainerImgBase64()
     if(!this.parentRow && this.createFloorPlan){
       this.frmGrp.controls['floorPlanCode'].setValue(this.frmGrp.controls['floorPlanCode'].value?.length > 0 ? this.frmGrp.controls['floorPlanCode'].value : this.frmGrp.controls['mapCode'].value )
       ret.floorPlanCode =  this.frmGrp.controls['floorPlanCode'].value
@@ -203,7 +203,7 @@ export class CmMapDetailComponent implements OnInit {
     
     setTimeout(async()=>{
       await this.parent.refreshTabletList();
-      this.parent.selectedMapKeySet = {mapCode : mapCode , robotBase : this.util.config.ROBOT_BASE}
+      this.parent.selectedMapKeySet = {mapCode : mapCode , robotBase : this.dataSrv.robotProfile.robotBase}
       this.parent.onTabChange('map', true , !mapCode)
     })
   }
@@ -221,7 +221,7 @@ export class CmMapDetailComponent implements OnInit {
     if (saveResult.result == true) {
       let mapCode = this.frmGrp.controls['mapCode'].value
       if(this.startedScanning){
-        this.parentRow = {mapCode:mapCode, robotBase : this.frmGrp.controls['robotBase'].value}
+        this.parentRow = {mapCode:mapCode, robotBase : this.dataSrv.robotProfile.robotBase}
         this.changeBackModeToNavigation()
         this.startedScanning = false
         this.occupancyGridReceived = false
@@ -286,7 +286,7 @@ export class CmMapDetailComponent implements OnInit {
    
       }
       if(!this.occupancyGridReceived){
-        robot = this.pixiElRef.robotModule.addRobot(this.dataSrv.robotMaster.robotCode)  
+        robot = this.pixiElRef.robotModule.addRobot(this.dataSrv.robotProfile.robotCode)  
       }
      
       let metaData : {x : number |null , y :  number |null , angle :  number |null ,width: number |null , height :  number |null} = o['mapMetadata']

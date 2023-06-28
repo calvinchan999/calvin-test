@@ -7,7 +7,9 @@ import { ListViewComponent } from '@progress/kendo-angular-listview';
 import { filter, skip, take } from 'rxjs/operators';
 import { CmTaskJobComponent } from 'src/app/common-components/cm-task/cm-task-job/cm-task-job.component';
 import { AuthService } from 'src/app/services/auth.service';
+import { DropListFloorplan, DropListMap } from 'src/app/services/data.models';
 import { DataService } from 'src/app/services/data.service';
+import { MapService } from 'src/app/services/map.service';
 import { RvHttpService } from 'src/app/services/rv-http.service';
 import { UiService } from 'src/app/services/ui.service';
 import { Map2DViewportComponent } from 'src/app/ui-components/map-2d-viewport/map-2d-viewport.component';
@@ -27,7 +29,7 @@ export class SaTaskComponent implements OnInit {
   listViewRef : ViewRef
   tabletTaskDetailCompRef : ComponentRef<CmTaskJobComponent>
   tabletRowHeight = 122
-  constructor(public windowSrv: DialogService, public uiSrv: UiService, public httpSrv: RvHttpService, private changeDectector: ChangeDetectorRef, 
+  constructor(public windowSrv: DialogService, public uiSrv: UiService, public httpSrv: RvHttpService, private changeDectector: ChangeDetectorRef, public mapSrv : MapService,
               private resolver : ComponentFactoryResolver, private dataSrv: DataService, public dialogSrv: DialogService, public authSrv : AuthService) { 
                 let tmpMap = {
                   jobs : 'TASK',
@@ -56,6 +58,7 @@ export class SaTaskComponent implements OnInit {
       { title: "", type: "checkbox", id: "select", width: 30 ,fixed : true },
       { title: "#", type: "button", id: "edit", width: 30, icon: 'k-icon k-i-edit iconButton' , fixed : true  },
       { title: "Template Code", id: "missionId", width: 50 },
+      { title: "Floor Plan", id: "floorPlanCode", width: 50 , dropdownType : 'floorplans'},
       { title: "Description", id: "name", width: 100 },
       { title: "", type: "button", id: "execute", width: 80, icon: 'add-button k-icon k-i-play iconButton' , fixed : true  },
     ],
@@ -120,8 +123,16 @@ export class SaTaskComponent implements OnInit {
     // }
   }
 
+  
  
-  showDetail(evt = null){
+  async showDetail(evt = null){
+    if( this.selectedTab == 'template'  && evt?.column == 'execute'){
+      let activeFloorPlan = await this.mapSrv.getStandaloneActiveFloorPlan();
+      if(activeFloorPlan.floorPlanCode != evt?.row.floorPlanCode){
+        this.uiSrv.showNotificationBar(`Selected task template not match with current floor plan (${activeFloorPlan.name ? activeFloorPlan.name : activeFloorPlan.floorPlanCode}) `,'warning')
+        return
+      }
+    }
     let dialog : DialogRef = this.uiSrv.openKendoDialog({content: CmTaskJobComponent , preventAction:()=>true});
     const content = dialog.content.instance;
     content.dialogRef = dialog

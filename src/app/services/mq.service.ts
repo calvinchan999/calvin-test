@@ -31,7 +31,7 @@ export type MQType = 'activeMap' | 'occupancyGridMap' | 'navigationMove' | 'char
                     'followMeAoa' | 'digitalOutput' | 'wifi' | 'cellular' | 'ieq' | 'rfid' | 'cabinet' | 'rotaryHead' | 'nirCamera' | 'nirCameraDetection' |
                     'thermalCamera' | 'thermalCameraDetection' | 'webcam' | 'heartbeatServer' | 'heartbeatClient' | 'arcsPoses' | 'taskActive' | 'lidarStatus' |
                     'led' | 'fan' | 'pauseResume' | 'taskComplete' | 'taskDepart' | 'taskArrive' | 'destinationReached' | 'taskProgress' | 'moving' | 'lidar'| 'taskPopups'|
-                    'arcsRobotStatusChange' | 'arcsSyncLog' | 'arcsRobotDestination' | 'arcsLift' | 'arcsTurnstile' | 'arcsAiDetectionAlert'
+                    'arcsRobotStatusChange' | 'arcsSyncLog' | 'arcsRobotDestination' | 'arcsLift' | 'arcsTurnstile' | 'arcsAiDetectionAlert' | 'cpuTemp'
 
 @Injectable({
   providedIn: 'root'
@@ -59,8 +59,13 @@ export class MqService {
   // public arcsRobotDataMap : { [key: string] : RobotState} = {}
   //api pending : tilt , pose , obstacle detection , arcsPoses
   
-  public mqMaster : { [key: string] : {topic? : string , mapping ? : any , robotState ? : any , api ? :any , subscribedCount ? : any , apiQueryParam ? : string , apiPathParam ? : boolean}}= {
-    trayRack : { topic : "rvautotech/fobo/trayRack" ,   
+  public mqMaster: { [key: string]: { topic?: string, mapping?: any, robotState?: any, api?: any, subscribedCount?: any, apiQueryParam?: string, apiPathParam?: boolean } } = {
+    cpuTemp: { topic: "rvautotech/fobo/systemSensor", 
+               api:"systemSensor/v1/read",
+               robotState: { cpuTemp : (d: { components: { cpus: { sensors: { temperatures: { name: string, value: string }[] } }[] } }) => d.components?.cpus[0]?.sensors?.temperatures[0]?.value } 
+             },
+    trayRack: {
+      topic: "rvautotech/fobo/trayRack",   
                  robotState:{ execute: (d : {robotId : string})=> {
                              this.robotSrv.robotState(d.robotId).topModule.delivery.updateContainers(d)
                              return null
@@ -656,7 +661,7 @@ export class MqService {
           this.updateMqBehaviorSubject(k,tmpMap[k])
         }
       })
-    }else if(taskWrapped.taskCompletionDTO && this.robotSrv.robotState(this.dataSrv.robotMaster?.robotCode).taskActive.value && (!taskWrapped.taskCompletionDTO?.completed || !taskWrapped.taskCompletionDTO?.cancelled)){
+    }else if(taskWrapped.taskCompletionDTO && this.robotSrv.robotState(this.dataSrv.robotProfile?.robotCode).taskActive.value && (!taskWrapped.taskCompletionDTO?.completed || !taskWrapped.taskCompletionDTO?.cancelled)){
       this.updateMqBehaviorSubject('taskComplete',taskWrapped.taskCompletionDTO)
     }
   }

@@ -43,6 +43,10 @@
             <uc-txtbox *ngIf="util.standaloneApp && ((isCreate && !isTemplate) || isExecuteTemplate)" lab="Recurrent" [frmGrp]="frmGrp2" frmCtrl="loop"
                         [numeric]="true" [numDecimals] = "0" numFormat="n0" [disabled] = 'readonly'>
             </uc-txtbox>
+            <button kendoButton class="import-btn" [disabled]="selectedFloorPlanCode == null" (click)="importModule.getMissions(); importModule.showPopup = true">
+                <span class="mdi mdi-file-import"></span>
+                 {{ 'Import' | label: uiSrv.langPack }}
+            </button>
         </div>
         <div class="form-row" *ngIf="util.arcsApp">        
             <uc-dropdown #fpdropdown lab="Robot Type" [frmGrp]="frmGrp" frmCtrl="robotType" [disabled] = 'readonly' [translateOption]="true"
@@ -98,3 +102,9 @@
 </ng-template>
 
 
+<kendo-dialog *ngIf="importModule.showPopup" class="new-task-dialog" [title]="'Import From Existing Task Template' | label: uiSrv.langPack" (close)="importModule.showPopup = false" [minWidth]="250" [width]="450">
+    <uc-dropdown lab = "Template" [(value)] = "importModule.selectedMissionId"  [options] = "importModule.missionsOptions" [allowClear]="false" [showValue]="true"></uc-dropdown>
+    <div class="button-container">     
+        <button [disabled]="importModule.selectedMissionId==null" kendoButton (click)="importModule.importRows()"> {{ 'OK' | label : uiSrv.langPack}}</button>
+    </div>
+</kendo-dialog>

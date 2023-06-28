@@ -4,7 +4,7 @@
 
         <div class="title">
             <!-- <h1> {{ uiSrv.isTablet? util.config['STANDALONE_ROBOT_ID'] : ('Agnostic Robotic Control System (ARCS)' | label : uiSrv.langPack ) }} </h1> -->
-            <h1> {{ app == 'STANDALONE'? (dataSrv.robotMaster? dataSrv.robotMaster.robotCode : '')   : ('Agnostic Robotic Control System (ARCS)' | label : uiSrv.langPack ) }} </h1>
+            <h1> {{ app == 'STANDALONE'? (dataSrv.robotProfile? dataSrv.robotProfile.robotCode : '')   : ('Agnostic Robotic Control System (ARCS)' | label : uiSrv.langPack ) }} </h1>
         </div>
 
         <div class="alert topnav" *ngIf="mqSrv.data.unreadMsgCnt.value > 0" [matTooltip]="('You have' | label : uiSrv.langPack  ) + ' ' + mqSrv.data.unreadMsgCnt.value + ' ' + ('unread notification' | label : uiSrv.langPack )">

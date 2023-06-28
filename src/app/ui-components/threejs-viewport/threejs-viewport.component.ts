@@ -39,6 +39,7 @@ import { DialogRef } from '@progress/kendo-angular-dialog';
 import { ArcsEventDetectionDetailComponent } from 'src/app/arcs/arcs-dashboard/arcs-event-detection-detail/arcs-event-detection-detail.component';
 import { ArcsRobotIotComponent } from 'src/app/arcs/arcs-iot/arcs-robot-iot/arcs-robot-iot.component';
 import { CLICK_EVENTS } from 'src/app/utils/ng-pixi/ng-pixi-viewport/ng-pixi-constants';
+import { DRAWING_STYLE } from 'src/app/utils/ng-pixi/ng-pixi-viewport/ng-pixi-styling-util';
 
 const NORMAL_ANGLE_ADJUSTMENT =  - 90 / radRatio
 const ASSETS_ROOT = 'assets/3D'
@@ -1665,8 +1666,8 @@ export class RobotObject3D extends Object3DCommon{
           this.changeMainColor(this.color)
         })
         this.changeMainColor(this.color)
-        let robotInfo = this.master.parent.robotInfos.filter(r=>r.robotCode == this.robotCode)[0]
-        this.offline = !this.robotCode || robotInfo?.robotStatus == 'UNKNOWN'
+        let robotInfo = this.master.parent?.robotInfos?.filter(r=>r.robotCode == this.robotCode)[0]
+        this.offline = !this.robotCode ||robotInfo?.robotStatus == 'UNKNOWN'
         this.alert = robotInfo?.alert!= null && robotInfo.alert.length > 0 
         // if(ticket){
         //   this.master.uiSrv.loadAsyncDone(ticket)
@@ -1929,7 +1930,7 @@ export class ElevatorObject3D extends Object3DCommon{
   robotDisplay : RobotObject3D
   toolTipCompRef : ComponentRef<ArcsLiftIotComponent>
   planeColor = 0xaaaaaa
-
+ 
   _currentFloor : string
   get currentFloor(){
     return this._currentFloor
@@ -1981,7 +1982,7 @@ export class ElevatorObject3D extends Object3DCommon{
       this.robotDisplay.destroy()
       this.robotDisplay = null
     }  
-    if (!this.robotDisplay && this.displayRobotData && this.floorplanFloor == this.currentFloor) {
+    if (!this.robotDisplay && this.displayRobotData && (this.floorplanFloor == this.currentFloor)) {
       this.robotDisplay = new RobotObject3D(this.master, null, this.master.mapMeshes[0]?.robotBase, this.displayRobotData?.robotType, this.displayRobotData?.robotSubType)
       this.robotDisplay.position.set(0, 0, 15 - this.boxMesh.position.z)
       this.boxMesh.add(this.robotDisplay)
@@ -2019,6 +2020,21 @@ export class ElevatorObject3D extends Object3DCommon{
 
   getToolTipPos(isMouseOver = false) {
     return  new Vector3(0, 0, this.currentFloor == this.floorplanFloor ? this.height * 1.3 : 0)
+  }
+
+  onBoxSizeChanged(){
+    this.planeMesh.scale.setX(this.boxMesh.scale.x)
+    this.planeMesh.scale.setY(this.boxMesh.scale.y)
+    this.boxMesh.position.setZ(this.depth * this.boxMesh.scale.z / 2)
+  }
+
+  destroy(){
+    this.robotDisplay.destroy()
+    this.parent?.remove(this)
+    this.master.composer?.removePass(this.outlinePass)
+    this.hideToolTip()
+    this.toolTip?.element?.remove()
+    this.$destroyed.next()
   }
 }
 

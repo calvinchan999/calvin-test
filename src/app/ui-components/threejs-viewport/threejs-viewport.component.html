@@ -42,6 +42,11 @@
   <button *ngIf="transformCtrl?.object && transformCtrl?.object.type != 'TURNSTILE'" kendoButton class="rotate" [matTooltip]="'Control model rotation' | label : uiSrv.langPack" (click)="transformCtrl.setMode('rotate')" [ngClass]="{'btn-active': transformCtrl.getMode() == 'rotate'}" >
     <span class="mdi mdi-rotate-orbit"></span>
   </button>
+  <button *ngIf="transformCtrl?.object" kendoButton class="rotate" [matTooltip]="'Remove' | label : uiSrv.langPack"  
+           (click) = "transformCtrl.object['destroy'] != null ? transformCtrl.object['destroy']() : transformCtrl.object.parent.remove(transformCtrl.object)  ;
+                      transformCtrl.detach();">
+    <span class="mdi mdi-trash-can-outline"></span>
+  </button>
   <!-- <button *ngIf="transformCtrl?.object" kendoButton class="scale" [matTooltip]="'Control model scale' | label : uiSrv.langPack" (click)="transformCtrl.setMode('scale')" [ngClass]="{'btn-active': transformCtrl.getMode() == 'scale'}" >
     <span class="mdi mdi-resize"></span>
   </button> -->
@@ -88,34 +93,39 @@
            )) | label : uiSrv.langPack }}
         </span>
         <uc-txtbox *ngIf="transformCtrl.object.type == 'TURNSTILE'" class="transform-id grow-1" lab = "ID" [(value)] = "transformCtrl.object['turnstileId']"  (valueChange) = "transformCtrl.object['toolTipCompRef'].instance.turnstileId = $event"></uc-txtbox>
-        <button kendoButton *ngIf="transformCtrl.object != floorPlanModel" 
+        <span *ngIf="transformCtrl.object.type != 'TURNSTILE'" class = "mdi mdi-resize"></span>
+        <uc-txtbox *ngIf="transformCtrl.object.type != 'TURNSTILE'" class="transform-scale grow-1" lab = "Scale" [value] = "transformCtrl.object.scale.x"  (valueChange) = "transformCtrl.object.scale.set( $event , $event , $event)" [numeric]="true"  [numMin]="0"  [numDecimals] = "2"></uc-txtbox>
+        <!-- <button kendoButton *ngIf="transformCtrl.object != floorPlanModel" 
                              (click) = "transformCtrl.object['destroy'] != null ? transformCtrl.object['destroy']() : transformCtrl.object.parent.remove(transformCtrl.object)  ;  
                                         transformCtrl.detach();" >
           <span class="mdi mdi-close"></span>
           {{'Remove' | label : uiSrv.langPack}}
-        </button>
+        </button> -->
       </div>
       <div class="flex-row" *ngIf="transformCtrl.object.type != 'TURNSTILE'" >
-        <span class = "mdi mdi-resize"></span>
-        <uc-txtbox  class="transform-scale grow-1" lab = "Scale" [value] = "transformCtrl.object.scale.x"  (valueChange) = "transformCtrl.object.scale.set( $event , $event , $event)" [numeric]="true"  [numMin]="0"></uc-txtbox>
+        <ng-container *ngIf="transformCtrl.object.type == 'LIFT'">
+          <uc-txtbox  class="width" lab = "Width" [(value)] = "transformCtrl.object['boxMesh'].scale.x" (valueChange) = "transformCtrl.object['onBoxSizeChanged']()" [numeric]="true" ></uc-txtbox>
+          <uc-txtbox  class="height" lab = "Height" [(value)] = "transformCtrl.object['boxMesh'].scale.y" (valueChange) = "transformCtrl.object['onBoxSizeChanged']()"  [numeric]="true" ></uc-txtbox>
+          <uc-txtbox  class="depth" lab = "Depth" [(value)] = "transformCtrl.object['boxMesh'].scale.z" (valueChange) = "transformCtrl.object['onBoxSizeChanged']()"  [numeric]="true" ></uc-txtbox>
+        </ng-container>
       </div>     
     </div>   
     <div class="col-60 flex-col justify-end">
       <div class="flex-row">
         <a [class] = "'mdi mdi-cursor-move ' + (transformCtrl.getMode() == 'translate' ? 'selected' : '')" (click)="transformCtrl.setMode('translate')" ></a>
-        <uc-txtbox  class="translate-x" lab = "Translation X" [(value)] = "transformCtrl.object.position.x"  [numeric]="true" ></uc-txtbox>
-        <uc-txtbox  class="translate-y" lab = "Translation Y" [(value)] = "transformCtrl.object.position.y"  [numeric]="true" ></uc-txtbox>
-        <uc-txtbox  class="translate-z" lab = "Translation Z" [(value)] = "transformCtrl.object.position.z"  [numeric]="true" ></uc-txtbox>
+        <uc-txtbox  class="translate-x" lab = "Translation X" [(value)] = "transformCtrl.object.position.x"  [numeric]="true" [numDecimals] = "2" ></uc-txtbox>
+        <uc-txtbox  class="translate-y" lab = "Translation Y" [(value)] = "transformCtrl.object.position.y"  [numeric]="true" [numDecimals] = "2" ></uc-txtbox>
+        <uc-txtbox  class="translate-z" lab = "Translation Z" [(value)] = "transformCtrl.object.position.z"  [numeric]="true"  [numDecimals] = "2"></uc-txtbox>
       </div>
       <div class="flex-row" *ngIf="transformCtrl.object.type != 'TURNSTILE'">
         <a [class] = "'mdi mdi-rotate-orbit ' + (transformCtrl.getMode() == 'rotate' ? 'selected' : '')" (click)="transformCtrl.setMode('rotate')" ></a>
-          <uc-txtbox  class="rotate-x" lab = "Rotation X" [value] = "transformCtrl.object.rotation.x * radRatio"  [numeric]="true" 
+          <uc-txtbox  class="rotate-x" lab = "Rotation X" [value] = "transformCtrl.object.rotation.x * radRatio"  [numeric]="true"  [numDecimals] = "2"
                     (valueChange) = "transformCtrl.object.rotation.set($event / radRatio , transformCtrl.object.rotation.y , transformCtrl.object.rotation.z)">
           </uc-txtbox>
-          <uc-txtbox  class="rotate-y" lab = "Rotation Y" [value] = "transformCtrl.object.rotation.y * radRatio"  [numeric]="true" 
+          <uc-txtbox  class="rotate-y" lab = "Rotation Y" [value] = "transformCtrl.object.rotation.y * radRatio"  [numeric]="true"  [numDecimals] = "2"
                     (valueChange) = "transformCtrl.object.rotation.set(transformCtrl.object.rotation.x, $event / radRatio , transformCtrl.object.rotation.z)">
           </uc-txtbox>
-          <uc-txtbox  class="rotate-z" lab = "Rotation Z" [value] = "transformCtrl.object.rotation.z * radRatio"  [numeric]="true" 
+          <uc-txtbox  class="rotate-z" lab = "Rotation Z" [value] = "transformCtrl.object.rotation.z * radRatio"  [numeric]="true"  [numDecimals] = "2"
                     (valueChange) = "transformCtrl.object.rotation.set(transformCtrl.object.rotation.x , transformCtrl.object.rotation.y , $event / radRatio)">
           </uc-txtbox>
       </div>    

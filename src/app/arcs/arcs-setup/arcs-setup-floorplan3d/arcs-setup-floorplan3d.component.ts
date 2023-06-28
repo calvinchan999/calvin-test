@@ -19,7 +19,7 @@ import { Observable, of } from 'rxjs';
 import { PixiGraphicStyle, DRAWING_STYLE } from 'src/app/utils/ng-pixi/ng-pixi-viewport/ng-pixi-styling-util';
 import { PixiEditableMapImage, PixiWayPoint } from 'src/app/utils/ng-pixi/ng-pixi-viewport/ng-pixi-map-graphics';
 import { HttpEventType } from '@angular/common/http';
-import { ThreejsViewportComponent, TurnstileObject3D , Object3DCommon, ElevatorObject3D } from 'src/app/ui-components/threejs-viewport/threejs-viewport.component';
+import { ThreejsViewportComponent, TurnstileObject3D , Object3DCommon, ElevatorObject3D, RobotObject3D } from 'src/app/ui-components/threejs-viewport/threejs-viewport.component';
 import { MapService } from 'src/app/services/map.service';
 import { Object3D } from 'three';
 // import * as JSZIP from '@progress/jszip-esm';
@@ -209,6 +209,12 @@ export class ArcsSetupFloorplan3dComponent implements OnInit {
     }
   }
 
+  Object3DClicked(obj : Object3DCommon){
+    if(this.iotObjs.map(i=>i.objectRef).includes(obj)){
+      this.selectObject3D(obj)
+    }
+  }
+
   selectObject3D(obj : Object3D){
     this.threeJsElRef.transformCtrl.attach(obj)
   }
@@ -229,9 +235,15 @@ export class ArcsSetupFloorplan3dComponent implements OnInit {
       newObj = new TurnstileObject3D(this.threeJsElRef , autoId);
       (<TurnstileObject3D>newObj).toolTipCompRef.instance.showDetail = true
     }else if(type == "LIFT"){
-      autoId = Math.min.apply(null, ids.filter(id => !objs.map(o => (<ElevatorObject3D>o.objectRef).id.toString() ).includes(id.toString()))).toString()
-      newObj = new ElevatorObject3D(this.threeJsElRef , autoId , '');
-      (<ElevatorObject3D>newObj).boxMesh.visible = true
+      autoId = Math.min.apply(null, ids.filter(id => !objs.map(o => (<ElevatorObject3D>o.objectRef).id.toString()).includes(id.toString()))).toString()
+      newObj = new ElevatorObject3D(this.threeJsElRef, autoId, '');
+      (<ElevatorObject3D>newObj).boxMesh.visible = true;
+      (<ElevatorObject3D>newObj).robotDisplay = new RobotObject3D(this.threeJsElRef, ' ', '', '', '');
+      (<ElevatorObject3D>newObj).robotDisplay.position.set(0, 0, 15);
+      (<ElevatorObject3D>newObj).robotDisplay.visible = true;
+      (<ElevatorObject3D>newObj).add((<ElevatorObject3D>newObj).robotDisplay);
+      (<any>(<ElevatorObject3D>newObj).boxMesh).defaultOpacity = 0.4;
+      newObj.toolTipAlwaysOn = true
     } else {
       return
     }
