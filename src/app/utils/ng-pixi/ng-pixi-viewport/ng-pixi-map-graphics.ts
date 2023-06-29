@@ -517,6 +517,7 @@ export class PixiWayPoint extends PixiMapGraphics implements IDraw, IReColor {
 
   constructor(viewport: PixiMapViewport, text = null, style: PixiGraphicStyle = new PixiGraphicStyle, editable = false, iconUrl = null, iconType = 'NORMAL') {
     super(viewport)
+    this.multiSelectable = true
     style.zIndex = -1
     style.fillColor = ConvertColorToDecimal(this.viewport.selectedStyle.marker.color) 
     this.addChild(this.txtBg)
@@ -687,7 +688,7 @@ export class PixiWayPoint extends PixiMapGraphics implements IDraw, IReColor {
 
     this.interactive = true
 
-    this.cursor = this.selected && !this.readonly ? 'move' : 'pointer'
+    this.cursor = this.instantDrag? 'move': ( this.selected && !this.readonly ? 'move' : 'pointer')
     // this.autoScale()
     this.zIndex = this.selected ? 20 : 5
 

@@ -64,3 +64,40 @@
 :host .margin-20{
   margin : 20px
 }
+
+:host .grid-settings-container{
+  position: absolute;
+  right: 50px;
+  top: 10px;
+  background: rgba(0,0,0,0.4);
+  z-index: 5;
+  min-width: 180px;
+  padding: 5px 10px 5px 10px;
+  border-radius: 5px;
+  font-size: 14px;
+  .header{
+    cursor: pointer;
+    display: flex;
+    justify-content: space-between;
+  }
+  .mdi{
+    font-size: 20px;
+    padding: 0px 5px 0px 5px;
+    line-height: 20px;
+  }
+  .grid-detail-settings {
+    margin-top: 5px;
+  }
+  .slider-container ,  .palette-container{
+    display: flex;
+    width: 100%;
+    justify-content: space-between;
+    span{
+      line-height: 25px;
+      min-width: 100px;
+    }
+    kendo-slider {
+      margin: 0px 15px;
+    }
+  }
+}

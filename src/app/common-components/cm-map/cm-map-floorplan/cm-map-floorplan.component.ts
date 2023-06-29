@@ -331,10 +331,12 @@ export class CmMapFloorplanComponent implements OnInit {
     for (let i = 0; i < maps.length ; i++) {
       const map = await this.pixiElRef.loadMap(maps[i])
       pixiMaps.push(map)      
-
       map.events.selected.pipe(takeUntil(map.events.removed)).subscribe(()=>{ //Resize All ROS 
         this.pixiElRef.viewport.events.zoomed.next(true)
         map.events.resizing.pipe(takeUntil(map.events.unselected)).subscribe(()=>{
+          if(this.pixiElRef.module.ui.toggle.showGridLine){
+            this.pixiElRef.module.ui.gridLine.refreshScale()
+          }
           pixiMaps.filter(m=>m!=map && m.ROS?.alpha > 0).forEach(m=>{
             let scale = map.scale.x * (map.dataObj?.resolution ? map.dataObj?.resolution : 0.05 )/(m.dataObj?.resolution ? m.dataObj?.resolution : 0.05)
             m.scale.set(scale , scale)

@@ -325,17 +325,15 @@ export class DataService {
   public async getRobotProfile() : Promise<RobotProfile>{
     if(!this.robotProfile?.robotCode){
       let profile : RobotProfileResp = await this.httpSrv.fmsRequest('GET', 'baseControl/v1/profile' , undefined, false)
-      this.robotProfile = { 
-        robotCode: profile.robotId, 
-        robotBase : profile.robotBase , 
-        robotType: profile.robotType , 
+      this.robotProfile = {
+        robotCode: profile.robotId,
+        robotBase: profile.robotBase,
+        robotType: profile.robotType, 
         robotSubType : profile.robotSubtype,
         ip : profile.networkList.filter(n=>n.name.toLowerCase().startsWith('w')).length == 1 ? profile.networkList.filter(n=>n.name.toLowerCase().startsWith('w'))[0].ipAddress : profile.networkList.map(n=>n.ipAddress).join('; ')
       }
-     profile.serviceList.forEach(s=> this.configSrv.disabledModule_SA[s.name] = !s.enabled) 
-     
-     
-      //let ret = (await this.httpSrv.get("api/robot/v1"))
+      // profile.serviceList.forEach(s=> this.configSrv.disabledModule_SA[s.name] = !s.enabled) 
+      // let ret = (await this.httpSrv.get("api/robot/v1"))
       // let ret : RobotProfileResp = ( await this.httpSrv.fmsRequest('GET', 'baseControl/v1/profile' , undefined, false))
       // this.robotMaster = {robotCode : ret.robotId , robotBase : ret.robotBase , robotType : ret.robotType , robotSubType : ret.robotSubtype}
     }

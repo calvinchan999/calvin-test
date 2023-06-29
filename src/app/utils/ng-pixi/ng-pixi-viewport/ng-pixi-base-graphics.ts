@@ -12,7 +12,7 @@ import {OutlineFilter} from '@pixi/filter-outline';
 import {DRAWING_STYLE , PixiGraphicStyle} from './ng-pixi-styling-util'
 import { PixiMapViewport } from './ng-pixi-map-viewport';
 import { getAngle, getBezierSectionPoints, getOrientation, intersectionsOfCircles } from '../../math/functions';
-import { PixiPath, PixiRobotMarker } from './ng-pixi-map-graphics';
+import { PixiPath, PixiRobotMarker, PixiWayPoint } from './ng-pixi-map-graphics';
 import { CLICK_EVENTS, MOVE_EVENTS , CLICK_END_EVENTS } from './ng-pixi-constants';
 import { ConvertColorToDecimal } from '../../graphics/style';
 import { PixiViewport } from './ng-pixi-base-viewport';
@@ -143,6 +143,8 @@ export class PixiGraphics extends PIXI.Graphics {
   public style: PixiGraphicStyle = new PixiGraphicStyle()
   public tmpStyle: PixiGraphicStyle = new PixiGraphicStyle()
   disabled = false
+  multiSelectable = false
+  
   viewport: PixiViewport
   events = {
     added: new EventEmitter(),
@@ -214,6 +216,10 @@ export class PixiGraphics extends PIXI.Graphics {
 
   get selected() {
     return this.viewport.selectedGraphics == this
+  }
+
+  get multiSelected(){
+    return this.viewport.selectedGraphicsList.includes(this)
   }
 
   
@@ -330,7 +336,7 @@ export class PixiGraphics extends PIXI.Graphics {
       }
       this.mouseOverEffectModule.subscription = {
         mouseover: this.events.mouseover.pipe(filter(v => !this.selected && this.viewport.mode != 'create'), takeUntil(this.events.removedOrDestroyed)).subscribe(() => {
-          if (canReColor(this) && !this.selected && this.mouseOverEffectModule.fillColor != null) {
+          if (canReColor(this) && !this.multiSelected && !this.selected && this.mouseOverEffectModule.fillColor != null) {
             this.reColor(this.mouseOverEffectModule.fillColor)
           }
           if (this.mouseOverEffectModule.outlineFilter != null) {
@@ -339,7 +345,7 @@ export class PixiGraphics extends PIXI.Graphics {
         }),
         mouseout: this.events.mouseout.pipe(filter(v => !this.selected), takeUntil(this.events.removedOrDestroyed)).subscribe(() => {
           if (canReColor(this)) {
-            this.reColor(this.selected ? DRAWING_STYLE.highlightColor : this.style.fillColor)
+            this.reColor(this.selected ||this.multiSelected  ? DRAWING_STYLE.highlightColor : this.style.fillColor)
           }
           removeFilter()
         }) , 
@@ -438,12 +444,14 @@ export class PixiGraphics extends PIXI.Graphics {
   }
 
   set instantDrag(v){
+    this.dragModule.instantDrag = v
     if(v){      
-      this.dragModule.instantDrag = v
       this.interactive = true
       this.dragModule.enabled = true
       this.dragModule.subscribeStart()
       this.cursor = this.dragCursor
+    }else{
+      this.cursor = this.defaultCursor
     }
   }
 
@@ -485,6 +493,19 @@ export class PixiGraphics extends PIXI.Graphics {
       this.dragModule.dragOffset.set(newPosition.x - this.x, newPosition.y - this.y);
       this.dragModule.subscription.move = this.events.move.pipe(filter(v => this.dragModule.dragging)).subscribe((evt: PIXI.interaction.InteractionEvent) => {
         const newPosition = evt.data.getLocalPosition(this.parent);
+        const xIncre = newPosition.x - this.dragModule.dragOffset.x - this.x;
+        const yIncre = newPosition.y - this.dragModule.dragOffset.y - this.y;
+        (<PixiMapViewport> this.viewport)?.selectedPixiPaths.filter(p=>p.isCurved).forEach(p=>{
+          p.vertices[2].x += xIncre ; 
+          p.vertices[2].y += yIncre ; 
+          p.vertices[3].x += xIncre ; 
+          p.vertices[3].y += yIncre ; 
+        })
+        this.viewport.selectedGraphicsList.filter(g=>g!=this).forEach(g=>{
+          g.x += newPosition.x - this.dragModule.dragOffset.x - this.x
+          g.y += newPosition.y - this.dragModule.dragOffset.y - this.y
+          g.dragModule.events.moving.emit(evt)
+        })
         this.x = newPosition.x - this.dragModule.dragOffset.x;
         this.y = newPosition.y - this.dragModule.dragOffset.y;
         this.dragModule.events.moving.emit(evt)

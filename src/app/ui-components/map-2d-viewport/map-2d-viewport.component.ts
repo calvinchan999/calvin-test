@@ -446,7 +446,6 @@ export class Map2DViewportComponent implements OnInit , AfterViewInit , OnDestro
     let xIncre = (event.key == 'ArrowLeft'? -1 : (event.key == 'ArrowRight' ? 1 : 0)) * this.arrowKeyStep
     let yIncre = (event.key == 'ArrowUp'? 1 : (event.key == 'ArrowDown' ? -1 : 0)) * this.arrowKeyStep
     if(this.module.localization?.previewData.alignLidar){
-      // event.preventDefault()
       this.disableKendoKeyboardNavigation = true
       this.module.localization?.adjustPos(xIncre , yIncre)
       this.module.localization?.refreshLidarLayerPos();
@@ -456,15 +455,34 @@ export class Map2DViewportComponent implements OnInit , AfterViewInit , OnDestro
         let newPosMainContainer = new PIXI.Point(oldPosMainContainer.x + xIncre , oldPosMainContainer.y - yIncre ) //-yIncre reason to be found out
         let newPos = this.selectedGraphics.parent.toLocal(this.mainContainer.toGlobal(newPosMainContainer))
         this.selectedGraphics.position.set(newPos.x , newPos.y);
-        // (<PixiChildPoint>this.selectedGraphics).pointGroup.drawBackground();
       }else{
         this.selectedGraphics.position.x += xIncre
         this.selectedGraphics.position.y -= yIncre
       }
-      if (this.selectedGraphics instanceof PixiWayPoint) {
-        (<PixiWayPoint>this.selectedGraphics).onPositionChange()
-      }
-      // this.refreshArrows(this.selectedGraphics)
+      (<PixiGraphics>this.selectedGraphics).events.dragging.emit()
+    } else if (this.viewport.selectedGraphicsList){
+      this.viewport.selectedPixiPaths.filter(p=>p.isCurved).forEach(p=>{
+        p.vertices[2].x += xIncre ; 
+        p.vertices[2].y -= yIncre ; 
+        p.vertices[3].x += xIncre ; 
+        p.vertices[3].y -= yIncre ; 
+      })
+      this.viewport.selectedGraphicsList.forEach(g=>{
+        g.position.x += xIncre
+        g.position.y -= yIncre;
+        (g).events.dragging.emit()
+      })
+      // this.viewport.selectedPixiPaths.filter(p=>p.isCurved).forEach(p=>{
+      //   let pos1 = this.mainContainer.toLocal((<PixiCurve>p.segment).pixiControlPoint1.parent.toGlobal((<PixiCurve>p.segment).pixiControlPoint1.position));
+      //   let pos2 = this.mainContainer.toLocal((<PixiCurve>p.segment).pixiControlPoint2.parent.toGlobal((<PixiCurve>p.segment).pixiControlPoint2.position));
+      //   pos1.x += xIncre;
+      //   pos1.y -= xIncre; 
+      //   pos2.x += xIncre;
+      //   pos2.y -= xIncre; 
+      //   (<PixiCurve>p.segment).pixiControlPoint1.position =(<PixiCurve>p.segment).pixiControlPoint1.parent.toLocal(this.mainContainer.toGlobal(pos1)) ;
+      //   (<PixiCurve>p.segment).pixiControlPoint2.position =(<PixiCurve>p.segment).pixiControlPoint2.parent.toLocal(this.mainContainer.toGlobal(pos2)) ;
+      //   (<PixiCurve>p.segment).draw()
+      // });
     }
   }
   @HostListener('document:keyup.arrowup', ['$event'])
@@ -2692,7 +2710,61 @@ export class UiModule {
     this.cm = cm
   }
 
-  
+  gridLine = {
+    uiExpanded : false,
+    settings: {
+      bigTick: 50,
+      color: "#00FF00",
+      opacity: 0.4,
+      colors :  ['#FFFFFF' , '#000000' , '#FF0000' , '#0000FF' , "#00FF00"]
+    },
+    layer: new PIXI.Graphics(),
+    scale : null,
+    hide : new Subject(),
+
+    refreshScale:()=>{
+      const map = Object.values(this.viewport.mapLayerStore)[0]
+      const scale = this.gridLine.settings.bigTick  * (map?.dataObj?.resolution ? map?.dataObj?.resolution : 0.05 ) / (this.viewport.scale.x *  map?.scale.x) 
+      this.viewport.ngZone.run(()=> this.gridLine.scale = map ? scale.toFixed(2) : null)
+    },
+
+    refreshLines:()=>{
+      this.gridLine.refreshScale()
+      const gridSize = 20000
+      const bigTick =  this.gridLine.settings.bigTick
+      const smallTickCnt = 5
+      const smallTick = this.gridLine.settings.bigTick / smallTickCnt
+      const color = ConvertColorToDecimal( this.gridLine.settings.color)
+      this.viewport.parent.addChild(this.gridLine.layer) 
+      this.gridLine.layer.zIndex = 0
+      this.gridLine.layer.clear()
+      this.gridLine.layer.beginFill(0xFFFFFF , 0).drawRect(0 , 0 , gridSize , gridSize).endFill()
+      for (let i = 0; i < gridSize / bigTick; i++) {
+        this.gridLine.layer.lineStyle(2, color, this.gridLine.settings.opacity).moveTo(0, i * bigTick).lineTo(gridSize, i * bigTick)
+        this.gridLine.layer.lineStyle(2, color, this.gridLine.settings.opacity).moveTo(i * bigTick, 0).lineTo(i * bigTick, gridSize)
+        for (let j = 0; j < smallTickCnt; j++) {
+          this.gridLine.layer.lineStyle(1, color, this.gridLine.settings.opacity / 2).moveTo(0, i * bigTick + j * smallTick).lineTo(gridSize, i * bigTick + j * smallTick)
+          this.gridLine.layer.lineStyle(1, color, this.gridLine.settings.opacity / 2).moveTo(i * bigTick + j * smallTick, 0).lineTo(i * bigTick + j * smallTick, gridSize)
+        }
+      }
+      setTimeout(()=>{
+        this.gridLine.layer.pivot.set(gridSize / 2 ,gridSize / 2 )
+      })
+    }
+  }
+
+  toggleGridLine(show : boolean){
+    this.toggle.showGridLine = show;
+    if(show){
+      this.gridLine.refreshLines()
+      this.viewport.zoomed.pipe(takeUntil(this.gridLine.hide)).subscribe(() => {
+        this.gridLine.refreshScale()
+      })
+    }else{
+      this.gridLine.hide.next()
+      this.gridLine.layer.parent.removeChild(this.gridLine.layer)
+    }
+  }
   //v 20220504 v 
   toggleRosMap(show , toggleFloorplan = false){
     this.toggle.showRosMap = show;

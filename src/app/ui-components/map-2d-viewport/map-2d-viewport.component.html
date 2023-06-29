@@ -4,7 +4,10 @@
 
 <ng-template #pixiTpl>
   <div #container 
-       (contextmenu)=" viewport.createData?.type ? $event.preventDefault() : null; !viewport.preventContextMenu ? viewport.mode = null : null;"
+       (contextmenu)=" viewport.createData?.type ? $event.preventDefault() : null; 
+                      !viewport.preventContextMenu ? viewport.mode = null : null; 
+                       viewport.selectedGraphicsList = [];
+                       viewport.multiSelectEnabled = viewport.selectedGraphicsList.length == 0 ? false :  viewport.multiSelectEnabled ; "
        style="width: 100%; height: 100%;" class="drawing-board" [style.cursor]="mode == 'create'? 'crosshair':''">
   <ng-pixi-viewport [popupScreen] = "commonModule.ui.popupScreen" [fullScreen] = "commonModule.ui.fullScreen" [background] = "background">
     <ng-container *ngIf="viewport">
@@ -25,7 +28,7 @@
         </div>
         <span class="message">
            {{ robotSrv.data.isFollowMeWithoutMap.value ? ('Follow Me Standalone Mode Activated'|label : uiSrv.langPack) : 
-           ( showRobot && robotSrv.data.isMappingMode.value) ? ('Mapping Mode Activated'|label : uiSrv.langPack)  : commonModule.ui.overlayMessage }}
+           ( showRobot && robotSrv.data.isMappingMode.value) ? ('Mapping Mode Activated' | label : uiSrv.langPack)  : commonModule.ui.overlayMessage }}
         </span>
       </div>
   
@@ -66,6 +69,10 @@
       </div>
   
       <div class="buttons-container t2">
+        <button *ngIf="!hideButton.all" kendoButton class="select-drag" [matTooltip]="'Drag Select'| label : uiSrv.langPack" matTooltipPosition="right" (click)="viewport.multiSelectEnabled = !viewport.multiSelectEnabled" [ngClass]="{'btn-active': viewport._multiSelectEnabled}" >
+          <span class="mdi mdi-select-drag"></span>
+        </button>
+
         <button *ngIf="showRobot && !util.arcsApp  &&  !hideButton['tools']" kendoButton class="engineer-mode"  [matTooltip]="'More Options'| label : uiSrv.langPack" (click)="engineerMode = !engineerMode" [ngClass]="{'btn-active': engineerMode}">
           <span class="mdi mdi-eye"></span>
         </button>
@@ -94,6 +101,11 @@
                   matTooltipPosition="right" (click)="module.ui.toggleRosMap(!module.ui.toggle.showRosMap)"  [ngClass]="{'btn-active': module.ui.toggle.showRosMap || module.lidarPointCloud.show }">
             <span class="mdi mdi-floor-plan"></span>
           </button>
+
+          <button *ngIf="engineerMode || showRosToggle" kendoButton class="show-gridline" [matTooltip]="'Show Gridline'| label : uiSrv.langPack"  
+                  matTooltipPosition="right" (click)="module.ui.toggleGridLine(!module.ui.toggle.showGridLine)"  [ngClass]="{'btn-active': module.ui.toggle.showGridLine}">
+            <span class="mdi mdi-ruler"></span>
+          </button>
   
           <button *ngIf="commonModule.ui.popupScreen || (engineerMode && showRobot) " kendoButton class="show-waypoint" [matTooltip]="((module.ui.toggle.showWaypoint && module.ui.toggle.showWaypointName) ? 'Hide Waypoint Name' : ((module.ui.toggle.showWaypoint && !module.ui.toggle.showWaypointName) ? 'Hide Waypoint' : 'Show Waypoint'))| label : uiSrv.langPack"  
                   [disabled]="disableButton['showWaypoint']" matTooltipPosition="right" 
@@ -110,6 +122,38 @@
             <span class="mdi mdi-crosshairs-question"></span>
           </button>
         </ng-container>
+      </div>
+
+      <div class="grid-settings-container" *ngIf="module.ui.toggle.showGridLine">
+        <div class="header" (click) = "module.ui.gridLine.uiExpanded = !module.ui.gridLine.uiExpanded">      
+          <span>
+            <span>{{'Grid Major Tick : ' | label : uiSrv.langPack }}</span>
+            <span>{{ module.ui.gridLine.scale ? module.ui.gridLine.scale : ' - ' }}</span>
+            <span *ngIf="module.ui.gridLine.scale">{{' m ' | label : uiSrv.langPack}}</span>
+          </span>
+          <span [class]="module.ui.gridLine.uiExpanded ? 'mdi mdi-chevron-up' : 'mdi mdi-chevron-down'"></span>
+        </div>
+        <div class="grid-detail-settings" *ngIf="module.ui.gridLine.uiExpanded">
+          <div class="slider-container">   
+            <span>{{'Rotate : ' | label : uiSrv.langPack}} {{module.ui.gridLine.layer.angle | number:'1.0-1'}}°</span>    
+            <kendo-slider [smallStep]="0.1" [largeStep]="60" [min]="0" [max]="360" [fixedTickWidth]="0.025" tickPlacement="none"
+                            [(ngModel)]="module.ui.gridLine.layer.angle"  [showButtons]="uiSrv.isTablet" [matTooltip]="'Angle'| label : uiSrv.langPack" matTooltipPosition="below">
+            </kendo-slider>       
+          </div>
+          <div class="slider-container"> 
+            <span>{{'Opacity : ' | label : uiSrv.langPack}} {{module.ui.gridLine.settings.opacity * 100}}%</span>    
+            <kendo-slider [smallStep]="0.05" [largeStep]="0.2" [min]="0" [max]="1" [fixedTickWidth]="4.5" tickPlacement="none"
+                            [(ngModel)]="module.ui.gridLine.settings.opacity" (ngModelChange) = "module.ui.gridLine.refreshLines()"  [showButtons]="uiSrv.isTablet" [matTooltip]="'Angle'| label : uiSrv.langPack" matTooltipPosition="below">
+            </kendo-slider>      
+          </div>
+          <div class="palette-container"> 
+            <span>{{'Color : ' | label : uiSrv.langPack }}</span>
+            <kendo-colorpalette [palette]="module.ui.gridLine.settings.colors" [(value)]="module.ui.gridLine.settings.color" [tileSize]="25"
+              [matTooltip]="'Grid Line Color'| label : uiSrv.langPack" matTooltipPosition="below"
+              (valueChange)= "module.ui.gridLine.refreshLines()">
+            </kendo-colorpalette>      
+          </div>
+        </div>
       </div>
   
       <div class="buttons-container t4"  *ngIf="util.standaloneApp && (_remoteControl || (!module?.localization?.localizing  && !hideRelocationButton )) && !commonModule.ui.overlayMessage && robots?.length > 0">
@@ -271,17 +315,17 @@
                 <uc-txtbox *ngIf="util.standaloneApp && selectedGraphics.rosX !== undefined" lab="ROS Position X" [(value)] = "selectedGraphics.rosX" (valueChange)="selectedGraphics.refreshPositionByRosValue()"  [numeric] = 'true' [numDecimals] = '5' ></uc-txtbox>
                 <uc-txtbox *ngIf="util.standaloneApp && selectedGraphics.rosY !== undefined"  lab="ROS Position Y" [(value)] = "selectedGraphics.rosY" (valueChange)="selectedGraphics.refreshPositionByRosValue()"   [numeric] = 'true' [numDecimals] = '5'></uc-txtbox>
                 <uc-txtbox *ngIf="selectedGraphics.angleIndicator" lab="Angle" [(value)] = "selectedGraphics.angleIndicator.angle"  [numeric] = 'true'  [numDecimals] = '3' [class]="util.arcsApp? 'col-4': ''"></uc-txtbox>
+                <uc-dropdown lab="Icon" [options]="module.data.dropdownOptions.iconTypes" [allowClear]="false" [(value)]="selectedGraphics.iconType" 
+                           (valueChange)="selectedGraphics.iconUrl = commonModule.data.getIconBase64($event)" (open)="suspendViewportPlugin('wheel')" 
+                           (close)="resumeViewportPlugin('wheel')">
+                </uc-dropdown>
                 <div *ngIf="util.arcsApp" class="form-group margin-20">                   
                   <input type="checkbox" kendoCheckBox  [(ngModel)] = "selectedGraphics.enabled" />                     
                   <span >{{ 'Enabled' | label: uiSrv.langPack}}</span>
                 </div>               
               </div>
               
-              <div class="form-row">
-                <uc-dropdown lab="Icon" [options]="module.data.dropdownOptions.iconTypes" [allowClear]="false" [(value)]="selectedGraphics.iconType" 
-                           (valueChange)="selectedGraphics.iconUrl = commonModule.data.getIconBase64($event)" (open)="suspendViewportPlugin('wheel')" 
-                           (close)="resumeViewportPlugin('wheel')">
-                </uc-dropdown>
+              <div class="form-row">         
                 <uc-dropdown *ngIf="showWaypointType" lab="Waypoint Type" [options]="module.data.dropdownOptions.pointTypes" [allowClear]="false" [(value)]="selectedGraphics.pointType"
                             (open)="suspendViewportPlugin('wheel')" (close)="resumeViewportPlugin('wheel')" >
                 </uc-dropdown>
@@ -327,6 +371,11 @@
             </uc-txtbox>
           </ng-container>
         </div>
+
+        <div *ngIf="viewport._multiSelectEnabled && viewport._selectedGraphicsList?.length > 0 " class = "bottom-sector multi-select">
+          <span>{{   viewport._selectedGraphicsList.length + ' ' + ( viewport._selectedGraphicsList.length == 1? 'item selected' : 'items selected' | label : uiSrv.langPack)}}</span>
+        </div>
+  
   
       </div>
   
@@ -474,7 +523,7 @@
 </ng-template>
 
 <ng-template #createModeTpl>
-   <button kendoButton class="polygon" [matTooltip]="'Draw Polygon'| label : uiSrv.langPack" matTooltipPosition="right" [disabled] = "disableButton['polygon']"
+          <button kendoButton class="polygon" [matTooltip]="'Draw Polygon'| label : uiSrv.langPack" matTooltipPosition="right" [disabled] = "disableButton['polygon']"
             *ngIf="!hideButton['polygon']" [ngClass]="{'btn-active': viewport.createData?.type == 'polygon'}"
             (click)="viewport.createData?.type == 'polygon' ? viewport.mode = null : viewport.startCreate('polygon')">
             <span class="mdi mdi-vector-polygon"> </span>
@@ -535,7 +584,8 @@
   
           <button *ngIf="selectedGraphics && !hideButton['delete']" kendoButton class="delete" [matTooltip]="'Delete Shape'| label : uiSrv.langPack" 
                   [disabled] = "disableButton['delete'] || (selectedGraphics?.type == 'waypoint' && (viewport.createData?.type == 'arrow_bi' || viewport.createData?.type == 'arrow_bi_curved' || viewport.createData?.type == 'arrow' || viewport.createData?.type == 'arrow_curved' ))"
-            matTooltipPosition="right" (click)="deleteSelectedGraphics()" [ngClass]="{'btn-active': mode == 'delete'}">
+                  matTooltipPosition="right" (click)="deleteSelectedGraphics()" [ngClass]="{'btn-active': mode == 'delete'}">
             <span class="mdi mdi-trash-can-outline"></span>
           </button>
+
 </ng-template>

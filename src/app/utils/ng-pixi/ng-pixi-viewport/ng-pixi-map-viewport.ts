@@ -64,7 +64,8 @@ export class PixiMapViewport extends PixiViewport{
             showPath : false,
             darkMode : true,
             showPoseDeviation : false,
-            alert : true
+            alert : true,
+            showGridLine : false
         },
         updateLocalStorage:()=>{
             let storedFlags = getLocalStorage('uitoggle') ?  JSON.parse(getLocalStorage('uitoggle')) : {};
@@ -170,6 +171,15 @@ export class PixiMapViewport extends PixiViewport{
     }
     get allPixiEventMarkers() : PixiEventMarker[]{
         return this.mainContainer.children.filter(c => c instanceof PixiEventMarker).map(c => <PixiEventMarker>c)
+    }
+    get selectedPixiPaths() : PixiPath[]{
+        let ret = []
+        this.selectedGraphicsList.filter(g=>g instanceof PixiWayPoint).forEach((point:PixiWayPoint)=> {
+            point.link.map(l=>l.arrow).forEach(path=>{
+                ret = ret.filter(p=>path!=p).concat([path])
+            })
+        })
+        return ret
     }
 
     constructor(arg : Viewport.Options , app : PIXI.Application, ngZone : NgZone,  ngRenderer : Renderer2, onDestroy : Subject<any> , METER_TO_PIXEL_RATIO : number , isStandaloneApp : boolean , isMobile : boolean){

@@ -4,13 +4,15 @@ import { ease } from 'pixi-ease';
 import * as Viewport from 'pixi-viewport';
 import * as PIXI from 'pixi.js';
 import { BehaviorSubject, Subject, Subscription } from 'rxjs';
-import { debounceTime, filter, takeUntil } from 'rxjs/operators';
+import { debounceTime, filter, take, takeUntil } from 'rxjs/operators';
 import { GeneralUtil } from '../../general/general.util';
 import { canReColor, IReColor, PixiGraphics } from './ng-pixi-base-graphics';
 import { PixiContainer} from './ng-pixi-base-container';
 import { DRAWING_STYLE, PixiGraphicStyle} from './ng-pixi-styling-util'
 import { PixiEditableMapImage } from './ng-pixi-map-graphics';
 import { CLICK_END_EVENTS, CLICK_EVENTS, MOVE_EVENTS } from './ng-pixi-constants';
+import { OutlineFilter } from '@pixi/filter-outline';
+import { inside } from '../../math/functions';
 
 export type ModeType =  'edit' | 'create' | 'delete' | null
 
@@ -42,6 +44,8 @@ export class PixiViewport extends Viewport {
     readonly 
     MOBILE_MODE
     _selectedGraphics : PixiGraphics = null
+    _selectedGraphicsList : PixiGraphics[] = []
+
     public  _pixiApp
     get pixiApp() : PIXI.Application{
         return this._pixiApp
@@ -76,6 +80,67 @@ export class PixiViewport extends Viewport {
     set mode(v){
         this.mode = v
     }
+
+    _multiSelectEnabled = false
+    _multiSelectEnded = new Subject()
+    get multiSelectEnabled(){
+        return this._multiSelectEnabled
+    }
+
+    set multiSelectEnabled(v : boolean){
+        if(v == this._multiSelectEnabled){
+            return
+        }
+        this._multiSelectEnabled = v
+        if (v) {
+            this.selectedGraphics = null
+            let startPosition: PIXI.Point = null
+            let points = []
+            let dragArea: PIXI.Graphics = new PIXI.Graphics();
+            this.drag({ mouseButtons: 'right' })
+            this.cursor = 'crosshair'
+            this.events.click.pipe(filter(v => startPosition == null), takeUntil(this._multiSelectEnded)).subscribe((startEvt: PIXI.interaction.InteractionEvent) => {
+                this.parent.addChild(dragArea)
+                startPosition = startEvt.data.getLocalPosition(this.parent)
+                this.events.move.pipe(filter(v => startPosition != null), takeUntil(this.events.clickEnd)).subscribe((moveEvt) => {
+                    let endPosition = moveEvt.data.getLocalPosition(this.parent);
+                    points = [startPosition, new PIXI.Point(endPosition.x, startPosition.y), endPosition, new PIXI.Point(startPosition.x, endPosition.y)]
+                    dragArea.clear();
+                    dragArea.lineStyle(1 , DRAWING_STYLE.mouseOverColor ).beginFill(DRAWING_STYLE.mouseOverColor, 0.2).drawPolygon(points).endFill();
+                })
+                this.events.clickEnd.pipe(filter(v => startPosition != null), take(1), takeUntil(this._multiSelectEnded)).subscribe((endEvt) => {
+                    this.selectedGraphicsList = <any>this.mainContainer.children.filter(c => {
+                        return c instanceof PixiGraphics && c.multiSelectable == true && inside(c.position , points.map(p=> this.mainContainer.toLocal(p)))
+                    })
+                    points = [];
+                    dragArea.clear();
+                    this.parent.removeChild(dragArea)
+                    startPosition = null
+                })
+            })
+        } else {
+            this.cursor = 'default'
+            this.drag()
+            this._multiSelectEnded.next()
+        }
+    }
+    
+    selectedGraphicsListChange = new EventEmitter()
+    set selectedGraphicsList(v : PixiGraphics[]){
+        if(this._selectedGraphicsList){
+            this._selectedGraphicsList.forEach(g=>g.instantDrag = false)
+            this._selectedGraphicsList.filter(g=>canReColor(g)).forEach(g=>(<any>g).reColor(g?.style?.fillColor))    
+        }
+        this.ngZone.run(() => this._selectedGraphicsList = v)
+        this._selectedGraphicsList.filter(g => canReColor(g)).forEach(g => (<any>g).reColor(DRAWING_STYLE.highlightColor))
+        this._selectedGraphicsList.forEach(g=> g.instantDrag = true)
+        this.selectedGraphicsListChange.emit(this._selectedGraphicsList)
+    }
+
+    get selectedGraphicsList(){
+        return this._selectedGraphicsList
+    }
+    
     
 
     selectedGraphicsChange = new EventEmitter()
@@ -83,7 +148,7 @@ export class PixiViewport extends Viewport {
 
     set selectedGraphics(gr: PixiGraphics) {
         this.ngZone.run(() => {
-            if (gr == this._selectedGraphics || (this._mode == 'create' && gr != null)) {
+            if (gr == this._selectedGraphics || ((this._mode == 'create' || this.multiSelectEnabled ) && gr != null)) {
                 return
             }
             
