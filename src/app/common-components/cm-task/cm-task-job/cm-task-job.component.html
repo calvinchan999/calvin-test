@@ -43,7 +43,7 @@
             <uc-txtbox *ngIf="util.standaloneApp && ((isCreate && !isTemplate) || isExecuteTemplate)" lab="Recurrent" [frmGrp]="frmGrp2" frmCtrl="loop"
                         [numeric]="true" [numDecimals] = "0" numFormat="n0" [disabled] = 'readonly'>
             </uc-txtbox>
-            <button kendoButton class="import-btn" [disabled]="selectedFloorPlanCode == null" (click)="importModule.getMissions(); importModule.showPopup = true">
+            <button *ngIf="util.standaloneApp" kendoButton class="import-btn" [disabled]="selectedFloorPlanCode == null" (click)="importModule.getMissions(); importModule.showPopup = true">
                 <span class="mdi mdi-file-import"></span>
                  {{ 'Import' | label: uiSrv.langPack }}
             </button>
@@ -96,7 +96,7 @@
     </div>
 
     <div [class]="uiSrv.isTablet? 'viewport-container-tablet' : 'viewport-container'">
-        <uc-drawing-board #mapContainer [hideButton]="{all:true}" (selectedGraphicsChange)="$event?.type == 'waypoint' ? onMapPointSelected($event) : null ; pixiElRef.viewport.selectedGraphics = null" [hideHeader] = "true" [readonly] = "true" >
+        <uc-drawing-board #mapContainer [hideButton]="{all:true}" (selectedGraphicsChange)="$event?.type == 'waypoint' ? onMapPointSelected($event) : null ; pixiElRef.viewport.selectedGraphics = null" [readonly] = "true" >
         </uc-drawing-board>
     </div>
 </ng-template>

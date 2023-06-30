@@ -29,7 +29,7 @@ import { ArcsLiftIotComponent } from 'src/app/arcs/arcs-iot/arcs-lift-iot/arcs-l
 import { ArcsTurnstileIotComponent } from 'src/app/arcs/arcs-iot/arcs-turnstile-iot/arcs-turnstile-iot.component';
 import {GetImageDimensions} from 'src/app/utils/graphics/image'
 import { TransformControls } from 'three/examples/jsm/controls/TransformControls.js';
-import { DropListRobot, FloorPlanAlertTypeDescMap, JFloorPlan, JMap, JPoint } from 'src/app/services/data.models';
+import { DropListRobot, FloorPlanAlertTypeDescMap, JFloorPlan, JFloorPlan3DModel, JLift3DModel, JMap, JPoint } from 'src/app/services/data.models';
 import { MqService , MQType} from 'src/app/services/mq.service';
 import { RobotService } from 'src/app/services/robot.service';
 import { FloorPlanState, MapService } from 'src/app/services/map.service';
@@ -71,6 +71,7 @@ export class ThreejsViewportComponent implements OnInit , OnDestroy{
   @Input() floorPlanOptions : any[]
   @Input() parent : ArcsDashboardComponent
   @Input() arcsRobotType : string
+  @Output() removed =  new EventEmitter<any>();
   @Input() set robotColorMapping(v){
     this._robotColorMapping = v
     this.refreshRobotColors() 
@@ -173,7 +174,7 @@ export class ThreejsViewportComponent implements OnInit , OnDestroy{
   }
 
   get elevators() : ElevatorObject3D[] {
-    return this.floorplan? <any>this.floorplan?.children.filter(b=>b instanceof ElevatorObject3D) : []
+    return this.floorPlanModel? <any>this.floorPlanModel?.children.filter(b=>b instanceof ElevatorObject3D) : []
   }
 
   get turnstiles() : TurnstileObject3D[] {
@@ -453,9 +454,10 @@ export class ThreejsViewportComponent implements OnInit , OnDestroy{
     this.orbitCtrl.update()
     this.orbitCtrl.enabled = true;
     this.pointLight.position.set(dimension.width / 2 ,  dimension.height  ,  dimension.height / 2)
-
+    const settings =  (await this.mapSrv.get3DFloorPlanSettings(floorplan.floorPlanCode))
     if (glb) {
       await this.loadFloorPlanModelFromBlob(glb)
+      await this.initElevators( settings.lifts , subscribePoses)   
       return
     }
     // else if(files?.zip){
@@ -474,7 +476,8 @@ export class ThreejsViewportComponent implements OnInit , OnDestroy{
     
     // TBR
     ['waypoint', 'waypointName', 'wall' , 'alert'].forEach(k => this.uiToggled(k))
-    await this.load3DFloorPlanFromAzureStorage(floorplan.floorPlanCode)    
+    await this.load3DFloorPlanFromAzureStorage(floorplan.floorPlanCode , settings.floorPlan)    
+    await this.initElevators( settings.lifts , subscribePoses)   
     if(this.parent?.rightMapPanel?.taskComp){
       this.parent.rightMapPanel.taskComp.refreshMapPoints()
     }
@@ -507,9 +510,8 @@ export class ThreejsViewportComponent implements OnInit , OnDestroy{
 
 
 
-  async load3DFloorPlanFromAzureStorage(floorPlanCode : string) : Promise<boolean>{
+  async load3DFloorPlanFromAzureStorage(floorPlanCode : string , settings : JFloorPlan3DModel) : Promise<boolean>{
     const file = await this.mapSrv.get3DFloorPlanBlob(floorPlanCode)
-    const settings =  await this.mapSrv.get3DFloorPlanSettings(floorPlanCode)
     if(file){
       (<THREE.MeshPhongMaterial>this.floorplan.material).visible = false
       await this.loadFloorPlanModelFromBlob(file);
@@ -525,35 +527,49 @@ export class ThreejsViewportComponent implements OnInit , OnDestroy{
   }
   
 
-
-  async initElevators(floor : string , elevators : { liftId : string , position? : {x : number , y : number , z : number } , rotation? : number , width? : number , height? : number , depth? : number }[]){
-    // [
-    //   { liftId: "LIFT-1", position: { x: 120, y: -20, z: 0 }, width: null, height: null, depth: null, rotation: null },
-    //   { liftId: "LIFT-2", position: { x: 200, y: -20, z: 0 }, width: null, height: null, depth: null, rotation: null },
-    //   { liftId: "LIFT-3", position: { x: 280, y: -20, z: 0 }, width: null, height: null, depth: null, rotation: null },
-    //   { liftId: "LIFT-4", position: { x: 120, y: 125, z: 0 }, width: null, height: null, depth: null, rotation: 3.14 },
-    //   { liftId: "LIFT-5", position: { x: 200, y: 125, z: 0 }, width: null, height: null, depth: null, rotation: 3.14 },
-    //   { liftId: "LIFT-6", position: { x: 280, y: 125, z: 0 }, width: null, height: null, depth: null, rotation: 3.14 }
-    // ]
-    elevators.forEach(l => {
-      let elevator = new ElevatorObject3D(this , l.liftId , floor , l.width , l.height, l.depth)
-      this.floorplan.add(elevator)
-      if(l.position){
-        elevator.position.setX(l.position.x ? l.position.x : 0)
-        elevator.position.setY(l.position.y ? l.position.y : 0)
-        elevator.position.setZ(l.position.z ? l.position.z : 0)
-      }
-      // elevator.width = l.width ? l.width : elevator.width
-      // elevator.height = l.height ? l.height : elevator.height
-      // elevator.depth = l.depth ? l.depth : elevator.depth
-      if(l.rotation){
-        elevator.rotateZ(l.rotation)
-      }
+  async initElevators(setting : JLift3DModel[] , subscribe : boolean){
+    setting.forEach(l => {
+      let elevator = new ElevatorObject3D(this , l.liftCode , l.floor)
+      elevator.scale.set(l.scale , l.scale , l.scale)
+      elevator.position.set(l.positionX , l.positionY , l.positionZ)
+      elevator.boxMesh.scale.set(l.width , l.height , l.length)
+      elevator.rotation.set(l.rotationX, l.rotationY, l.rotationZ)
+      this.floorPlanModel.add(elevator)
     })
-    if(!this.subcribedIotSignalRTypes.includes('arcsLift')){
+    if(subscribe && !this.subcribedIotSignalRTypes.includes('arcsLift')){
       this.subscribeElevators()
     }
   }
+
+
+  // async initElevators(floor : string , elevators : { liftId : string , position? : {x : number , y : number , z : number } , rotation? : number , width? : number , height? : number , depth? : number }[]){
+  //   // [
+  //   //   { liftId: "LIFT-1", position: { x: 120, y: -20, z: 0 }, width: null, height: null, depth: null, rotation: null },
+  //   //   { liftId: "LIFT-2", position: { x: 200, y: -20, z: 0 }, width: null, height: null, depth: null, rotation: null },
+  //   //   { liftId: "LIFT-3", position: { x: 280, y: -20, z: 0 }, width: null, height: null, depth: null, rotation: null },
+  //   //   { liftId: "LIFT-4", position: { x: 120, y: 125, z: 0 }, width: null, height: null, depth: null, rotation: 3.14 },
+  //   //   { liftId: "LIFT-5", position: { x: 200, y: 125, z: 0 }, width: null, height: null, depth: null, rotation: 3.14 },
+  //   //   { liftId: "LIFT-6", position: { x: 280, y: 125, z: 0 }, width: null, height: null, depth: null, rotation: 3.14 }
+  //   // ]
+  //   elevators.forEach(l => {
+  //     let elevator = new ElevatorObject3D(this , l.liftId , floor , l.width , l.height, l.depth)
+  //     this.floorplan.add(elevator)
+  //     if(l.position){
+  //       elevator.position.setX(l.position.x ? l.position.x : 0)
+  //       elevator.position.setY(l.position.y ? l.position.y : 0)
+  //       elevator.position.setZ(l.position.z ? l.position.z : 0)
+  //     }
+  //     // elevator.width = l.width ? l.width : elevator.width
+  //     // elevator.height = l.height ? l.height : elevator.height
+  //     // elevator.depth = l.depth ? l.depth : elevator.depth
+  //     if(l.rotation){
+  //       elevator.rotateZ(l.rotation)
+  //     }
+  //   })
+  //   if(!this.subcribedIotSignalRTypes.includes('arcsLift')){
+  //     this.subscribeElevators()
+  //   }
+  // }
 
   async subscribeElevators(){
     await this.mqSrv.subscribeMQTTUntil('arcsLift' , undefined, this.$mapCodeChanged)

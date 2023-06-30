@@ -29,9 +29,7 @@
   <button *ngIf="uiToggles.showIot !== undefined"  kendoButton class="robot-status-popup" [matTooltip]="'Show IoT Info' | label : uiSrv.langPack"  (click)="uiToggles.showIot = !uiToggles.showIot ; uiToggled('robotStatus')" [ngClass]="{'btn-active':uiToggles.showIot}" >
     <span class="mdi mdi-message-text"></span>
   </button>
-  <button *ngIf="uiToggles.fullScreen !== undefined"  kendoButton class="full-screen" [matTooltip]="'Full Screen' | label : uiSrv.langPack" (click)="toggleFullScreen()"  [ngClass]="{'btn-active':fullScreen}" >
-    <span [class]="'mdi mdi-' + (fullScreen ? 'fullscreen-exit' : 'fullscreen')"></span>
-  </button>
+
   <button *ngIf="uiToggles.showFloorPlanImage !== undefined" kendoButton class="floor-plan" [matTooltip]="'Show 2D Floor Plan' | label : uiSrv.langPack" (click)="uiToggles.showFloorPlanImage = !uiToggles.showFloorPlanImage ; uiToggled('showFloorPlanImage')" [ngClass]="{'btn-active':uiToggles.showFloorPlanImage}" >
     <span class="mdi mdi-floor-plan"></span>
   </button>
@@ -43,8 +41,9 @@
     <span class="mdi mdi-rotate-orbit"></span>
   </button>
   <button *ngIf="transformCtrl?.object" kendoButton class="rotate" [matTooltip]="'Remove' | label : uiSrv.langPack"  
-           (click) = "transformCtrl.object['destroy'] != null ? transformCtrl.object['destroy']() : transformCtrl.object.parent.remove(transformCtrl.object)  ;
-                      transformCtrl.detach();">
+           (click) = " transformCtrl.object['destroy'] != null ? transformCtrl.object['destroy']() : transformCtrl.object.parent.remove(transformCtrl.object)  ;
+                       removed.emit(transformCtrl.object);
+                       transformCtrl.detach();">
     <span class="mdi mdi-trash-can-outline"></span>
   </button>
   <!-- <button *ngIf="transformCtrl?.object" kendoButton class="scale" [matTooltip]="'Control model scale' | label : uiSrv.langPack" (click)="transformCtrl.setMode('scale')" [ngClass]="{'btn-active': transformCtrl.getMode() == 'scale'}" >
@@ -56,6 +55,10 @@
   <button  *ngIf="uiToggles.alert !== undefined" kendoButton class="show-alert" [matTooltip]="(uiToggles.alert ? 'Hide Event Alerts' : 'Show Event Alerts') | label : uiSrv.langPack"  
             (click)="uiToggles.alert = !uiToggles.alert ; uiToggled('alert')" [ngClass]="{'btn-active': uiToggles.alert}">
     <span [class]="'mdi mdi-alert'"></span>
+  </button>
+
+  <button *ngIf="uiToggles.fullScreen !== undefined"  kendoButton class="full-screen" [matTooltip]="'Full Screen' | label : uiSrv.langPack" (click)="toggleFullScreen()"  [ngClass]="{'btn-active':fullScreen}" >
+    <span [class]="'mdi mdi-' + (fullScreen ? 'fullscreen-exit' : 'fullscreen')"></span>
   </button>
 </div>
 <div #canvas class="canvas-container"></div>
@@ -75,7 +78,7 @@
 <ng-template #transformCtrlBtmPanelTpl>
   <div class="flex-row std-container">
     <a class="close mdi mdi-close-circle" (click)="transformCtrl.detach()"></a>
-    <div class="col-40">
+    <div class="col-60">
       <div class="flex-row panel-header">
         <span [class] = "transformCtrl.object == floorPlanModel ? 'mdi mdi-cube-outline' : (
                           transformCtrl.object.type == 'TURNSTILE' ? 'mdi mdi-turnstile-outline' :  (
@@ -92,9 +95,9 @@
             )
            )) | label : uiSrv.langPack }}
         </span>
-        <uc-txtbox *ngIf="transformCtrl.object.type == 'TURNSTILE'" class="transform-id grow-1" lab = "ID" [(value)] = "transformCtrl.object['turnstileId']"  (valueChange) = "transformCtrl.object['toolTipCompRef'].instance.turnstileId = $event"></uc-txtbox>
-        <span *ngIf="transformCtrl.object.type != 'TURNSTILE'" class = "mdi mdi-resize"></span>
-        <uc-txtbox *ngIf="transformCtrl.object.type != 'TURNSTILE'" class="transform-scale grow-1" lab = "Scale" [value] = "transformCtrl.object.scale.x"  (valueChange) = "transformCtrl.object.scale.set( $event , $event , $event)" [numeric]="true"  [numMin]="0"  [numDecimals] = "2"></uc-txtbox>
+        <uc-dropdown *ngIf="transformCtrl.object.type == 'LIFT'" class="transform-id col-4 " lab = "ID" [(value)] = "transformCtrl.object['liftId']" [options]="[]"></uc-dropdown>
+        <uc-txtbox *ngIf="transformCtrl.object.type == 'TURNSTILE'" class="transform-id " lab = "ID" [(value)] = "transformCtrl.object['turnstileId']"  (valueChange) = "transformCtrl.object['toolTipCompRef'].instance.turnstileId = $event"></uc-txtbox>
+       
         <!-- <button kendoButton *ngIf="transformCtrl.object != floorPlanModel" 
                              (click) = "transformCtrl.object['destroy'] != null ? transformCtrl.object['destroy']() : transformCtrl.object.parent.remove(transformCtrl.object)  ;  
                                         transformCtrl.detach();" >
@@ -103,6 +106,7 @@
         </button> -->
       </div>
       <div class="flex-row" *ngIf="transformCtrl.object.type != 'TURNSTILE'" >
+        <uc-txtbox  class="transform-scale" lab = "Scale" [value] = "transformCtrl.object.scale.x"  (valueChange) = "transformCtrl.object.scale.set( $event , $event , $event)" [numeric]="true"  [numMin]="0"  [numDecimals] = "2"></uc-txtbox>
         <ng-container *ngIf="transformCtrl.object.type == 'LIFT'">
           <uc-txtbox  class="width" lab = "Width" [(value)] = "transformCtrl.object['boxMesh'].scale.x" (valueChange) = "transformCtrl.object['onBoxSizeChanged']()" [numeric]="true" ></uc-txtbox>
           <uc-txtbox  class="height" lab = "Height" [(value)] = "transformCtrl.object['boxMesh'].scale.y" (valueChange) = "transformCtrl.object['onBoxSizeChanged']()"  [numeric]="true" ></uc-txtbox>
@@ -110,7 +114,8 @@
         </ng-container>
       </div>     
     </div>   
-    <div class="col-60 flex-col justify-end">
+
+    <div class="col-40 flex-col justify-end">
       <div class="flex-row">
         <a [class] = "'mdi mdi-cursor-move ' + (transformCtrl.getMode() == 'translate' ? 'selected' : '')" (click)="transformCtrl.setMode('translate')" ></a>
         <uc-txtbox  class="translate-x" lab = "Translation X" [(value)] = "transformCtrl.object.position.x"  [numeric]="true" [numDecimals] = "2" ></uc-txtbox>

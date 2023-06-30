@@ -30,6 +30,7 @@ export type eventLog = {datetime? : string , type? : string , message : string  
 export class DataService {
   _defaultSite 
   _defaultBuilding
+  public mapSrvInitDone = new BehaviorSubject<boolean>(false)
   public unreadSyncMsgCount = new BehaviorSubject<number>(0)
   public codeRegex
   public codeRegexErrorMsg
@@ -191,11 +192,20 @@ export class DataService {
     // if(this.util.arcsApp && type == 'floorplans'){
     //   await this.getSite()
     // }
-    if(this.util.arcsApp && type == 'floorplans' && !this._defaultSite && this._defaultBuilding){
-      resp = resp.filter((fp : DropListFloorplan)=>fp.buildingCode == this._defaultBuilding)
-    }else if(this.util.arcsApp && type == 'floorplans' && this._defaultSite){
-      resp = resp.filter((fp : DropListFloorplan)=>fp.buildingCode != null)
+    if(this.util.arcsApp && type == 'floorplans'){
+      if(this.mapSrvInitDone.value != true){
+        await this.mapSrvInitDone.pipe(filter(v=>v == true) , take(1)).toPromise()
+        console.log(this._defaultBuilding)
+      }else{
+        console.log(this._defaultBuilding)
+      }
+      if( !this._defaultSite && this._defaultBuilding){
+        resp = resp.filter((fp : DropListFloorplan)=>fp.buildingCode == this._defaultBuilding)
+      }else if( this._defaultSite){
+        resp = resp.filter((fp : DropListFloorplan)=>fp.buildingCode != null)
+      }
     }
+
     ret = {
       data: resp.filter(itm => !apiMap[type]['filter'] || apiMap[type]['filter'](itm)),
       options: null
@@ -351,6 +361,23 @@ export class DataService {
     }catch{
       return null
     }
+  }
+
+  public convertObject(source : object , target : object , keyValuePair : object = {}){
+    Object.keys(target).forEach(k=>{
+      target[k] = source[k]
+    })
+    Object.keys(keyValuePair).forEach(k=>{
+      target[k] = keyValuePair[k]
+    })
+    return target
+  }
+
+  public appendKeyValue( target : object , keyValuePair : object = {}){
+    Object.keys(keyValuePair).forEach(k=>{
+      target[k] = keyValuePair[k]
+    })
+    return target
   }
   // // * * * v RV STANDALONE ACTIONS v * * * 
   // public async openRobotCabinet(id , robotCode = null){

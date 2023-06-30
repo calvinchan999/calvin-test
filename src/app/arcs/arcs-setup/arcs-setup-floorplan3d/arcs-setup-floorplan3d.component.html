@@ -75,7 +75,7 @@
 
         <div *ngIf="file && floorPlanDataset" class="three-d-container"> 
             <uc-3d-viewport #threeJs [uiToggles] = "{showFloorPlanImage : false , transformControl : true}" (transformEnd) = "refreshTransformation($event)" 
-                                     (objClicked) = "Object3DClicked($event)">
+                                     (objClicked) = "Object3DClicked($event)" (removed) = "Object3DRemoved($event)">
             </uc-3d-viewport>
         </div>        
         <div *ngIf="!file && floorPlanDataset" class="upload-container">

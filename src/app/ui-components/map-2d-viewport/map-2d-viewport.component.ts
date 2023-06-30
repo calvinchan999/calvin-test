@@ -181,7 +181,6 @@ export class Map2DViewportComponent implements OnInit , AfterViewInit , OnDestro
     return  this.commonModule.ui.overlayMessage 
   }
   
-  @Input() header = null
   @Input() set readonly (v){
     this._readonly = v
     if(this.viewport){
@@ -204,7 +203,6 @@ export class Map2DViewportComponent implements OnInit , AfterViewInit , OnDestro
   @Input() showDropdown = false
   @Input() engineerMode = false
   @Input( ) showRosToggle = false
-  @Input() hideHeader = false
   @Input() setupWayPointIcon = false
   @Input() testWayPointName = "WAYPOINT"
   @ViewChild('ucPointTextBox') ucPointTextBox : TxtboxComponent
@@ -785,7 +783,6 @@ export class Map2DViewportComponent implements OnInit , AfterViewInit , OnDestro
     url = url.startsWith('data:image') ? url : ('data:image/png;base64,' + url)
     this.dataSrv.setLocalStorage('lastLoadedFloorplanCode' , containerId)
     this.mainContainerId = containerId
-    this.header = floorPlanName
     let sprite = await GetSpriteFromUrl(url , this.uiSrv.isTablet)
     this.backgroundSprite.texture = sprite.texture
     this.backgroundSprite.scale.x = sprite.scale.x
@@ -2561,7 +2558,6 @@ export class DataModule{
     }
     let tblList = ['floorplans','maps', 'locations'].filter(k=>!this.dropdownData[k] || this.dropdownData[k].length == 0) 
     let dropLists = await this.dataSrv.getDropLists(<any>tblList); //TBD filter floorplan => only with maps
-     
      tblList.forEach(k => this.dropdownOptions[k] = dropLists.option[k]);
      tblList.forEach(k => this.dropdownData[k] = dropLists.data[k])
      this.dropdownInitDone = true
@@ -2724,8 +2720,9 @@ export class UiModule {
 
     refreshScale:()=>{
       const map = Object.values(this.viewport.mapLayerStore)[0]
-      const scale = this.gridLine.settings.bigTick  * (map?.dataObj?.resolution ? map?.dataObj?.resolution : 0.05 ) / (this.viewport.scale.x *  map?.scale.x) 
-      this.viewport.ngZone.run(()=> this.gridLine.scale = map ? scale.toFixed(2) : null)
+      const px_to_meter = map ? (map?.dataObj?.resolution ? map?.dataObj?.resolution : 0.05 ) : 1 / this.viewport.METER_TO_PIXEL_RATIO;
+      const scale = this.gridLine.settings.bigTick  * px_to_meter / (this.viewport.scale.x *  (map ? map?.scale.x : 1)) 
+      this.viewport.ngZone.run(()=> this.gridLine.scale =  scale.toFixed(2) )
     },
 
     refreshLines:()=>{

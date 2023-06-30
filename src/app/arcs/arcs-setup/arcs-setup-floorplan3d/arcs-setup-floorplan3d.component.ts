@@ -4,7 +4,7 @@ import { DialogRef, DialogService } from '@progress/kendo-angular-dialog';
 import { filter, retry, take } from 'rxjs/operators';
 import {  Subject } from 'rxjs';
 import { DataService} from 'src/app/services/data.service';
-import { DropListBuilding, DropListMap, JFloorPlan, JMap, MapJData, SaveRecordResp, ShapeJData } from 'src/app/services/data.models';
+import { DropListBuilding, DropListMap, JFloorPlan, JLift3DModel, JMap, MapJData, SaveRecordResp, ShapeJData } from 'src/app/services/data.models';
 import { RvHttpService } from 'src/app/services/rv-http.service';
 import { UiService } from 'src/app/services/ui.service';
 import { Map2DViewportComponent, radRatio } from 'src/app/ui-components/map-2d-viewport/map-2d-viewport.component';
@@ -41,6 +41,9 @@ export class ArcsSetupFloorplan3dComponent implements OnInit {
       this.loadingTicket = this.uiSrv.loadAsyncBegin()
   }
 
+  get floorPlanCode (){
+    return this.frmGrp.controls['floorPlanCode'].value
+  }
   frmGrp = new FormGroup({
     floorPlanCode: new FormControl('', Validators.compose([Validators.required, Validators.pattern(this.dataSrv.codeRegex)])),
     fileName: new FormControl(null),
@@ -91,15 +94,19 @@ export class ArcsSetupFloorplan3dComponent implements OnInit {
   iotObjs : {  
     type : 'LIFT' | 'TURNSTILE' | 'DOOR',
     id : string ,
-    scale: number , 
-    positionX : number,
-    positionY : number,
-    positionZ : number,
-    rotationX : number,
-    rotationY : number,
-    rotationZ : number,
     objectRef : Object3D
   } [] = []
+
+  // scale: number , 
+  // width : number ,
+  // length : number ,
+  // height : number,
+  // positionX : number,
+  // positionY : number,
+  // positionZ : number,
+  // rotationX : number,
+  // rotationY : number,
+  // rotationZ : number,
 
   get iotLifts(){
     return this.iotObjs.filter(i=>i.type == 'LIFT')
@@ -189,7 +196,7 @@ export class ArcsSetupFloorplan3dComponent implements OnInit {
     this.file =  await this.mapSrv.get3DFloorPlanBlob( id.toString())    
     const data = await this.mapSrv.get3DFloorPlanSettings(id.toString())
     if(data){
-      this.util.loadToFrmgrp(this.frmGrp , data)
+      this.util.loadToFrmgrp(this.frmGrp , data.floorPlan)
     }else{  
       this.frmGrp.controls['floorPlanCode'].setValue(id.toString())
     }
@@ -202,6 +209,7 @@ export class ArcsSetupFloorplan3dComponent implements OnInit {
       setTimeout(async()=>{
         await this.threeJsElRef.$initDone.toPromise()
         await this.threeJsElRef.loadFloorPlan(this.floorPlanDataset , false , this.file)
+        this.threeJsElRef.elevators.forEach(e=> this.addIotObj3D("LIFT" , e.liftId , e))
         this.threeJsElRef.uiToggled('showFloorPlanImage')
         this.refreshModelTransformation()
         this.selectObject3D(this.threeJsElRef.floorPlanModel)
@@ -215,6 +223,14 @@ export class ArcsSetupFloorplan3dComponent implements OnInit {
     }
   }
 
+  Object3DRemoved(obj ){
+    if(obj == this.threeJsElRef.floorPlanModel){
+      this.uploader.nativeElement.value = null
+      this.frmGrp.controls['fileName'].setValue(null)
+      this.file = null
+    }
+  }
+
   selectObject3D(obj : Object3D){
     this.threeJsElRef.transformCtrl.attach(obj)
   }
@@ -225,45 +241,36 @@ export class ArcsSetupFloorplan3dComponent implements OnInit {
     this.threeJsElRef.floorPlanModel.rotation.set(this.frmGrp.controls['rotationX'].value / radRatio , this.frmGrp.controls['rotationY'].value /radRatio ,this.frmGrp.controls['rotationZ'].value /radRatio)
   }
 
-  addIotObj3D(type: string) {
-    let autoId
-    let newObj : Object3DCommon
+  addIotObj3D(type: string , id = null, obj : Object3DCommon = null) {
     let objs = this.iotObjs.filter(i => i.type == type)
     let ids = ([objs.length + 1]).concat(objs.map(o => objs.indexOf(o) + 1))
     if (type == "TURNSTILE") {      
-      autoId = Math.min.apply(null, ids.filter(id => !objs.map(o => (<TurnstileObject3D>o.objectRef).turnstileId).includes(id.toString()))).toString()
-      newObj = new TurnstileObject3D(this.threeJsElRef , autoId);
-      (<TurnstileObject3D>newObj).toolTipCompRef.instance.showDetail = true
+      id = id ? id : Math.min.apply(null, ids.filter(id => !objs.map(o => (<TurnstileObject3D>o.objectRef).turnstileId).includes(id.toString()))).toString()
+      obj = obj ? obj : new TurnstileObject3D(this.threeJsElRef , id);
+      (<TurnstileObject3D>obj).toolTipCompRef.instance.showDetail = true
     }else if(type == "LIFT"){
-      autoId = Math.min.apply(null, ids.filter(id => !objs.map(o => (<ElevatorObject3D>o.objectRef).id.toString()).includes(id.toString()))).toString()
-      newObj = new ElevatorObject3D(this.threeJsElRef, autoId, '');
-      (<ElevatorObject3D>newObj).boxMesh.visible = true;
-      (<ElevatorObject3D>newObj).robotDisplay = new RobotObject3D(this.threeJsElRef, ' ', '', '', '');
-      (<ElevatorObject3D>newObj).robotDisplay.position.set(0, 0, 15);
-      (<ElevatorObject3D>newObj).robotDisplay.visible = true;
-      (<ElevatorObject3D>newObj).add((<ElevatorObject3D>newObj).robotDisplay);
-      (<any>(<ElevatorObject3D>newObj).boxMesh).defaultOpacity = 0.4;
-      newObj.toolTipAlwaysOn = true
+      id = id ? id : "1"
+      obj = obj ? obj : new ElevatorObject3D(this.threeJsElRef, id, '');
+      (<ElevatorObject3D>obj).boxMesh.visible = true;
+      (<ElevatorObject3D>obj).robotDisplay = new RobotObject3D(this.threeJsElRef, ' ', '', '', '');
+      (<ElevatorObject3D>obj).robotDisplay.position.set(0, 0, 15);
+      (<ElevatorObject3D>obj).robotDisplay.visible = true;
+      (<ElevatorObject3D>obj).add((<ElevatorObject3D>obj).robotDisplay);
+      (<any>(<ElevatorObject3D>obj).boxMesh).defaultOpacity = 0.4;
+      obj.toolTipAlwaysOn = true
     } else {
       return
     }
     this.iotObjs.push({
       type : <any>type,
-      id : autoId ,
-      scale: 1 , 
-      positionX : 0,
-      positionY : 0,
-      positionZ : 0,
-      rotationX : 0,
-      rotationY : 0,
-      rotationZ : 0,
-      objectRef : newObj
+      id : id ,
+      objectRef : obj
     })
-    this.threeJsElRef.floorPlanModel.add(newObj)
-    newObj.$destroyed.pipe(take(1)).subscribe(()=>{
-      this.iotObjs = this.iotObjs.filter(i=>i.objectRef != newObj)
+    this.threeJsElRef.floorPlanModel.add(obj)
+    obj.$destroyed.pipe(take(1)).subscribe(()=>{
+      this.iotObjs = this.iotObjs.filter(i=>i.objectRef != obj)
     })
-    this.selectObject3D(newObj)
+    this.selectObject3D(obj)
   }
   // async get3DModel() {
   //   let ret = new Subject()
@@ -302,6 +309,20 @@ export class ArcsSetupFloorplan3dComponent implements OnInit {
     return true
   }
   
+  getBaseIotDataObject(obj : Object3DCommon){
+    let ret =  {
+      floorPlanCode : this.floorPlanCode,
+      scale : obj.scale.x,
+      positionX : obj.position.x,
+      positionY : obj.position.y,
+      positionZ : obj.position.z,
+      rotationX : obj.rotation.x,
+      rotationY : obj.rotation.y,
+      rotationZ : obj.rotation.z,
+    }
+    return ret
+  }
+
   async saveToDB() {
     if(!await this.validate()){
       return
@@ -311,9 +332,20 @@ export class ArcsSetupFloorplan3dComponent implements OnInit {
     this.refreshTransformation(null)
     // below to be moved to httpSrv
     const formData = new FormData();
+    
     formData.append('file', this.file, this.floorPlanDataset.floorPlanCode + '.glb');
     formData.set('fileExtension', '.glb');
-    formData.set('floorPlan3DSettings' , JSON.stringify(this.frmGrp.value)) 
+    formData.set('floorPlan' , JSON.stringify(this.frmGrp.value)) 
+    formData.set('lifts' , JSON.stringify(this.iotLifts.map(l=>{
+      const lift : ElevatorObject3D = <any>l.objectRef ;      
+      return this.dataSrv.appendKeyValue(this.getBaseIotDataObject(lift) , {
+        floor : "TEST",
+        liftCode : l.id,
+        width : lift.boxMesh.scale.x,
+        height : lift.boxMesh.scale.y,
+        length : lift.boxMesh.scale.z
+      })
+    })))
     this.httpSrv.http.put(this.util.getRvApiUrl() + `/api/map/3dModel/v1/${this.floorPlanDataset.floorPlanCode}`, formData, { reportProgress: false, observe: 'events'}).subscribe(resp => {
       if (resp.type === HttpEventType.Response) {       
         const respData : SaveRecordResp = resp.body?.['data']

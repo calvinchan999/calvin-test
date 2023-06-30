@@ -136,6 +136,7 @@ export class CmMapDetailComponent implements OnInit {
     let maxPx = this.uiSrv.isTablet ? WebGLMaxMobileTextureSize : WebGLMaxPcTextureSize
     if ((data.imageWidth >= maxPx || data.imageHeight > maxPx)) {
       this.base64Loaded = data.base64Image
+      this.pixiElRef.viewport.METER_TO_PIXEL_RATIO = data.resolution ? 1 / data.resolution :  this.util.config.METER_TO_PIXEL_RATIO
       this.pixiElRef.mapHeight = data.imageHeight
       this.pixiElRef.mapWidth = data.imageWidth
       this.pixiElRef.hideButton = { all : true }

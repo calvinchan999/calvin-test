@@ -420,6 +420,7 @@ export class CmMapFloorplanComponent implements OnInit {
           m.border.visible = false
         }
       })
+      this.pixiElRef.module.ui.toggleRosMap(this.pixiElRef.module.ui.toggle.showRosMap)
     }
 
     // this.pixiElRef.toggleRosMap(false)

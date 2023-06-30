@@ -31,16 +31,25 @@ export class MapService {
       this.util.initDone.subscribe(async()=>this.init())
     }
   }
-  set _defaultSite(v){
-    this.defaultSite = v
+  set defaultSite(v){
+    this._defaultSite = v
     this.dataSrv._defaultSite = v
   }
-  set _defaultBuilding(v){
-    this.defaultBuilding = v
+  set defaultBuilding(v){
+    this._defaultBuilding = v
     this.dataSrv._defaultBuilding = v
   }
-  defaultSite
-  defaultBuilding
+
+  get defaultSite() {
+    return this._defaultSite
+  }
+  get defaultBuilding() {
+    return this._defaultBuilding
+  }
+
+  _defaultSite
+  _defaultBuilding
+  
   outSyncFloorPlans = []
   floorPlanStore : {[key : string] : FloorPlanState} = {}
   alertImageCache : {
@@ -63,6 +72,7 @@ export class MapService {
         await this.getDefaultBuilding()
       }
       this.defaultBuilding = this.dataSrv.getSessionStorage("arcsDefaultBuilding")
+      setTimeout(()=> this.dataSrv.mapSrvInitDone.next(true))
     }  
   }
 
@@ -170,7 +180,7 @@ export class MapService {
     if(state.settings3D == null){
       this.uiSrv.loadAsyncDone(ticket)
       return null
-    }else if (cachedModel && state.settings3D.modifiedDateTime == cachedModel?.modifiedDatetime) {
+    }else if (cachedModel && state.settings3D.floorPlan.modifiedDateTime == cachedModel?.modifiedDatetime) {
       this.uiSrv.loadAsyncDone(ticket)
       return cachedModel.blob
     }
@@ -183,7 +193,7 @@ export class MapService {
           let cache = await state.getIDBCache()
           cache = cache ? cache : new FloorPlanCache()
           cache.model.blob = ret
-          cache.model.modifiedDatetime = state.settings3D.modifiedDateTime
+          cache.model.modifiedDatetime = state.settings3D.floorPlan.modifiedDateTime
           await state.setIDBCache(cache)
         } 
         awaiter.next(true)

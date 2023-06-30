@@ -32,15 +32,16 @@
         </span>
       </div>
   
-      <div *ngIf = "!hideHeader && !mapSrv.defaultBuilding && (module?.localization?.localizing || header) " class="title">
-        {{module.localization?.localizing ? ( 'Localization' | label : uiSrv.langPack) : header}}
+      <div *ngIf = "module?.localization?.localizing  " class="title">
+        {{ 'Localization' | label : uiSrv.langPack }}
       </div>
    
-      <div *ngIf = "mapSrv.defaultBuilding && showRobot" class="title arcs">
+      <div *ngIf = "showRobot" class="title arcs">
         <div class="location-tree">
           <a class="site-name" *ngIf = "module.site?.locationTree.site.code" (click)="module.robot.unsubscribePose(); module.data.selectedFloorPlanCode = null ; module.data.activeFloorPlanCode = null ;onSiteSelected.emit()"> {{module.site.locationTree.site.name}} </a>
           <span class="mdi mdi-chevron-right" *ngIf = "module.site?.locationTree.site.code && module.site.locationTree.currentLevel == 'floorplan'"></span>
           <span class="building-name" *ngIf = "module.site?.locationTree.site.code && module.site.locationTree.currentLevel == 'floorplan'"> {{module.site.locationTree.building.name}}</span>
+          <span class="building-name" *ngIf = "!module.site?.locationTree.site.code && mapSrv.defaultBuilding"> {{ mapSrv.defaultBuilding}}</span>
         </div>
         <span class="floorplan" *ngIf = "module.site?.locationTree.currentLevel == 'floorplan'"> 
           <uc-dropdown   [options]="module.data.dropdownOptions?.floorplans"  class = "arcs-floorplan-picker"
@@ -65,11 +66,16 @@
         <ng-container *ngIf="!hideButton.all">       
           <ng-container *ngTemplateOutlet = "createModeTpl"></ng-container>
         </ng-container>
+
+        
+        <button *ngIf="!util.standaloneApp && showRobot" kendoButton class="full-screen" [matTooltip]="'Full Screen' | label : uiSrv.langPack" (click)="commonModule.ui.fullScreen = !commonModule.ui.fullScreen"  [ngClass]="{'btn-active':commonModule.ui.fullScreen}" >
+          <span [class]="'mdi mdi-' + (commonModule.ui.fullScreen ? 'fullscreen-exit' : 'fullscreen')"></span>
+        </button>    
   
       </div>
   
       <div class="buttons-container t2">
-        <button *ngIf="!hideButton.all" kendoButton class="select-drag" [matTooltip]="'Drag Select'| label : uiSrv.langPack" matTooltipPosition="right" (click)="viewport.multiSelectEnabled = !viewport.multiSelectEnabled" [ngClass]="{'btn-active': viewport._multiSelectEnabled}" >
+        <button *ngIf="!hideButton.all && showRosToggle" kendoButton class="select-drag" [matTooltip]="'Drag Select'| label : uiSrv.langPack" matTooltipPosition="right" (click)="viewport.multiSelectEnabled = !viewport.multiSelectEnabled" [ngClass]="{'btn-active': viewport._multiSelectEnabled}" >
           <span class="mdi mdi-select-drag"></span>
         </button>
 
@@ -77,13 +83,18 @@
           <span class="mdi mdi-eye"></span>
         </button>
 
-        <button kendoButton class="full-screen" [matTooltip]="'Full Screen' | label : uiSrv.langPack" (click)="commonModule.ui.fullScreen = !commonModule.ui.fullScreen"  [ngClass]="{'btn-active':commonModule.ui.fullScreen}" >
+        <button *ngIf="util.standaloneApp || !showRobot" kendoButton class="full-screen" [matTooltip]="'Full Screen' | label : uiSrv.langPack" (click)="commonModule.ui.fullScreen = !commonModule.ui.fullScreen"  [ngClass]="{'btn-active':commonModule.ui.fullScreen}" >
           <span [class]="'mdi mdi-' + (commonModule.ui.fullScreen ? 'fullscreen-exit' : 'fullscreen')"></span>
         </button>    
 
         <button  *ngIf="showRobot && !commonModule.ui.popupScreen && robotSrv.data.poseDeviation.value?.poseValid == false " kendoButton class="relocation-reminder" [style.background]="'red'"  [matTooltip]="'Poor Positioning Detected. Relocation Required'| label : uiSrv.langPack">
           <span  class="mdi mdi-reload-alert"></span>
         </button>
+
+        <button *ngIf="!hideButton.all" kendoButton class="show-gridline" [matTooltip]="'Show Gridline'| label : uiSrv.langPack"  
+                  matTooltipPosition="right" (click)="module.ui.toggleGridLine(!module.ui.toggle.showGridLine)"  [ngClass]="{'btn-active': module.ui.toggle.showGridLine}">
+            <span class="mdi mdi-ruler"></span>
+         </button>
 
         <ng-container  *ngIf="commonModule.ui.popupScreen || engineerMode || showRosToggle">
           <button *ngIf="engineerMode && showRobot" kendoButton class="lidar" [matTooltip]="'Show Lidar Point Cloud'| label : uiSrv.langPack" [disabled]="disableButton['lidar']"   matTooltipPosition="right" 
@@ -100,11 +111,6 @@
           <button *ngIf="engineerMode || showRosToggle" kendoButton class="show-ros" [matTooltip]="'Show ROS Map'| label : uiSrv.langPack"  [disabled]="module.lidarPointCloud.show || disableButton['lidar']" 
                   matTooltipPosition="right" (click)="module.ui.toggleRosMap(!module.ui.toggle.showRosMap)"  [ngClass]="{'btn-active': module.ui.toggle.showRosMap || module.lidarPointCloud.show }">
             <span class="mdi mdi-floor-plan"></span>
-          </button>
-
-          <button *ngIf="engineerMode || showRosToggle" kendoButton class="show-gridline" [matTooltip]="'Show Gridline'| label : uiSrv.langPack"  
-                  matTooltipPosition="right" (click)="module.ui.toggleGridLine(!module.ui.toggle.showGridLine)"  [ngClass]="{'btn-active': module.ui.toggle.showGridLine}">
-            <span class="mdi mdi-ruler"></span>
           </button>
   
           <button *ngIf="commonModule.ui.popupScreen || (engineerMode && showRobot) " kendoButton class="show-waypoint" [matTooltip]="((module.ui.toggle.showWaypoint && module.ui.toggle.showWaypointName) ? 'Hide Waypoint Name' : ((module.ui.toggle.showWaypoint && !module.ui.toggle.showWaypointName) ? 'Hide Waypoint' : 'Show Waypoint'))| label : uiSrv.langPack"  
@@ -127,7 +133,7 @@
       <div class="grid-settings-container" *ngIf="module.ui.toggle.showGridLine">
         <div class="header" (click) = "module.ui.gridLine.uiExpanded = !module.ui.gridLine.uiExpanded">      
           <span>
-            <span>{{'Grid Major Tick : ' | label : uiSrv.langPack }}</span>
+            <span>{{'Grid Major Tick Scale : ' | label : uiSrv.langPack }}</span>
             <span>{{ module.ui.gridLine.scale ? module.ui.gridLine.scale : ' - ' }}</span>
             <span *ngIf="module.ui.gridLine.scale">{{' m ' | label : uiSrv.langPack}}</span>
           </span>
@@ -140,8 +146,14 @@
                             [(ngModel)]="module.ui.gridLine.layer.angle"  [showButtons]="uiSrv.isTablet" [matTooltip]="'Angle'| label : uiSrv.langPack" matTooltipPosition="below">
             </kendo-slider>       
           </div>
+          <div class="slider-container">   
+            <span>{{'Size ' | label : uiSrv.langPack}} </span>    
+            <kendo-slider [smallStep]="10" [largeStep]="50" [min]="10" [max]="250" [fixedTickWidth]="3.75" tickPlacement="none" (ngModelChange) = "module.ui.gridLine.refreshLines()"
+                            [(ngModel)]="module.ui.gridLine.settings.bigTick"   [showButtons]="uiSrv.isTablet" [matTooltip]="'Grid Size'| label : uiSrv.langPack" matTooltipPosition="below">
+            </kendo-slider>       
+          </div>
           <div class="slider-container"> 
-            <span>{{'Opacity : ' | label : uiSrv.langPack}} {{module.ui.gridLine.settings.opacity * 100}}%</span>    
+            <span>{{'Opacity ' | label : uiSrv.langPack}}</span>    
             <kendo-slider [smallStep]="0.05" [largeStep]="0.2" [min]="0" [max]="1" [fixedTickWidth]="4.5" tickPlacement="none"
                             [(ngModel)]="module.ui.gridLine.settings.opacity" (ngModelChange) = "module.ui.gridLine.refreshLines()"  [showButtons]="uiSrv.isTablet" [matTooltip]="'Angle'| label : uiSrv.langPack" matTooltipPosition="below">
             </kendo-slider>      

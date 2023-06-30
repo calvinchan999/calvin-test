@@ -344,9 +344,33 @@ export class RobotProfileResp {
   }
 
   export class JFloorPlan3DSettings {
+    floorPlan : JFloorPlan3DModel
+    lifts : JLift3DModel[]
+  }
+
+  export class JFloorPlan3DModel{
     floorPlanCode : string
     name? : string
     fileName? : string
+    scale : number
+    positionX : number
+    positionY : number
+    positionZ : number
+    rotationX : number
+    rotationY : number
+    rotationZ : number
+    remark: string
+    modifiedDateTime?: string
+  }
+
+  export class JLift3DModel{
+    floorPlanCode : string
+    liftCode : string
+    name? : string
+    floor? : string
+    length : number 
+    width : number
+    height : number
     scale : number
     positionX : number
     positionY : number

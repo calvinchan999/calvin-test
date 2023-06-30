@@ -168,13 +168,15 @@ export class CmTaskJobComponent implements OnInit {
     let ticket = this.uiSrv.loadAsyncBegin()
     if(!this.util.arcsApp){
       this.robotInfo = await this.dataSrv.getRobotProfile()
+      if(this.isCreate){
+        let activeFloorPlan = await this.mapSrv.getStandaloneActiveFloorPlan();
+        this.selectedFloorPlanCode = activeFloorPlan.floorPlanCode
+      }
     }
     await this.initDropDown()
     if (!this.isCreate) {
       await this.loadData(this.parentRow[this.pk])
     } else {
-      let activeFloorPlan = await this.mapSrv.getStandaloneActiveFloorPlan();
-      this.selectedFloorPlanCode = activeFloorPlan.floorPlanCode
       this.onFloorplanChange_SA(this.selectedFloorPlanCode)
       this.refreshGridLocationOptions_SA()
     }
