@@ -136,6 +136,7 @@ export class ThreejsViewportComponent implements OnInit , OnDestroy{
     }
   } = null
   subscribedPoseMapCode = null
+  use2DFloorPlanModel = false
   robotLists : DropListRobot[]
   constructor( public mapSrv : MapService , public  robotSrv : RobotService ,  public uiSrv: UiService , public ngZone : NgZone , public util : GeneralUtil , public dataSrv : DataService ,  public ngRenderer:Renderer2 ,
               public elRef : ElementRef , public vcRef: ViewContainerRef , public compResolver: ComponentFactoryResolver , public mqSrv : MqService) {
@@ -416,6 +417,7 @@ export class ThreejsViewportComponent implements OnInit , OnDestroy{
   }
 
   resetScene(){
+    this.use2DFloorPlanModel = false
     this.mapCode = null
     this.floorPlanModel  = null
     this.robotObjs.forEach(r=>r.destroy())
@@ -457,17 +459,18 @@ export class ThreejsViewportComponent implements OnInit , OnDestroy{
     const settings =  (await this.mapSrv.get3DFloorPlanSettings(floorplan.floorPlanCode))
     if (glb) {
       await this.loadFloorPlanModelFromBlob(glb)
-      await this.initElevators( settings.lifts , subscribePoses)   
+    }else if(!subscribePoses){
+      this.loadFloorPlanModelFrom2DImage()
+    }
+
+    if(!subscribePoses){
       return
     }
-    // else if(files?.zip){
-    //   await this.loadFloorPlanModelFromUnzippedObj(files.zip)
-    //   return
-    // }
+
     this.initROSmaps(floorplan.mapList)
     this.initWaypoints(floorplan.pointList)
 
-    if(subscribePoses && this.mapCode){
+    if( this.mapCode){
       this.subscribeRobotPoses()
       await this.subscribeFloorPlanState()
       this.updateFloorPlanEventMarkers()
@@ -476,11 +479,23 @@ export class ThreejsViewportComponent implements OnInit , OnDestroy{
     
     // TBR
     ['waypoint', 'waypointName', 'wall' , 'alert'].forEach(k => this.uiToggled(k))
-    await this.load3DFloorPlanFromAzureStorage(floorplan.floorPlanCode , settings.floorPlan)    
+    await this.loadFloorPlanModelObject(floorplan.floorPlanCode , settings.floorPlan)    
     await this.initElevators( settings.lifts , subscribePoses)   
     if(this.parent?.rightMapPanel?.taskComp){
       this.parent.rightMapPanel.taskComp.refreshMapPoints()
     }
+  }
+
+  loadFloorPlanModelFrom2DImage(){
+    this.use2DFloorPlanModel = true
+    this.uiToggles.showFloorPlanImage = false
+    this.uiToggled('showFloorPlanImage')
+    // this.floorPlanModel = <any>this.floorplan.clone();
+    // (<any>this.floorPlanModel).material = (<THREE.MeshPhongMaterial>this.floorplan.material).clone();
+    // (<any>this.floorPlanModel).material.visible = true ; 
+    this.floorPlanModel = <any> new Mesh(new THREE.PlaneGeometry(this.floorplan.width, this.floorplan.height), new THREE.MeshPhongMaterial({ map: THREE.ImageUtils.loadTexture(this.floorplan.base64Image), side : DoubleSide , transparent : true }));
+    (<any>this.floorPlanModel ).material.side = THREE.DoubleSide;
+    this.floorplan.add(this.floorPlanModel)
   }
 
   onObjProgress = ( xhr )=>{
@@ -510,7 +525,7 @@ export class ThreejsViewportComponent implements OnInit , OnDestroy{
 
 
 
-  async load3DFloorPlanFromAzureStorage(floorPlanCode : string , settings : JFloorPlan3DModel) : Promise<boolean>{
+  async loadFloorPlanModelObject(floorPlanCode : string , settings : JFloorPlan3DModel) : Promise<boolean>{
     const file = await this.mapSrv.get3DFloorPlanBlob(floorPlanCode)
     if(file){
       (<THREE.MeshPhongMaterial>this.floorplan.material).visible = false
@@ -521,7 +536,8 @@ export class ThreejsViewportComponent implements OnInit , OnDestroy{
       ['showFloorPlanImage'].forEach(k => this.uiToggled(k))
       return true
     }else{
-      (<THREE.MeshPhongMaterial>this.floorplan.material).visible = true
+      this.loadFloorPlanModelFrom2DImage()
+      // (<THREE.MeshPhongMaterial>this.floorplan.material).visible = true
       return false
     }
   }
@@ -574,9 +590,9 @@ export class ThreejsViewportComponent implements OnInit , OnDestroy{
   async subscribeElevators(){
     await this.mqSrv.subscribeMQTTUntil('arcsLift' , undefined, this.$mapCodeChanged)
     // this.subcribedIotSignalRTypes.push('arcsLift')
-    this.mqSrv.data.arcsLift.pipe( filter(v=> v!=null),takeUntil(this.$onDestroy)).subscribe((v)=>{
+    this.mqSrv.data.arcsLift.pipe(filter(v=> v!=null),takeUntil(this.$onDestroy)).subscribe((v)=>{
       Object.keys(v).forEach(k=>{
-        const liftObj = this.elevators.filter(e=>e.liftId == k)[0]
+        const liftObj = this.elevators.filter(e=>e.liftCode == k)[0]
         const liftData = v[k]
         const inLiftRobot = this.robotObjs.filter(r=>liftData.robotCode && r.robotCode == liftData.robotCode)[0]
         if(inLiftRobot != null){
@@ -1038,9 +1054,11 @@ class FloorPlanMesh extends Mesh{
   height
   aabb = new THREE.Box3()
   maxDepth = null
+  base64Image
   settings :  { tabletPath?: string, withModel? : boolean, wallHeight : number ,walls : {x:number , y:number}[][], path?: string, scale?: number, position?: { x?: number, y?: number, z?: number }, rotate?: { x?: number, y?: number, z?: number } }
   constructor(public master: ThreejsViewportComponent , base64Image : string , width : number , height : number){
     super(new THREE.PlaneGeometry(width, height), new THREE.MeshPhongMaterial({ map: THREE.ImageUtils.loadTexture(base64Image), side : DoubleSide , transparent : true }))
+    this.base64Image = base64Image
     this.width = width;
     this.height = height;
     (<any>this).material.side = THREE.DoubleSide;
@@ -1084,7 +1102,7 @@ class MapMesh extends Mesh {
   }
 }
 
-export class Object3DCommon extends Object3D{
+export class Object3DCommon extends Object3D implements IDestroy{
   $destroyed = new Subject()
   scene : THREE.Scene = new THREE.Scene()
   outlinePass : OutlinePass
@@ -1221,6 +1239,11 @@ export class Object3DCommon extends Object3D{
         this.onClick.next(div);
       })
     })
+    div.addEventListener('contextmenu' , (evt)=>{
+      evt.preventDefault()
+      evt.stopPropagation()
+      this.onContextMenu()
+    })
     this.toolTip.position.set(0, 40 / this.scale.y , 0);
     this.toolTip.layers.set(0);
   }
@@ -1289,17 +1312,19 @@ export class Object3DCommon extends Object3D{
     this.master.container.style.cursor = 'pointer'
     this.clickListener = this.master.ngRenderer.listen(this.master.container, 'click', () => this.onClick.next())
     this.touchListener = this.master.ngRenderer.listen(this.master.container, 'touchstart', () => this.onClick.next())
-    this.contextMenuListener = this.master.ngRenderer.listen(this.master.container, 'contextmenu', () => {
-      if(this.toolTipSettings.staticComp){
-        return
-      }
-      this.toolTipAlwaysOn = !this.toolTipAlwaysOn
-      if (!this.toolTipAlwaysOn && this.master?.robotObjs.every(r => !r.toolTipAlwaysOn)) {
-        this.master.uiToggles.showIot = false
-      } else if (this.master) {
-        this.master.uiToggles.showIot = true
-      }
-    })
+    this.contextMenuListener = this.master.ngRenderer.listen(this.master.container, 'contextmenu', () => this.onContextMenu())
+  }
+
+  onContextMenu(){
+    if(this instanceof TurnstileObject3D){
+      return
+    }
+    this.toolTipAlwaysOn = !this.toolTipAlwaysOn
+    if (!this.toolTipAlwaysOn && this.master?.robotObjs.every(r => !r.toolTipAlwaysOn)) {
+      this.master.uiToggles.showIot = false
+    } else if (this.master) {
+      this.master.uiToggles.showIot = true
+    }
   }
 
   removeMouseListener() {
@@ -1435,7 +1460,7 @@ export class Css2DObject3D extends Object3DCommon{
 }
 
 
-export class RobotObject3D extends Object3DCommon{
+export class RobotObject3D extends Object3DCommon implements IDestroy{
   robotSubType
   destroyed = false
   robotIotCompRef : ComponentRef<ArcsRobotIotComponent>
@@ -1942,7 +1967,7 @@ export class ElevatorObject3D extends Object3DCommon{
   width = 60
   height = 60
   depth = 90
-  liftId
+  liftCode
   robotDisplay : RobotObject3D
   toolTipCompRef : ComponentRef<ArcsLiftIotComponent>
   planeColor = 0xaaaaaa
@@ -2007,7 +2032,7 @@ export class ElevatorObject3D extends Object3DCommon{
 
   constructor(public master : ThreejsViewportComponent , _id : string , _floor : string , width : number = null , height  : number = null , depth  : number = null ){
     super(master)
-    this.liftId = _id
+    this.liftCode = _id
     this.floorplanFloor = _floor
     this.width = width ? width : this.width
     this.height = height ? height : this.height
@@ -2018,7 +2043,7 @@ export class ElevatorObject3D extends Object3DCommon{
     this.boxMesh = new THREE.Mesh(new THREE.BoxGeometry(this.width, this.height, this.depth),  new THREE.MeshLambertMaterial({side: THREE.DoubleSide , color: 0xAAAAAA, opacity: 0.8, transparent: true }));
     (<any> this.boxMesh).defaultOpacity = 0.8
     this.boxMesh.position.set(0, 0, this.depth / 2)
-    const liftData = this.master.mqSrv.data.arcsLift.value?.[this.liftId]
+    const liftData = this.master.mqSrv.data.arcsLift.value?.[this.liftCode]
     this.boxMesh.visible = false 
     this.add(this.boxMesh)
     this.currentFloor = liftData?.floor
@@ -2028,7 +2053,7 @@ export class ElevatorObject3D extends Object3DCommon{
 
   initInfoToolTipEl() { 
     this.toolTipCompRef = this.master.vcRef.createComponent(this.master.compResolver.resolveComponentFactory(ArcsLiftIotComponent))
-    this.toolTipCompRef.instance.liftId = this.liftId
+    this.toolTipCompRef.instance.liftCode = this.liftCode
     this.toolTipCompRef.instance.floorPlanFloor = this.floorplanFloor
     this.toolTipSettings.customEl = this.toolTipCompRef.instance.elRef.nativeElement 
     this.toolTipSettings.customEl.hidden = true
@@ -2121,6 +2146,14 @@ class Import3DModelSettings {
     scale? : number
     position? : {x : number , y: number , z : number }
   }
+}
+
+export interface IDestroy{
+  destroy() : void
+}
+
+export function canDestroy(obj): obj is IDestroy { //magic happens here
+  return (<IDestroy>obj).destroy !== undefined;
 }
 
 // test16WIphoneScanned(){

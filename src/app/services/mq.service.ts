@@ -384,10 +384,10 @@ export class MqService {
     arcsLift: {
       topic: "rvautotech/fobo/lift",
       mapping: {
-        arcsLift: (d : { liftList? : any [] , liftId?: string, floor?: string , status?: string  , robotId? : string} )=>{
+        arcsLift: (d : { liftList? : any [] , liftCode?: string, floor?: string , status?: string  , robotId? : string} )=>{
           let ret = this.data.arcsLift.value ? JSON.parse(JSON.stringify(this.data.arcsLift.value) ): {}
-          let main = (l: { liftId: string, floor: string , status: string  , robotId : string}) => {
-            ret[l.liftId] = {floor : l.floor , opened : l.status == 'OPENED' , robotCode : l.robotId} ; 
+          let main = (l: { liftCode: string, floor: string , status: string  , robotId : string}) => {
+            ret[l.liftCode] = {floor : l.floor , opened : l.status == 'OPENED' , robotCode : l.robotId} ; 
           }
           if(d.liftList){
             d.liftList.forEach(l=>main(l))
@@ -570,7 +570,7 @@ export class MqService {
     let $unsubscribed = this.signalRSrv.getUnsubscribedSubject(this.mqMaster[type].topic + topicSfx)
 
     if (subscribedCount == 0 || getLatestFromApi) {
-      if ((this.util.standaloneApp && this.mqMaster[type].api && subscribedCount == 0) || (this.util.arcsApp && subscribedCount == 0 && ['arcsLift', 'arcsTurnstile'].includes(type))) {
+      if ((this.util.standaloneApp && this.mqMaster[type].api && subscribedCount == 0) ) { // || (this.util.arcsApp && subscribedCount == 0 && ['arcsLift', 'arcsTurnstile'].includes(type))
         let resp = await this.httpSrv.fmsRequest('GET', this.mqMaster[type].api)
         if (resp && resp.status == 200) {
           this.updateMqBehaviorSubject(type, JSON.parse(resp.body), paramString)

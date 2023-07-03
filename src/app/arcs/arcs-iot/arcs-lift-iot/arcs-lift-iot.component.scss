@@ -9,8 +9,24 @@
 :host .iot-row.robot {
     margin-top: 2px;
 }
-
-:host .iot-id i {
-    margin-right: 3px;
+:host .iot-id {
+    display: flex;
+    i {
+        font-size: 17px!important;
+        margin: 0px 3px 0px -5px;
+        line-height: 0px!important;
+    }    
+    span{
+        line-height: 0px!important;
+    }
 }
+
+:host .selected {
+    margin: -8px;
+    padding: 8px;
+    border-radius: 5px;
+    border: 1px solid darkturquoise;
+    background: rgba(0, 206, 209, 0.35);
+}
+
 

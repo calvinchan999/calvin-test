@@ -177,7 +177,7 @@ export class MapService {
     let state : FloorPlanState = await this.floorPlanState(code)
     let cachedModel = (await state.getIDBCache())?.model
     state.settings3D =  await this.get3DFloorPlanSettings(code)
-    if(state.settings3D == null){
+    if(state.settings3D?.floorPlan == null){
       this.uiSrv.loadAsyncDone(ticket)
       return null
     }else if (cachedModel && state.settings3D.floorPlan.modifiedDateTime == cachedModel?.modifiedDatetime) {

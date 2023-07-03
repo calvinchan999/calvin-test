@@ -19,7 +19,7 @@
                     <div class="object-browser" *ngIf="threeJsElRef">         
                         <div>
                             <a [class]="threeJsElRef?.transformCtrl?.object == threeJsElRef?.floorPlanModel ? 'selected' : ''" 
-                                (click)="selectObject3D(threeJsElRef.floorPlanModel)">
+                                (click)="threeJsElRef.use2DFloorPlanModel ? null : selectObject3D(threeJsElRef.floorPlanModel)" >
                                 <span class="mdi mdi-cube-outline"></span>
                                 {{'Floor Plan' | label : uiSrv.langPack }}
                             </a>
@@ -73,21 +73,21 @@
             </div>
         </ng-container>
 
-        <div *ngIf="file && floorPlanDataset" class="three-d-container"> 
+        <div  class="three-d-container"> 
             <uc-3d-viewport #threeJs [uiToggles] = "{showFloorPlanImage : false , transformControl : true}" (transformEnd) = "refreshTransformation($event)" 
                                      (objClicked) = "Object3DClicked($event)" (removed) = "Object3DRemoved($event)">
             </uc-3d-viewport>
         </div>        
-        <div *ngIf="!file && floorPlanDataset" class="upload-container">
+        <!-- <div *ngIf="!file && floorPlanDataset" class="upload-container">
             <div>
                 <span class="no-model-message">{{'Please upload 3D model for the floor plan first.' | label: uiSrv.langPack}}</span>              
             </div>
-        </div> 
+        </div>  -->
     </div>
 
     <div class="button-container">
         <button kendoButton (click) = "onClose()"> {{'Cancel' | label : uiSrv.langPack}}</button>
-        <button *ngIf="!readonly" kendoButton (click) = "saveToDB()"  [disabled] = "!file || !floorPlanDataset"> {{'Save' | label : uiSrv.langPack}}</button>
+        <button *ngIf="!readonly" kendoButton (click) = "saveToDB()"  [disabled] = "!floorPlanDataset"> {{'Save' | label : uiSrv.langPack}}</button>
     </div>
 </div>
 

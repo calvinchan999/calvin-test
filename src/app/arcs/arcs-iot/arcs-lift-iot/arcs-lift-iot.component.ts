@@ -16,7 +16,7 @@ import { RobotService } from 'src/app/services/robot.service';
   styleUrls: ['./arcs-lift-iot.component.scss']
 })
 export class ArcsLiftIotComponent implements OnInit {
-  liftId
+  liftCode
   floorPlanFloor
   @Input() @HostBinding('class') customClass = 'iot-lift';
 

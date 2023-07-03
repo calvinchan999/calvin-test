@@ -30,7 +30,7 @@
     <span class="mdi mdi-message-text"></span>
   </button>
 
-  <button *ngIf="uiToggles.showFloorPlanImage !== undefined" kendoButton class="floor-plan" [matTooltip]="'Show 2D Floor Plan' | label : uiSrv.langPack" (click)="uiToggles.showFloorPlanImage = !uiToggles.showFloorPlanImage ; uiToggled('showFloorPlanImage')" [ngClass]="{'btn-active':uiToggles.showFloorPlanImage}" >
+  <button *ngIf="uiToggles.showFloorPlanImage !== undefined" [disabled]="use2DFloorPlanModel" kendoButton class="floor-plan" [matTooltip]="'Show 2D Floor Plan' | label : uiSrv.langPack" (click)="uiToggles.showFloorPlanImage = !uiToggles.showFloorPlanImage ; uiToggled('showFloorPlanImage')" [ngClass]="{'btn-active':uiToggles.showFloorPlanImage}" >
     <span class="mdi mdi-floor-plan"></span>
   </button>
 
@@ -95,7 +95,7 @@
             )
            )) | label : uiSrv.langPack }}
         </span>
-        <uc-dropdown *ngIf="transformCtrl.object.type == 'LIFT'" class="transform-id col-4 " lab = "ID" [(value)] = "transformCtrl.object['liftId']" [options]="[]"></uc-dropdown>
+        <uc-dropdown *ngIf="transformCtrl.object.type == 'LIFT'" class="transform-id col-4 " lab = "ID" [(value)] = "transformCtrl.object['liftCode']" [options]="[]"></uc-dropdown>
         <uc-txtbox *ngIf="transformCtrl.object.type == 'TURNSTILE'" class="transform-id " lab = "ID" [(value)] = "transformCtrl.object['turnstileId']"  (valueChange) = "transformCtrl.object['toolTipCompRef'].instance.turnstileId = $event"></uc-txtbox>
        
         <!-- <button kendoButton *ngIf="transformCtrl.object != floorPlanModel" 

@@ -19,7 +19,7 @@ import { Observable, of } from 'rxjs';
 import { PixiGraphicStyle, DRAWING_STYLE } from 'src/app/utils/ng-pixi/ng-pixi-viewport/ng-pixi-styling-util';
 import { PixiEditableMapImage, PixiWayPoint } from 'src/app/utils/ng-pixi/ng-pixi-viewport/ng-pixi-map-graphics';
 import { HttpEventType } from '@angular/common/http';
-import { ThreejsViewportComponent, TurnstileObject3D , Object3DCommon, ElevatorObject3D, RobotObject3D } from 'src/app/ui-components/threejs-viewport/threejs-viewport.component';
+import { ThreejsViewportComponent, TurnstileObject3D , Object3DCommon, ElevatorObject3D, RobotObject3D, canDestroy } from 'src/app/ui-components/threejs-viewport/threejs-viewport.component';
 import { MapService } from 'src/app/services/map.service';
 import { Object3D } from 'three';
 // import * as JSZIP from '@progress/jszip-esm';
@@ -195,25 +195,28 @@ export class ArcsSetupFloorplan3dComponent implements OnInit {
   async loadData(id) {
     this.file =  await this.mapSrv.get3DFloorPlanBlob( id.toString())    
     const data = await this.mapSrv.get3DFloorPlanSettings(id.toString())
-    if(data){
+    if(data?.floorPlan){
       this.util.loadToFrmgrp(this.frmGrp , data.floorPlan)
     }else{  
       this.frmGrp.controls['floorPlanCode'].setValue(id.toString())
     }
     this.floorPlanDataset = await this.httpSrv.get("api/map/plan/v1/" + id.toString()) 
     await this.load3DModel()
+    await this.threeJsElRef.initElevators( data.lifts , false)   
+    this.threeJsElRef.elevators.forEach(e => this.addIotObj3D("LIFT", e.liftCode, e))
+    if (this.file) {
+      this.selectObject3D(this.threeJsElRef.floorPlanModel)
+    }
   }
-  
-  async load3DModel(){
-    if(this.file){
-      setTimeout(async()=>{
-        await this.threeJsElRef.$initDone.toPromise()
-        await this.threeJsElRef.loadFloorPlan(this.floorPlanDataset , false , this.file)
-        this.threeJsElRef.elevators.forEach(e=> this.addIotObj3D("LIFT" , e.liftId , e))
-        this.threeJsElRef.uiToggled('showFloorPlanImage')
-        this.refreshModelTransformation()
-        this.selectObject3D(this.threeJsElRef.floorPlanModel)
-      })
+
+  async load3DModel() {
+    await this.threeJsElRef.$initDone.toPromise()
+    this.clearIots()
+    await this.threeJsElRef.loadFloorPlan(this.floorPlanDataset, false, this.file)
+    this.threeJsElRef.uiToggled('showFloorPlanImage')
+    if (this.file) {
+      this.refreshModelTransformation()
+      this.selectObject3D(this.threeJsElRef.floorPlanModel)
     }
   }
 
@@ -223,14 +226,30 @@ export class ArcsSetupFloorplan3dComponent implements OnInit {
     }
   }
 
-  Object3DRemoved(obj ){
+  Object3DRemoved(obj){
     if(obj == this.threeJsElRef.floorPlanModel){
       this.uploader.nativeElement.value = null
       this.frmGrp.controls['fileName'].setValue(null)
       this.file = null
-    }
+      this.clearIots()
+      this.threeJsElRef.loadFloorPlanModelFrom2DImage()
+    }  
   }
 
+  clearIots(){
+    this.iotObjs.forEach(i=>{
+      if(this.threeJsElRef.transformCtrl.object == i.objectRef){
+        this.threeJsElRef.transformCtrl.detach()
+      }
+      if(canDestroy(i.objectRef)){
+        i.objectRef.destroy()
+      }else{
+        i.objectRef.parent?.remove(i.objectRef)
+      }
+    })
+    this.iotObjs = []
+  }
+  
   selectObject3D(obj : Object3D){
     this.threeJsElRef.transformCtrl.attach(obj)
   }
@@ -249,11 +268,12 @@ export class ArcsSetupFloorplan3dComponent implements OnInit {
       obj = obj ? obj : new TurnstileObject3D(this.threeJsElRef , id);
       (<TurnstileObject3D>obj).toolTipCompRef.instance.showDetail = true
     }else if(type == "LIFT"){
-      id = id ? id : "1"
+      id = id ? id : "1" //TESTING
       obj = obj ? obj : new ElevatorObject3D(this.threeJsElRef, id, '');
       (<ElevatorObject3D>obj).boxMesh.visible = true;
       (<ElevatorObject3D>obj).robotDisplay = new RobotObject3D(this.threeJsElRef, ' ', '', '', '');
       (<ElevatorObject3D>obj).robotDisplay.position.set(0, 0, 15);
+      (<ElevatorObject3D>obj).robotDisplay.toolTipSettings.customEl = null;
       (<ElevatorObject3D>obj).robotDisplay.visible = true;
       (<ElevatorObject3D>obj).add((<ElevatorObject3D>obj).robotDisplay);
       (<any>(<ElevatorObject3D>obj).boxMesh).defaultOpacity = 0.4;
@@ -332,10 +352,12 @@ export class ArcsSetupFloorplan3dComponent implements OnInit {
     this.refreshTransformation(null)
     // below to be moved to httpSrv
     const formData = new FormData();
-    
-    formData.append('file', this.file, this.floorPlanDataset.floorPlanCode + '.glb');
-    formData.set('fileExtension', '.glb');
-    formData.set('floorPlan' , JSON.stringify(this.frmGrp.value)) 
+
+    if (this.file) {
+      formData.append('file', this.file, this.floorPlanDataset.floorPlanCode + '.glb');
+      formData.set('fileExtension', '.glb');
+      formData.set('floorPlan', JSON.stringify(this.frmGrp.value))
+    }
     formData.set('lifts' , JSON.stringify(this.iotLifts.map(l=>{
       const lift : ElevatorObject3D = <any>l.objectRef ;      
       return this.dataSrv.appendKeyValue(this.getBaseIotDataObject(lift) , {
@@ -346,6 +368,7 @@ export class ArcsSetupFloorplan3dComponent implements OnInit {
         length : lift.boxMesh.scale.z
       })
     })))
+
     this.httpSrv.http.put(this.util.getRvApiUrl() + `/api/map/3dModel/v1/${this.floorPlanDataset.floorPlanCode}`, formData, { reportProgress: false, observe: 'events'}).subscribe(resp => {
       if (resp.type === HttpEventType.Response) {       
         const respData : SaveRecordResp = resp.body?.['data']

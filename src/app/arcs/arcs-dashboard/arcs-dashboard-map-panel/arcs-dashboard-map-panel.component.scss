@@ -27,6 +27,17 @@
     }
 }
 
+:host .lift-state-container .header{ 
+    display: flex;
+    i{
+        line-height: 20px;
+        font-size: 21px;
+    }
+    span{
+        line-height: 26px;
+    }
+}
+
 
 :host .underline{
     text-decoration: underline;

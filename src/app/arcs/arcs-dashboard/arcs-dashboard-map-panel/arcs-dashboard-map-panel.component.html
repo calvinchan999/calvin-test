@@ -1,7 +1,9 @@
 <div *ngIf="bottomPanel" class="bottom-panel">
     <div class="waypoint-state-container" *ngIf="waypointState">
         <div class="header">
-            <span [class]="waypointState.pointType == 'CHARGING_STATION' ?  'mdi mdi-battery-charging' : 'mdi mdi-map-marker-outline' ">  {{waypointState.pointCode}} </span>
+            <span [class]="waypointState.pointType == 'CHARGING_STATION' ?  'mdi mdi-battery-charging' : 'mdi mdi-map-marker-outline' " [matTooltip] = "'Waypoint' | label: uiSrv.langPack" matTooltipPosition = "above">  
+                {{waypointState.pointCode}} 
+            </span>
             <!-- <span class="point-code"> {{waypointState.pointCode}} </span> -->
             <a class="close mdi mdi-close-circle" (click)="selectedMapObjChange(null)"></a>
         </div>
@@ -28,9 +30,10 @@
         </div>
     </div>   
 
+
     <div class="robot-state-container" *ngIf="robotState && parent.rightMapPanel?.panelMode != 'CREATE-TASK'">
         <div class="header">
-            <span class="mdi mdi-robot">  {{robotState.robotCode}} </span>
+            <span class="mdi mdi-robot" [matTooltip] = "'Robot' | label: uiSrv.langPack" matTooltipPosition = "above">  {{robotState.robotCode}} </span>
             <a class="close mdi mdi-close-circle" (click)="selectedMapObjChange(null)"></a>
         </div>
 
@@ -50,6 +53,32 @@
             <div class="task-count" *ngIf="robotInfo">
                 <span *ngIf="robotInfo.waitingTaskCount == 0">{{'No Pending Task' | label: uiSrv.langPack}}</span>
                 <span *ngIf="robotInfo.waitingTaskCount > 0">{{robotInfo.waitingTaskCount }} {{' Pending Task' | label: uiSrv.langPack}}</span>
+            </div>
+        </div>
+    </div>   
+
+
+    <div class="lift-state-container" *ngIf="liftIot">
+        <div class="header">
+            <i class="mdi mdi-elevator-passenger-outline" [matTooltip] = "'Lift' | label: uiSrv.langPack" matTooltipPosition = "above">  </i>
+            <span>{{liftIot.liftCode}}</span>
+            <a class="close mdi mdi-close-circle" (click)="selectedMapObjChange(null)"></a>
+        </div>
+
+        <div class="bottom-content" >
+            <div class="floor">
+                <span>{{'Floor' | label : uiSrv.langPack}} : </span>
+                <span>{{mqSrv.data.arcsLift.value[liftIot.liftCode]?.floor ? mqSrv.data.arcsLift.value[liftIot.liftCode].floor  : ' - '}}</span>            
+            </div>
+
+            <div class="robot">
+                <ng-container  *ngIf="!mqSrv.data.arcsLift.value[liftIot.liftCode]?.robotCode">
+                    <span>{{'No robot inside' | label : uiSrv.langPack}}</span>
+                </ng-container>
+                <ng-container  *ngIf="mqSrv.data.arcsLift.value[liftIot.liftCode]?.robotCode">
+                    <span>{{'Robot loaded' | label : uiSrv.langPack}} : </span>
+                    <span>{{mqSrv.data.arcsLift.value[liftIot.liftCode].robotCode}}</span>
+                </ng-container>
             </div>
         </div>
     </div>   

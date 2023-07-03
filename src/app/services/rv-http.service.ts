@@ -41,7 +41,8 @@ export class RvHttpService {
       }
       return fullResponse ? resp : JSON.parse(resp)
     } catch (err) {
-        console.log(err)
+        console.log(err)        
+        console.trace()
       if (throwErr) {
         throw err;
       } else {
