@@ -438,6 +438,8 @@ export class PixiWayPoint extends PixiMapGraphics implements IDraw, IReColor {
   waypointName // full code
   robotBases = [];
   robotBasesOptions = [];
+  liftCode 
+  doorCode
   set hasPointGroup(v) {
     if (!this.pixiPointGroup && v) {
       this.pixiPointGroup = new PixiPointGroup(this.viewport, this)

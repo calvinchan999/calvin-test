@@ -25,13 +25,14 @@
     display: flex;
 }
 
-::ng-deep .label-3js.selected span.content ::ng-deep {
+::ng-deep .label-3js.selected .content ::ng-deep {
     background: rgba(0, 206, 209, 0.35);
     border: 1px solid darkturquoise;
-    padding: 0px 8px;
 }
 
-::ng-deep .label-3js span.content ::ng-deep {
+::ng-deep .label-3js .content ::ng-deep {
+    display: flex;
+    flex-direction: column;
     padding: 8px;
     margin: -8px;
     line-height: 0px;
@@ -150,6 +151,11 @@
 
 :host .justify-end{
     justify-content: end;
+}
+
+:host ::ng-deep .iot-lift{
+    height: 100%;
+    display: flex;
 }
 // :host ::ng-deep .tooltip {
 //     padding: '8px';

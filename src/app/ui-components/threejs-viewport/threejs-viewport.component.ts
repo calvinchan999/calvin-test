@@ -2,6 +2,7 @@ import { Component, OnInit, ViewChild , NgZone, HostListener, EventEmitter, Rend
 import { UiService } from 'src/app/services/ui.service';
 import * as THREE from 'three';
 import { GLTF, GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader';
+import { PCDLoader } from 'three/examples/jsm/loaders/PCDLoader';
 import { MTLLoader } from 'three/examples/jsm/loaders/MTLLoader';
 import { OBJLoader } from 'three/examples/jsm/loaders/OBJLoader';
 import {TWEEN} from "three/examples/jsm/libs/tween.module.min";
@@ -72,6 +73,7 @@ export class ThreejsViewportComponent implements OnInit , OnDestroy{
   @Input() parent : ArcsDashboardComponent
   @Input() arcsRobotType : string
   @Output() removed =  new EventEmitter<any>();
+  @Input() dropdownOptions : {lifts? : {value : string , text : string}} = {}
   @Input() set robotColorMapping(v){
     this._robotColorMapping = v
     this.refreshRobotColors() 
@@ -100,6 +102,8 @@ export class ThreejsViewportComponent implements OnInit , OnDestroy{
   radRatio = radRatio
   transformObjIconClass : string
   transformObjName : string
+
+  pointCloud //For EMSD tender screen cap
 
   @Input() uiToggles: {
     showWall?: boolean,
@@ -460,6 +464,8 @@ export class ThreejsViewportComponent implements OnInit , OnDestroy{
     if (glb) {
       await this.loadFloorPlanModelFromBlob(glb)
     }else if(!subscribePoses){
+      this.uiToggles.showFloorPlanImage = false
+      this.uiToggled('showFloorPlanImage')
       this.loadFloorPlanModelFrom2DImage()
     }
 
@@ -480,7 +486,10 @@ export class ThreejsViewportComponent implements OnInit , OnDestroy{
     // TBR
     ['waypoint', 'waypointName', 'wall' , 'alert'].forEach(k => this.uiToggled(k))
     await this.loadFloorPlanModelObject(floorplan.floorPlanCode , settings.floorPlan)    
-    await this.initElevators( settings.lifts , subscribePoses)   
+    await this.initElevators( floorplan.floor , settings.lifts , subscribePoses)   
+    if(subscribePoses && (settings.lifts.length > 0 )){
+      this.mqSrv.refreshIotStatus(floorplan.floorPlanCode)
+    }
     if(this.parent?.rightMapPanel?.taskComp){
       this.parent.rightMapPanel.taskComp.refreshMapPoints()
     }
@@ -488,11 +497,6 @@ export class ThreejsViewportComponent implements OnInit , OnDestroy{
 
   loadFloorPlanModelFrom2DImage(){
     this.use2DFloorPlanModel = true
-    this.uiToggles.showFloorPlanImage = false
-    this.uiToggled('showFloorPlanImage')
-    // this.floorPlanModel = <any>this.floorplan.clone();
-    // (<any>this.floorPlanModel).material = (<THREE.MeshPhongMaterial>this.floorplan.material).clone();
-    // (<any>this.floorPlanModel).material.visible = true ; 
     this.floorPlanModel = <any> new Mesh(new THREE.PlaneGeometry(this.floorplan.width, this.floorplan.height), new THREE.MeshPhongMaterial({ map: THREE.ImageUtils.loadTexture(this.floorplan.base64Image), side : DoubleSide , transparent : true }));
     (<any>this.floorPlanModel ).material.side = THREE.DoubleSide;
     this.floorplan.add(this.floorPlanModel)
@@ -523,6 +527,18 @@ export class ThreejsViewportComponent implements OnInit , OnDestroy{
     await awaiter.pipe(take(1)).toPromise()
   }
 
+  async loadPointCloudFromPCDFile(filePath : string){
+    var awaiter = new Subject()
+    let ticket = this.uiSrv.loadAsyncBegin()
+    const loader = new PCDLoader();
+    loader.load( filePath, ( points ) =>{
+      this.pointCloud = points
+      this.floorplan.add( points );
+      this.uiSrv.loadAsyncDone(ticket)
+    } );
+    await awaiter.pipe(take(1)).toPromise()
+  }
+
 
 
   async loadFloorPlanModelObject(floorPlanCode : string , settings : JFloorPlan3DModel) : Promise<boolean>{
@@ -543,20 +559,19 @@ export class ThreejsViewportComponent implements OnInit , OnDestroy{
   }
   
 
-  async initElevators(setting : JLift3DModel[] , subscribe : boolean){
+  async initElevators( floor : string , setting : JLift3DModel[] , subscribe : boolean){
     setting.forEach(l => {
-      let elevator = new ElevatorObject3D(this , l.liftCode , l.floor)
+      let elevator = new ElevatorObject3D(this , l.liftCode , floor)
       elevator.scale.set(l.scale , l.scale , l.scale)
       elevator.position.set(l.positionX , l.positionY , l.positionZ)
       elevator.boxMesh.scale.set(l.width , l.height , l.length)
       elevator.rotation.set(l.rotationX, l.rotationY, l.rotationZ)
       this.floorPlanModel.add(elevator)
     })
-    if(subscribe && !this.subcribedIotSignalRTypes.includes('arcsLift')){
+    if(subscribe && setting.length > 0 && !this.subcribedIotSignalRTypes.includes('arcsLift')){
       this.subscribeElevators()
     }
   }
-
 
   // async initElevators(floor : string , elevators : { liftId : string , position? : {x : number , y : number , z : number } , rotation? : number , width? : number , height? : number , depth? : number }[]){
   //   // [
@@ -698,7 +713,7 @@ export class ThreejsViewportComponent implements OnInit , OnDestroy{
   }
 
   initFloorPlan(fp : JFloorPlan , fpWidth : number , fpHeight : number){   
-    this.floorplan = new FloorPlanMesh(this ,fp.base64Image , fpWidth , fpHeight);
+    this.floorplan = new FloorPlanMesh(this ,fp.base64Image , fpWidth , fpHeight , fp.floor);
     (<THREE.MeshPhongMaterial>this.floorplan.material).visible = false //to be set visible only if don't have custom model in initCustom3dModel()
     this.scene.add(this.floorplan );
   }
@@ -1055,12 +1070,14 @@ class FloorPlanMesh extends Mesh{
   aabb = new THREE.Box3()
   maxDepth = null
   base64Image
+  floor : string
   settings :  { tabletPath?: string, withModel? : boolean, wallHeight : number ,walls : {x:number , y:number}[][], path?: string, scale?: number, position?: { x?: number, y?: number, z?: number }, rotate?: { x?: number, y?: number, z?: number } }
-  constructor(public master: ThreejsViewportComponent , base64Image : string , width : number , height : number){
+  constructor(public master: ThreejsViewportComponent , base64Image : string , width : number , height : number , floor : string){
     super(new THREE.PlaneGeometry(width, height), new THREE.MeshPhongMaterial({ map: THREE.ImageUtils.loadTexture(base64Image), side : DoubleSide , transparent : true }))
     this.base64Image = base64Image
     this.width = width;
     this.height = height;
+    this.floor = floor;
     (<any>this).material.side = THREE.DoubleSide;
     this.rotateX(NORMAL_ANGLE_ADJUSTMENT);
     // this.lookAt(new THREE.Vector3(1, 0, 0))
@@ -1967,7 +1984,16 @@ export class ElevatorObject3D extends Object3DCommon{
   width = 60
   height = 60
   depth = 90
-  liftCode
+  _liftCode
+  get liftCode (){
+    return this._liftCode
+  }
+  set liftCode(v){
+    this._liftCode = v
+    if( this.toolTipCompRef?.instance){
+      this.toolTipCompRef.instance.liftCode = this._liftCode
+    }
+  }
   robotDisplay : RobotObject3D
   toolTipCompRef : ComponentRef<ArcsLiftIotComponent>
   planeColor = 0xaaaaaa

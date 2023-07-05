@@ -4,7 +4,7 @@ import { DialogRef, DialogService } from '@progress/kendo-angular-dialog';
 import { filter, retry, take } from 'rxjs/operators';
 import {  Subject } from 'rxjs';
 import { DataService} from 'src/app/services/data.service';
-import { DropListBuilding, DropListMap, JFloorPlan, JLift3DModel, JMap, MapJData, SaveRecordResp, ShapeJData } from 'src/app/services/data.models';
+import { DropListBuilding, DropListLift, DropListMap, JFloorPlan, JLift3DModel, JMap, MapJData, SaveRecordResp, ShapeJData } from 'src/app/services/data.models';
 import { RvHttpService } from 'src/app/services/rv-http.service';
 import { UiService } from 'src/app/services/ui.service';
 import { Map2DViewportComponent, radRatio } from 'src/app/ui-components/map-2d-viewport/map-2d-viewport.component';
@@ -55,26 +55,24 @@ export class ArcsSetupFloorplan3dComponent implements OnInit {
     rotationY : new FormControl(0),
     rotationZ : new FormControl(0),
     modifiedDateTime: new FormControl(null),
+
+    // pointCloud: new FormControl('17W_1F.pcd'),
   })
+
+  
   // initialDataset = null
   // get initialFloorPlan(){
   //   return this.initialDataset?.['floorPlan']
   // }
   windowRef
   @Input() parent: SaMapComponent
-  // dropdownData: { maps?: DropListMap[], buildings?: DropListBuilding[] } = {
-  //   // sites : [],
-  //   maps: [],
-  //   buildings: [],
-  //   // floors:[]
-  // }
+  dropdownData: { lifts?: DropListLift[] } = {
+    lifts: []
+  }
 
-  // dropdownOptions = {
-  //   // sites : [],
-  //   maps: [],
-  //   buildings: [],
-  //   // floors:[]
-  // }
+  dropdownOptions:  { lifts?: {value : string , text : string}[] } = {
+
+  }
 
   // selectedMapIds = []
   pk = 'planId'
@@ -151,6 +149,18 @@ export class ArcsSetupFloorplan3dComponent implements OnInit {
     this.uiSrv.loadAsyncDone(this.loadingTicket);
   }
 
+  async initDropdown(){
+    let ticket = this.uiSrv.loadAsyncBegin()
+    const dropdown = await this.dataSrv.getDropLists(['lifts'])
+    this.dropdownData = dropdown.data
+    this.dropdownData.lifts = this.dropdownData.lifts.filter(l=> this.floorPlanDataset.pointList.map(p=> p.liftCode).includes(l.liftCode))
+    const liftOptions = this.dataSrv.getDropListOptions('lifts' , this.dropdownData.lifts )
+    this.dropdownOptions = {
+      lifts : liftOptions
+    }
+    this.uiSrv.loadAsyncDone( ticket )
+  }
+
   onfileLoad(event) {
     const files : FileList = (<HTMLInputElement>event.target).files;
     if (files.length === 0) {
@@ -201,12 +211,16 @@ export class ArcsSetupFloorplan3dComponent implements OnInit {
       this.frmGrp.controls['floorPlanCode'].setValue(id.toString())
     }
     this.floorPlanDataset = await this.httpSrv.get("api/map/plan/v1/" + id.toString()) 
+    this.initDropdown()
     await this.load3DModel()
-    await this.threeJsElRef.initElevators( data.lifts , false)   
+    await this.threeJsElRef.initElevators( this.floorPlanDataset.floor ,  data.lifts , false)   
     this.threeJsElRef.elevators.forEach(e => this.addIotObj3D("LIFT", e.liftCode, e))
     if (this.file) {
       this.selectObject3D(this.threeJsElRef.floorPlanModel)
     }
+    // this.threeJsElRef.loadPointCloudFromPCDFile('assets/3D/17W_green.pcd');
+    // this.threeJsElRef.floorPlanModel.visible = false
+    // this.threeJsElRef.transformCtrl.attach(this.threeJsElRef.pointCloud)
   }
 
   async load3DModel() {
@@ -268,8 +282,8 @@ export class ArcsSetupFloorplan3dComponent implements OnInit {
       obj = obj ? obj : new TurnstileObject3D(this.threeJsElRef , id);
       (<TurnstileObject3D>obj).toolTipCompRef.instance.showDetail = true
     }else if(type == "LIFT"){
-      id = id ? id : "1" //TESTING
-      obj = obj ? obj : new ElevatorObject3D(this.threeJsElRef, id, '');
+      // id = id ? id : ("LIFT_" + (this.threeJsElRef.elevators.length + 1)) //TESTING
+      obj = obj ? obj : new ElevatorObject3D(this.threeJsElRef, null, '');
       (<ElevatorObject3D>obj).boxMesh.visible = true;
       (<ElevatorObject3D>obj).robotDisplay = new RobotObject3D(this.threeJsElRef, ' ', '', '', '');
       (<ElevatorObject3D>obj).robotDisplay.position.set(0, 0, 15);
@@ -323,6 +337,19 @@ export class ArcsSetupFloorplan3dComponent implements OnInit {
 
 
   async validate(){
+    const lifts : ElevatorObject3D[] = this.iotLifts.map(l=><any> l.objectRef)
+    const duplicateLift = lifts.filter(l=> lifts.some(l2=> l2 !=l && l2.liftCode == l.liftCode))[0];
+    const nullLiftCodeLift = lifts.filter(l => l.liftCode == null)[0]
+    if(duplicateLift!=null){
+      this.selectObject3D(duplicateLift)
+      this.uiSrv.showMsgDialog(this.uiSrv.translate('Duplicate lift code : ') + duplicateLift.liftCode)
+      return false
+    }
+    if(nullLiftCodeLift !=null){
+      this.selectObject3D(nullLiftCodeLift)
+      this.uiSrv.showMsgDialog(('Lift code not defined'))
+      return false
+    }
     ['scale','positionX' , 'positionY' , 'positionZ' , 'rotationX' , 'rotationY' , 'rotationZ'].forEach(k=>{
       this.frmGrp.controls[k].setValue(this.frmGrp.controls[k].value == null ? 0 : this.frmGrp.controls[k].value)
     })

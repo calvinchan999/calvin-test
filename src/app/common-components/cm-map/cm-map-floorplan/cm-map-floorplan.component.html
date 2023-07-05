@@ -63,6 +63,7 @@
         <uc-dropdown *ngIf="util.standaloneApp" lab="Map" [options]="dropdownOptions.maps" [disabled]="readonly || !frmGrp.controls.fileName.value"
             [(value)]="mapCode" (valueChange)="onMapCodeSelected()">
         </uc-dropdown>
+        <uc-dropdown *ngIf="util.arcsApp" lab="Floor" [frmGrp]="frmGrp" frmCtrl="floor" [options] = "dropdownOptions.floors"  (valueChange) = "refreshLiftOptions()"></uc-dropdown>
 
         <div class="col default-checkbox building" *ngIf="util.arcsApp" >
             <input type="checkbox" kendoCheckBox formControlName="defaultPerBuilding" [disabled]="readonly" />

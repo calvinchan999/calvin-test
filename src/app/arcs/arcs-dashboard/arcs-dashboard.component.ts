@@ -505,6 +505,7 @@ export class ArcsDashboardComponent implements OnInit {
       return
     }
 
+    
     this.addAndRemoveRobotInfos(data)  
     data.forEach(d=> this.robotSrv.robotState(d.robotCode).updateRobotInfo(d))
     // this.refreshRobotDetail(data)

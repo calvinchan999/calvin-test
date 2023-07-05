@@ -1,17 +1,19 @@
-<span [class]="'iot-id ' + customClass" >
-    <!-- <i class="mdi mdi-window-open-variant"></i> -->
-    <i class="mdi mdi-elevator-passenger-outline"></i>    
-    <span>{{liftCode}}</span>
-</span>
-<div class="iot" *ngIf="mqSrv.data.arcsLift.value && mqSrv.data.arcsLift.value[liftCode]">
-    <div class="iot-content">
-        <div class="floor iot-row">
-            <span>{{'Floor' | label : uiSrv.langPack}} : </span>
-            <span>{{mqSrv.data.arcsLift.value[liftCode].floor}}</span>            
-        </div>
-        <div class="robot iot-row" *ngIf="mqSrv.data.arcsLift.value[liftCode].robotCode">
-            <i class="mdi mdi-robot"></i> 
-            <span>{{mqSrv.data.arcsLift.value[liftCode].robotCode}}</span>
+<div class="content">
+    <span [class]="'iot-id '" >
+        <!-- <i class="mdi mdi-window-open-variant"></i> -->
+        <i class="mdi mdi-elevator-passenger-outline"></i>    
+        <span>{{liftCode}}</span>
+    </span>
+    <div class="iot" *ngIf="mqSrv.data.arcsLift.value && mqSrv.data.arcsLift.value[liftCode] && (mqSrv.data.arcsLift.value[liftCode].floor || mqSrv.data.arcsLift.value[liftCode].robotCode )">
+        <div class="iot-content">
+            <div class="floor iot-row" *ngIf="mqSrv.data.arcsLift.value[liftCode].floor">
+                <span>{{'Floor' | label : uiSrv.langPack}} : </span>
+                <span>{{ mqSrv.data.arcsLift.value[liftCode].floor}}</span>            
+            </div>
+            <div class="robot iot-row" *ngIf="mqSrv.data.arcsLift.value[liftCode].robotCode">
+                <i class="mdi mdi-robot"></i> 
+                <span>{{mqSrv.data.arcsLift.value[liftCode].robotCode}}</span>
+            </div>
         </div>
     </div>
 </div>

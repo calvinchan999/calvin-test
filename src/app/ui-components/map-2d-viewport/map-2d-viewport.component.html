@@ -309,7 +309,7 @@
           <ng-container *ngIf=" selectedGraphics?.type == 'location' || selectedGraphics?.type == 'waypoint' ">
             <div class="form-group rows-container">
               <div class="form-row">
-                <uc-txtbox #ucPointTextBox class="waypoint-name-textbox" customClass="txtbox-container"   lab="Waypoint Name" [(value)] = "selectedGraphics.text" [upper] = "true" [class]="util.arcsApp? 'col-6': ''"> 
+                <uc-txtbox #ucPointTextBox class="waypoint-name-textbox" customClass="txtbox-container"   lab="Waypoint Name" [(value)] = "selectedGraphics.text" [upper] = "true" [class]="util.arcsApp? 'col-4': ''"> 
                 </uc-txtbox>
                 <div  *ngIf="uiSrv.isTablet" class="form-group">            
                   <label class="col-form-label">{{'Orientation' | label : uiSrv.langPack}}</label>
@@ -339,6 +339,9 @@
               
               <div class="form-row">         
                 <uc-dropdown *ngIf="showWaypointType" lab="Waypoint Type" [options]="module.data.dropdownOptions.pointTypes" [allowClear]="false" [(value)]="selectedGraphics.pointType"
+                            (open)="suspendViewportPlugin('wheel')" (close)="resumeViewportPlugin('wheel')" >
+                </uc-dropdown>
+                <uc-dropdown *ngIf="showWaypointType && selectedGraphics.pointType == 'LIFT'" lab="Lift Code" [options]="module.data.dropdownOptions.lifts" [allowClear]="false" [(value)]="selectedGraphics.liftCode"
                             (open)="suspendViewportPlugin('wheel')" (close)="resumeViewportPlugin('wheel')" >
                 </uc-dropdown>
                 <uc-multiselect class="robot-base" *ngIf="util.arcsApp" lab="Robot Bases" [useSummaryTag]="true" [checkboxes]="true" [options]="robotBasesOptions" [(value)]="selectedGraphics.robotBases"   (open)="suspendViewportPlugin('wheel')" (close)="resumeViewportPlugin('wheel')" ></uc-multiselect>

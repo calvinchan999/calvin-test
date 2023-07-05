@@ -294,6 +294,11 @@ export class RobotProfileResp {
     name: string
     floorPlanCode: string
   }
+
+  export class DropListLift{
+    liftCode : string
+    floors : string[]
+  }
   
   
   
@@ -330,6 +335,7 @@ export class RobotProfileResp {
   
   export class JFloorPlan {
     floorPlanCode : string
+    floor? : string
     name? : string
     viewZoom : number
     viewX : number
@@ -367,7 +373,6 @@ export class RobotProfileResp {
     floorPlanCode : string
     liftCode : string
     name? : string
-    floor? : string
     length : number 
     width : number
     height : number
@@ -399,6 +404,8 @@ export class RobotProfileResp {
     groupPointCode? : string
     groupProperties? : string
     enabled ? : boolean
+    liftCode? : string    
+    doorCode? : string
   }
   
   export class JChildPoint{

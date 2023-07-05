@@ -31,7 +31,7 @@ const Utilization_Status_Types = ['executing', 'idle', 'charging', 'hold', 'unkn
 
 export class ArcsChartsComponent implements OnInit, OnDestroy {
   @ViewChild('navigatorChart') navigatorChart: ChartComponent
-  @ViewChild('obstacleWaypointScatter') waypointObstacleChart : ChartComponent
+  // @ViewChild('obstacleWaypointScatter') waypointObstacleChart : ChartComponent
   @ViewChild('floorplanObstacle') floorplanObstacleChart: ChartComponent
   @ViewChild('tooltipFr') tooltipFr: TooltipDirective
   @ViewChild('tooltipTo') tooltipTo: TooltipDirective
@@ -777,8 +777,8 @@ export class ArcsChartsComponent implements OnInit, OnDestroy {
 
  @HostListener('window:resize', ['$event'])
   onResize() {
-    let containerEl = (<any>this.waypointObstacleChart)?.element?.nativeElement?.parentElement
-    this.refreshChartOnSizeChange(containerEl?.offsetWidth, containerEl?.offsetHeight)
+    // let containerEl = (<any>this.waypointObstacleChart)?.element?.nativeElement?.parentElement
+    // this.refreshChartOnSizeChange(containerEl?.offsetWidth, containerEl?.offsetHeight)
   }
 
   getFilteredObstacles(dateFilter = true , wpFilter = true , fpFilter= true){ // ONLY FOR 3 14 DEMO , TO BE MOVED TO BACKEND
@@ -796,10 +796,13 @@ export class ArcsChartsComponent implements OnInit, OnDestroy {
     if( !this.analysisTestData){
       return
     }
+    if(this.pixiRef){
+      this.pixiRef.module.data.loadFloorPlan(this.analysis.floorplan.selected)
+    }
 
     this.analysis.background = <any>this.analysisTestData.floorplan[this.analysis.floorplan.selected]
-    let containerEl = (<any>this.waypointObstacleChart)?.element?.nativeElement?.parentElement
-    this.refreshChartOnSizeChange(containerEl?.offsetWidth, containerEl?.offsetHeight)
+    // let containerEl = (<any>this.waypointObstacleChart)?.element?.nativeElement?.parentElement
+    // this.refreshChartOnSizeChange(containerEl?.offsetWidth, containerEl?.offsetHeight)
     this.dropdownOptions.waypoint = this.analysisTestData.floorplan[this.analysis.floorplan.selected].waypoints.map(d=>{return {value : d.category , text : d.category}})
     this.analysis.waypoint.data = JSON.parse(JSON.stringify(this.analysisTestData.floorplan[this.analysis.floorplan.selected].waypoints)) 
     this.analysis.daily.data = []
@@ -869,6 +872,10 @@ export class ArcsChartsComponent implements OnInit, OnDestroy {
       let d = { name: tmpData[i].category, count: tmpData[i].count }
       this.analysis.total['waypoint' + (i + 1)] = d
     }
+    // this.analysis.obstacleAll.data.forEach((d : {x : number , y : number ,  date : string , waypoint : string , })=>{
+    //   this.pixiRef.
+    // })
+    console.log( this.analysis)
   }
 
   async initAnalysis() {
@@ -894,39 +901,39 @@ export class ArcsChartsComponent implements OnInit, OnDestroy {
     this.refreshAnalysis()
   }
 
-  refreshChartOnSizeChange(offsetWidth : number , offsetHeight : number){   
-    let tmpScatter = JSON.parse(JSON.stringify( this.analysis.obstacle.data ))
-    this.analysis.obstacle.data = []
+  // refreshChartOnSizeChange(offsetWidth : number , offsetHeight : number){   
+  //   let tmpScatter = JSON.parse(JSON.stringify( this.analysis.obstacle.data ))
+  //   this.analysis.obstacle.data = []
 
-    this.analysis.background.width = offsetWidth / offsetHeight < 1 ? offsetWidth  :  offsetHeight *  this.analysis.background.imageWidth  / this.analysis.background.imageHeight
-    this.analysis.background.height = offsetWidth / offsetHeight < 1 ? offsetHeight  :  offsetWidth * this.analysis.background.imageHeight  / this.analysis.background.imageWidth
-    this.analysis.waypoint.minX = 0 
-    this.analysis.waypoint.maxX = this.analysis.background.imageWidth 
-    this.analysis.waypoint.maxY = 0 
-    this.analysis.waypoint.minY = - this.analysis.background.imageHeight
-    this.analysis.waypoint.data = JSON.parse(JSON.stringify(this.analysis.waypoint.data))
+  //   this.analysis.background.width = offsetWidth / offsetHeight < 1 ? offsetWidth  :  offsetHeight *  this.analysis.background.imageWidth  / this.analysis.background.imageHeight
+  //   this.analysis.background.height = offsetWidth / offsetHeight < 1 ? offsetHeight  :  offsetWidth * this.analysis.background.imageHeight  / this.analysis.background.imageWidth
+  //   this.analysis.waypoint.minX = 0 
+  //   this.analysis.waypoint.maxX = this.analysis.background.imageWidth 
+  //   this.analysis.waypoint.maxY = 0 
+  //   this.analysis.waypoint.minY = - this.analysis.background.imageHeight
+  //   this.analysis.waypoint.data = JSON.parse(JSON.stringify(this.analysis.waypoint.data))
 
-    this.analysis.obstacle.data = tmpScatter
-    // return
+  //   this.analysis.obstacle.data = tmpScatter
+  //   // return
 
-    // if( offsetWidth && offsetHeight){
-    //   let minX = Math.min(... this.analysis.waypoint.data.map(d=>d.x))
-    //   let maxY = Math.max(... this.analysis.waypoint.data.map(d=>d.y));
-    //   let xRange = Math.max(... this.analysis.waypoint.data.map(d => d.x)) - minX
-    //   let yRange = maxY - Math.min(... this.analysis.waypoint.data.map(d => d.y)) 
-    //   let extraUnit =  xRange / offsetWidth > yRange / offsetHeight ? Math.ceil(xRange * 0.1) : Math.ceil(yRange * 0.1)
-    //   this.analysis.waypoint.maxY = maxY + extraUnit
-    //   this.analysis.waypoint.minX = minX - extraUnit
+  //   // if( offsetWidth && offsetHeight){
+  //   //   let minX = Math.min(... this.analysis.waypoint.data.map(d=>d.x))
+  //   //   let maxY = Math.max(... this.analysis.waypoint.data.map(d=>d.y));
+  //   //   let xRange = Math.max(... this.analysis.waypoint.data.map(d => d.x)) - minX
+  //   //   let yRange = maxY - Math.min(... this.analysis.waypoint.data.map(d => d.y)) 
+  //   //   let extraUnit =  xRange / offsetWidth > yRange / offsetHeight ? Math.ceil(xRange * 0.1) : Math.ceil(yRange * 0.1)
+  //   //   this.analysis.waypoint.maxY = maxY + extraUnit
+  //   //   this.analysis.waypoint.minX = minX - extraUnit
 
-    //   if (xRange / offsetWidth > yRange / offsetHeight) {
-    //     this.analysis.waypoint.maxX = Math.max(... this.analysis.waypoint.data.map(d => d.x)) + extraUnit
-    //     this.analysis.waypoint.minY = this.analysis.waypoint.maxY - (this.analysis.waypoint.maxX - this.analysis.waypoint.minX) * (offsetHeight / offsetWidth) 
-    //   } else {
-    //     this.analysis.waypoint.minY = Math.min(... this.analysis.waypoint.data.map(d => d.y)) - extraUnit
-    //     this.analysis.waypoint.maxX = this.analysis.waypoint.minX + (this.analysis.waypoint.maxY - this.analysis.waypoint.minY) * (offsetWidth / offsetHeight) 
-    //   }       
-    // }
-  }
+  //   //   if (xRange / offsetWidth > yRange / offsetHeight) {
+  //   //     this.analysis.waypoint.maxX = Math.max(... this.analysis.waypoint.data.map(d => d.x)) + extraUnit
+  //   //     this.analysis.waypoint.minY = this.analysis.waypoint.maxY - (this.analysis.waypoint.maxX - this.analysis.waypoint.minX) * (offsetHeight / offsetWidth) 
+  //   //   } else {
+  //   //     this.analysis.waypoint.minY = Math.min(... this.analysis.waypoint.data.map(d => d.y)) - extraUnit
+  //   //     this.analysis.waypoint.maxX = this.analysis.waypoint.minX + (this.analysis.waypoint.maxY - this.analysis.waypoint.minY) * (offsetWidth / offsetHeight) 
+  //   //   }       
+  //   // }
+  // }
 }
 
 

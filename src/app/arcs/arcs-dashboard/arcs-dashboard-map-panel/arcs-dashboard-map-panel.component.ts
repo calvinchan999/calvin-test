@@ -90,7 +90,7 @@ export class ArcsDashboardMapPanelComponent implements OnInit , OnDestroy {
       this.setRobotInfoAtBottomPanel(obj)
     }else if(obj instanceof ElevatorObject3D){
       this.liftIot =  obj.toolTipCompRef.instance
-      this.liftIot.customClass += ' selected'
+      // this.liftIot.customClass += ' selected'
     }else {
       return
     }
@@ -104,10 +104,10 @@ export class ArcsDashboardMapPanelComponent implements OnInit , OnDestroy {
     if (!this.originalToolTipsOn && this.selectedObj && this.selectedObj instanceof Object3DCommon) {
       this.selectedObj.toolTipAlwaysOn = false
     }
-    if (this.liftIot) {
-      this.liftIot.customClass = this.liftIot.customClass.replace(' selected', '')
-    }   
-    if (this.waypointState && this.selectedObj instanceof WaypointMarkerObject3D) {
+    // if (this.liftIot) {
+    //   this.liftIot.customClass = this.liftIot.customClass.replace(' selected', '')
+    // }   
+    if( this.selectedObj instanceof Object3DCommon){
         this.selectedObj.toolTipSettings.cssClass = 'label-3js'
         this.selectedObj.toolTip.element.className = 'label-3js'
     }   
@@ -119,13 +119,16 @@ export class ArcsDashboardMapPanelComponent implements OnInit , OnDestroy {
   setSelectedObjStyle(){
     let obj = this.selectedObj
     this.originalToolTipsOn = (obj instanceof WaypointMarkerObject3D || obj instanceof RobotObject3D || obj instanceof ElevatorObject3D) && obj.toolTipAlwaysOn 
-    
-    if(obj instanceof RobotObject3D || obj instanceof ElevatorObject3D){
-      obj.toolTipAlwaysOn = true 
-    }else if (obj instanceof WaypointMarkerObject3D){
+    if(obj instanceof Object3DCommon){
       obj.toolTipSettings.cssClass = 'label-3js selected'
       obj.toolTipAlwaysOn = true 
     }
+    // if(obj instanceof RobotObject3D ){
+    //   obj.toolTipAlwaysOn = true 
+    // }else if (obj instanceof WaypointMarkerObject3D || obj instanceof ElevatorObject3D){
+    //   obj.toolTipSettings.cssClass = 'label-3js selected'
+    //   obj.toolTipAlwaysOn = true 
+    // }
 
     // this.parent.threeJsElRef?.waypointMeshes?.filter(w => w.pointCode != this.waypointState?.pointCode).forEach(w=>{
     //   w.toolTipSettings.cssClass = 'label-3js'

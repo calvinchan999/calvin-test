@@ -384,16 +384,9 @@ export class MqService {
     arcsLift: {
       topic: "rvautotech/fobo/lift",
       mapping: {
-        arcsLift: (d : { liftList? : any [] , liftCode?: string, floor?: string , status?: string  , robotId? : string} )=>{
+        arcsLift: (d : { liftId?: string, floor?: string , carStatus?: string  , doorStatus?: string  , robotId? : string} )=>{
           let ret = this.data.arcsLift.value ? JSON.parse(JSON.stringify(this.data.arcsLift.value) ): {}
-          let main = (l: { liftCode: string, floor: string , status: string  , robotId : string}) => {
-            ret[l.liftCode] = {floor : l.floor , opened : l.status == 'OPENED' , robotCode : l.robotId} ; 
-          }
-          if(d.liftList){
-            d.liftList.forEach(l=>main(l))
-          }else{
-            main(<any>d)
-          }
+          ret[d.liftId] = {floor : d.floor , opened : d.doorStatus == 'OPENED' , robotCode : d.robotId}
           return ret
         }
       },
@@ -607,7 +600,7 @@ export class MqService {
   }
 
 
-  test 
+
   updateMqBehaviorSubject(type , data , param = '') {
     let mapping = this.mqMaster[type].mapping
     let robotStateMapping =  this.mqMaster[type].robotState
@@ -716,6 +709,22 @@ export class MqService {
     this.loghouseKeep(data)
     this.dataSrv.eventLog.next(data)
     this.dataSrv.setLocalStorage('eventLog', JSON.stringify(data))
+  }
+
+  async refreshIotStatus(floorPlanCode : string){
+    const iotStatus : {
+      lifts:  {
+        liftId: string,
+        floor?: string,
+        carStatus?: string,
+        doorStatus?: string,
+        robotId ? : string
+      }[ ]
+    } = await this.httpSrv.fmsRequest('GET' , 'iot/v1?floorPlanCode=' +  floorPlanCode , undefined , false)
+    
+    iotStatus.lifts.forEach(l=>{
+      this.updateMqBehaviorSubject( 'arcsLift' , l)
+    })
   }
 }
 

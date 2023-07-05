@@ -1032,6 +1032,8 @@ export class Map2DViewportComponent implements OnInit , AfterViewInit , OnDestro
       pixiPoint.dataObj = data
       pixiPoint.pointType = data.pointType
       pixiPoint.enabled = data.enabled
+      pixiPoint.liftCode = data.liftCode
+      pixiPoint.doorCode = data.doorCode
       if(!this.showRobot || pixiPoint.enabled){
         addPixiGraphic(pixiPoint)
       }
@@ -1115,6 +1117,9 @@ export class Map2DViewportComponent implements OnInit , AfterViewInit , OnDestro
       pt.pointType = point.pointType
       pt.enabled = point.enabled
       pt.groupProperties = hasMap && point.hasPointGroup ? JSON.stringify(point.pixiPointGroup.settings) : ""
+      pt.liftCode = point.pointType == 'LIFT' ?  point.liftCode : null
+      // pt.doorCode = point.doorCode
+
       if(hasMap && point.hasPointGroup){
         let group = point.pixiPointGroup
         group.refreshGraphics()
@@ -2474,6 +2479,7 @@ export class DataModule{
     maps: [],
     iconTypes : [],
     pointTypes : [],
+    lifts:[]
   }
   dropdownData = {
     floorplans:[],
@@ -2482,7 +2488,8 @@ export class DataModule{
     buildings : [],
     robots :[],
     iconTypes : [],
-    pointTypes : []
+    pointTypes : [],
+    lifts:[]
   } 
 
   private dropdownInitDone = false

@@ -14,9 +14,21 @@
                                 [suffixButton]="{icon : 'k-icon mdi mdi-upload'}"
                                 (suffixButtonClick)="onUploadClicked()">
                     </uc-txtbox>
+                    
+                    <!-- <uc-txtbox lab="3D Point Cloud File" [frmGrp]="frmGrp" frmCtrl="pointCloud" 
+                                [suffixButton]="{icon : 'k-icon mdi mdi-upload'}">
+                    </uc-txtbox> -->
 
                     <!-- <span>{{'Object Browser' | label : uiSrv.langPack }}</span> -->
                     <div class="object-browser" *ngIf="threeJsElRef">         
+                        <!-- <div>
+                            <a [class]="threeJsElRef?.transformCtrl?.object == threeJsElRef?.pointCloud ? 'selected' : ''" 
+                                (click)="selectObject3D(threeJsElRef.pointCloud)" >
+                                <span class="mdi mdi-data-matrix"></span>
+                                {{'Point Cloud' | label : uiSrv.langPack }}
+                            </a>
+                        </div>            -->
+
                         <div>
                             <a [class]="threeJsElRef?.transformCtrl?.object == threeJsElRef?.floorPlanModel ? 'selected' : ''" 
                                 (click)="threeJsElRef.use2DFloorPlanModel ? null : selectObject3D(threeJsElRef.floorPlanModel)" >
@@ -26,7 +38,7 @@
                         </div>           
 
 
-                        <div class="tab-1">
+                        <!-- <div class="tab-1">
                             <span class="mdi mdi-door"> 
                                 {{'Auto Door' | label : uiSrv.langPack }}
                                 <a class="mdi mdi-plus-box" (click)="addIotObj3D('DOOR')"></a>
@@ -38,7 +50,7 @@
                                     <a>{{door.id}}</a> 
                                 </li>
                             </ul>              
-                        </div>
+                        </div> -->
 
                         <div class="tab-1">
                             <span class="mdi mdi-elevator-passenger-outline"> 
@@ -49,12 +61,12 @@
                                 <li *ngFor = "let lift of iotLifts" 
                                      [class] = "threeJsElRef?.transformCtrl?.object == lift.objectRef? 'selected' : ''" 
                                      (click) = "selectObject3D(lift.objectRef)">
-                                     <a>{{lift.id}}</a>
+                                     <a>{{lift['objectRef'].liftCode}}</a>
                                 </li>
                             </ul>      
                         </div>
 
-                        <div class="tab-1">
+                        <!-- <div class="tab-1">
                             <span class="mdi mdi-turnstile-outline">
                                  {{'Turnstile' | label : uiSrv.langPack }}
                                  <a class="mdi mdi-plus-box" (click)="addIotObj3D('TURNSTILE')"></a>
@@ -66,7 +78,7 @@
                                     <a>{{turnstile.objectRef.turnstileId}}</a>
                                 </li>
                             </ul>                 
-                        </div> 
+                        </div>  -->
                     </div> 
 
                 </form>
@@ -75,7 +87,7 @@
 
         <div  class="three-d-container"> 
             <uc-3d-viewport #threeJs [uiToggles] = "{showFloorPlanImage : false , transformControl : true}" (transformEnd) = "refreshTransformation($event)" 
-                                     (objClicked) = "Object3DClicked($event)" (removed) = "Object3DRemoved($event)">
+                                     (objClicked) = "Object3DClicked($event)" (removed) = "Object3DRemoved($event)" [dropdownOptions] = "dropdownOptions">
             </uc-3d-viewport>
         </div>        
         <!-- <div *ngIf="!file && floorPlanDataset" class="upload-container">

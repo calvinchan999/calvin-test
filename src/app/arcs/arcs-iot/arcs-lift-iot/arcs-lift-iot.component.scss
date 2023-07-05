@@ -11,6 +11,7 @@
 }
 :host .iot-id {
     display: flex;
+    padding: 2px 0px 1px 3px;
     i {
         font-size: 17px!important;
         margin: 0px 3px 0px -5px;
@@ -21,7 +22,7 @@
     }
 }
 
-:host .selected {
+:host ::ng-deep .selected {
     margin: -8px;
     padding: 8px;
     border-radius: 5px;

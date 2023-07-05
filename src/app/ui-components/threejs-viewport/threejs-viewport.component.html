@@ -83,19 +83,23 @@
         <span [class] = "transformCtrl.object == floorPlanModel ? 'mdi mdi-cube-outline' : (
                           transformCtrl.object.type == 'TURNSTILE' ? 'mdi mdi-turnstile-outline' :  (
                             transformCtrl.object.type == 'DOOR' ? 'mdi mdi-door' : (
-                             transformCtrl.object.type == 'LIFT' ? 'mdi mdi-elevator-passenger-outline': ''
+                             transformCtrl.object.type == 'LIFT' ? 'mdi mdi-elevator-passenger-outline': (
+                              transformCtrl.object == pointCloud ? 'mdi mdi-data-matrix': ''
+                              )
                             )
                           )
                          ) "></span>
         <span>{{ ( transformCtrl.object == floorPlanModel ? 'Floor Plan' : (
                      transformCtrl.object.type == 'TURNSTILE' ? 'Turnstile' :  (
                       transformCtrl.object.type == 'DOOR' ? 'Auto Door' : (
-                        transformCtrl.object.type == 'LIFT' ? 'Elevator': ''
+                        transformCtrl.object.type == 'LIFT' ? 'Elevator': (
+                          transformCtrl.object == pointCloud ? 'Point Cloud': ''
+               )
              )
             )
            )) | label : uiSrv.langPack }}
         </span>
-        <uc-dropdown *ngIf="transformCtrl.object.type == 'LIFT'" class="transform-id col-4 " lab = "ID" [(value)] = "transformCtrl.object['liftCode']" [options]="[]"></uc-dropdown>
+        <uc-dropdown *ngIf="transformCtrl.object.type == 'LIFT'" class="transform-id col-4 " lab = "ID" [(value)] = "transformCtrl.object['liftCode']" [options]="dropdownOptions.lifts"></uc-dropdown>
         <uc-txtbox *ngIf="transformCtrl.object.type == 'TURNSTILE'" class="transform-id " lab = "ID" [(value)] = "transformCtrl.object['turnstileId']"  (valueChange) = "transformCtrl.object['toolTipCompRef'].instance.turnstileId = $event"></uc-txtbox>
        
         <!-- <button kendoButton *ngIf="transformCtrl.object != floorPlanModel" 

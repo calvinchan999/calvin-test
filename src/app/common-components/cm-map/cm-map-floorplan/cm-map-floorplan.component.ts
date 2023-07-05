@@ -3,7 +3,7 @@ import { FormControl, FormGroup, Validators } from '@angular/forms';
 import { DialogService } from '@progress/kendo-angular-dialog';
 import { filter, retry, take, takeUntil } from 'rxjs/operators';
 import { DataService} from 'src/app/services/data.service';
-import {  DropListBuilding, DropListMap, JFloorPlan, JMap, MapJData, ShapeJData } from 'src/app/services/data.models';
+import {  DropListBuilding, DropListLift, DropListMap, JFloorPlan, JMap, MapJData, ShapeJData } from 'src/app/services/data.models';
 import { RvHttpService } from 'src/app/services/rv-http.service';
 import { UiService } from 'src/app/services/ui.service';
 import { Map2DViewportComponent,   radRatio} from 'src/app/ui-components/map-2d-viewport/map-2d-viewport.component';
@@ -44,6 +44,7 @@ export class CmMapFloorplanComponent implements OnInit {
   }
   frmGrp = new FormGroup({
     floorPlanCode: new FormControl('' , Validators.compose([Validators.required, Validators.pattern(this.dataSrv.codeRegex)])),
+    floor : new FormControl(null),
     name: new FormControl(''),
     fileName: new FormControl(null),
     defaultPerBuilding : new FormControl(false),
@@ -58,10 +59,11 @@ export class CmMapFloorplanComponent implements OnInit {
   locationDataMap = new Map()
   windowRef
   @Input()parent : SaMapComponent
-  dropdownData :{ maps? : DropListMap [] , buildings? : DropListBuilding[]} = {
+  dropdownData :{ maps? : DropListMap [] , buildings? : DropListBuilding[] , lifts : DropListLift[]} = {
     // sites : [],
     maps:[],
     buildings :[],
+    lifts : []
     // floors:[]
   }
 
@@ -69,6 +71,8 @@ export class CmMapFloorplanComponent implements OnInit {
     // sites : [],
     maps:[],
     buildings :[],
+    floors : [],
+    lifts : []
     // floors:[]
   }
 
@@ -140,6 +144,7 @@ export class CmMapFloorplanComponent implements OnInit {
     this.pixiElRef.initDone$.subscribe(async () => {
       if (this.id) {
         await this.loadData(this.id)
+        this.refreshLiftOptions()
         // setTimeout(()=>this.testResourcePost())
       } 
       this.frmGrp.controls['fileName']['uc'].textbox.input.nativeElement.disabled = true
@@ -186,10 +191,18 @@ export class CmMapFloorplanComponent implements OnInit {
     this.dropdownData.maps = this.dropdownData.maps.filter(m=> !excludeMapCodes.includes(m.mapCode))
     this.dropdownOptions.maps = this.dataSrv.getDropListOptions('maps',this.dropdownData.maps) 
     if(this.util.arcsApp){
-      let buildingDDL = await this.dataSrv.getDropList('buildings')
-      this.dropdownData.buildings = <any>buildingDDL.data
-      this.dropdownOptions.buildings = buildingDDL.options
-      
+      const dropdown = await this.dataSrv.getDropLists(['buildings' , 'lifts'])
+      Object.keys(dropdown.data).forEach(k=>{
+        this.dropdownData[k] = dropdown.data[k]
+      }) 
+      Object.keys(dropdown.option).forEach(k=>{
+        this.dropdownOptions[k] = dropdown.option[k]
+      }) 
+
+      let floors = []
+      this.dropdownData.lifts.map(l=>l.floors).forEach(fs => fs.forEach(f=> floors = floors.filter(f2=> f!=f2).concat([f])))
+      this.dropdownOptions.floors = floors.sort().map(f=>{return {value : f , text : f}})
+
       let tmpObj = this.util.getGroupedListsObject(this.dropdownData.maps , 'mapCode')
       this.mapTree.data = Object.keys(tmpObj).map(k => {
         return {
@@ -209,6 +222,12 @@ export class CmMapFloorplanComponent implements OnInit {
     this.uiSrv.loadAsyncDone(ticket)
   }
 
+  refreshLiftOptions(){
+    let liftsDropDownOptions = this.dataSrv.getDropListOptions('lifts' ,  this.dropdownData.lifts.filter(l=> l.floors.includes(this.frmGrp.controls['floor'].value)))
+    if(this.pixiElRef){
+      this.pixiElRef.module.data.dropdownOptions.lifts = liftsDropDownOptions
+    }
+  }
 
 
   async onPointUnselected(gr : PixiWayPoint){
@@ -246,6 +265,21 @@ export class CmMapFloorplanComponent implements OnInit {
   }
 
   async validate() {
+    let liftPoints = this.pixiElRef.viewport.allPixiWayPoints.filter(p=>p.pointType == 'LIFT');
+    const nullLiftCodeLiftPoint = liftPoints.filter(p=> p.liftCode == null)[0]
+    if(nullLiftCodeLiftPoint ){
+      this.pixiElRef.selectedGraphics =  nullLiftCodeLiftPoint
+      this.uiSrv.showMsgDialog(('Lift code not defined'))
+      return false
+    }
+    
+    const duplicateliftPoint = liftPoints.filter(p=> liftPoints.some(p2=>p2.liftCode == p.liftCode && p2 != p))[0]
+    if(duplicateliftPoint ){
+      this.pixiElRef.selectedGraphics =  duplicateliftPoint
+      this.uiSrv.showMsgDialog(this.uiSrv.translate('Duplicate lift code : ') + duplicateliftPoint.liftCode)
+      return false
+    }
+    
     for (let i = 0; i < this.pixiElRef.viewport.allPixiWayPoints.length ; i++) {
       if (! await this.validateWaypointName(this.pixiElRef.viewport.allPixiWayPoints[i].text, this.pixiElRef.viewport.allPixiWayPoints[i])) {
         return false
@@ -535,6 +569,8 @@ export class CmMapFloorplanComponent implements OnInit {
       event.target.value = null
     }
   }
+
+  
 
 
   // add_UserTrainingWaypoint(name , x , y , rad){ //for HKAA user training only
