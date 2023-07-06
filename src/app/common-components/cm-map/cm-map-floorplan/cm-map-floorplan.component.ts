@@ -158,6 +158,7 @@ export class CmMapFloorplanComponent implements OnInit {
   async loadData(id , data : JFloorPlan = null){
     let ticket = this.uiSrv.loadAsyncBegin()
     data = data != null ? data : await this.httpSrv.get("api/map/plan/v1/" + id.toString())
+    data.floor = data.floor?.length == 0 ? null : data.floor
     this.mapCode = data.mapList[0]?.mapCode
     this.mapTree.refreshExpandedKeys()
     await this.pixiElRef.loadDataset(data, undefined, undefined, false)

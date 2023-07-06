@@ -388,8 +388,7 @@ export class ArcsSetupFloorplan3dComponent implements OnInit {
     formData.set('lifts' , JSON.stringify(this.iotLifts.map(l=>{
       const lift : ElevatorObject3D = <any>l.objectRef ;      
       return this.dataSrv.appendKeyValue(this.getBaseIotDataObject(lift) , {
-        floor : "TEST",
-        liftCode : l.id,
+        liftCode : lift.liftCode ,
         width : lift.boxMesh.scale.x,
         height : lift.boxMesh.scale.y,
         length : lift.boxMesh.scale.z
