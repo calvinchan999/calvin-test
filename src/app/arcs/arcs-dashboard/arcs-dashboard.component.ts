@@ -462,9 +462,17 @@ export class ArcsDashboardComponent implements OnInit {
     // this.mqSrv.subscribeMQTT('arcsTaskInfoChange' ,  floorplan.floorPlanCode )
     this.stopSubscribeRobotStatus.next()
     this.mqSrv.subscribeMQTTUntil('arcsRobotStatusChange' ,  floorplan.floorPlanCode , this.stopSubscribeRobotStatus )
+    this.refreshIotStatus()
     // this.tabs = (floorplan.mapList.length == 0 ? [] : [{ id: '3dMap', label: '3D Map', authorized: false }]).concat(<any>this.getTabs())
     this.uiSrv.loadAsyncDone(ticket)
     
+  }
+
+  async refreshIotStatus(){
+    if(this.currentFloorPlan.pointList.filter(p=>p.pointType == 'LIFT').length >0){
+      this.mqSrv.refreshIotStatus(this.currentFloorPlan.floorPlanCode)
+      this.mqSrv.subscribeMQTTUntil('arcsLift' , undefined, this.stopSubscribeRobotStatus)
+    }
   }
 
   

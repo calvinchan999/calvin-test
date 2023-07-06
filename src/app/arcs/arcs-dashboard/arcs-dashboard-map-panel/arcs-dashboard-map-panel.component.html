@@ -58,27 +58,33 @@
     </div>   
 
 
-    <div class="lift-state-container" *ngIf="liftIot">
+    <div class="lift-state-container" *ngIf="liftCode">
         <div class="header">
             <i class="mdi mdi-elevator-passenger-outline" [matTooltip] = "'Lift' | label: uiSrv.langPack" matTooltipPosition = "above">  </i>
-            <span>{{liftIot.liftCode}}</span>
+            <span>{{liftCode}}</span>
             <a class="close mdi mdi-close-circle" (click)="selectedMapObjChange(null)"></a>
         </div>
 
         <div class="bottom-content" >
-            <div class="floor">
-                <span>{{'Floor' | label : uiSrv.langPack}} : </span>
-                <span>{{mqSrv.data.arcsLift.value[liftIot.liftCode]?.floor ? mqSrv.data.arcsLift.value[liftIot.liftCode].floor  : ' - '}}</span>            
-            </div>
-
             <div class="robot">
-                <ng-container  *ngIf="!mqSrv.data.arcsLift.value[liftIot.liftCode]?.robotCode">
+                <ng-container  *ngIf="!mqSrv.data.arcsLift.value[liftCode]?.robotCode">
                     <span>{{'No robot inside' | label : uiSrv.langPack}}</span>
                 </ng-container>
-                <ng-container  *ngIf="mqSrv.data.arcsLift.value[liftIot.liftCode]?.robotCode">
+                <ng-container  *ngIf="mqSrv.data.arcsLift.value[liftCode]?.robotCode">
                     <span>{{'Robot loaded' | label : uiSrv.langPack}} : </span>
-                    <span>{{mqSrv.data.arcsLift.value[liftIot.liftCode].robotCode}}</span>
+                    <span>{{mqSrv.data.arcsLift.value[liftCode].robotCode}}</span>
                 </ng-container>
+            </div>
+
+            <div class="floor">
+                <span>{{'Floor' | label : uiSrv.langPack}} : </span>
+                <span>{{mqSrv.data.arcsLift.value[liftCode]?.floor ? mqSrv.data.arcsLift.value[liftCode].floor  : ' - '}}</span>            
+            </div>
+
+
+            <div class="door">
+                <span>{{'Door' | label : uiSrv.langPack}} : </span>
+                <span>{{(mqSrv.data.arcsLift.value[liftCode]?.doorStatus ? mqSrv.data.arcsLift.value[liftCode].doorStatus  : ' - ') | enum}}</span>            
             </div>
         </div>
     </div>   

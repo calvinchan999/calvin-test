@@ -487,9 +487,6 @@ export class ThreejsViewportComponent implements OnInit , OnDestroy{
     ['waypoint', 'waypointName', 'wall' , 'alert'].forEach(k => this.uiToggled(k))
     await this.loadFloorPlanModelObject(floorplan.floorPlanCode , settings.floorPlan)    
     await this.initElevators( floorplan.floor , settings.lifts , subscribePoses)   
-    if(subscribePoses && (settings.lifts.length > 0 )){
-      this.mqSrv.refreshIotStatus(floorplan.floorPlanCode)
-    }
     if(this.parent?.rightMapPanel?.taskComp){
       this.parent.rightMapPanel.taskComp.refreshMapPoints()
     }
@@ -603,7 +600,7 @@ export class ThreejsViewportComponent implements OnInit , OnDestroy{
   // }
 
   async subscribeElevators(){
-    await this.mqSrv.subscribeMQTTUntil('arcsLift' , undefined, this.$mapCodeChanged)
+    // await this.mqSrv.subscribeMQTTUntil('arcsLift' , undefined, this.$mapCodeChanged)
     // this.subcribedIotSignalRTypes.push('arcsLift')
     this.mqSrv.data.arcsLift.pipe(filter(v=> v!=null),takeUntil(this.$onDestroy)).subscribe((v)=>{
       Object.keys(v).forEach(k=>{

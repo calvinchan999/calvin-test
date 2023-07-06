@@ -386,7 +386,7 @@ export class MqService {
       mapping: {
         arcsLift: (d : { liftId?: string, floor?: string , carStatus?: string  , doorStatus?: string  , robotId? : string} )=>{
           let ret = this.data.arcsLift.value ? JSON.parse(JSON.stringify(this.data.arcsLift.value) ): {}
-          ret[d.liftId] = {floor : d.floor , opened : d.doorStatus == 'OPENED' , robotCode : d.robotId}
+          ret[d.liftId] = {floor : d.floor , doorStatus : d.doorStatus, robotCode : d.robotId}
           return ret
         }
       },

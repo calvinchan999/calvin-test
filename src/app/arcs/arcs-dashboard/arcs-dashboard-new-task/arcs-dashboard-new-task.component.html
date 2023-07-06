@@ -8,7 +8,7 @@
 
 
 <div #taskContainer class = "task-container" *ngIf="multiMovement" >
-    <div class="header">
+    <div class="task-header">
         <span class="mdi mdi-robot">  {{selectedRobotCode}} </span>
         <a class="close mdi mdi-close-circle" (click)="taskItems = []; refreshMapPoints(); close.emit()"></a>
     </div>

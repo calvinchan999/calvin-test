@@ -12,15 +12,19 @@
 }
 
 :host .task-container{
+    display: flex;
+    flex-direction: column;
     height: 100%;
 }
 
-:host .header{ 
+:host .task-header{ 
     min-width: calc(100% - 40px);
     display: flex;
     width: fit-content;
     font-size: 17px;
     padding: 5px 10px 0px 10px;
+    height: auto;
+    max-width: 230px;
     // display: flex;
     // align-content: space-between;
     .mdi{
@@ -240,7 +244,7 @@
 :host .task-button-container{
     display: flex;
     justify-content: flex-end;
-    padding: 0px 10px 0px 10px;
+    padding: 0px 10px 10px 10px;
     .mdi{
         padding: 0px 3px 0px 0px;
     }

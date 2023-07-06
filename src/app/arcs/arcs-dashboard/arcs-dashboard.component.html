@@ -125,7 +125,7 @@
                                     (onSiteSelected) = "btmMapPanel.selectedMapObjChange(null); loadSite()" 
                                     (robotClicked)="btmMapPanel.selectedMapObjChange($event.robot) " 
                                     (selectedGraphicsChange) = "btmMapPanel.selectedMapObjChange($event)"
-                                    (to3D)="btmMapPanel.selectedMapObjChange(null); dropdownOptions.floorplans = pixiElRef.module.data.dropdownOptions.floorplans ; locationTree = pixiElRef.module.site.locationTree ; use3DMap = true ; ">
+                                    (to3D)="btmMapPanel.selectedMapObjChange(null); dropdownOptions.floorplans = pixiElRef.module.data.dropdownOptions.floorplans ; locationTree = pixiElRef.module.site.locationTree ; use3DMap = true ; refreshIotStatus() ">
             </uc-drawing-board> 
             <!-- showRobotDetailDialog($event?.id) -->
         </div>

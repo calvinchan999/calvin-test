@@ -24,7 +24,7 @@ import { PixiGraphics } from 'src/app/utils/ng-pixi/ng-pixi-viewport/ng-pixi-bas
 export class ArcsDashboardMapPanelComponent implements OnInit , OnDestroy {
   @Input() waypointState : WaypointState 
   @Input() robotState : RobotState
-  @Input() liftIot : ArcsLiftIotComponent
+  @Input() liftCode : string 
   @Input() floorPlanCode : string
   @Input() parent : ArcsDashboardComponent
   @Input() panelMode: 'CREATE-TASK'
@@ -60,6 +60,7 @@ export class ArcsDashboardMapPanelComponent implements OnInit , OnDestroy {
   }
 
   ngOnInit(): void {
+    
   }
 
   ngOnDestroy(): void {
@@ -83,14 +84,13 @@ export class ArcsDashboardMapPanelComponent implements OnInit , OnDestroy {
     }
 
     this.clearSelected()
-    
-    if (obj instanceof PixiWayPoint || obj instanceof WaypointMarkerObject3D) {
+    if(obj instanceof ElevatorObject3D || (obj instanceof PixiWayPoint && obj.pointType == 'LIFT' && obj.liftCode?.length > 0)){
+      this.liftCode =  obj.liftCode
+      // this.liftIot.customClass += ' selected'
+    }else if (obj instanceof PixiWayPoint || obj instanceof WaypointMarkerObject3D) {
         this.setWaypointInfoAtBottomPanel(obj)
     }else if(obj instanceof Robot || obj instanceof RobotObject3D){
       this.setRobotInfoAtBottomPanel(obj)
-    }else if(obj instanceof ElevatorObject3D){
-      this.liftIot =  obj.toolTipCompRef.instance
-      // this.liftIot.customClass += ' selected'
     }else {
       return
     }
@@ -113,7 +113,7 @@ export class ArcsDashboardMapPanelComponent implements OnInit , OnDestroy {
     }   
     this.waypointState  = null
     this.robotState = null
-    this.liftIot = null
+    this.liftCode = null
   }
 
   setSelectedObjStyle(){

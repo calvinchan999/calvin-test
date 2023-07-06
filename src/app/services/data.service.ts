@@ -196,9 +196,6 @@ export class DataService {
     if(this.util.arcsApp && type == 'floorplans'){
       if(this.mapSrvInitDone.value != true){
         await this.mapSrvInitDone.pipe(filter(v=>v == true) , take(1)).toPromise()
-        console.log(this._defaultBuilding)
-      }else{
-        console.log(this._defaultBuilding)
       }
       if( !this._defaultSite && this._defaultBuilding){
         resp = resp.filter((fp : DropListFloorplan)=>fp.buildingCode == this._defaultBuilding)
