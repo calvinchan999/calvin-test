@@ -21,6 +21,8 @@ import { Template } from "@angular/compiler/src/render3/r3_ast";
 import { ArcsAbnormalTasksComponent } from "./arcs-abnormal-tasks/arcs-abnormal-tasks.component";
 import { LegendItemClickEvent } from "@progress/kendo-angular-charts";
 import { type } from "os";
+import { PixiEventMarker, PixiWayPoint, PixiWayPointBubble } from "src/app/utils/ng-pixi/ng-pixi-viewport/ng-pixi-map-graphics";
+import * as PIXI from 'pixi.js';
 
 const Utilization_Status_Types = ['executing', 'idle', 'charging', 'hold', 'unknown']
 @Component({
@@ -70,13 +72,13 @@ export class ArcsChartsComponent implements OnInit, OnDestroy {
   }
   year = new Date().getFullYear()
   location
-  dropdownData = { types: [], robots: [] }
+  dropdownData = { types: [], robots: [] , floorplans : []}
   dropdownOptions = {
     types: [],
     robots: [],
     years: [{ value: this.year, text: this.year.toString() }],
     locations: [],
-    floorplan : [],
+    floorplans : [],
     waypoint : []
   }
 
@@ -458,11 +460,12 @@ export class ArcsChartsComponent implements OnInit, OnDestroy {
 
 
   async initDropDown(){
-    let ddl = await this.dataSrv.getDropLists(['types' , 'robots']);
-    ['types' , 'robots'].forEach(k=>{
+    let ddl = await this.dataSrv.getDropLists(['types' , 'robots', 'floorplans']);
+    Object.keys(ddl.data).forEach(k=>{
       this.dropdownData[k] = ddl.data[k];
-      this.dropdownOptions[k] = this.dataSrv.getDropListOptions(<any>k, ddl.data[k])
+      this.dropdownOptions[k] = ddl.option[k];
     })
+    this.analysis.floorplan.selected =  this.dropdownOptions.floorplans[0]?.value
   }
 
   initYearDropDown(firstYear : number ){
@@ -792,19 +795,31 @@ export class ArcsChartsComponent implements OnInit, OnDestroy {
     })
   }
 
-  refreshAnalysis(){    
+  async refreshAnalysis(){    
     if( !this.analysisTestData){
       return
     }
-    if(this.pixiRef){
-      this.pixiRef.module.data.loadFloorPlan(this.analysis.floorplan.selected)
-    }
 
-    this.analysis.background = <any>this.analysisTestData.floorplan[this.analysis.floorplan.selected]
+    if(this.pixiRef && this.pixiRef.module.data.activeFloorPlanCode != this.analysis.floorplan.selected){
+      await this.pixiRef.module.data.loadFloorPlan(this.analysis.floorplan.selected)
+    }
+    const pixiWayPoints : PixiWayPoint [] = this.pixiRef.viewport.allPixiWayPoints
     // let containerEl = (<any>this.waypointObstacleChart)?.element?.nativeElement?.parentElement
     // this.refreshChartOnSizeChange(containerEl?.offsetWidth, containerEl?.offsetHeight)
-    this.dropdownOptions.waypoint = this.analysisTestData.floorplan[this.analysis.floorplan.selected].waypoints.map(d=>{return {value : d.category , text : d.category}})
-    this.analysis.waypoint.data = JSON.parse(JSON.stringify(this.analysisTestData.floorplan[this.analysis.floorplan.selected].waypoints)) 
+    this.dropdownOptions.waypoint = pixiWayPoints.map(d=>{return {value : d.code , text : d.code }})
+    this.analysis.waypoint.data = pixiWayPoints.map(d => {
+      return {
+        category: d.code ,
+        x: d.x ,
+        y: d.y,
+        count: 0
+      }
+    })
+    pixiWayPoints.forEach(p=> {
+      p.visible = false
+      new PixiWayPointBubble(p.viewport , p , 0)
+    })
+    //this.analysisTestData.floorplan[this.analysis.floorplan.selected].waypoints.map(d=>{return {value : d.category , text : d.category}})
     this.analysis.daily.data = []
     this.analysis.waypoint.data.forEach(d=>d.count = 0)
     
@@ -832,6 +847,10 @@ export class ArcsChartsComponent implements OnInit, OnDestroy {
         if (closetWpCode && this.analysis.waypoint.data[j].category == closetWpCode) {
           this.analysis.waypoint.data[j].count = this.analysis.waypoint.data[j].count + 1 //= this.analysis.waypoint.data[j].count ? this.analysis.waypoint.data[j].count + 1 : 0
           this.analysis.waypoint.data = JSON.parse(JSON.stringify(this.analysis.waypoint.data))
+          const wp = pixiWayPoints.filter(p=>p.code ==closetWpCode)[0];
+          if(wp){
+            wp.bubble.count += 1
+          }
           break
         }
       }       
@@ -841,7 +860,7 @@ export class ArcsChartsComponent implements OnInit, OnDestroy {
     })
 
     //FLOORPLAN
-    this.analysis.floorplan.categories =  this.dropdownOptions.floorplan.map(f=>f.value)//[...new Set(data.map(d => d.floorplan))].sort()
+    this.analysis.floorplan.categories =  this.dropdownOptions.floorplans.map(f=>f.value)//[...new Set(data.map(d => d.floorplan))].sort()
     for (let i = 0; i < this.analysis.floorplan.categories.length; i++) {
       this.analysis.floorplan.data[i] = this.getFilteredObstacles(true , false , false).filter(d=>d.floorplan == this.analysis.floorplan.categories[i]).length 
     }   
@@ -872,16 +891,31 @@ export class ArcsChartsComponent implements OnInit, OnDestroy {
       let d = { name: tmpData[i].category, count: tmpData[i].count }
       this.analysis.total['waypoint' + (i + 1)] = d
     }
-    // this.analysis.obstacleAll.data.forEach((d : {x : number , y : number ,  date : string , waypoint : string , })=>{
-    //   this.pixiRef.
-    // })
-    console.log( this.analysis)
+
+
+    this.pixiRef.viewport.allPixiEventMarkers.forEach(m=> m.parent?.removeChild(m))
+    this.analysis.obstacleAll.data.filter((d: { floorplan: string }) => d.floorplan == this.analysis.floorplan.selected).forEach((d: { x: number, y: number, date: string, waypoint: string }) => {
+      let eventMarker = new PixiEventMarker(this.pixiRef.viewport, undefined, undefined, undefined, 'cross')
+      eventMarker.position.set(d.x, d.y)
+      this.pixiRef.viewport.mainContainer.addChild(eventMarker)
+      eventMarker.visible = false
+      eventMarker.waypoint = pixiWayPoints.filter(p=>p.code == d.waypoint)[0]
+    })
+
+    pixiWayPoints.forEach(p=> {
+      p.bubble.total = this.analysis.obstacleAll.data.filter((d: { floorplan: string }) => d.floorplan == this.analysis.floorplan.selected).length;
+      p.bubble.maxCount = Math.max.apply(null,  pixiWayPoints.map(p2=> p2.bubble.count))
+      p.bubble.draw()
+    })
+
+    console.log(this.analysis.obstacleAll.data)
+
   }
 
   async initAnalysis() {
     this.analysisTestData = await this.dataSrv.getAssets("assets/analysisData.json")
-    this.dropdownOptions.floorplan = Object.keys( this.analysisTestData.floorplan).map(code => { return { value: code, text: code } })
-    this.analysis.floorplan.selected = this.dropdownOptions.floorplan.map(o => o.value)[0]
+    // this.dropdownOptions.floorplan = Object.keys( this.analysisTestData.floorplan).map(code => { return { value: code, text: code } })
+    this.analysis.floorplan.selected = this.dropdownOptions.floorplans.map(o => o.value)[0]
     this.analysis.obstacleAll.data = this.analysisTestData.obstacles
     let date = new Date(this.year, 0, 1);
     let to = this.year == new Date().getFullYear() ? new Date() : new Date(this.year + 1, 0, 1)

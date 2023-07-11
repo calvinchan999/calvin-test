@@ -54,13 +54,15 @@
     left: 0px;
     right: 0px;
     margin: 0 auto;
+    z-index: 10000;
 }
 
 :host .right-panel-overlay{
     position: absolute;
     right: 10px;
     height: 60%;
-    top: 100px
+    top: 100px;
+    z-index: 10000;
 }
 
 :host .ts-robot-id a{

@@ -70,6 +70,88 @@ export class PixiTaskPath extends Pixi1DGraphics {
 
 //#######################################################################################################################################################
 
+export class PixiWayPointBubble extends PixiMapGraphics implements IReColor , IDraw{
+  parentGraphics: PixiWayPoint
+  style : PixiGraphicStyle
+  count
+  minSize = 15
+  maxSize 
+  total
+  maxCount
+  unitSize
+  label  : PIXI.Text
+
+  drawDone = new EventEmitter()
+  constructor(viewport: PixiMapViewport, _parentGraphics : PixiWayPoint, size , color = DRAWING_STYLE.mouseOverColor ){
+    super(viewport)
+    this.zIndex = 2
+    this.maxSize =  Math.min(viewport.pixiApp.renderer.width , viewport.pixiApp.renderer.height) / 4
+    this.parentGraphics = _parentGraphics
+    this.parentGraphics.bubble = this
+    this.style = new PixiGraphicStyle(undefined, undefined, color, undefined , 0.5 , 0xFFFFFF , 0)
+    this.count = size
+    this.position.set(this.parentGraphics.x , this.parentGraphics.y)
+    this.viewport.mainContainer.addChild(this)
+    this.autoScaleEnabled = true
+    this.label = new PIXI.Text(this.parentGraphics.text, { fill: 0xFFFFFF, fontSize: 12 })
+    this.label.pivot.set(this.label.width / 2, this.label.height / 2)
+    this.label.visible = false
+    this.addChild(this.label)
+    this.mouseOverEffectEnabled = true
+    this.interactive = true
+    this.events.mouseover.pipe(takeUntil(this.events.destroyed)).subscribe(()=>{
+      this.style.lineThickness = 2
+      this.style.opacity = 0.9
+      this.label.style = { fill: 0xFFFFFF, fontSize: 12 , stroke : this.style.fillColor , strokeThickness : 1}
+      this.draw()
+    })
+    this.events.mouseout.pipe(takeUntil(this.events.destroyed)).subscribe(()=>{
+      this.style.lineThickness = 0
+      this.style.opacity = 0.5
+      this.label.style = { fill: 0xFFFFFF, fontSize: 12 , stroke : this.style.fillColor , strokeThickness : 0}
+      this.draw()
+    })
+    this.selectable = true
+    this.events.selected.pipe(takeUntil(this.events.destroyed)).subscribe(() => {
+      this.style.fillColor = DRAWING_STYLE.paletes[1] != null ? DRAWING_STYLE.paletes[1] : DRAWING_STYLE.secondaryHighlightColor
+      this.label.style = { fill: 0xFFFFFF, fontSize: 12 , stroke : this.style.fillColor , strokeThickness : 0}
+      this.draw()
+      this.viewport.allPixiEventMarkers.filter(m=>m.waypoint == this.parentGraphics).forEach(m=>{
+        m.visible = true
+      })
+    })
+    this.events.unselected.pipe(takeUntil(this.events.destroyed)).subscribe(() => {
+      this.label.style = { fill: 0xFFFFFF, fontSize: 12 , stroke : this.style.fillColor , strokeThickness : 0}
+      this.style.fillColor = DRAWING_STYLE.mouseOverColor
+      this.draw()
+      this.viewport.allPixiEventMarkers.forEach(m=>{
+        m.visible = false
+      })
+    })
+
+    this.draw()
+    this.viewport.events.resized.pipe(takeUntil(this.events.destroyed)).subscribe(()=>  this.maxSize =  Math.min(viewport.pixiApp.renderer.width , viewport.pixiApp.renderer.height) / 4 )
+  }
+
+  draw() {      
+    this.clear()
+    if (this.count == 0) {
+      return
+    }
+    this.label.visible = true
+    this.unitSize = Math.min(2 , ( this.maxSize - this.minSize) / this.total) 
+    let radius = this.minSize + this.unitSize * this.count * (this.count / this.total) 
+    this.lineStyle(this.style.lineThickness , this.style.lineColor).beginFill(this.style.fillColor, this.style.opacity).drawCircle(0, 0, radius).endFill()
+    this.drawDone.emit()
+  }
+
+  reColor(){
+    this.clear()
+    this.draw()
+  }
+  
+}
+
 export class PixiWaypointAngleIndicator extends PixiMapGraphics {
   bgCircle: PIXI.Graphics
   parentGraphics: PixiMapGraphics
@@ -142,7 +224,7 @@ export class PixiPointGroup extends PixiMapGraphics { //########## implements IR
       row: 1,
       column: 3,
       neverCustomized: true
-    }
+  }
   rotateHandle: PixiRotateHandle
   bgRectangle = new PixiMapGraphics(this.viewport)
   currentFormation = {
@@ -440,6 +522,7 @@ export class PixiWayPoint extends PixiMapGraphics implements IDraw, IReColor {
   robotBasesOptions = [];
   liftCode 
   doorCode
+  bubble : PixiWayPointBubble
   set hasPointGroup(v) {
     if (!this.pixiPointGroup && v) {
       this.pixiPointGroup = new PixiPointGroup(this.viewport, this)
@@ -1366,17 +1449,19 @@ export class PixiEventMarker extends PixiMapGraphics implements IReColor{
   markerType = 'alert'
   svgUrl = 'assets/icons/alert_triangle.svg'
   _scale = 0.35
-  icon : PIXI.Sprite
+  icon : PIXI.Graphics | PIXI.Sprite
   eventId = null
   robotCode = null
+  waypoint: PixiWayPoint
 
-  constructor(viewport: PixiMapViewport,  style: PixiGraphicStyle = new PixiGraphicStyle().set('fillColor' , 0xFFC000), robotId = null , eventId = null) {
+  constructor(viewport: PixiMapViewport,  style: PixiGraphicStyle = new PixiGraphicStyle().set('fillColor' , 0xFFC000), robotId = null , eventId = null , markerType = 'alert') {
     super(viewport)
     this.robotCode = robotId
     this.eventId = eventId
     this.style = style
     this.interactive = true
     this.buttonMode = true
+    this.markerType = markerType
     this.init()
   }
 
@@ -1387,12 +1472,17 @@ export class PixiEventMarker extends PixiMapGraphics implements IReColor{
 
   async init(){
     try {
-      this.icon = new PIXI.Sprite(PIXI.Texture.from(this.svgUrl))
-      const dim = await GetImageDimensions(this.svgUrl)
-      this.reColor(this.style.fillColor)
-      this.icon.pivot.set(dim[0]/2 , dim[1]/2)
-      this.icon.position.set(this.icon.pivot[0] , this.icon.pivot[1])
-      this.icon.scale.set(this._scale , this._scale)
+      if(this.markerType == 'alert'){
+        this.icon = new PIXI.Sprite(PIXI.Texture.from(this.svgUrl))
+        const dim = await GetImageDimensions(this.svgUrl)
+        this.reColor(this.style.fillColor)
+        this.icon.pivot.set(dim[0]/2 , dim[1]/2)
+        this.icon.position.set(this.icon.pivot[0] , this.icon.pivot[1])
+        this.icon.scale.set(this._scale , this._scale)
+      }else if(this.markerType == 'cross'){
+        this.icon = new PIXI.Graphics()
+        this.icon.moveTo(-7 , -7).lineStyle(3 , this.style.fillColor ).lineTo( 7 , 7 ).moveTo(7 , -7).lineTo(-7 , 7)
+      }
     } catch (err) {
       console.log('An Error has occurred when loading ' +  this.svgUrl)
       console.log(err)

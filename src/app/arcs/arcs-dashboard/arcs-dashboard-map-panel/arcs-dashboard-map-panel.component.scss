@@ -12,16 +12,18 @@
 
 
 :host ::ng-deep .header{ 
+    display: flex;
+    justify-content: space-between;
     font-size: 17px;
     height: 32px;
     padding: 5px 10px 5px 10px;
+    gap: 10px;
     // display: flex;
     // align-content: space-between;
     .mdi{
-        margin: 3px;
+        margin: -1px 3px;
     }
     .close{
-        position: absolute;
         top: 0px;
         right: 5px;
     }

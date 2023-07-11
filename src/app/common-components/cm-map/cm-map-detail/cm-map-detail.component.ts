@@ -231,7 +231,7 @@ export class CmMapDetailComponent implements OnInit {
         }else{      
           this.pixiElRef.reset()
           this.pixiElRef.hideButton = { arrow: true, upload: true, point: true } 
-          this.loadData([mapCode, this.util.config.ROBOT_BASE])         
+          this.loadData([mapCode, this.dataSrv.robotProfile.robotBase])         
         }
         this.frmGrp.reset()
       }else if(!this.uiSrv.isTablet){

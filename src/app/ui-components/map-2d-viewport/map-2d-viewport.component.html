@@ -66,15 +66,18 @@
         <ng-container *ngIf="!hideButton.all">       
           <ng-container *ngTemplateOutlet = "createModeTpl"></ng-container>
         </ng-container>
-
         
         <button *ngIf="!util.standaloneApp && showRobot" kendoButton class="full-screen" [matTooltip]="'Full Screen' | label : uiSrv.langPack" (click)="commonModule.ui.fullScreen = !commonModule.ui.fullScreen"  [ngClass]="{'btn-active':commonModule.ui.fullScreen}" >
           <span [class]="'mdi mdi-' + (commonModule.ui.fullScreen ? 'fullscreen-exit' : 'fullscreen')"></span>
         </button>    
-  
       </div>
   
       <div class="buttons-container t2">
+        <button *ngIf="util.arcsApp && !showRobot" kendoButton class="dark-mode-switch" [matTooltip]="'Light / Dark Map' | label : uiSrv.langPack"  
+                  (click)="module.ui.toggleDarkMode(!module.ui.toggle.darkMode)"  [ngClass]="{'btn-active': module.ui.toggle.darkMode}">
+               <span [class]="'mdi mdi-theme-light-dark'"></span>
+        </button>  
+
         <button *ngIf="!hideButton.all && showRosToggle" kendoButton class="select-drag" [matTooltip]="'Drag Select'| label : uiSrv.langPack" matTooltipPosition="right" (click)="viewport.multiSelectEnabled = !viewport.multiSelectEnabled" [ngClass]="{'btn-active': viewport._multiSelectEnabled}" >
           <span class="mdi mdi-select-drag"></span>
         </button>
@@ -119,10 +122,12 @@
                   [ngClass]="{'btn-intermediate': module.ui.toggle.showWaypoint && !module.ui.toggle.showWaypointName , 'btn-active': module.ui.toggle.showWaypoint && module.ui.toggle.showWaypointName , 'show-waypoint-commonModule.ui.popupScreen' : commonModule.ui.popupScreen}">
             <span class="mdi mdi-map-marker"></span>
           </button>
-           <button *ngIf="showRobot && !commonModule.ui.popupScreen" kendoButton class="dark-mode-switch" [matTooltip]="'Light / Dark Map' | label : uiSrv.langPack"  
+
+          <button *ngIf="showRobot && !commonModule.ui.popupScreen" kendoButton class="dark-mode-switch" [matTooltip]="'Light / Dark Map' | label : uiSrv.langPack"  
                   (click)="module.ui.toggleDarkMode(!module.ui.toggle.darkMode)"  [ngClass]="{'btn-active': module.ui.toggle.darkMode}">
                <span [class]="'mdi mdi-theme-light-dark'"></span>
           </button>
+
            <button *ngIf="engineerMode && showRobot && !commonModule.ui.popupScreen " kendoButton class="show-pose-dev" [matTooltip]="'Show Positioning Accuracy'| label : uiSrv.langPack"   
                   matTooltipPosition="right" (click) = "module.ui.toggle.showPoseDeviation = !module.ui.toggle.showPoseDeviation; module.ui.updateLocalStorage()"  [ngClass]="{'btn-active': module.ui.toggle.showPoseDeviation }">
             <span class="mdi mdi-crosshairs-question"></span>
@@ -452,7 +457,7 @@
     </button>
     
     <button kendoButton class="dark-mode-switch" [matTooltip]="'Light / Dark Map' | label : uiSrv.langPack"  
-    (click)="module.ui.toggleDarkMode(!module.ui.toggle.darkMode)"  [ngClass]="{'btn-active': module.ui.toggle.darkMode}">
+      (click)="module.ui.toggleDarkMode(!module.ui.toggle.darkMode)"  [ngClass]="{'btn-active': module.ui.toggle.darkMode}">
     <span [class]="'mdi mdi-theme-light-dark'"></span>
     </button>    
 

@@ -29,6 +29,12 @@ export class ArcsDashboardMapPanelComponent implements OnInit , OnDestroy {
   @Input() parent : ArcsDashboardComponent
   @Input() panelMode: 'CREATE-TASK'
   @ViewChild('newTaskComp') newTaskCompRef : ArcsDashboardNewTaskComponent
+  pointTypeIconClassMap = {
+    LIFT : "mdi mdi-elevator-passenger-outline",
+    TURNSTILE : "mdi mdi-turnstile",
+    LOBBY : "mdi mdi-human-queue",
+    CHARGING_STATION : "mdi mdi-battery-charging"
+  }
 
   get taskComp() {
     return this.parent.rightMapPanel.newTaskCompRef
@@ -70,10 +76,6 @@ export class ArcsDashboardMapPanelComponent implements OnInit , OnDestroy {
   originalToolTipsOn
   selectedObj : Object3DCommon | PixiGraphics
   async selectedMapObjChange(obj) {
-    // const originalSelectedPoint : WaypointMarkerObject3D =  this.parent.threeJsElRef?.waypointMeshes?.filter(w => w.pointCode == this.waypointState?.pointCode)[0]
-    // if(originalSelectedPoint && !this.parent.threeJsElRef.uiToggles.showWaypointName){
-    //   originalSelectedPoint.toolTipAlwaysOn = false
-    // }
 
     if(this.isCreatingTask){
       if (obj instanceof PixiWayPoint || obj instanceof WaypointMarkerObject3D) {
@@ -82,11 +84,13 @@ export class ArcsDashboardMapPanelComponent implements OnInit , OnDestroy {
       }
       return
     }
+    if(this.parent.pixiElRef && obj == null && this.selectedObj instanceof PixiGraphics && this.selectedObj.viewport.selectedGraphics == this.selectedObj){
+      this.parent.pixiElRef.viewport.selectedGraphics = null
+    }
 
     this.clearSelected()
     if(obj instanceof ElevatorObject3D || (obj instanceof PixiWayPoint && obj.pointType == 'LIFT' && obj.liftCode?.length > 0)){
       this.liftCode =  obj.liftCode
-      // this.liftIot.customClass += ' selected'
     }else if (obj instanceof PixiWayPoint || obj instanceof WaypointMarkerObject3D) {
         this.setWaypointInfoAtBottomPanel(obj)
     }else if(obj instanceof Robot || obj instanceof RobotObject3D){
@@ -104,13 +108,10 @@ export class ArcsDashboardMapPanelComponent implements OnInit , OnDestroy {
     if (!this.originalToolTipsOn && this.selectedObj && this.selectedObj instanceof Object3DCommon) {
       this.selectedObj.toolTipAlwaysOn = false
     }
-    // if (this.liftIot) {
-    //   this.liftIot.customClass = this.liftIot.customClass.replace(' selected', '')
-    // }   
     if( this.selectedObj instanceof Object3DCommon){
         this.selectedObj.toolTipSettings.cssClass = 'label-3js'
         this.selectedObj.toolTip.element.className = 'label-3js'
-    }   
+    } 
     this.waypointState  = null
     this.robotState = null
     this.liftCode = null
@@ -123,17 +124,6 @@ export class ArcsDashboardMapPanelComponent implements OnInit , OnDestroy {
       obj.toolTipSettings.cssClass = 'label-3js selected'
       obj.toolTipAlwaysOn = true 
     }
-    // if(obj instanceof RobotObject3D ){
-    //   obj.toolTipAlwaysOn = true 
-    // }else if (obj instanceof WaypointMarkerObject3D || obj instanceof ElevatorObject3D){
-    //   obj.toolTipSettings.cssClass = 'label-3js selected'
-    //   obj.toolTipAlwaysOn = true 
-    // }
-
-    // this.parent.threeJsElRef?.waypointMeshes?.filter(w => w.pointCode != this.waypointState?.pointCode).forEach(w=>{
-    //   w.toolTipSettings.cssClass = 'label-3js'
-    //   w.toolTip.element.className =  'label-3js'
-    // })
   }
 
   async setWaypointInfoAtBottomPanel(obj){

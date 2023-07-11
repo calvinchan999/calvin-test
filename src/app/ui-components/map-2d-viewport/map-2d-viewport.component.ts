@@ -2635,14 +2635,13 @@ export class DataModule{
 
   }
 
-  setPixiEventMarker(a : { robotId : string , timestamp : any , rosX : any , rosY : any , mapCode : string , alertType :string}){
+  setPixiEventMarker(a : { robotId : string , timestamp : any , rosX : any , rosY : any , mapCode : string , alertType :string} , markerType = 'alert'){
     const robotBase = (<DropListRobot[]>this.dropdownData.robots)?.filter(r=>r.robotCode == a.robotId)[0]?.robotBase
     const pixiMap = this.master.viewport.mapContainerStore[`${a.mapCode}${this.master.util.arcsApp ? ('@' + robotBase) : ''}`]
-    console.log(this.master.viewport.mapContainerStore)
     let pixiEventMarker : PixiEventMarker
     if(pixiMap){
       const pos = this.master.viewport.mainContainer.toLocal(pixiMap.toGlobal(new PIXI.Point(pixiMap.calculateMapX(a.rosX) , pixiMap.calculateMapY(a.rosY)))) 
-      pixiEventMarker = new PixiEventMarker(this.master.viewport , undefined , a.robotId ,  a.timestamp )
+      pixiEventMarker = new PixiEventMarker(this.master.viewport , undefined , a.robotId ,  a.timestamp , markerType )
       pixiEventMarker.toolTip.contentBinding = ()=> {
         let datetime = new Date(a.timestamp )
         let timeStr = `${datetime.getHours().toString().padStart(2, '0')}:${datetime.getMinutes().toString().padStart(2, '0')}` 
@@ -2790,7 +2789,7 @@ export class UiModule {
     this.updateLocalStorage()
   }
 
-  toggleDarkMode(on ) {
+  toggleDarkMode(on) {
     this.toggle.darkMode = this.popupScreen? false : on
     const vertexShader = null;
     const fragmentShader = [

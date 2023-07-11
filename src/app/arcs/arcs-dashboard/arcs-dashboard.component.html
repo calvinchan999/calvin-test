@@ -129,7 +129,7 @@
             </uc-drawing-board> 
             <!-- showRobotDetailDialog($event?.id) -->
         </div>
-        <div *ngIf="use3DMap" class="three-d-container">
+        <div *ngIf="use3DMap" class="three-d-container"  (contextmenu) = "btmMapPanel.selectedMapObjChange(null)">
             <uc-3d-viewport #threeJs [parent] = "me"  [arcsRobotType] = "robotTypeFilter"
                             (to2D)="btmMapPanel.selectedMapObjChange(null); use3DMap = false ; initPixi($event.floorPlanCode , $event.showSite ) ;" 
                             (objClicked) = "btmMapPanel.selectedMapObjChange($event)"

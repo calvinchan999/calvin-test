@@ -6,6 +6,7 @@ export const DRAWING_STYLE = {
     imgEditHandleSize: 5,
     highlightColor: 0xFE9802,
     secondaryHighlightColor: 0xFF6358,
+    paletes : [0x00CED1 , 0xFF66B9 , 0xFFD700 , 0x87CEFA ,0x9ACD32 , 0xFF8C00 ],
     mouseOverColor: 0x00CED1,
     outlineColor : 0xFF6358,
     arrowTypes: ['arrow', 'arrow_bi', 'arrow_bi_curved', 'arrow_curved'],

@@ -53,7 +53,6 @@ export class ArcsEventDetectionDetailComponent implements OnInit {
       this.data = this.data ? this.data : {}
       this.data.base64Image =  this.mapSrv.alertImageCache.base64Image
       this.data.detectionType =  this.mapSrv.alertImageCache.detectionType
-      console.log(this.data)
     }else{
       await this.loadData()
     }

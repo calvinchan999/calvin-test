@@ -65,7 +65,8 @@ export class PixiViewport extends Viewport {
         zoomed  : new EventEmitter(),
         clickEnd : new EventEmitter(),
         click : new EventEmitter(),
-        move : new EventEmitter()
+        move : new EventEmitter(),
+        resized :  new EventEmitter()
     }
 
     ngEvents = {
@@ -151,7 +152,7 @@ export class PixiViewport extends Viewport {
             if (gr == this._selectedGraphics || ((this._mode == 'create' || this.multiSelectEnabled ) && gr != null)) {
                 return
             }
-            
+
             if (this._selectedGraphics) {
                 const emitter = this._selectedGraphics.events.unselected
                 this.graphicsUnselected.emit(this._selectedGraphics)

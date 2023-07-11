@@ -165,6 +165,7 @@ export class NgPixiViewportComponent implements OnInit, AfterViewInit, OnDestroy
         const app = this.app;
         viewport.resize(width, height);
         app.renderer.resize(width, height);
+        viewport.events.resized.emit({width : width , height : height});
         // this.viewport.moveCenter(0, 0);
     }
 

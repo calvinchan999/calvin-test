@@ -1,7 +1,7 @@
 <div *ngIf="bottomPanel" class="bottom-panel">
     <div class="waypoint-state-container" *ngIf="waypointState">
         <div class="header">
-            <span [class]="waypointState.pointType == 'CHARGING_STATION' ?  'mdi mdi-battery-charging' : 'mdi mdi-map-marker-outline' " [matTooltip] = "'Waypoint' | label: uiSrv.langPack" matTooltipPosition = "above">  
+            <span [class]="pointTypeIconClassMap[waypointState.pointType]  ?  pointTypeIconClassMap[waypointState.pointType] : 'mdi mdi-map-marker-outline' " [matTooltip] = "'Waypoint' | label: uiSrv.langPack" matTooltipPosition = "above">  
                 {{waypointState.pointCode}} 
             </span>
             <!-- <span class="point-code"> {{waypointState.pointCode}} </span> -->
@@ -60,8 +60,10 @@
 
     <div class="lift-state-container" *ngIf="liftCode">
         <div class="header">
-            <i class="mdi mdi-elevator-passenger-outline" [matTooltip] = "'Lift' | label: uiSrv.langPack" matTooltipPosition = "above">  </i>
-            <span>{{liftCode}}</span>
+            <div>
+                <i class="mdi mdi-elevator-passenger-outline" [matTooltip] = "'Lift' | label: uiSrv.langPack" matTooltipPosition = "above">  </i>
+                <span>{{liftCode}}</span>
+            </div>
             <a class="close mdi mdi-close-circle" (click)="selectedMapObjChange(null)"></a>
         </div>
 

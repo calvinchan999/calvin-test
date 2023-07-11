@@ -188,7 +188,7 @@ export class ArcsDashboardComponent implements OnInit {
       { id: 'usability', label: 'Usability', authorized: false },
       { id: 'utilization', label: 'Utilization', authorized: false },      
       { id: 'robot_detection' , label : 'Event' , authorized : false },
-      // { id: 'analysis', label: 'Analysis', authorized: false },
+      { id: 'analysis', label: 'Analysis', authorized: false },
       { id: 'group', label: 'Group' , functionId :  this.gridSettings.group.functionId},
     ]).
     filter(t=> t.authorized === false || this.authSrv.userAccessList.includes(t.functionId.toUpperCase()))
@@ -512,7 +512,6 @@ export class ArcsDashboardComponent implements OnInit {
     if(filters!= this.getStatusListUrlParam()){ //validate concurrency
       return
     }
-
     
     this.addAndRemoveRobotInfos(data)  
     data.forEach(d=> this.robotSrv.robotState(d.robotCode).updateRobotInfo(d))
@@ -746,5 +745,110 @@ export class ArcsDashboardComponent implements OnInit {
     //     obstacleDetected : false,
     //     tiltDetected : false,
     //     estopped : false
+    //   }
+    // ]
+
+
+    
+    // data = [
+    //   {
+    //     batteryPercentage : 0.5,
+    //     speed : 0,
+    //     modeState : null,
+    //     pointCode : null,
+    //     reservedPoint : null,
+    //     reservingPoints : null,
+    //     waitingPoint : null,
+    //     trayRackDTO : null,
+    //     executingTaskCount : 1,
+    //     completedTaskCount : 35,
+    //     waitingTaskCount : 0 , 
+    //     robotType: 'DELIVERY',
+    //     robotCode: 'MIR',
+    //     floorPlanCode: '5W_2022',
+    //     robotStatus: 'EXECUTING',
+    //     obstacleDetected : false,
+    //     tiltDetected : false,
+    //     estopped : false
+    //   },
+    //   {
+    //     batteryPercentage : 0.5,
+    //     speed : 0,
+    //     modeState : null,
+    //     pointCode : null,
+    //     reservedPoint : null,
+    //     reservingPoints : null,
+    //     waitingPoint : null,
+    //     trayRackDTO : null,
+    //     executingTaskCount : 0,
+    //     completedTaskCount : 21,
+    //     waitingTaskCount : 0 , 
+    //     robotType: 'CONCIERGE',
+    //     robotCode: 'TEMI',
+    //     floorPlanCode: '5W_2022',
+    //     robotStatus: 'IDLE',
+    //     obstacleDetected : false,
+    //     tiltDetected : false,
+    //     estopped : false
+    //   },
+    //   {
+    //     batteryPercentage : 0.5,
+    //     speed : 0,
+    //     modeState : null,
+    //     pointCode : null,
+    //     reservedPoint : null,
+    //     reservingPoints : null,
+    //     waitingPoint : null,
+    //     trayRackDTO : null,
+    //     executingTaskCount : 0,
+    //     completedTaskCount : 14,
+    //     waitingTaskCount : 0 , 
+    //     robotType: 'FLOOR_SCRUB',
+    //     robotCode: 'GAUSSIAN',
+    //     floorPlanCode: '5W_2022',
+    //     robotStatus: 'IDLE',
+    //     obstacleDetected : false,
+    //     tiltDetected : false,
+    //     estopped : false
+    //   },
+    //   {
+    //     batteryPercentage : 0.1,
+    //     speed : 0,
+    //     modeState : null,
+    //     pointCode : null,
+    //     reservedPoint : null,
+    //     reservingPoints : null,
+    //     waitingPoint : null,
+    //     trayRackDTO : null,
+    //     executingTaskCount : 1,
+    //     completedTaskCount : 31,
+    //     waitingTaskCount : 0 , 
+    //     robotType: 'PATROL',
+    //     robotCode: 'PATROL',
+    //     floorPlanCode: '5W_2022',
+    //     robotStatus: 'EXECUTING',
+    //     obstacleDetected: false,
+    //     tiltDetected: false,
+    //     estopped: false
+    //   }, 
+    //   {
+    //     batteryPercentage: 0.5,
+    //     speed: 0,
+    //     modeState: null,
+    //     pointCode: null,
+    //     reservedPoint: null,
+    //     reservingPoints: null,
+    //     waitingPoint: null,
+    //     trayRackDTO: null,
+    //     executingTaskCount: 0,
+    //     completedTaskCount: 18,
+    //     waitingTaskCount: 0,
+    //     robotType: 'MOBILE_CHAIR',
+    //     robotCode: 'CHAIR',
+    //     floorPlanCode: '5W_2022',
+    //     robotStatus: 'UNKNOWN',
+    //     obstacleDetected: false,
+    //     tiltDetected: false,
+    //     estopped: false
     //   }
     // ]

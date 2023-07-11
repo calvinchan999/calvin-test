@@ -1329,7 +1329,7 @@ export class Object3DCommon extends Object3D implements IDestroy{
     this.contextMenuListener = this.master.ngRenderer.listen(this.master.container, 'contextmenu', () => this.onContextMenu())
   }
 
-  onContextMenu(){
+  onContextMenu(){    
     if(this instanceof TurnstileObject3D){
       return
     }

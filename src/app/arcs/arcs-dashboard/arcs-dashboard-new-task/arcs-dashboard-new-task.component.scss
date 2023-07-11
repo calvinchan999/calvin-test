@@ -18,20 +18,19 @@
 }
 
 :host .task-header{ 
-    min-width: calc(100% - 40px);
     display: flex;
-    width: fit-content;
+    width: 100%;
+    justify-content: space-between;
     font-size: 17px;
-    padding: 5px 10px 0px 10px;
+    padding: 5px 0px 5px 10px;
     height: auto;
-    max-width: 230px;
+    max-width: 240px;
     // display: flex;
     // align-content: space-between;
     .mdi{
-        margin: 3px;
+        margin: -1px;
     }
     .close{
-        position: absolute;
         top: 0px;
         right: 5px;
     }
@@ -248,4 +247,8 @@
     .mdi{
         padding: 0px 3px 0px 0px;
     }
+}
+
+:host uc-drawing-board .wrapper.fullscreen {
+    z-index: 9999;
 }

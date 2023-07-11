@@ -10,7 +10,8 @@ import { TableComponent } from 'src/app/ui-components/table/table.component';
 })
 export class ArcsPatrolPlaybackComponent implements OnInit {
   @ViewChild('table') tableRef : TableComponent
-  constructor(public uiSrv : UiService , public dataSrv : DataService) { }
+  constructor(public uiSrv: UiService, public dataSrv: DataService) { }
+  currentTime = 0  
   selectedRow
   tableDisabledButtons = {new : true , action : true}
   tableButtons = { new: false, action: true }
@@ -23,6 +24,7 @@ export class ArcsPatrolPlaybackComponent implements OnInit {
   ]
   data = []
   ngOnInit(): void {
+
   }
 
   async delete(){

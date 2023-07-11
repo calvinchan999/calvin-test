@@ -2,7 +2,7 @@
 <ng-template #toDateTpl>{{dateRangeToolTip?.to?.content}}</ng-template>
 <ng-template #filterTemplate>
     <div class="form-row">
-        <uc-dropdown  *ngIf="_chartType=='analysis'" lab = "Floor Plan" [allowClear]="false" [(value)] = 'analysis.floorplan.selected' (valueChange)="analysis.waypoint.selected = null ; refreshAnalysis() " [options] = "dropdownOptions.floorplan"  nullValueDesc="All"></uc-dropdown>
+        <uc-dropdown  *ngIf="_chartType=='analysis'" lab = "Floor Plan" [allowClear]="false" [(value)] = 'analysis.floorplan.selected' (valueChange)="analysis.waypoint.selected = null ; refreshAnalysis() " [options] = "dropdownOptions.floorplans"  nullValueDesc="All"></uc-dropdown>
         <uc-dropdown  *ngIf="_chartType=='analysis'" lab = "Waypoint" [(value)] = 'analysis.waypoint.selected' (valueChange)="refreshAnalysis()" [options] = "dropdownOptions.waypoint"  nullValueDesc="All"></uc-dropdown>
         <uc-dropdown  *ngIf="_chartType!='analysis'" lab = "Robot Type" [(value)] = 'robotTypeFilter' (valueChange)="refreshRobotOptions() ; robotCodeFilter = null ; refreshChart()" [options] = "dropdownOptions.types"  [translateOption] = 'true' nullValueDesc="All"></uc-dropdown>
         <uc-dropdown  *ngIf="_chartType!='analysis'" lab = "Robot" [(value)] = 'robotCodeFilter' (valueChange)="refreshRobotTypeFilter();refreshChart()" [options] = "dropdownOptions.robots"  nullValueDesc="All"></uc-dropdown>
