@@ -188,7 +188,7 @@ export class ArcsDashboardComponent implements OnInit {
       { id: 'usability', label: 'Usability', authorized: false },
       { id: 'utilization', label: 'Utilization', authorized: false },      
       { id: 'robot_detection' , label : 'Event History' , authorized : false },
-      { id: 'detection', label: 'Event Analysis', authorized: false },
+      // { id: 'detection', label: 'Event Analysis', authorized: false },
       { id: 'group', label: 'Group' , functionId :  this.gridSettings.group.functionId},
     ]).
     filter(t=> t.authorized === false || this.authSrv.userAccessList.includes(t.functionId.toUpperCase()))
