@@ -139,7 +139,7 @@ export class CmMapDetailComponent implements OnInit {
       this.pixiElRef.viewport.METER_TO_PIXEL_RATIO = data.resolution ? 1 / data.resolution :  this.util.config.METER_TO_PIXEL_RATIO
       this.pixiElRef.mapHeight = data.imageHeight
       this.pixiElRef.mapWidth = data.imageWidth
-      this.pixiElRef.hideButton = { all : true }
+      this.pixiElRef.hideButton = { line : true , brush : true , point : true, polygon : true , arrow : true }
     }
     await this.pixiElRef.loadToMainContainer( data.base64Image , undefined , undefined , undefined, undefined, true)
     let resolution = data.resolution ?  data.resolution : 1 /  this.util.config.METER_TO_PIXEL_RATIO

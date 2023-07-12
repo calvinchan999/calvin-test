@@ -20,13 +20,13 @@
     align-self: center;
 }
 
-:host .analysis-count{
+:host .detection-count{
     font-size: 2.3em;
     font-weight: 300;
     margin-right: 0.5em;
 }
 
-:host .analysis-count-wrapper{
+:host .detection-count-wrapper{
     display: flex;
     justify-content: end;
     width: 100%;

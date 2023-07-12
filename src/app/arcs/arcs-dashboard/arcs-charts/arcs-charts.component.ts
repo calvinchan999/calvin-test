@@ -48,14 +48,7 @@ export class ArcsChartsComponent implements OnInit, OnDestroy {
 
   frDateTplView
 
-  analysisTestData : {floorplan : {[key : string] : {
-    path? : string,
-    width? : number,
-    height? :  number,
-    imageWidth? : number,
-    imageHeight? : number,   
-    waypoints? :  {category : string , x : number , y : number , count : number}[]
-  }} , obstacles : any []} =null
+
   robotTypePipe = (e: AxisLabelVisualArgs) => {
     return this.uiSrv.translate(this.dataSrv.enumPipe.transform(e.value))
   }
@@ -66,7 +59,7 @@ export class ArcsChartsComponent implements OnInit, OnDestroy {
       this.ngAfterViewInit()
     }
   }
-  _chartType: "usability" | "utilization" | "analysis"
+  _chartType: "usability" | "utilization" | "detection"
   get chartType() {
     return this._chartType
   }
@@ -82,13 +75,16 @@ export class ArcsChartsComponent implements OnInit, OnDestroy {
     waypoint : []
   }
 
-
-  analysis = {
+  detection = {
     total : {
       count : null,
       waypoint1 : null,
       waypoint2 : null,
       waypoint3 : null,
+    },
+    detectionType: {
+      data: [],
+      centerText: ''
     },
     waypoint: {
       selected: null,
@@ -109,9 +105,6 @@ export class ArcsChartsComponent implements OnInit, OnDestroy {
       categories: [],
       data: [],
     },
-    obstacle: {
-      data: []
-    },
     events: {
       data: []
     },
@@ -119,12 +112,12 @@ export class ArcsChartsComponent implements OnInit, OnDestroy {
       selected: null,
       categories : [],
       data: []
-    },
-    hourlyAvg: {
-      selected: null,
-      categories: [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23],
-      data: [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
     }
+    // hourlyAvg: {
+    //   selected: null,
+    //   categories: [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23],
+    //   data: [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
+    // }
   }
   
   usability : {
@@ -159,8 +152,9 @@ export class ArcsChartsComponent implements OnInit, OnDestroy {
     }
   }
 
-  usabilityData : {type : 'COMPLETED'|'CANCELED'|'INCOMPLETE'|'DAILY'|'HOURLY_AVG'|'WEEKLY_AVG'|'ROBOT_TYPE'|'ROBOT' , category? : string , value? : number}[] = []
+  usabilityData : { type : 'COMPLETED' | 'CANCELED' | 'INCOMPLETE' | 'DAILY' | 'HOURLY_AVG' | 'WEEKLY_AVG' | 'ROBOT_TYPE' | 'ROBOT' , category? : string , value? : number }[] = []
   utilizationData: { type: 'ROBOT' | 'DAILY' | 'ROBOT_TYPE' , category? : string , charging : number , idle : number , executing : number , hold : number , unknown : number , total: number}[] = []
+  detectionData : { type : 'DAILY' | 'FLOOR_PLAN' | 'DETECTION_TYPE' | 'JSON' , category? : string  , value? : string }[]
 
   utilization : {
     statuss : string[],
@@ -275,10 +269,10 @@ export class ArcsChartsComponent implements OnInit, OnDestroy {
       this.robotCodeFilter = evt.category ==  this.robotCodeFilter ? null : evt.category
       this.refreshRobotTypeFilter()
       this.refreshChart()
-    } else if (evt.sender == this.floorplanObstacleChart && this.analysis.floorplan.selected != evt.category) {
-      this.analysis.floorplan.selected = evt.category
-      this.analysis.waypoint.selected = null
-      this.refreshAnalysis()
+    } else if (evt.sender == this.floorplanObstacleChart && this.detection.floorplan.selected != evt.category) {
+      this.detection.floorplan.selected = evt.category
+      this.detection.waypoint.selected = null
+      this.refreshDetection()
     }
   }
 
@@ -340,7 +334,7 @@ export class ArcsChartsComponent implements OnInit, OnDestroy {
     this.setDateRange(frDate , null)
     await this.refreshChart()
     this.uiSrv.loadAsyncDone(ticket)
-    setTimeout(() => this.initAnalysis())
+    setTimeout(() => this.initDetection())
   }
 
   refreshRobotTypeFilter(){
@@ -361,9 +355,9 @@ export class ArcsChartsComponent implements OnInit, OnDestroy {
     }else if(this._chartType == 'utilization'){
       fr = this.utilization?.daily?.min
       to = this.utilization?.daily?.max
-    }else if(this._chartType == 'analysis'){
-      fr = this.analysis?.daily?.min
-      to = this.analysis?.daily?.max
+    }else if(this._chartType == 'detection'){
+      fr = this.detection?.daily?.min
+      to = this.detection?.daily?.max
     }
     return {fromDate : fr , toDate : to}
   }
@@ -395,10 +389,10 @@ export class ArcsChartsComponent implements OnInit, OnDestroy {
       this.utilization.daily.min = args.from;
       this.utilization.daily.max = args.to;
       this.utilization.daily.transitions = false;
-    }else if(this.chartType == 'analysis'){
-      this.analysis.daily.min = args.from;
-      this.analysis.daily.max = args.to;
-      this.analysis.daily.transitions = false;
+    }else if(this.chartType == 'detection'){
+      this.detection.daily.min = args.from;
+      this.detection.daily.max = args.to;
+      this.detection.daily.transitions = false;
     }
     this.refreshChart()
   }
@@ -445,7 +439,7 @@ export class ArcsChartsComponent implements OnInit, OnDestroy {
   isDimmed(arg: SeriesVisualArgs | SeriesLabelsVisualArgs , checkValue = null) {
     checkValue = checkValue ? checkValue :  arg.category   
     let utilizationCharts = [this.utilizationByRobotChart , this.utilizationByRobotTypeChart , this.utilizationByHourChart]
-    return (arg.sender == this.floorplanObstacleChart && this.analysis.floorplan.selected && this.analysis.floorplan.selected != checkValue) ||
+    return (arg.sender == this.floorplanObstacleChart && this.detection.floorplan.selected && this.detection.floorplan.selected != checkValue) ||
            ([this.usabilityByRobotTypeChart , this.utilizationByRobotTypeChart].includes(arg.sender) && this.robotTypeFilter && checkValue!= this.robotTypeFilter) ||
            ((arg.sender == this.usabilityByRobotChart || arg.sender == this.utilizationByRobotChart ) && this.robotCodeFilter && checkValue != this.robotCodeFilter) || 
            (this.hightlightedSeriesIndex !== null && arg.series?.index != null && (utilizationCharts.includes(arg.sender)) && arg.series.index != this.hightlightedSeriesIndex )
@@ -458,7 +452,7 @@ export class ArcsChartsComponent implements OnInit, OnDestroy {
       this.dropdownData[k] = ddl.data[k];
       this.dropdownOptions[k] = ddl.option[k];
     })
-    this.analysis.floorplan.selected =  this.dropdownOptions.floorplans[0]?.value
+    this.detection.floorplan.selected =  this.dropdownOptions.floorplans[0]?.value
   }
 
   initYearDropDown(firstYear : number ){
@@ -486,8 +480,8 @@ export class ArcsChartsComponent implements OnInit, OnDestroy {
   }
 
   async refreshChart() {
-    if(this.chartType == 'analysis'){ //TBR !!!!!!!!!!!!!!!!!!
-      this.refreshAnalysis()
+    if(this.chartType == 'detection'){ //TBR !!!!!!!!!!!!!!!!!!
+      this.refreshDetection()
       return 
     }
 
@@ -754,6 +748,23 @@ export class ArcsChartsComponent implements OnInit, OnDestroy {
     this.usability.robotType.centerText = (this.usability.robotType.data.filter(d=>!this.robotTypeFilter || this.robotTypeFilter == d.category).map(d=>d.value).reduce((acc, i) => acc += i, 0)).toString() + ' \n ' + this.uiSrv.translate('Tasks')
   }
 
+  fetchDetection(){
+    this.initDetection()
+    this.detectionData.forEach(r => {
+      if(r.type == 'DAILY'){
+        let splitedDateString = r.category.split("-")
+        let index = this.daysIntoYear(new Date(Number(splitedDateString[0]), Number(splitedDateString[1]) - 1, Number(splitedDateString[2])))
+        this.detection.daily.data[index] = this.getRoundedValue(Number(r.value))
+      } else if(r.type == 'DETECTION_TYPE'){
+
+      } else if(r.type == 'FLOOR_PLAN'){
+
+      } else if(r.type == 'JSON'){
+
+      }
+    })
+  }
+
   getRoundedValue(value: number, decimalPlace: number = 2) {
     return Number(this.util.trimNum(value , decimalPlace))
   }
@@ -762,9 +773,6 @@ export class ArcsChartsComponent implements OnInit, OnDestroy {
     // console.log(Date.UTC(date.getFullYear(), date.getMonth(), date.getDate()))
     return (Date.UTC(date.getFullYear(), date.getMonth(), date.getDate()) - Date.UTC(date.getFullYear(), 0, 1)) / 24 / 60 / 60 / 1000;
   }
-
-
-
 
 
  // ===============================================================================================================================================
@@ -777,31 +785,31 @@ export class ArcsChartsComponent implements OnInit, OnDestroy {
     // this.refreshChartOnSizeChange(containerEl?.offsetWidth, containerEl?.offsetHeight)
   }
 
-  getFilteredObstacles(dateFilter = true , wpFilter = true , fpFilter= true){ // ONLY FOR 3 14 DEMO , TO BE MOVED TO BACKEND
-    return this.analysis.events.data.filter(d=>{
+  getFilteredDetections(dateFilter = true , wpFilter = true , fpFilter= true){ // ONLY FOR 3 14 DEMO , TO BE MOVED TO BACKEND
+    return this.detection.events.data.filter(d=>{
       let splitedDateString = d.date.split("-")
       let date = new Date(Number(splitedDateString[0]), Number(splitedDateString[1]) - 1, Number(splitedDateString[2]))
-      let dateMatch = !dateFilter || (this.analysis.daily.min && this.analysis.daily.max && date >= this.analysis.daily.min && date <= this.analysis.daily.max)
-      let wpMatch = !wpFilter || !this.analysis.waypoint.selected || d.waypoint == this.analysis.waypoint.selected
-      let fpMatch = !fpFilter  || !this.analysis.floorplan.selected || d.floorplan == this.analysis.floorplan.selected
+      let dateMatch = !dateFilter || (this.detection.daily.min && this.detection.daily.max && date >= this.detection.daily.min && date <= this.detection.daily.max)
+      let wpMatch = !wpFilter || !this.detection.waypoint.selected || d.waypoint == this.detection.waypoint.selected
+      let fpMatch = !fpFilter  || !this.detection.floorplan.selected || d.floorplan == this.detection.floorplan.selected
       return dateMatch && wpMatch && fpMatch
     })
   }
 
-  async refreshAnalysis(){    
-    if( !this.analysisTestData){
-      return
-    }
+  async refreshDetection(){    
+    // if( !this.detectionTestData){
+    //   return
+    // }
 
-    if(this.pixiRef && this.pixiRef.module.data.activeFloorPlanCode != this.analysis.floorplan.selected){
-      await this.pixiRef.module.data.loadFloorPlan(this.analysis.floorplan.selected)
+    if(this.pixiRef && this.pixiRef.module.data.activeFloorPlanCode != this.detection.floorplan.selected){
+      await this.pixiRef.module.data.loadFloorPlan(this.detection.floorplan.selected)
     }
     const pixiWayPoints : PixiWayPoint [] = this.pixiRef.viewport.allPixiWayPoints
     pixiWayPoints.forEach(p=>p.bubble?.parent.removeChild(p.bubble))
     // let containerEl = (<any>this.waypointObstacleChart)?.element?.nativeElement?.parentElement
     // this.refreshChartOnSizeChange(containerEl?.offsetWidth, containerEl?.offsetHeight)
     this.dropdownOptions.waypoint = pixiWayPoints.map(d=>{return {value : d.code , text : d.code }})
-    this.analysis.waypoint.data = pixiWayPoints.map(d => {
+    this.detection.waypoint.data = pixiWayPoints.map(d => {
       return {
         category: d.code ,
         x: d.x ,
@@ -813,22 +821,22 @@ export class ArcsChartsComponent implements OnInit, OnDestroy {
       p.visible = false
       new PixiWayPointBubble(p.viewport , p , 0)
     })
-    //this.analysisTestData.floorplan[this.analysis.floorplan.selected].waypoints.map(d=>{return {value : d.category , text : d.category}})
-    this.analysis.daily.data = []
-    this.analysis.waypoint.data.forEach(d=>d.count = 0)
+    //this.detectionTestData.floorplan[this.detection.floorplan.selected].waypoints.map(d=>{return {value : d.category , text : d.category}})
+    this.detection.daily.data = []
+    this.detection.waypoint.data.forEach(d=>d.count = 0)
     
     //DAILY
-    this.getFilteredObstacles(false , false , true).forEach(d=>{
+    this.getFilteredDetections(false , false , true).forEach(d=>{
       let splitedDateString = d.date.split("-")
       let date = new Date(Number(splitedDateString[0]), Number(splitedDateString[1]) - 1, Number(splitedDateString[2]) )
       let index = this.daysIntoYear(date)
-      this.analysis.daily.data[index] = this.analysis.daily.data[index] + 1
-      this.analysis.daily.data = JSON.parse(JSON.stringify(this.analysis.daily.data)) //IDK why it must be inside the for loop
+      this.detection.daily.data[index] = this.detection.daily.data[index] + 1
+      this.detection.daily.data = JSON.parse(JSON.stringify(this.detection.daily.data)) //IDK why it must be inside the for loop
     })
 
     //WAYPOINT
-    this.getFilteredObstacles(true , false , true).forEach(d=>{
-      let waypointDistances = this.analysis.waypoint.data.map(w => {
+    this.getFilteredDetections(true , false , true).forEach(d=>{
+      let waypointDistances = this.detection.waypoint.data.map(w => {
         return {
           waypoint: w.category,
           distance: Math.sqrt((d.x - w.x) * (d.x - w.x) + (d.y - w.y) * (d.y - w.y))
@@ -837,10 +845,10 @@ export class ArcsChartsComponent implements OnInit, OnDestroy {
       let minDis = Math.min(...waypointDistances.map(w => w.distance))
       let closetWpCode = waypointDistances.filter(w => w.distance == minDis)[0]?.waypoint
       d.waypoint = closetWpCode
-      for (let j = 0; j < this.analysis.waypoint.data.length; j++) {
-        if (closetWpCode && this.analysis.waypoint.data[j].category == closetWpCode) {
-          this.analysis.waypoint.data[j].count = this.analysis.waypoint.data[j].count + 1 //= this.analysis.waypoint.data[j].count ? this.analysis.waypoint.data[j].count + 1 : 0
-          this.analysis.waypoint.data = JSON.parse(JSON.stringify(this.analysis.waypoint.data))
+      for (let j = 0; j < this.detection.waypoint.data.length; j++) {
+        if (closetWpCode && this.detection.waypoint.data[j].category == closetWpCode) {
+          this.detection.waypoint.data[j].count = this.detection.waypoint.data[j].count + 1 //= this.detection.waypoint.data[j].count ? this.detection.waypoint.data[j].count + 1 : 0
+          this.detection.waypoint.data = JSON.parse(JSON.stringify(this.detection.waypoint.data))
           const wp = pixiWayPoints.filter(p=>p.code ==closetWpCode)[0];
           if(wp){
             wp.bubble.count += 1
@@ -849,46 +857,43 @@ export class ArcsChartsComponent implements OnInit, OnDestroy {
         }
       }       
     })
-    this.analysis.waypoint.data.forEach(d=>{
-      d.count = (d.category == this.analysis.waypoint.selected ? -1 : 1) * Math.abs(d.count)
+    this.detection.waypoint.data.forEach(d=>{
+      d.count = (d.category == this.detection.waypoint.selected ? -1 : 1) * Math.abs(d.count)
     })
 
     //FLOORPLAN
-    this.analysis.floorplan.categories =  this.dropdownOptions.floorplans.map(f=>f.value)//[...new Set(data.map(d => d.floorplan))].sort()
-    for (let i = 0; i < this.analysis.floorplan.categories.length; i++) {
-      this.analysis.floorplan.data[i] = this.getFilteredObstacles(true , false , false).filter(d=>d.floorplan == this.analysis.floorplan.categories[i]).length 
+    this.detection.floorplan.categories =  this.dropdownOptions.floorplans.map(f=>f.value)//[...new Set(data.map(d => d.floorplan))].sort()
+    for (let i = 0; i < this.detection.floorplan.categories.length; i++) {
+      this.detection.floorplan.data[i] = this.getFilteredDetections(true , false , false).filter(d=>d.floorplan == this.detection.floorplan.categories[i]).length 
     }   
-    this.analysis.floorplan.data = JSON.parse(JSON.stringify(this.analysis.floorplan.data))
+    this.detection.floorplan.data = JSON.parse(JSON.stringify(this.detection.floorplan.data))
 
-    //HOURLY AVG
-    if(this.analysis.daily.max && this.analysis.daily.min){
-      let daysCount = Math.ceil(Math.abs(<any>this.analysis.daily.max - <any>this.analysis.daily.min) / (1000 * 60 * 60 * 24)); 
-      for (let i = 0; i < this.analysis.hourlyAvg.categories.length; i++) {
-        let hour = this.analysis.hourlyAvg.categories[i]
-        this.analysis.hourlyAvg.data[i] = this.getRoundedValue( this.getFilteredObstacles().filter(d => d.hour == hour).length / daysCount)
-      }   
-    }
-    this.analysis.hourlyAvg.data = JSON.parse(JSON.stringify(this.analysis.hourlyAvg.data))
-
-    //OBSTACLE SCATTER
-    this.analysis.obstacle.data = this.analysis.waypoint.selected ? this.getFilteredObstacles().filter(d => d.waypoint == this.analysis.waypoint.selected) : []
+    // //HOURLY AVG
+    // if(this.detection.daily.max && this.detection.daily.min){
+    //   let daysCount = Math.ceil(Math.abs(<any>this.detection.daily.max - <any>this.detection.daily.min) / (1000 * 60 * 60 * 24)); 
+    //   for (let i = 0; i < this.detection.hourlyAvg.categories.length; i++) {
+    //     let hour = this.detection.hourlyAvg.categories[i]
+    //     this.detection.hourlyAvg.data[i] = this.getRoundedValue( this.getFilteredDetections().filter(d => d.hour == hour).length / daysCount)
+    //   }   
+    // }
+    // this.detection.hourlyAvg.data = JSON.parse(JSON.stringify(this.detection.hourlyAvg.data))
 
     //TOTAL
-    this.analysis.total.count = this.getFilteredObstacles().length
-    this.analysis.total.waypoint1 = null
-    this.analysis.total.waypoint2 = null
-    this.analysis.total.waypoint3 = null
+    this.detection.total.count = this.getFilteredDetections().length
+    this.detection.total.waypoint1 = null
+    this.detection.total.waypoint2 = null
+    this.detection.total.waypoint3 = null
     
-    let tmpData = JSON.parse(JSON.stringify(this.analysis.waypoint.data.map(d=>{return {category : d.category , count : Math.abs(d.count)}})))
+    let tmpData = JSON.parse(JSON.stringify(this.detection.waypoint.data.map(d=>{return {category : d.category , count : Math.abs(d.count)}})))
     tmpData.sort((a, b) => b.count - a.count)
     for (let i = 0; i < Math.min(tmpData.length, 3); i++) {
       let d = { name: tmpData[i].category, count: tmpData[i].count }
-      this.analysis.total['waypoint' + (i + 1)] = d
+      this.detection.total['waypoint' + (i + 1)] = d
     }
 
 
     this.pixiRef.viewport.allPixiEventMarkers.forEach(m=> m.parent?.removeChild(m))
-    this.analysis.events.data.filter((d: { floorplan: string }) => d.floorplan == this.analysis.floorplan.selected).forEach((d: { x: number, y: number, date: string, waypoint: string }) => {
+    this.detection.events.data.filter((d: { floorplan: string }) => d.floorplan == this.detection.floorplan.selected).forEach((d: { x: number, y: number, date: string, waypoint: string }) => {
       let eventMarker = new PixiEventMarker(this.pixiRef.viewport, undefined, undefined, undefined, 'cross')
       eventMarker.position.set(d.x, d.y)
       this.pixiRef.viewport.mainContainer.addChild(eventMarker)
@@ -897,65 +902,65 @@ export class ArcsChartsComponent implements OnInit, OnDestroy {
     })
 
     pixiWayPoints.forEach(p=> {
-      p.bubble.total = this.analysis.events.data.filter((d: { floorplan: string }) => d.floorplan == this.analysis.floorplan.selected).length;
+      p.bubble.total = this.detection.events.data.filter((d: { floorplan: string }) => d.floorplan == this.detection.floorplan.selected).length;
       p.bubble.maxCount = Math.max.apply(null,  pixiWayPoints.map(p2=> p2.bubble.count))
       p.bubble.draw()
     })
   }
 
-  async initAnalysis() {
-    this.analysisTestData = await this.dataSrv.getAssets("assets/analysisData.json")
-    // this.dropdownOptions.floorplan = Object.keys( this.analysisTestData.floorplan).map(code => { return { value: code, text: code } })
-    this.analysis.floorplan.selected = this.dropdownOptions.floorplans.map(o => o.value)[0]
-    this.analysis.events.data = this.analysisTestData.obstacles
+  async initDetection() {
+    // this.detectionTestData = await this.dataSrv.getAssets("assets/detectionData.json")
+    // this.dropdownOptions.floorplan = Object.keys( this.detectionTestData.floorplan).map(code => { return { value: code, text: code } })
+    this.detection.floorplan.selected = this.dropdownOptions.floorplans.map(o => o.value)[0]
+    // this.detection.events.data = this.detectionTestData.obstacles
     let date = new Date(this.year, 0, 1);
     let to = this.year == new Date().getFullYear() ? new Date() : new Date(this.year + 1, 0, 1)
     let daysPassedInYear = Math.ceil((to.getTime() - date.getTime()) / (1000 * 3600 * 24))
     for (let i = 0; i < daysPassedInYear + 1; i++) {
-      this.analysis.daily.categories.push(date);
-      this.analysis.daily.data.push(0);
+      this.detection.daily.categories.push(date);
+      this.detection.daily.data.push(0);
       let newDate = new Date()
       newDate.setTime(date.getTime() + 86400000)
       date = newDate
     }
-    this.refreshAnalysis()
+    this.refreshDetection()
   }
 
   selectWaypoint(e) {
-    this.analysis.waypoint.selected = this.analysis.obstacle.data[0]?.waypoint == e.category ? null : e.category
-    this.refreshAnalysis()
+    // this.detection.waypoint.selected = this.detection.obstacle.data[0]?.waypoint == e.category ? null : e.category
+    this.refreshDetection()
   }
 
   // refreshChartOnSizeChange(offsetWidth : number , offsetHeight : number){   
-  //   let tmpScatter = JSON.parse(JSON.stringify( this.analysis.obstacle.data ))
-  //   this.analysis.obstacle.data = []
+  //   let tmpScatter = JSON.parse(JSON.stringify( this.detection.obstacle.data ))
+  //   this.detection.obstacle.data = []
 
-  //   this.analysis.background.width = offsetWidth / offsetHeight < 1 ? offsetWidth  :  offsetHeight *  this.analysis.background.imageWidth  / this.analysis.background.imageHeight
-  //   this.analysis.background.height = offsetWidth / offsetHeight < 1 ? offsetHeight  :  offsetWidth * this.analysis.background.imageHeight  / this.analysis.background.imageWidth
-  //   this.analysis.waypoint.minX = 0 
-  //   this.analysis.waypoint.maxX = this.analysis.background.imageWidth 
-  //   this.analysis.waypoint.maxY = 0 
-  //   this.analysis.waypoint.minY = - this.analysis.background.imageHeight
-  //   this.analysis.waypoint.data = JSON.parse(JSON.stringify(this.analysis.waypoint.data))
+  //   this.detection.background.width = offsetWidth / offsetHeight < 1 ? offsetWidth  :  offsetHeight *  this.detection.background.imageWidth  / this.detection.background.imageHeight
+  //   this.detection.background.height = offsetWidth / offsetHeight < 1 ? offsetHeight  :  offsetWidth * this.detection.background.imageHeight  / this.detection.background.imageWidth
+  //   this.detection.waypoint.minX = 0 
+  //   this.detection.waypoint.maxX = this.detection.background.imageWidth 
+  //   this.detection.waypoint.maxY = 0 
+  //   this.detection.waypoint.minY = - this.detection.background.imageHeight
+  //   this.detection.waypoint.data = JSON.parse(JSON.stringify(this.detection.waypoint.data))
 
-  //   this.analysis.obstacle.data = tmpScatter
+  //   this.detection.obstacle.data = tmpScatter
   //   // return
 
   //   // if( offsetWidth && offsetHeight){
-  //   //   let minX = Math.min(... this.analysis.waypoint.data.map(d=>d.x))
-  //   //   let maxY = Math.max(... this.analysis.waypoint.data.map(d=>d.y));
-  //   //   let xRange = Math.max(... this.analysis.waypoint.data.map(d => d.x)) - minX
-  //   //   let yRange = maxY - Math.min(... this.analysis.waypoint.data.map(d => d.y)) 
+  //   //   let minX = Math.min(... this.detection.waypoint.data.map(d=>d.x))
+  //   //   let maxY = Math.max(... this.detection.waypoint.data.map(d=>d.y));
+  //   //   let xRange = Math.max(... this.detection.waypoint.data.map(d => d.x)) - minX
+  //   //   let yRange = maxY - Math.min(... this.detection.waypoint.data.map(d => d.y)) 
   //   //   let extraUnit =  xRange / offsetWidth > yRange / offsetHeight ? Math.ceil(xRange * 0.1) : Math.ceil(yRange * 0.1)
-  //   //   this.analysis.waypoint.maxY = maxY + extraUnit
-  //   //   this.analysis.waypoint.minX = minX - extraUnit
+  //   //   this.detection.waypoint.maxY = maxY + extraUnit
+  //   //   this.detection.waypoint.minX = minX - extraUnit
 
   //   //   if (xRange / offsetWidth > yRange / offsetHeight) {
-  //   //     this.analysis.waypoint.maxX = Math.max(... this.analysis.waypoint.data.map(d => d.x)) + extraUnit
-  //   //     this.analysis.waypoint.minY = this.analysis.waypoint.maxY - (this.analysis.waypoint.maxX - this.analysis.waypoint.minX) * (offsetHeight / offsetWidth) 
+  //   //     this.detection.waypoint.maxX = Math.max(... this.detection.waypoint.data.map(d => d.x)) + extraUnit
+  //   //     this.detection.waypoint.minY = this.detection.waypoint.maxY - (this.detection.waypoint.maxX - this.detection.waypoint.minX) * (offsetHeight / offsetWidth) 
   //   //   } else {
-  //   //     this.analysis.waypoint.minY = Math.min(... this.analysis.waypoint.data.map(d => d.y)) - extraUnit
-  //   //     this.analysis.waypoint.maxX = this.analysis.waypoint.minX + (this.analysis.waypoint.maxY - this.analysis.waypoint.minY) * (offsetWidth / offsetHeight) 
+  //   //     this.detection.waypoint.minY = Math.min(... this.detection.waypoint.data.map(d => d.y)) - extraUnit
+  //   //     this.detection.waypoint.maxX = this.detection.waypoint.minX + (this.detection.waypoint.maxY - this.detection.waypoint.minY) * (offsetWidth / offsetHeight) 
   //   //   }       
   //   // }
   // }

@@ -13,7 +13,7 @@
     <ng-container *ngIf="viewport">
       <div class="overlay" *ngIf="robotSrv.data.isFollowMeWithoutMap.value || (showRobot && robotSrv.data.isMappingMode.value)  || commonModule.ui.overlayMessage "> 
         <div class="overlay-button-container">
-          <button kendoButton class="pick-map" *ngIf="util.standaloneApp && robots && !robotSrv.data.isFollowMeWithoutMap.value && showRobot && !(robots[0] && robots[0]['mapCode']) && authSrv.username && !robotSrv.data.isMappingMode.value" 
+          <button kendoButton class="pick-map" *ngIf="!remoteControl && util.standaloneApp && robots && !robotSrv.data.isFollowMeWithoutMap.value && showRobot && !(robots[0] && robots[0]['mapCode']) && authSrv.username && !robotSrv.data.isMappingMode.value" 
                   [disabled]="authSrv.isGuestMode"
                   (click)="  module.localization.localizing = true ; commonModule.ui.popupScreen = true; module.data.loadDefaultFloorPlan() ; commonModule.ui.overlayMessage =  null" > 
                   <!-- pending : init -->
@@ -22,11 +22,11 @@
           <button kendoButton class="scan"  *ngIf="!robotSrv.data.isFollowMeWithoutMap.value && showScanButton" (click)="scanClicked.emit()">
             <span class="mdi mdi-focus-field"></span>
           </button>
-          <button kendoButton class="cancel"  *ngIf="commonModule.ui.popupScreen && !showScanButton"  (click)="commonModule.ui.popupScreen = false">
+          <button kendoButton class="cancel"  *ngIf="!remoteControl && commonModule.ui.popupScreen && !showScanButton"  (click)="commonModule.ui.popupScreen = false">
             <span class="mdi mdi-logout"></span>
           </button>
         </div>
-        <span class="message">
+        <span class="message" *ngIf="!remoteControl">
            {{ robotSrv.data.isFollowMeWithoutMap.value ? ('Follow Me Standalone Mode Activated'|label : uiSrv.langPack) : 
            ( showRobot && robotSrv.data.isMappingMode.value) ? ('Mapping Mode Activated' | label : uiSrv.langPack)  : commonModule.ui.overlayMessage }}
         </span>

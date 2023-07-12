@@ -1716,8 +1716,6 @@ export class StandaloneRobotModule extends RobotModule {
           }
           if (robot.pixiGraphics.parent && robot.pixiGraphics.parent != this.viewport.mapContainerStore[robot.mapCode]) { //&& this.mapId == pose?.mapName
             robot.pixiGraphics.parent.removeChild(robot.pixiGraphics)
-            console.log(robot.mapCode)
-            console.log(  this.viewport.mapContainerStore)
             this.viewport.mapContainerStore[robot.mapCode].addChild(robot.pixiGraphics)
             robot.observed.next(true)
           }
@@ -1932,12 +1930,14 @@ export class LocalizationModule { //Standalone Function : change map / localize
 
   set localizing(v){
     this._localizing = v
-    if(!v &&  !this.cm.data.activeFloorPlanCode){ //this.showRobot &&
+    if(!v ){ //this.showRobot && // && !this.cm.data.activeFloorPlanCode
       this.cm.ui.popupScreen = false
       this.viewport.mode = null
       Object.values(this.viewport.mapContainerStore).filter(v => v).forEach(v => (<any>v).visible = true)
-      this.cm.ui.overlayMessage = this.cm.uiSrv.translate("Select Starting Position")
-      this.cm.data.selectedFloorPlanCode = null
+      if(!this.cm.data.activeFloorPlanCode){
+        this.cm.ui.overlayMessage = this.cm.uiSrv.translate("Select Starting Position")
+        this.cm.data.selectedFloorPlanCode = null
+      }
       // this.refreshPixiLocColor()
       // this.changeMode(null)
     }

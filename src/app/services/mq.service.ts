@@ -104,7 +104,7 @@ export class MqService {
     webcam: { topic: "rvautotech/fobo/webcam" },
     heartbeatServer: { topic: "rvautotech/fobo/heartbeat/server" },
     heartbeatClient: { topic: "rvautotech/fobo/heartbeat/client" },
-    lidarStatus: { topic: "rvautotech/fobo/lidar/status", robotState: { lidarSwitchedOn: (d) => d['SwitchOn']}, api: 'lidar/v1/status' },
+    lidarStatus: { topic: "rvautotech/fobo/lidar/status", robotState: { lidarSwitchedOn: (d : {SwitchOn : boolean}) => d.SwitchOn}, api: 'lidar/v1/status' },
     lidar:{topic : 'rvautotech/fobo/lidar' , robotState: { lidar:(d)=> <any>(d)}},
     speed: { topic: 'rvautotech/fobo/speed', robotState: { speed: (d : {robotId: string , speed : number}) => {
                                                           let ret = !isNaN(Number(d.speed))? (Number(d.speed).toFixed(2) == '-0.00' ? '0.00' : Number(d.speed).toFixed(2)) : ' - ' 
