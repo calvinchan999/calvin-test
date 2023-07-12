@@ -90,13 +90,6 @@ export class ArcsChartsComponent implements OnInit, OnDestroy {
       waypoint2 : null,
       waypoint3 : null,
     },
-    background : {
-      path : null,
-      width : 0,
-      height : 0,
-      imageWidth : 0,
-      imageHeight : 0
-    },
     waypoint: {
       selected: null,
       labelContent: (e): string => {
@@ -119,7 +112,7 @@ export class ArcsChartsComponent implements OnInit, OnDestroy {
     obstacle: {
       data: []
     },
-    obstacleAll: {
+    events: {
       data: []
     },
     floorplan :{
@@ -785,7 +778,7 @@ export class ArcsChartsComponent implements OnInit, OnDestroy {
   }
 
   getFilteredObstacles(dateFilter = true , wpFilter = true , fpFilter= true){ // ONLY FOR 3 14 DEMO , TO BE MOVED TO BACKEND
-    return this.analysis.obstacleAll.data.filter(d=>{
+    return this.analysis.events.data.filter(d=>{
       let splitedDateString = d.date.split("-")
       let date = new Date(Number(splitedDateString[0]), Number(splitedDateString[1]) - 1, Number(splitedDateString[2]))
       let dateMatch = !dateFilter || (this.analysis.daily.min && this.analysis.daily.max && date >= this.analysis.daily.min && date <= this.analysis.daily.max)
@@ -804,6 +797,7 @@ export class ArcsChartsComponent implements OnInit, OnDestroy {
       await this.pixiRef.module.data.loadFloorPlan(this.analysis.floorplan.selected)
     }
     const pixiWayPoints : PixiWayPoint [] = this.pixiRef.viewport.allPixiWayPoints
+    pixiWayPoints.forEach(p=>p.bubble?.parent.removeChild(p.bubble))
     // let containerEl = (<any>this.waypointObstacleChart)?.element?.nativeElement?.parentElement
     // this.refreshChartOnSizeChange(containerEl?.offsetWidth, containerEl?.offsetHeight)
     this.dropdownOptions.waypoint = pixiWayPoints.map(d=>{return {value : d.code , text : d.code }})
@@ -894,7 +888,7 @@ export class ArcsChartsComponent implements OnInit, OnDestroy {
 
 
     this.pixiRef.viewport.allPixiEventMarkers.forEach(m=> m.parent?.removeChild(m))
-    this.analysis.obstacleAll.data.filter((d: { floorplan: string }) => d.floorplan == this.analysis.floorplan.selected).forEach((d: { x: number, y: number, date: string, waypoint: string }) => {
+    this.analysis.events.data.filter((d: { floorplan: string }) => d.floorplan == this.analysis.floorplan.selected).forEach((d: { x: number, y: number, date: string, waypoint: string }) => {
       let eventMarker = new PixiEventMarker(this.pixiRef.viewport, undefined, undefined, undefined, 'cross')
       eventMarker.position.set(d.x, d.y)
       this.pixiRef.viewport.mainContainer.addChild(eventMarker)
@@ -903,20 +897,17 @@ export class ArcsChartsComponent implements OnInit, OnDestroy {
     })
 
     pixiWayPoints.forEach(p=> {
-      p.bubble.total = this.analysis.obstacleAll.data.filter((d: { floorplan: string }) => d.floorplan == this.analysis.floorplan.selected).length;
+      p.bubble.total = this.analysis.events.data.filter((d: { floorplan: string }) => d.floorplan == this.analysis.floorplan.selected).length;
       p.bubble.maxCount = Math.max.apply(null,  pixiWayPoints.map(p2=> p2.bubble.count))
       p.bubble.draw()
     })
-
-    console.log(this.analysis.obstacleAll.data)
-
   }
 
   async initAnalysis() {
     this.analysisTestData = await this.dataSrv.getAssets("assets/analysisData.json")
     // this.dropdownOptions.floorplan = Object.keys( this.analysisTestData.floorplan).map(code => { return { value: code, text: code } })
     this.analysis.floorplan.selected = this.dropdownOptions.floorplans.map(o => o.value)[0]
-    this.analysis.obstacleAll.data = this.analysisTestData.obstacles
+    this.analysis.events.data = this.analysisTestData.obstacles
     let date = new Date(this.year, 0, 1);
     let to = this.year == new Date().getFullYear() ? new Date() : new Date(this.year + 1, 0, 1)
     let daysPassedInYear = Math.ceil((to.getTime() - date.getTime()) / (1000 * 3600 * 24))
