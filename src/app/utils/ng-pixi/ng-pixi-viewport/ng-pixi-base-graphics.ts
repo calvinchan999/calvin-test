@@ -1437,7 +1437,7 @@ export class PixiArrow extends PixiGraphics implements IDraw, IReColor {
 
 
 export class PixiEditablePolygon extends PixiGraphics implements IReColor, IDraw {
-  readonly type = "polygon"
+  type = "polygon"
   _vertices: PIXI.Point[]
   set vertices(v: PIXI.Point[]) {
     this._vertices = v
@@ -1525,7 +1525,7 @@ export class PixiEditablePolygon extends PixiGraphics implements IReColor, IDraw
   }
 
   reColor(color: any): void {
-    this.tmpStyle.opacity = this.selected ? 0.6 : 1
+    this.tmpStyle.opacity = this.selected ? 0.6 : this.style.opacity
     // this.tmpStyle.fillColor = color
     this.draw(true)
   }

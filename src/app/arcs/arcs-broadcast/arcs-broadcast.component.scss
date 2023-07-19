@@ -1,0 +1,8 @@
+:host .dialog-content{
+    width: 50vw;
+}
+
+
+:host ::ng-deep .robotCodes .k-multiselect-wrap.k-floatwrap {
+    min-height: 0px!important;
+}

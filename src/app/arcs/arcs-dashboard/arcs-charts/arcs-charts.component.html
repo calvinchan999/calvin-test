@@ -379,12 +379,12 @@
 
 
 
-<kendo-tilelayout *ngIf="_chartType == 'detection'"  kendoTooltip #tooltipTo="kendoTooltip" filter=".k-right-handle" showOn="none"  class="chart" [columns]="12"  [resizable]="false" [reorderable]="false">
+<kendo-tilelayout *ngIf="_chartType == 'detection' && detection"  kendoTooltip #tooltipTo="kendoTooltip" filter=".k-right-handle" showOn="none"  class="chart" [columns]="12"  [resizable]="false" [reorderable]="false">
     <kendo-tilelayout-item class = "tile select-year" [col]="1" [row]="1"  [colSpan] = "4">
         <ng-container *ngTemplateOutlet="filterTemplate"></ng-container>
     </kendo-tilelayout-item>
 
-    <kendo-tilelayout-item [title]="((detection.waypoint.selected ?  'Obstacle Count - ' : 'Total Obstacle Count - ') | label: uiSrv.langPack) + (detection.waypoint.selected ? detection.waypoint.selected : detection.floorplan.selected) "  [col]="5" [row]="1"   [colSpan] = "8 - (!detection.total.waypoint1 ? 0 : (!detection.total.waypoint2 ? 2 : (!detection.total.waypoint3 ? 4 : 6 )))">
+    <kendo-tilelayout-item [title]="((detection.waypoint.selected ?  'Event Count - ' : 'Total Event Count - ') | label: uiSrv.langPack) + (detection.waypoint.selected ? detection.waypoint.selected : detection.floorplan.selected) "  [col]="5" [row]="1"   [colSpan] = "8 - (!detection.total.waypoint1 ? 0 : (!detection.total.waypoint2 ? 2 : (!detection.total.waypoint3 ? 4 : 6 )))">
         <kendo-tilelayout-item-body>
             <div class="detection-count-wrapper">
                 <label class="detection-count">{{detection.total.count}}</label>
@@ -392,7 +392,7 @@
         </kendo-tilelayout-item-body>
     </kendo-tilelayout-item>
 
-    <kendo-tilelayout-item *ngIf = "detection.total.waypoint1" class = "tile waypoint1" [title] = "('Top'| label: uiSrv.langPack) + ' 1 ' + ('Obstacle Count'| label: uiSrv.langPack) + ' - ' + (detection.total.waypoint1.name  | label: uiSrv.langPack)" [col]="!detection.total.waypoint2 ? 11 : (!detection.total.waypoint3 ? 9 : 7 )" [row]="1" [colSpan] = "2">
+    <kendo-tilelayout-item *ngIf = "detection.total.waypoint1" class = "tile waypoint1" [title] = "('Top'| label: uiSrv.langPack) + ' 1 ' + ('Event Count'| label: uiSrv.langPack) + ' - ' + (detection.total.waypoint1.name  | label: uiSrv.langPack)" [col]="!detection.total.waypoint2 ? 11 : (!detection.total.waypoint3 ? 9 : 7 )" [row]="1" [colSpan] = "2">
         <kendo-tilelayout-item-body>
             <div class="detection-count-wrapper">
                 <label class="detection-count">{{detection.total.waypoint1.count}}</label>
@@ -400,7 +400,7 @@
         </kendo-tilelayout-item-body>
     </kendo-tilelayout-item>
 
-    <kendo-tilelayout-item *ngIf = "detection.total.waypoint2" class = "tile waypoint2" [title] = "('Top'| label: uiSrv.langPack) + ' 2 ' + ('Obstacle Count'| label: uiSrv.langPack) + ' - ' + (detection.total.waypoint2.name  | label: uiSrv.langPack) "  [col]="!detection.total.waypoint3 ? 11 : 9" [row]="1" [colSpan] = "2" >
+    <kendo-tilelayout-item *ngIf = "detection.total.waypoint2" class = "tile waypoint2" [title] = "('Top'| label: uiSrv.langPack) + ' 2 ' + ('Event Count'| label: uiSrv.langPack) + ' - ' + (detection.total.waypoint2.name  | label: uiSrv.langPack) "  [col]="!detection.total.waypoint3 ? 11 : 9" [row]="1" [colSpan] = "2" >
         <kendo-tilelayout-item-body>
             <div class="detection-count-wrapper">
                 <label class="detection-count">{{detection.total.waypoint2.count}}</label>
@@ -408,7 +408,7 @@
         </kendo-tilelayout-item-body>
     </kendo-tilelayout-item>
 
-    <kendo-tilelayout-item *ngIf = "detection.total.waypoint3" class = "tile waypoint3"  [title]="('Top'| label: uiSrv.langPack) + ' 3 ' + ('Obstacle Count'| label: uiSrv.langPack) + ' - ' + (detection.total.waypoint3.name  | label: uiSrv.langPack) "  [col]="11" [row]="1" [colSpan] = "2">
+    <kendo-tilelayout-item *ngIf = "detection.total.waypoint3" class = "tile waypoint3"  [title]="('Top'| label: uiSrv.langPack) + ' 3 ' + ('Event Count'| label: uiSrv.langPack) + ' - ' + (detection.total.waypoint3.name  | label: uiSrv.langPack) "  [col]="11" [row]="1" [colSpan] = "2">
         <kendo-tilelayout-item-body>
             <div class="detection-count-wrapper">
                 <label class="detection-count">{{detection.total.waypoint3.count}}</label>
@@ -476,7 +476,7 @@
     </kendo-tilelayout-item>
 
     
-    <kendo-tilelayout-item  [title]="'Daily Obstacle Count'| label: uiSrv.langPack" kendoTooltip #tooltipFr="kendoTooltip" filter=".k-left-handle" showOn="none" class = "tile daily" class="tile" [col]="8" [row]="2" [rowSpan]="2" [colSpan] = "5">
+    <kendo-tilelayout-item  [title]="'Daily Event Count'| label: uiSrv.langPack" kendoTooltip #tooltipFr="kendoTooltip" filter=".k-left-handle" showOn="none" class = "tile daily" class="tile" [col]="8" [row]="2" [rowSpan]="2" [colSpan] = "5">
         <kendo-chart  #navigatorChart [seriesColors]="style.seriesColors"   (selectStart)="onSelectStart()" (select)="onSelect($event)" (selectEnd)="onSelectEnd($event);"   >   
             <kendo-chart-area background="transparent"></kendo-chart-area>  
             <!-- <kendo-chart-title  [align]="'left'" [text]="'Average Job Order By Hour' | label: uiSrv.langPack" [color]="style.textColor" ></kendo-chart-title>                    -->
@@ -498,11 +498,29 @@
     </kendo-tilelayout-item>
 
 
-    <kendo-tilelayout-item [title]="'Obstacle Count By Floor Plan'| label: uiSrv.langPack"   [col]="8" [row]="4" [rowSpan]="2" [colSpan] = "5">
-        <kendo-chart #floorplanObstacle [seriesColors]="style.seriesColors"  (seriesClick) = "onSeriesClick($event)">  
+    <kendo-tilelayout-item [title]="'Event Count By Floor Plan'| label: uiSrv.langPack"   [col]="8" [row]="4" [rowSpan]="2" [colSpan] = "5">
+        <kendo-chart #detectionByFloorplanChart name="floorplan" [seriesColors] = "style.seriesColors"  (seriesClick) = "onSeriesClick($event)"  >
+            <kendo-chart-area background="transparent"></kendo-chart-area>
+            <!-- <kendo-chart-title [align]="'left'" [text]="'Job Order by Type' | label: uiSrv.langPack"  [color]="style.textColor" ></kendo-chart-title>     -->
+            <ng-template kendoChartDonutCenterTemplate>
+                <div [style.color]="style.textColor">{{detection.floorplan.centerText}}</div>
+            </ng-template>
+            <kendo-chart-legend [visible]="false" ></kendo-chart-legend>
+            <kendo-chart-series>
+              <kendo-chart-tooltip>
+                    <ng-template kendoChartSeriesTooltipTemplate  let-value="value" let-category="category" let-series="series" >
+                      {{ category |  label: uiSrv.langPack}} : {{ value }}
+                    </ng-template>
+              </kendo-chart-tooltip>
+              <kendo-chart-series-item type="donut" [data]="detection.floorplan.data" field="value" categoryField="category" [holeSize] = "30" [padding] = "35"
+                                       [visual]="style.seriesVisual" [labels]="{ visible: true, visual: style.labelVisual, position : 'outsideEnd' , distance:10 , color:style.textColor }"  
+              >
+              </kendo-chart-series-item>
+            </kendo-chart-series>
+        </kendo-chart>
+        <!-- <kendo-chart #floorplanEvent [seriesColors]="style.seriesColors"  (seriesClick) = "onSeriesClick($event)">  
             <kendo-chart-area background="transparent"></kendo-chart-area>   
-            <kendo-chart-tooltip format="{0}"></kendo-chart-tooltip>
-            <!-- <kendo-chart-title  [align]="'left'" [text]="'Average Job Order per Weekday' | label: uiSrv.langPack" [color]="style.textColor" ></kendo-chart-title>                    -->
+            <kendo-chart-tooltip format="{0}"></kendo-chart-tooltip>      
             <kendo-chart-series>
               <kendo-chart-series-item type="column" [data]="detection.floorplan.data" [visual]="style.seriesVisual">
               </kendo-chart-series-item>
@@ -516,10 +534,10 @@
                 <kendo-chart-value-axis-item [color]="style.textColor">
                 </kendo-chart-value-axis-item>
             </kendo-chart-value-axis>
-        </kendo-chart>                
+        </kendo-chart>                 -->
     </kendo-tilelayout-item>
 
-    <kendo-tilelayout-item [title]="'Average Obstacle Count By Hour'| label: uiSrv.langPack"  [col]="8" [row]="6" [rowSpan]="2" [colSpan] = "5">
+    <kendo-tilelayout-item [title]="'Average Event Count By Hour'| label: uiSrv.langPack"  [col]="8" [row]="6" [rowSpan]="2" [colSpan] = "5">
         <!-- <kendo-chart [seriesColors]="style.seriesColors"  (seriesClick) = "onSeriesClick($event)">   
             <kendo-chart-area background="transparent"></kendo-chart-area>                    
             <kendo-chart-series>

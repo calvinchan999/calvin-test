@@ -147,7 +147,7 @@
 </kendo-tilelayout>
 
 
-<div class="table-container"  *ngIf="selectedTab == 'schedule'  || selectedTab == 'task' || selectedTab == 'template' || selectedTab == 'group' || selectedTab == 'robot_detection'">
+<div class="table-container"  *ngIf="selectedTab == 'schedule'  || selectedTab == 'task' || selectedTab == 'template' || selectedTab == 'group' || selectedTab == 'robot_detection' || selectedTab == 'broadcast'">
     <uc-table #table  [toolbarButtons] ="gridSettings[selectedTab]['buttons'] ? gridSettings[selectedTab]['buttons']  : tableButtons" [columnDefs] = "gridSettings[selectedTab]['columns']" [(data)]="data"    
                       [functionId] = "gridSettings[selectedTab]['functionId']"
                       [dataSourceApiEndpoint] = "gridSettings[selectedTab]['apiUrl']"
@@ -161,6 +161,7 @@
 </div>
 
 <app-arcs-patrol-playback *ngIf="selectedTab == 'patrol_playback'" ></app-arcs-patrol-playback>
+
 
 <ng-container class="charts-container" *ngIf="selectedTab == 'usability' || selectedTab == 'utilization' || selectedTab == 'detection' ">
     <app-arcs-charts [chartType]="selectedTab" ></app-arcs-charts>

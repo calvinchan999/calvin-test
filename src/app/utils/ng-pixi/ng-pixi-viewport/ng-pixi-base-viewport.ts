@@ -13,6 +13,7 @@ import { PixiEditableMapImage } from './ng-pixi-map-graphics';
 import { CLICK_END_EVENTS, CLICK_EVENTS, MOVE_EVENTS } from './ng-pixi-constants';
 import { OutlineFilter } from '@pixi/filter-outline';
 import { inside } from '../../math/functions';
+import { DataModule } from 'src/app/ui-components/map-2d-viewport/map-2d-viewport.component';
 
 export type ModeType =  'edit' | 'create' | 'delete' | null
 
@@ -31,6 +32,7 @@ class CreateModule{
 }
 
 export class PixiViewport extends Viewport {
+    dataModule : DataModule
     previewGraphics : PixiGraphics
     preventContextMenu = false
     clickEnd = new BehaviorSubject<any>(null)
@@ -187,7 +189,7 @@ export class PixiViewport extends Viewport {
     get interactiveControlRadius(){
         return 10 * DRAWING_STYLE.arrowHeadScale * (this.MOBILE_MODE? 2 : 1)
     } 
-    constructor(arg : Viewport.Options  , app : PIXI.Application , ngZone : NgZone , ngRenderer : Renderer2, onDestroy : Subject<any> ,  isStandaloneApp : boolean, isMobile : boolean){
+    constructor(arg : Viewport.Options  , app : PIXI.Application , ngZone : NgZone , ngRenderer : Renderer2, onDestroy : Subject<any> ,  isStandaloneApp : boolean, isMobile : boolean , dataModule :DataModule = null){
         super(arg)
         this.onDestroy = onDestroy
         this.APP_BUILD = isStandaloneApp ? 'STANDALONE' : 'ARCS'
@@ -195,6 +197,7 @@ export class PixiViewport extends Viewport {
         this._pixiApp = app
         this._ngZone = ngZone
         this._ngRenderer = ngRenderer;
+        this.dataModule = dataModule ;
         ['wheel', 'zoomed'].forEach(k => this.on(<any>k, (e) => this.events[k].emit(e)))
         MOVE_EVENTS.forEach(evt => this.on(<any>evt, (e) => this.events.move.emit(e)))
         CLICK_EVENTS.forEach(evt => this.on(<any>evt, (e : PIXI.interaction.InteractionEvent) => {

@@ -19,7 +19,7 @@ import { RobotStateTypes, DropListBuilding, DropListFloorplan, DropListMap, Drop
 export const ObjectTypes = ['ROBOT','FLOOR_PLAN' , 'FLOOR_PLAN_POINT' , 'MAP' , 'MAP_POINT' , 'TASK' , 'OPERATION' , 'MISSION']
 export type syncStatus = 'TRANSFERRED' | 'TRANSFERRING' | 'MALFUNCTION'
 export type syncLog =  {dataSyncId? : string , dataSyncType? : string , objectType? : string , dataSyncStatus?: syncStatus , objectCode?: string , robotCode?: string , progress? : any , startDateTime? : Date , endDateTime : Date  }
-export type dropListType =  'floorplans' | 'buildings' | 'sites' | 'maps' | 'actions' | 'types' | 'locations' | 'userGroups' | 'subTypes' | 'robots' | 'missions' | 'taskFailReason' | 'taskCancelReason' | 'lifts'
+export type dropListType =  'floorplans' | 'buildings' | 'sites' | 'maps' | 'actions' | 'types' | 'locations' | 'userGroups' | 'subTypes' | 'robots' | 'missions' | 'taskFailReason' | 'taskCancelReason' | 'lifts' | 'users'
 export type localStorageKey = 'floorPlanAlerts'| 'lang' | 'uitoggle' | 'lastLoadedFloorplanCode' | 'eventLog' | 'unreadMsgCnt' | 'unreadSyncMsgCount' | 'syncDoneLog' | 'dashboardMapType'
 export type sessionStorageKey = 'arcsLocationTree' | 'dashboardFloorPlanCode'| 'isGuestMode' | 'userAccess' | 'arcsDefaultBuilding' | 'userId' | 'currentUser' 
 export type eventLog = {datetime? : string , type? : string , message : string  , robotCode?: string }
@@ -65,7 +65,8 @@ export class DataService {
     userGroups : { url: 'api/user/userGroup/dropList/v1',  descFld: 'name', valFld: 'userGroupCode' , fromRV : false },
     robots : { url: 'robot/v1',  descFld: 'name', valFld: 'robotCode' , fromRV : true },
     missions : {url : 'api/task/mission/droplist/v1' , descFld : 'name' , valFld: 'missionId' , fromRV : false },
-    lifts : {url : 'iot/v1/lift' , descFld : 'liftCode' , valFld : 'liftCode' , fromRV : true}
+    lifts : {url : 'iot/v1/lift' , descFld : 'liftCode' , valFld : 'liftCode' , fromRV : true},
+    users: {url : 'api/user/dropList/v1', descFld : 'name' , valFld: 'userCode' , fromRV : false },
   }
 
   public dataStore = {//persist until dataService is destroyed
@@ -187,7 +188,7 @@ export class DataService {
   }
 
   public async getDropList(type : dropListType) : Promise<{data:object[] , options:object[]}>{
-    let ret= {data: null ,options: null}
+    let ret = {data: null ,options: null}
     let apiMap = this.dropListApiMap
     var resp = apiMap[type].fromRV? await this.httpSrv.fmsRequest("GET", apiMap[type].url , undefined, false) :  await this.httpSrv.get(apiMap[type].url)
     // if(this.util.arcsApp && type == 'floorplans'){

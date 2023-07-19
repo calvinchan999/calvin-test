@@ -15,9 +15,9 @@ import { BehaviorSubject, combineLatest, Observable, Subject } from 'rxjs';
 import { take , filter } from 'rxjs/operators';
 import { AuthService } from 'src/app/services/auth.service';
 import { ArcsDashboardRobotDetailComponent } from './arcs-dashboard-robot-detail/arcs-dashboard-robot-detail.component';
-import { ArcsTaskScheduleComponent } from './arcs-task-schedule/arcs-task-schedule.component';
+import { ArcsTaskScheduleComponent } from '../arcs-task-schedule/arcs-task-schedule.component';
 import { RobotObject3D, ThreejsViewportComponent } from 'src/app/ui-components/threejs-viewport/threejs-viewport.component';
-import { ArcsRobotGroupComponent } from './arcs-robot-group/arcs-robot-group.component';
+import { ArcsRobotGroupComponent } from '../arcs-robot-group/arcs-robot-group.component';
 import { truncateSync } from 'fs';
 import { CmTaskCancelComponent } from 'src/app/common-components/cm-task/cm-task-cancel/cm-task-cancel.component';
 import { environment } from 'src/environments/environment';
@@ -25,8 +25,9 @@ import { PixiBuildingPolygon } from 'src/app/utils/ng-pixi/ng-pixi-viewport/ng-p
 import * as PIXI from 'pixi.js';
 import { RobotService } from 'src/app/services/robot.service';
 import { MapService } from 'src/app/services/map.service';
-import { ArcsEventDetectionDetailComponent } from './arcs-event-detection-detail/arcs-event-detection-detail.component';
+import { ArcsEventDetectionDetailComponent } from '../arcs-event-detection-detail/arcs-event-detection-detail.component';
 import { ArcsDashboardMapPanelComponent } from './arcs-dashboard-map-panel/arcs-dashboard-map-panel.component';
+import { ArcsBroadcastComponent } from '../arcs-broadcast/arcs-broadcast.component';
 
 type robotTypeInfo = { //A group can be an individual robot (when filtered by robot type) OR robot type (no filter applied) 
   robotType: string
@@ -154,6 +155,7 @@ export class ArcsDashboardComponent implements OnInit {
         ],
       },
       robot_detection: {
+        functionId: "PATROL_PLAYBACK",
         apiUrl: "api/analytics/robotDetection/page/v1",
         defaultState: {skip: 0 , take: 15 , sort:[{dir: 'desc' , field: 'detectionDateTime'}]},
         buttons : {new: false, action: false },
@@ -165,6 +167,20 @@ export class ArcsDashboardComponent implements OnInit {
           { title: "Robot Code", id: "robotCode", width: 100 },
         ],
       },
+      broadcast: {
+        functionId: "BROADCAST",
+        apiUrl: "api/broadcast/page/v1",
+        defaultState: {skip: 0 , take: 15 , sort:[{dir: 'desc' , field: 'createdDateTime'}]},
+        buttons : {new: true, action: false },
+        columns: [
+          { title: "#", type: "button", id: "edit", width: 30, icon: 'k-icon mdi mdi-text-box-search-outline' , fixed: true },          
+          { title: "Date", id: "createdDateTime", width: 80 ,  type: "date"  },
+          { title: "Subject", id: "suject", width: 150 },
+          { title : "Robots" , id : "robotCodes" , width: 250 },
+        ].concat(
+          this.authSrv.hasRight('USER')? [ <any>{ title: "Created By", id: "createdBy", width: 80 , dropdownType : 'users' }]: []
+        ),
+      },
     }
   }
   
@@ -173,6 +189,9 @@ export class ArcsDashboardComponent implements OnInit {
     const extraTabsByRobotType = {
       PATROL: [
         { id: 'patrol_playback', label: 'Playback', functionId : 'PATROL_PLAYBACK' } 
+      ],
+      MOBILE_CHAIR:[
+        { id : 'broadcast' , label : 'Broadcast' ,  functionId : 'BROADCAST'}
       ]
     }
     return (this.robotTypeFilter ? [
@@ -392,7 +411,7 @@ export class ArcsDashboardComponent implements OnInit {
       o.suffix = count == 0 ? undefined : count.toString()
     })
     this.ngZone.run(()=>{
-      if(this.pixiElRef ){
+      if(this.pixiElRef){
         this.pixiElRef.module.data.dropdownOptions.floorplans = JSON.parse(JSON.stringify(options))
       }
       if(this.threeJsElRef){
@@ -615,7 +634,8 @@ export class ArcsDashboardComponent implements OnInit {
         task : CmTaskJobComponent,
         template : CmTaskJobComponent,
         group : ArcsRobotGroupComponent,
-        robot_detection : ArcsEventDetectionDetailComponent
+        robot_detection : ArcsEventDetectionDetailComponent,
+        broadcast : ArcsBroadcastComponent
       }
       let dialog : DialogRef = this.uiSrv.openKendoDialog({content: compMap[this.selectedTab] , preventAction:()=>true});
       const content = dialog.content.instance;

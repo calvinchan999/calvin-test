@@ -12,6 +12,9 @@
 		{"key" : "userCode" ,  "length" : 50},
 		{"key" : "userGroupCode" ,  "length" : 50},
 		{"key" : "siteCode" ,  "length" : 50},
-		{"key" : "email" ,  "length" : 200}
+		{"key" : "email" ,  "length" : 200},
+		{"key" : "subject" , "table" : "broadcast", "length" : 50},
+		{"key" : "content" , "table" : "broadcast", "length" : 1000},
+		{"key" : "groupName" , "length" : 100}
 	]
 }

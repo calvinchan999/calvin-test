@@ -1,0 +1,23 @@
+<div class="dialog-content">
+    <kendo-dialog-titlebar (close)="onClose()">
+        <div>{{'Broadcast to robot' | label: uiSrv.langPack}}</div>
+    </kendo-dialog-titlebar>
+    <div class="flex-container">
+        <form [formGroup]="frmGrp" class="content">
+            <div class="form-row">
+                <uc-multiselect lab="Robot" [options] = "dropdown.options.robots"  [frmGrp]="frmGrp" frmCtrl="robotCodes"   [disabled]='readonly' [checkboxes]="true"></uc-multiselect>   
+            </div>
+            <div class="form-row">
+                <uc-txtbox lab="Subject" [dbTable]="dbTable" [frmGrp]="frmGrp" frmCtrl="subject"></uc-txtbox>                
+            </div>
+            <div class="form-row">
+                <uc-txtbox lab="Content" [dbTable]="dbTable" [frmGrp]="frmGrp" frmCtrl="content" [textArea] = "true"></uc-txtbox>                
+            </div>
+        </form>
+
+    </div>
+    <div class="button-container">
+        <button kendoButton (click) = "onClose()" > {{'Cancel' | label : uiSrv.langPack}}</button>
+        <button *ngIf="!readonly" kendoButton (click) = "saveToDB()" > {{'Broadcast' | label : uiSrv.langPack}}</button>
+    </div>
+</div>

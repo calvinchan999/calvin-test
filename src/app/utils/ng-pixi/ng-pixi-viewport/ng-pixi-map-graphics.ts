@@ -1185,6 +1185,40 @@ export class PixiMapContainer extends PixiMap {
 
 }
 
+export class PixiRegionPolygon extends PixiEditablePolygon {
+  _regionCode: string
+  name: string = ''
+  regionType: string = 'RESTRICTED'
+  robotCodes : string[]
+  text : PIXI.Text
+  get regionCode (){
+    return this._regionCode
+  }
+  set regionCode(v){
+    this._regionCode = v
+    this.text.text = v
+  }
+  textContainer : PixiGraphics 
+  constructor(viewport: PixiMapViewport, _vertices: PIXI.Point[] , style: PixiGraphicStyle = new PixiGraphicStyle(), readonly = false , regionCode = null , robotCodes = [] ) {
+    super(viewport, _vertices , style , readonly)
+    this.textContainer = new PixiGraphics(this.viewport)    
+    this.textContainer.autoScaleEnabled = true
+    this.type = 'region'
+    this.text = new PIXI.Text(regionCode , {fill : '0xFF0000' , fontSize : 12 , stroke : '0xFFFFFF' , strokeThickness : 3})
+    this.regionCode = regionCode
+    this.robotCodes = robotCodes 
+    this.text.anchor.set(0.5)
+    this.setTextPosition(new PIXI.Point(centroidOfPolygon(this.vertices).x, centroidOfPolygon(this.vertices).y))
+    this.addChild(this.textContainer)
+    this.textContainer.addChild(this.text)
+    this.drawDone.pipe(takeUntil(this.events.destroyed)).subscribe(()=>  this.setTextPosition(new PIXI.Point(centroidOfPolygon(this.vertices).x, centroidOfPolygon(this.vertices).y)))
+  }
+
+  setTextPosition(pos: PIXI.Point) {
+    pos = inside(pos, this.vertices) ? pos : new PIXI.Point((this.vertices[0].x + this.vertices[1].x) / 2, (this.vertices[0].y + this.vertices[1].y) / 2)
+    this.textContainer.position.set(pos.x, pos.y)
+  }
+}
 
 export class PixiBuildingPolygon extends PixiEditablePolygon implements IReColor {
   public pixiRobotCountTag: PixiRobotCountTag

@@ -210,7 +210,7 @@ import { ServiceWorkerModule } from '@angular/service-worker';
 import { SaPagesDeliveryFillupComponent } from './standalone/sa-pages/top-modules/delivery/sa-pages-delivery-fillup/sa-pages-delivery-fillup.component';
 import { SaPagesDeliveryPickupComponent } from './standalone/sa-pages/top-modules/delivery/sa-pages-delivery-pickup/sa-pages-delivery-pickup.component';
 import { CronEditorComponent } from './ui-components/cron-editor/cron-editor.component';
-import { ArcsTaskScheduleComponent } from './arcs/arcs-dashboard/arcs-task-schedule/arcs-task-schedule.component';
+import { ArcsTaskScheduleComponent } from './arcs/arcs-task-schedule/arcs-task-schedule.component';
 import { ArcsSetupPointTypeComponent } from './arcs/arcs-setup/arcs-setup-point-type/arcs-setup-point-type.component';
 import { ArcsChartsComponent } from './arcs/arcs-dashboard/arcs-charts/arcs-charts.component';
 import { ForgetPasswordComponent } from './common-components/cm-login/forget-password/forget-password.component';
@@ -224,7 +224,7 @@ import { CmEventLogComponent } from './common-components/cm-event-log/cm-event-l
 import { ThreejsViewportComponent } from './ui-components/threejs-viewport/threejs-viewport.component';
 import { ArcsSetupImportFloorplanComponent } from './arcs/arcs-setup/arcs-setup-import/arcs-setup-import-floorplan/arcs-setup-import-floorplan.component';
 import { ArcsSetupExportFloorplanComponent } from './arcs/arcs-setup/arcs-setup-export/arcs-setup-export-floorplan/arcs-setup-export-floorplan.component';
-import { ArcsRobotGroupComponent } from './arcs/arcs-dashboard/arcs-robot-group/arcs-robot-group.component';
+import { ArcsRobotGroupComponent } from './arcs/arcs-robot-group/arcs-robot-group.component';
 import { ArcsAbnormalTasksComponent } from './arcs/arcs-dashboard/arcs-charts/arcs-abnormal-tasks/arcs-abnormal-tasks.component';
 import { CmTaskCancelComponent } from './common-components/cm-task/cm-task-cancel/cm-task-cancel.component';
 import { ArcsLiftIotComponent } from './arcs/arcs-iot/arcs-lift-iot/arcs-lift-iot.component';
@@ -234,12 +234,13 @@ import { FilterModule } from '@progress/kendo-angular-filter';
 import { WorkflowDesignerComponent } from './ui-components/workflow-designer/workflow-designer.component';
 import { PinKeypadComponent } from './ui-components/pin-keypad/pin-keypad.component';
 import { ArcsSetupFloorplan3dComponent } from './arcs/arcs-setup/arcs-setup-floorplan3d/arcs-setup-floorplan3d.component';
-import { ArcsPatrolPlaybackComponent } from './arcs/arcs-dashboard/arcs-patrol-playback/arcs-patrol-playback.component';
+import { ArcsPatrolPlaybackComponent } from './arcs/arcs-patrol-playback/arcs-patrol-playback.component';
 import { ArcsRobotIotComponent } from './arcs/arcs-iot/arcs-robot-iot/arcs-robot-iot.component';
 import { CustomButtonComponent } from './ui-components/threejs-viewport/custom-button/custom-button.component';
-import { ArcsEventDetectionDetailComponent } from './arcs/arcs-dashboard/arcs-event-detection-detail/arcs-event-detection-detail.component';
+import { ArcsEventDetectionDetailComponent } from './arcs/arcs-event-detection-detail/arcs-event-detection-detail.component';
 import { ArcsDashboardMapPanelComponent } from './arcs/arcs-dashboard/arcs-dashboard-map-panel/arcs-dashboard-map-panel.component';
 import { ArcsDashboardNewTaskComponent } from './arcs/arcs-dashboard/arcs-dashboard-new-task/arcs-dashboard-new-task.component';
+import { ArcsBroadcastComponent } from './arcs/arcs-broadcast/arcs-broadcast.component';
 // import { WorkflowComponent } from './ui-components/workflow/workflow.component';
 // import { SequentialWorkflowDesignerModule } from 'sequential-workflow-designer-angular';
 
@@ -349,6 +350,7 @@ import { ArcsDashboardNewTaskComponent } from './arcs/arcs-dashboard/arcs-dashbo
         ArcsEventDetectionDetailComponent,
         ArcsDashboardMapPanelComponent,
         ArcsDashboardNewTaskComponent,
+        ArcsBroadcastComponent,
         // WorkflowComponent        
     ],
     imports: [

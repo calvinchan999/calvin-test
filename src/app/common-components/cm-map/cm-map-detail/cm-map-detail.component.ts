@@ -66,7 +66,12 @@ export class CmMapDetailComponent implements OnInit {
   showTabletSaveDialog = false
   @Input() parentRow = null
   locationDataMap =  new Map()
-  base64Loaded = null
+  get originalBase64 (){
+    return this.pixiElRef?.exportBase64
+  }
+  set originalBase64(v){
+    this.pixiElRef.exportBase64 = v
+  }
   get isCreate(){
     return this.parentRow == null
   }
@@ -135,7 +140,7 @@ export class CmMapDetailComponent implements OnInit {
     this.orginalHeight = data.imageHeight
     let maxPx = this.uiSrv.isTablet ? WebGLMaxMobileTextureSize : WebGLMaxPcTextureSize
     if ((data.imageWidth >= maxPx || data.imageHeight > maxPx)) {
-      this.base64Loaded = data.base64Image
+      this.originalBase64 = data.base64Image
       this.pixiElRef.viewport.METER_TO_PIXEL_RATIO = data.resolution ? 1 / data.resolution :  this.util.config.METER_TO_PIXEL_RATIO
       this.pixiElRef.mapHeight = data.imageHeight
       this.pixiElRef.mapWidth = data.imageWidth
@@ -151,7 +156,7 @@ export class CmMapDetailComponent implements OnInit {
 
   imageUploaded(evt: { base64: string, width: number, height: number }) {
     if (this.pixiElRef.mapHeight || this.pixiElRef.mapWidth ) {
-      this.base64Loaded = evt.base64
+      this.originalBase64 = evt.base64
     }
   }
 
@@ -161,7 +166,7 @@ export class CmMapDetailComponent implements OnInit {
 
   async validate() {
     //TBD : check if map resolution == original map resolution if update
-    if(!this.isCreate && !this.base64Loaded){
+    if(!this.isCreate && !this.originalBase64){
       let currDimension = await GetImageDimensions('data:image/png;base64,' + await this.pixiElRef?.getMainContainerImgBase64())
       if(currDimension[0] != this.orginalWidth || currDimension[1] != this.orginalHeight){
         this.uiSrv.showMsgDialog("Map dimemsion changed. Drawing is out of boundary")
@@ -178,7 +183,7 @@ export class CmMapDetailComponent implements OnInit {
   async getSubmitDataset(){
     let ret = new JMap()
     Object.keys(this.frmGrp.controls).forEach(k=> ret[k] = this.frmGrp.controls[k].value)
-    ret.base64Image = this.base64Loaded ?`${this.base64Loaded.split(",")[this.base64Loaded.split(",").length - 1]}` : await this.pixiElRef.getMainContainerImgBase64()
+    ret.base64Image = this.originalBase64 ? `${this.originalBase64.split(",")[this.originalBase64.split(",").length - 1]}` : await this.pixiElRef.getMainContainerImgBase64()
     if(!this.parentRow && this.createFloorPlan){
       this.frmGrp.controls['floorPlanCode'].setValue(this.frmGrp.controls['floorPlanCode'].value?.length > 0 ? this.frmGrp.controls['floorPlanCode'].value : this.frmGrp.controls['mapCode'].value )
       ret.floorPlanCode =  this.frmGrp.controls['floorPlanCode'].value

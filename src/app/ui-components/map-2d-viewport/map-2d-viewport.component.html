@@ -9,7 +9,7 @@
                        viewport.selectedGraphicsList = [];
                        viewport.multiSelectEnabled = viewport.selectedGraphicsList.length == 0 ? false :  viewport.multiSelectEnabled ; "
        style="width: 100%; height: 100%;" class="drawing-board" [style.cursor]="mode == 'create'? 'crosshair':''">
-  <ng-pixi-viewport [popupScreen] = "commonModule.ui.popupScreen" [fullScreen] = "commonModule.ui.fullScreen" [background] = "background">
+  <ng-pixi-viewport [popupScreen] = "commonModule.ui.popupScreen" [fullScreen] = "commonModule.ui.fullScreen" [background] = "background" [dataModule] = "commonModule.data">
     <ng-container *ngIf="viewport">
       <div class="overlay" *ngIf="robotSrv.data.isFollowMeWithoutMap.value || (showRobot && robotSrv.data.isMappingMode.value)  || commonModule.ui.overlayMessage "> 
         <div class="overlay-button-container">
@@ -22,10 +22,13 @@
           <button kendoButton class="scan"  *ngIf="!robotSrv.data.isFollowMeWithoutMap.value && showScanButton" (click)="scanClicked.emit()">
             <span class="mdi mdi-focus-field"></span>
           </button>
-          <button kendoButton class="cancel"  *ngIf="!remoteControl && commonModule.ui.popupScreen && !showScanButton"  (click)="commonModule.ui.popupScreen = false">
+          <button kendoButton class="cancel" *ngIf="!remoteControl && commonModule.ui.popupScreen && !showScanButton"  (click)="commonModule.ui.popupScreen = false">
             <span class="mdi mdi-logout"></span>
           </button>
         </div>
+        <span class="message" *ngIf="showScanButton">
+          {{'Start Scanning'| label : uiSrv.langPack}}
+        </span>
         <span class="message" *ngIf="!remoteControl">
            {{ robotSrv.data.isFollowMeWithoutMap.value ? ('Follow Me Standalone Mode Activated'|label : uiSrv.langPack) : 
            ( showRobot && robotSrv.data.isMappingMode.value) ? ('Mapping Mode Activated' | label : uiSrv.langPack)  : commonModule.ui.overlayMessage }}
@@ -78,7 +81,7 @@
                <span [class]="'mdi mdi-theme-light-dark'"></span>
         </button>  
 
-        <button *ngIf="!hideButton.all && showRosToggle" kendoButton class="select-drag" [matTooltip]="'Drag Select'| label : uiSrv.langPack" matTooltipPosition="right" (click)="viewport.multiSelectEnabled = !viewport.multiSelectEnabled" [ngClass]="{'btn-active': viewport._multiSelectEnabled}" >
+        <button *ngIf="!hideButton.all && ( util.arcsApp || showRosToggle)" kendoButton class="select-drag" [matTooltip]="'Drag Select'| label : uiSrv.langPack" matTooltipPosition="right" (click)="viewport.multiSelectEnabled = !viewport.multiSelectEnabled" [ngClass]="{'btn-active': viewport._multiSelectEnabled}" >
           <span class="mdi mdi-select-drag"></span>
         </button>
 
@@ -390,13 +393,24 @@
                        [numeric] = 'true' >
             </uc-txtbox>
           </ng-container>
+          
         </div>
 
         <div *ngIf="viewport._multiSelectEnabled && viewport._selectedGraphicsList?.length > 0 " class = "bottom-sector multi-select">
           <span>{{   viewport._selectedGraphicsList.length + ' ' + ( viewport._selectedGraphicsList.length == 1? 'item selected' : 'items selected' | label : uiSrv.langPack)}}</span>
         </div>
   
-  
+        <div *ngIf="util.arcsApp && selectedGraphics?.type == 'region'" class = "bottom-sector multi-select">
+          <uc-txtbox  class="region-textbox" customClass="txtbox-container"  lab="Region Code" [(value)] = "selectedGraphics.regionCode" [upper] = "true" > 
+          </uc-txtbox>
+          <uc-dropdown  class="region-type" customClass="txtbox-container"  lab="Region Type" [(value)] = "selectedGraphics.regionType" 
+                     [disabled] = "true" [options] = "[{value : 'RESTRICTED' , text : 'Restricted'}]">  
+                     <!-- TBR -->
+          </uc-dropdown>
+          <uc-multiselect *ngIf="module.data.dropdownOptions.robots" class="robot-codes"  lab="Robot Codes" [useSummaryTag]="true" [checkboxes]="true" 
+                          [options]="module.data.dropdownOptions.robots" [(value)]="selectedGraphics.robotCodes"   
+                          (open)="suspendViewportPlugin('wheel')" (close)="resumeViewportPlugin('wheel')" ></uc-multiselect>
+        </div>
       </div>
   
     </ng-container>
@@ -543,7 +557,7 @@
 </ng-template>
 
 <ng-template #createModeTpl>
-          <button kendoButton class="polygon" [matTooltip]="'Draw Polygon'| label : uiSrv.langPack" matTooltipPosition="right" [disabled] = "disableButton['polygon']"
+          <button kendoButton class="polygon" [matTooltip]="('Draw ' | label : uiSrv.langPack) + ' '  +  ((polygonType == 'region' ? 'Zone' : (polygonType == 'building' ? 'Building' : 'Polygon'))|label : uiSrv.langPack )" matTooltipPosition="right" [disabled] = "disableButton['polygon']"
             *ngIf="!hideButton['polygon']" [ngClass]="{'btn-active': viewport.createData?.type == 'polygon'}"
             (click)="viewport.createData?.type == 'polygon' ? viewport.mode = null : viewport.startCreate('polygon')">
             <span class="mdi mdi-vector-polygon"> </span>
@@ -597,7 +611,7 @@
             <span class="mdi mdi-crosshairs"></span>
           </button>
 
-          <button kendoButton class="image" [matTooltip]="'Export As Image'| label : uiSrv.langPack" matTooltipPosition="right" (click)="viewport.exportEditedMapImage()" [disabled] = "disableButton['export']"
+          <button kendoButton class="image" [matTooltip]="'Export As Image'| label : uiSrv.langPack" matTooltipPosition="right" (click)="viewport.exportEditedMapImage(exportBase64)" [disabled] = "disableButton['export']"
             *ngIf="!hideButton['export']">
             <span class="mdi mdi-content-save"></span>
           </button>

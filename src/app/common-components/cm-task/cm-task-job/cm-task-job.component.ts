@@ -419,7 +419,7 @@ export class CmTaskJobComponent implements OnInit {
     let row : FlattenedTaskItem = JSON.parse(JSON.stringify(this.actionNewRow))
     row['seq'] = this.jobListData.length + 1 ;
     let prevRow : FlattenedTaskItem  = this.getPrevLocRow();
-    if(prevRow && prevRow.pointCode == row.pointCode){
+    if(prevRow && prevRow.pointCode == row.pointCode && (this.util.standaloneApp || prevRow.floorPlanCode == row.floorPlanCode)){
       row.floorPlanCode = null
       row.pointCode = null
       row.orientation = prevRow.orientation

@@ -37,7 +37,7 @@ import { FloorPlanState, MapService } from 'src/app/services/map.service';
 import { CustomButtonComponent } from './custom-button/custom-button.component';
 import { State } from '@progress/kendo-data-query';
 import { DialogRef } from '@progress/kendo-angular-dialog';
-import { ArcsEventDetectionDetailComponent } from 'src/app/arcs/arcs-dashboard/arcs-event-detection-detail/arcs-event-detection-detail.component';
+import { ArcsEventDetectionDetailComponent } from 'src/app/arcs/arcs-event-detection-detail/arcs-event-detection-detail.component';
 import { ArcsRobotIotComponent } from 'src/app/arcs/arcs-iot/arcs-robot-iot/arcs-robot-iot.component';
 import { CLICK_EVENTS } from 'src/app/utils/ng-pixi/ng-pixi-viewport/ng-pixi-constants';
 import { DRAWING_STYLE } from 'src/app/utils/ng-pixi/ng-pixi-viewport/ng-pixi-styling-util';

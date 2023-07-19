@@ -33,7 +33,7 @@
   // backdrop-filter: blur(2px);
 }
 
-:host ::ng-deep .robot-base .k-multiselect-wrap.k-floatwrap {
+:host ::ng-deep .robot-base .k-multiselect-wrap.k-floatwrap , :host ::ng-deep .robot-codes .k-multiselect-wrap.k-floatwrap{
   min-height: 0px!important;
 }
 

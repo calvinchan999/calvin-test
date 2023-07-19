@@ -9,26 +9,30 @@
         </kendo-tabstrip-tab>
         <kendo-tabstrip-tab  [title]="'Locations' | label : uiSrv.langPack">        
         </kendo-tabstrip-tab>
+        <!-- <kendo-tabstrip-tab *ngIf="util.arcsApp" [title]="'Restricted Zone' | label : uiSrv.langPack">        
+        </kendo-tabstrip-tab> -->
         <!-- <kendo-tabstrip-tab *ngIf="util.arcsApp && parentRow" [title]="'3D Model' | label : uiSrv.langPack" [disabled] = "frmGrp.controls['fileName'].value == null">        
         </kendo-tabstrip-tab> -->
     </kendo-tabstrip>
 
 
     <div class="container"  #container>      
-        <ng-container *ngIf="!uiSrv.isTablet && (selectedTab == 'maps' || selectedTab == 'locations')">
+        <ng-container *ngIf="!uiSrv.isTablet && (selectedTab == 'maps' || selectedTab == 'locations' ||  selectedTab == 'zones') ">
+            <!-- / -->
             <div class="form-container">
                 <ng-container *ngTemplateOutlet="form">
                 </ng-container>
             </div>
         </ng-container>
         <!-- [style.minWidth] = "selectedTab == 'locations'? '100%' : ''" -->
-        <div class="viewport-container" #pixiContainer [style.display] = "selectedTab == 'maps' || selectedTab == 'locations' ? '' : 'none'"> 
+        <div class="viewport-container" #pixiContainer [style.display] = "selectedTab == 'maps' || selectedTab == 'locations' || selectedTab == 'zones' ? '' : 'none'"> 
             <uc-drawing-board  #pixi [overlayMsg] = "frmGrp.controls['fileName'].value? null : ('Please upload the floor plan file first' | label : uiSrv.langPack) " 
                               [readonly] = "readonly" [waypointEditable] = "true" [showWaypointType] = "showWaypointType"
                               (graphicsUnselected) = "$event.type == 'waypoint' ? onPointUnselected($event) : null" 
                               [showRosToggle] = "util.standaloneApp" (addLocalWayPointClicked) = "getPoseAndAddWaypoint_SA()"
                               [canUploadMultiImg] = "false" [hideButton] = "{all:true}" [(selectedGraphics)] = "selectedPixiShape" [hideRelocationButton] = "true"
-                              (fileLoad)=" frmGrp.controls['fileName'].setValue($event?.name)">
+                              (fileLoad)=" frmGrp.controls['fileName'].setValue($event?.name)"
+                              [polygonType] = "'region'">
             </uc-drawing-board>
         </div>   
         <!-- <div class="three-d-container"  [style.display] = "selectedTab == '3d'? '' : 'none'" > 

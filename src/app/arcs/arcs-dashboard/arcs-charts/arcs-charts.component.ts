@@ -75,43 +75,42 @@ export class ArcsChartsComponent implements OnInit, OnDestroy {
     waypoint : []
   }
 
-  detection = {
+  detection : {
     total : {
-      count : null,
-      waypoint1 : null,
-      waypoint2 : null,
-      waypoint3 : null,
+      count : number,
+      waypoint1 : any,
+      waypoint2 : any,
+      waypoint3 : any,
     },
     detectionType: {
-      data: [],
-      centerText: ''
+      data: any[],
+      centerText: string
     },
     waypoint: {
-      selected: null,
-      labelContent: (e): string => {
-        return e.dataItem?.category;
-      },
-      maxY: null,
-      minX: null,
-      minY: null,
-      maxX: null,
-      data: [],
+      selected: string,
+      labelContent: any,
+      maxY: number,
+      minX: number,
+      minY: number,
+      maxX: number,
+      data: any[],
     },
     daily: {
-      min: new Date(new Date().getFullYear(), 0, 1),
-      max: new Date(new Date().getFullYear(), new Date().getMonth(), new Date().getDate() + 1),
-      navigatorStep: 30,
-      transitions: false,
-      categories: [],
-      data: [],
+      min: Date,
+      max: Date,
+      navigatorStep: number,
+      transitions: boolean,
+      categories: any[],
+      data: any[],
     },
     events: {
-      data: []
+      data: any[]
     },
     floorplan :{
-      selected: null,
-      categories : [],
-      data: []
+      centerText: string,
+      selected: string,
+      categories : any[],
+      data: any[]
     }
     // hourlyAvg: {
     //   selected: null,
@@ -240,6 +239,8 @@ export class ArcsChartsComponent implements OnInit, OnDestroy {
 
   robotTypeFilter = null
   robotCodeFilter = null
+  floorPlanCodeFilter = null
+  detectionTypeFilter = null
   hightlightedSeriesIndex = null
   $onDestroy = new Subject()
 
@@ -269,11 +270,12 @@ export class ArcsChartsComponent implements OnInit, OnDestroy {
       this.robotCodeFilter = evt.category ==  this.robotCodeFilter ? null : evt.category
       this.refreshRobotTypeFilter()
       this.refreshChart()
-    } else if (evt.sender == this.floorplanObstacleChart && this.detection.floorplan.selected != evt.category) {
-      this.detection.floorplan.selected = evt.category
-      this.detection.waypoint.selected = null
-      this.refreshDetection()
-    }
+    } 
+    // else if (evt.sender == this.floorplanObstacleChart && this.detection.floorplan.selected != evt.category) {
+    //   this.detection.floorplan.selected = evt.category
+    //   this.detection.waypoint.selected = null
+    //   this.refreshDetection()
+    // }
   }
 
   setHighlightedSeriesIndex( seriesIndex){
@@ -322,9 +324,10 @@ export class ArcsChartsComponent implements OnInit, OnDestroy {
     this.robotCodeFilter = null
     let ticket = this.uiSrv.loadAsyncBegin()
     this.year = new Date().getFullYear()
+    await this.initDropDown()
     this.initUsability()
     this.initUtilization()
-    await this.initDropDown()
+    this.initDetection()
     let frDate = null , toDate = null
     if(this.chartType == 'utilization' && new Date().getMonth()!= 0){
       toDate = new Date() 
@@ -334,7 +337,6 @@ export class ArcsChartsComponent implements OnInit, OnDestroy {
     this.setDateRange(frDate , null)
     await this.refreshChart()
     this.uiSrv.loadAsyncDone(ticket)
-    setTimeout(() => this.initDetection())
   }
 
   refreshRobotTypeFilter(){
@@ -452,7 +454,6 @@ export class ArcsChartsComponent implements OnInit, OnDestroy {
       this.dropdownData[k] = ddl.data[k];
       this.dropdownOptions[k] = ddl.option[k];
     })
-    this.detection.floorplan.selected =  this.dropdownOptions.floorplans[0]?.value
   }
 
   initYearDropDown(firstYear : number ){
@@ -480,10 +481,10 @@ export class ArcsChartsComponent implements OnInit, OnDestroy {
   }
 
   async refreshChart() {
-    if(this.chartType == 'detection'){ //TBR !!!!!!!!!!!!!!!!!!
-      this.refreshDetection()
-      return 
-    }
+    // if(this.chartType == 'detection'){ //TBR !!!!!!!!!!!!!!!!!!
+    //   this.refreshDetection()
+    //   return 
+    // }
 
     let toDate = new Date(this.getSelectedDateRange().toDate.getTime())
     toDate.setDate(toDate.getDate() - 1)
@@ -492,14 +493,16 @@ export class ArcsChartsComponent implements OnInit, OnDestroy {
       this.fetchUsability() 
     }else if(this._chartType == 'utilization'){
       this.fetchUtilization() 
+    }else if(this._chartType == 'detection'){
+      this.fetchDetection() 
     }
   }
 
   async retreiveData( fromDate: Date , toDate: Date ) {
-    if(!['usability' , 'utilization'].includes(this.chartType)){
-      this.initYearDropDown(Number(new Date().getFullYear()))
-      return
-    }
+    // if(!['usability' , 'utilization'].includes(this.chartType)){
+    //   this.initYearDropDown(Number(new Date().getFullYear()))
+    //   return
+    // }
     // fromDate = fromDate ? fromDate : this.getSelectedDateRange().fromDate
     // toDate = toDate ? toDate : this.getSelectedDateRange().toDate    
     // console.log(toDate)
@@ -508,7 +511,16 @@ export class ArcsChartsComponent implements OnInit, OnDestroy {
     let frDateStr = this.util.getSQLFmtDateStr(fromDate)
     let toDateStr = this.util.getSQLFmtDateStr(toDate)
     let data = []
-    let param = `?fromDate=${frDateStr}&toDate=${toDateStr}${this.robotTypeFilter ? `&robotType=${this.robotTypeFilter}` : '' }${this.robotCodeFilter ? `&robotCode=${this.robotCodeFilter}` : '' }`
+    let param = `?fromDate=${frDateStr}&toDate=${toDateStr}`
+    let filters =   {
+      robotType : this.robotTypeFilter,
+      robotCode : this.robotCodeFilter,
+      floorPlanCode : this.floorPlanCodeFilter,
+      detectionType : this.detectionTypeFilter
+    }
+    Object.keys(filters).filter(k=>filters[k]!=null).forEach(k=>{
+      param += `&${k}=${filters[k]}`
+    }) 
     data = await this.dataSrv.httpSrv.get(`api/analytics/${this._chartType}/v1${param}`)
     if(this._chartType == 'usability'){
       this.usabilityData = JSON.parse(JSON.stringify(data))
@@ -519,6 +531,8 @@ export class ArcsChartsComponent implements OnInit, OnDestroy {
       //   tmpDate.setMonth(tmpDate.getMonth() - 1);
       //   this.onSelectEnd({ from: tmpDate, to: new Date(toDate.getTime() + 86400000) })
       // }
+    }else if(this._chartType == 'detection'){
+      this.detectionData = JSON.parse(JSON.stringify(data))
     }
     let firstYear = data.filter(r=>r.type == 'FIRST_YEAR')[0]?.category
     if(firstYear){
@@ -756,9 +770,10 @@ export class ArcsChartsComponent implements OnInit, OnDestroy {
         let index = this.daysIntoYear(new Date(Number(splitedDateString[0]), Number(splitedDateString[1]) - 1, Number(splitedDateString[2])))
         this.detection.daily.data[index] = this.getRoundedValue(Number(r.value))
       } else if(r.type == 'DETECTION_TYPE'){
-
+        this.detection.detectionType.data.push({ category: r.category, value: this.getRoundedValue(Number(r.value)) })
       } else if(r.type == 'FLOOR_PLAN'){
-
+        console.log(this.detection.floorplan)
+        this.detection.floorplan.data.push({ category: r.category, value: this.getRoundedValue(Number(r.value)) })
       } else if(r.type == 'JSON'){
 
       }
@@ -862,10 +877,10 @@ export class ArcsChartsComponent implements OnInit, OnDestroy {
     })
 
     //FLOORPLAN
-    this.detection.floorplan.categories =  this.dropdownOptions.floorplans.map(f=>f.value)//[...new Set(data.map(d => d.floorplan))].sort()
-    for (let i = 0; i < this.detection.floorplan.categories.length; i++) {
-      this.detection.floorplan.data[i] = this.getFilteredDetections(true , false , false).filter(d=>d.floorplan == this.detection.floorplan.categories[i]).length 
-    }   
+    this.detection.floorplan.categories = [...new Set(this.detection.floorplan.data.map(d => d.category))].sort()
+    // for (let i = 0; i < this.detection.floorplan.categories.length; i++) {
+    //   this.detection.floorplan.data[i] = this.getFilteredDetections(true , false , false).filter(d=>d.floorplan == this.detection.floorplan.categories[i]).length 
+    // }   
     this.detection.floorplan.data = JSON.parse(JSON.stringify(this.detection.floorplan.data))
 
     // //HOURLY AVG
@@ -909,6 +924,51 @@ export class ArcsChartsComponent implements OnInit, OnDestroy {
   }
 
   async initDetection() {
+    this.detection = {
+      total : {
+        count : null,
+        waypoint1 : null,
+        waypoint2 : null,
+        waypoint3 : null,
+      },
+      detectionType: {
+        data: [],
+        centerText: ''
+      },
+      waypoint: {
+        selected: null,
+        labelContent: (e): string => {
+          return e.dataItem?.category;
+        },
+        maxY: null,
+        minX: null,
+        minY: null,
+        maxX: null,
+        data: [],
+      },
+      daily: {
+        min: new Date(new Date().getFullYear(), 0, 1),
+        max: new Date(new Date().getFullYear(), new Date().getMonth(), new Date().getDate() + 1),
+        navigatorStep: 30,
+        transitions: false,
+        categories: [],
+        data: [],
+      },
+      events: {
+        data: []
+      },
+      floorplan :{
+        centerText: "",
+        selected: null,
+        categories : [],
+        data: []
+      }
+      // hourlyAvg: {
+      //   selected: null,
+      //   categories: [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23],
+      //   data: [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
+      // }
+    }
     // this.detectionTestData = await this.dataSrv.getAssets("assets/detectionData.json")
     // this.dropdownOptions.floorplan = Object.keys( this.detectionTestData.floorplan).map(code => { return { value: code, text: code } })
     this.detection.floorplan.selected = this.dropdownOptions.floorplans.map(o => o.value)[0]

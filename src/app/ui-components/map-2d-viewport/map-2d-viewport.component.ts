@@ -22,7 +22,7 @@ import {OutlineFilter} from '@pixi/filter-outline';
 import {ColorOverlayFilter} from '@pixi/filter-color-overlay';
 import {DropShadowFilter} from '@pixi/filter-drop-shadow';
 import {DataService} from 'src/app/services/data.service';
-import { ShapeJData , MapJData, FloorPlanDataset, MapDataset, robotPose, DropListFloorplan, DropListLocation, DropListMap, DropListAction, DropListBuilding, JMap, JPoint, JPath, JFloorPlan, DropListRobot, DropListPointIcon, RobotStatusARCS, JChildPoint, FloorPlanAlertTypeDescMap } from 'src/app/services/data.models';
+import { ShapeJData , MapJData, FloorPlanDataset, MapDataset, robotPose, DropListFloorplan, DropListLocation, DropListMap, DropListAction, DropListBuilding, JMap, JPoint, JPath, JFloorPlan, DropListRobot, DropListPointIcon, RobotStatusARCS, JChildPoint, FloorPlanAlertTypeDescMap, JFloorPlanRegion } from 'src/app/services/data.models';
 import { AuthService } from 'src/app/services/auth.service';
 import * as roundSlider from "@maslick/radiaslider/src/slider-circular";
 import {GraphBuilder, DijkstraStrategy} from "js-shortest-path"
@@ -39,13 +39,13 @@ import { IDraw as IDraw, IReColor, Pixi1DGraphics, PixiBorder, PixiCircle, PixiC
 import { style } from '@angular/animations';
 import {calculateMapOrigin, calculateMapX, calculateMapY} from './pixi-ros-conversion'
 import {  PixiContainer} from 'src/app/utils/ng-pixi/ng-pixi-viewport/ng-pixi-base-container';
-import { PixiPath, PixiChildPoint, PixiWayPoint, PixiMap, PixiMapContainer, PixiEditableMapImage, PixiPointGroup, PixiBuildingPolygon, PixiRobotCountTag, PixiRobotMarker, PixiRosMapOriginMarker, PixiTaskPath, PixiMapGraphics, PixiEventMarker } from '../../utils/ng-pixi/ng-pixi-viewport/ng-pixi-map-graphics'
+import { PixiPath, PixiChildPoint, PixiWayPoint, PixiMap, PixiMapContainer, PixiEditableMapImage, PixiPointGroup, PixiBuildingPolygon, PixiRobotCountTag, PixiRobotMarker, PixiRosMapOriginMarker, PixiTaskPath, PixiMapGraphics, PixiEventMarker, PixiRegionPolygon } from '../../utils/ng-pixi/ng-pixi-viewport/ng-pixi-map-graphics'
 import { GetResizedBase64, GetResizedCanvas, GetSpriteFromUrl } from 'src/app/utils/ng-pixi/ng-pixi-viewport/ng-pixi-functions';
 import { MqService } from 'src/app/services/mq.service';
 import { RobotService, RobotState } from 'src/app/services/robot.service';
 import { FloorPlanState, MapService } from 'src/app/services/map.service';
 import { DialogRef } from '@progress/kendo-angular-dialog';
-import { ArcsEventDetectionDetailComponent } from 'src/app/arcs/arcs-dashboard/arcs-event-detection-detail/arcs-event-detection-detail.component';
+import { ArcsEventDetectionDetailComponent } from 'src/app/arcs/arcs-event-detection-detail/arcs-event-detection-detail.component';
 
 // adapted from
 // http://jsfiddle.net/eZQdE/43/
@@ -225,6 +225,8 @@ export class Map2DViewportComponent implements OnInit , AfterViewInit , OnDestro
   @Output() to3D :  EventEmitter<any> = new EventEmitter(); 
   @Input() background = 0xFFFFFF
   
+  exportBase64 = null
+
   disableKendoKeyboardNavigation = false
 
   @Input() set uitoggle(v){
@@ -322,14 +324,14 @@ export class Map2DViewportComponent implements OnInit , AfterViewInit , OnDestro
   @Input()palette = {
     map: ['#FFFFFF' , '#000000'], path: null, location: null
   }
-  selectedStyle = {
-    line: { width:5 , color : "#000000" , opacity: 1 },
-    brush : {size : 20,  color : "#000000", opacity: 1  },
-    polygon : { color : "#000000" , opacity: 1 },
-    arrow : {color : "#1e90ff" , opacity: 1 },
-    marker : {color : "#5f259f" , opacity: 1 },
-    markerLight : {color : "#cbacec" , opacity: 1 },
-  }
+  // selectedStyle = {
+  //   line: { width:5 , color : "#000000" , opacity: 1 },
+  //   brush : {size : 20,  color : "#000000", opacity: 1  },
+  //   polygon : { color : "#000000" , opacity: 1 },
+  //   arrow : {color : "#1e90ff" , opacity: 1 },
+  //   marker : {color : "#5f259f" , opacity: 1 },
+  //   markerLight : {color : "#cbacec" , opacity: 1 },
+  // }
   point = {type : 'waypoint'}
 
   mapHeight
@@ -788,7 +790,6 @@ export class Map2DViewportComponent implements OnInit , AfterViewInit , OnDestro
     this.backgroundSprite.scale.x = sprite.scale.x
     this.backgroundSprite.scale.y = sprite.scale.y
     this.backgroundSprite.zIndex = -1
-    this.backgroundSprite['base64'] = url
     this.backgroundImgBase64 = url
     this.mainContainer.zIndex = -1
     if(!this.mainContainer.children.includes(this.backgroundSprite)){
@@ -1071,7 +1072,7 @@ export class Map2DViewportComponent implements OnInit , AfterViewInit , OnDestro
       let pixiFrPoint : PixiWayPoint =  ret.filter(s=>s instanceof PixiWayPoint && s.code == data.sourcePointCode)[0]
       let pixiToPoint : PixiWayPoint =  ret.filter(s=>s instanceof PixiWayPoint && s.code == data.destinationPointCode)[0]
       let tmpVerts = [pixiFrPoint.position, pixiToPoint.position].concat(isCurved ? data.controlPointList.map(p=> new PIXI.Point(p.x , p.y)): [])
-      let pixiArrow = new PixiPath(this.viewport , tmpVerts ,tmpType , new PixiGraphicStyle().setProperties({fillColor : ConvertColorToDecimal(this.selectedStyle.arrow.color) , lineColor : ConvertColorToDecimal(this.selectedStyle.arrow.color) , lineThickness : 2}) )
+      let pixiArrow = new PixiPath(this.viewport , tmpVerts ,tmpType , new PixiGraphicStyle().setProperties({fillColor : ConvertColorToDecimal(this.viewport.selectedStyle.arrow.color) , lineColor : ConvertColorToDecimal(this.viewport.selectedStyle.arrow.color) , lineThickness : 2}) )
       //let pixiArrow = this.getArrow([tmpVerts[0], tmpVerts[1]], tmpType ); //this.getArrow(vertices[0] , vertices[1] , opt, r.type)
       pixiArrow.fromShape = pixiFrPoint
       pixiArrow.toShape = pixiToPoint
@@ -1091,6 +1092,14 @@ export class Map2DViewportComponent implements OnInit , AfterViewInit , OnDestro
         pixiArrow.visible = false
       }
     })
+
+    dataset.floorPlanRegionList?.forEach((data : JFloorPlanRegion)=>{
+      let region = new PixiRegionPolygon(this.viewport , JSON.parse(data.polygon) ,  new PixiGraphicStyle().setProperties({ fillColor: ConvertColorToDecimal(this.viewport.selectedStyle.polygon.color), opacity: this.viewport.selectedStyle.polygon.opacity }) , this.readonly , data.regionCode , data.robotCodes ) ;
+      region.regionType = data.regionType
+      region.name = data.name
+      addPixiGraphic(region)
+    })
+
     this.module.ui.toggleWaypoint(this.module.ui.toggle.showWaypoint)
     this.module.ui.togglePath()
     return ret
@@ -1230,6 +1239,16 @@ export class Map2DViewportComponent implements OnInit , AfterViewInit , OnDestro
       mapList: maps,
       pointList: points,
       pathList: getPaths(),
+      floorPlanRegionList : this.viewport.allPixiRegions.map(r=>{
+        return{
+          floorPlanCode : floorPlanCode,
+          regionCode : r.regionCode,
+          regionType : r.regionType,
+          name : r.name,
+          polygon : JSON.stringify(r.vertices.map(v=> {return {x :r.position.x + v.x , y :r.position.y + v.y}})),
+          robotCodes : r.robotCodes
+        }
+      }),
       viewZoom: this.getViewportPosition().defaultZoom,
       viewX: this.util.trimNum(this.getViewportPosition().defaultX, 0),
       viewY: this.util.trimNum(this.getViewportPosition().defaultY, 0)
@@ -2479,7 +2498,8 @@ export class DataModule{
     maps: [],
     iconTypes : [],
     pointTypes : [],
-    lifts:[]
+    lifts:[],
+    robots : []
   }
   dropdownData = {
     floorplans:[],
@@ -2489,7 +2509,7 @@ export class DataModule{
     robots :[],
     iconTypes : [],
     pointTypes : [],
-    lifts:[]
+    lifts:[],
   } 
 
   private dropdownInitDone = false
@@ -2556,6 +2576,7 @@ export class DataModule{
     }
     if (this.master.util.arcsApp) {
       this.dropdownData.robots = await this.dataSrv.getRobotList();
+      this.dropdownOptions.robots = await this.dataSrv.getDropListOptions( 'robots' , this.dropdownData.robots )
     }
     this.dropdownData.iconTypes = await this.dataSrv.getPointIconList()
     this.dropdownOptions.iconTypes = this.dropdownData.iconTypes.map((t: DropListPointIcon) => { return { value: t.code, text: t.name } });
@@ -2828,7 +2849,7 @@ export class UiModule {
 
       this.master.backgroundSprite.filters = this.viewport.pixiApp.renderer.transparent ? [colorMatrix, chroma ] : null;
       this.viewport.allPixiWayPoints.forEach((p:PixiWayPoint)=>{
-        p.style.fillColor = ConvertColorToDecimal(this.viewport.pixiApp.renderer.transparent ? this.master.selectedStyle.markerLight.color : this.master.selectedStyle.marker.color)
+        p.style.fillColor = ConvertColorToDecimal(this.viewport.pixiApp.renderer.transparent ? this.master.viewport.selectedStyle.markerLight.color : this.master.viewport.selectedStyle.marker.color)
         p.style.lineColor = p.style.fillColor
         p.reColor( p.style.fillColor )
       })

@@ -22,6 +22,7 @@ import {DRAWING_STYLE, PixiGraphicStyle} from './ng-pixi-styling-util'
 import {PixiMapViewport} from './ng-pixi-map-viewport'
 import { PixiViewport} from './ng-pixi-base-viewport'
 import { CLICK_END_EVENTS, CLICK_EVENTS, MOVE_EVENTS } from './ng-pixi-constants';
+import { DataModule } from 'src/app/ui-components/map-2d-viewport/map-2d-viewport.component';
 
 
 @Component({
@@ -41,13 +42,13 @@ export class NgPixiViewportComponent implements OnInit, AfterViewInit, OnDestroy
     @Output() clickEnd = new EventEmitter()
     @Output() zoomed = new EventEmitter()
     @Output() onDestroy = new Subject()
+    @Input() dataModule
     @Input() forMaps = true
 
 
     private _size = null;
     public viewport: PixiViewport;
     public app: PIXI.Application;
-    
 
     @Input() set size(value: { width: number, height: number }) {
         this._size = Object.assign({}, value);
@@ -69,7 +70,7 @@ export class NgPixiViewportComponent implements OnInit, AfterViewInit, OnDestroy
         private _ngZone: NgZone,
         private util : GeneralUtil,
         private uiSrv : UiService,
-        private ngRenderer : Renderer2
+        private ngRenderer : Renderer2,
         // private _changeDetectorRef: ChangeDetectorRef
     ) {
     
@@ -89,7 +90,7 @@ export class NgPixiViewportComponent implements OnInit, AfterViewInit, OnDestroy
                     worldWidth: 400,
                     interaction: this.app.renderer.plugins.interaction,
                     passiveWheel: true,
-                } , this.app , this._ngZone, this.ngRenderer, this.onDestroy ,  this.util.config.METER_TO_PIXEL_RATIO , this.util.standaloneApp , this.uiSrv.isTablet);
+                } , this.app , this._ngZone, this.ngRenderer, this.onDestroy ,  this.util.config.METER_TO_PIXEL_RATIO , this.util.standaloneApp , this.uiSrv.isTablet , this.dataModule);
                 this.viewport.onDestroy = this.onDestroy
             }else{
                 this.viewport = new PixiViewport({
@@ -99,7 +100,7 @@ export class NgPixiViewportComponent implements OnInit, AfterViewInit, OnDestroy
                     worldWidth: 400,
                     interaction: this.app.renderer.plugins.interaction,
                     passiveWheel: true,
-                } , this.app , this._ngZone , this.ngRenderer , this.onDestroy ,  this.util.config.METER_TO_PIXEL_RATIO , this.util.standaloneApp );
+                } , this.app , this._ngZone , this.ngRenderer , this.onDestroy ,  this.util.config.METER_TO_PIXEL_RATIO , this.util.standaloneApp , this.dataModule);
                 this.viewport.onDestroy = this.onDestroy
             }
         });

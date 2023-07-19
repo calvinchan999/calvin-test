@@ -1,6 +1,6 @@
 import { Subject } from 'rxjs'
 import {ModeType, PixiViewport} from './ng-pixi-base-viewport'
-import { PixiPath, PixiWayPoint, PixiMapContainer, PixiEditableMapImage, PixiBuildingPolygon, PixiRosMapOriginMarker, PixiTaskPath, PixiMapGraphics, PixiEventMarker } from './ng-pixi-map-graphics'
+import { PixiPath, PixiWayPoint, PixiMapContainer, PixiEditableMapImage, PixiBuildingPolygon, PixiRosMapOriginMarker, PixiTaskPath, PixiMapGraphics, PixiEventMarker, PixiRegionPolygon } from './ng-pixi-map-graphics'
 import { DRAWING_STYLE, PixiGraphicStyle } from './ng-pixi-styling-util'
 import { filter, take, takeUntil } from 'rxjs/operators'
 import { NgZone , EventEmitter, Renderer2 } from '@angular/core'
@@ -10,13 +10,16 @@ import { ConvertColorToDecimal } from '../../graphics/style'
 import { getLocalStorage, setLocalStorage } from '../../general/general.util'
 import * as PIXI from 'pixi.js';
 import { start } from 'repl'
+import { DataModule } from 'src/app/ui-components/map-2d-viewport/map-2d-viewport.component'
+import { DropListRobot } from 'src/app/services/data.models'
 
 export const DEFAULT_WAYPOINT_NAME = "WAYPOINT"
+export const DEFAULT_REGION_NAME = "REGION"
 
 
 type CreateType = 'point' | 'polygon' | 'line' | 'localize' | 'pickLoc' | 'brush' | 'arrow_bi_curved' | 'arrow_bi' | 'arrow' | 'arrow_curved'
 type EditType = 'resize' | 'move' | 'rotate' | 'vertex' | 'bezier'
-export type PolygonType = 'building' | 'zone' | null
+export type PolygonType = 'building' | 'region' | null
 
 class EditModule{ // TO BE DELETED
     type?: any
@@ -181,9 +184,12 @@ export class PixiMapViewport extends PixiViewport{
         })
         return ret
     }
+    get allPixiRegions(): PixiRegionPolygon[] {
+        return this.mainContainer.children.filter(c => c instanceof PixiRegionPolygon).map(c => <PixiRegionPolygon>c)
+    };
 
-    constructor(arg : Viewport.Options , app : PIXI.Application, ngZone : NgZone,  ngRenderer : Renderer2, onDestroy : Subject<any> , METER_TO_PIXEL_RATIO : number , isStandaloneApp : boolean , isMobile : boolean){
-        super(arg , app , ngZone , ngRenderer , onDestroy , isStandaloneApp , isMobile)
+    constructor(arg : Viewport.Options , app : PIXI.Application, ngZone : NgZone,  ngRenderer : Renderer2, onDestroy : Subject<any> , METER_TO_PIXEL_RATIO : number , isStandaloneApp : boolean , isMobile : boolean , dataModule : DataModule = null){
+        super(arg , app , ngZone , ngRenderer , onDestroy , isStandaloneApp , isMobile , dataModule)
         this.METER_TO_PIXEL_RATIO = METER_TO_PIXEL_RATIO
         this.mode = null // init createData & editData
     }
@@ -278,17 +284,24 @@ export class PixiMapViewport extends PixiViewport{
         return ret
     }
     
-    async exportEditedMapImage(){
-        this.selectedGraphics = null
-        let container = await this.getExportImageContainer()
-        this._pixiApp.renderer.extract.canvas(container).toBlob(function (b) {
-          var a = document.createElement('a');
-          document.body.append(a);
-          a.download = 'map';
-          a.href = URL.createObjectURL(b);
-          a.click();
-          a.remove();
-        }, 'image/png');
+    async exportEditedMapImage(base64 : string = null){
+        this.selectedGraphics = null      
+        if (base64 != null) {
+            var a = document.createElement("a"); //Create <a>
+            a.href = "data:image/png;base64," + base64.split(",")[base64.split(",").length - 1]; //Image Base64 Goes here
+            a.download = 'map'; //File name Here
+            a.click(); //Downloaded file
+        }else{
+            let container = await this.getExportImageContainer()
+            this._pixiApp.renderer.extract.canvas(container).toBlob(function (b) {
+              var a = document.createElement('a');
+              document.body.append(a);
+              a.download = 'map';
+              a.href = URL.createObjectURL(b);
+              a.click();
+              a.remove();
+            }, 'image/png');   
+        }
       }
 
     // . . . Create PixiGraphics . . .
@@ -319,11 +332,16 @@ export class PixiMapViewport extends PixiViewport{
 
     createPolygon(vertices: PIXI.Point[]) {
         this.removePreviewGraphics()
-        let polygon 
+        let polygon
         if (this.settings.polygonType == 'building') {
             polygon = new PixiBuildingPolygon(this, vertices, undefined, false)
+        } else if (this.settings.polygonType == 'region') {
+            let names = [DEFAULT_REGION_NAME].concat(Array.from(Array(this.allPixiRegions.length).keys()).map(k => `${DEFAULT_REGION_NAME}-${k + 1}`))
+            let newRegionCode = names.filter(n => !this.allPixiRegions.map(p => p.regionCode).some(t => t == n))[0]
+            polygon = new PixiRegionPolygon(this, vertices, new PixiGraphicStyle().setProperties({ fillColor: ConvertColorToDecimal(this.selectedStyle.polygon.color), opacity: this.selectedStyle.polygon.opacity }), false , newRegionCode);
+            (<PixiRegionPolygon>polygon).robotCodes = this.dataModule?.dropdownData.robots.map((r : DropListRobot )=> r.robotCode)
         } else {
-            polygon = new PixiEditablePolygon(this, vertices, new PixiGraphicStyle().setProperties({ fillColor: ConvertColorToDecimal(this.selectedStyle.polygon.color) }), false)
+            polygon = new PixiEditablePolygon(this, vertices, new PixiGraphicStyle().setProperties({ fillColor: ConvertColorToDecimal(this.selectedStyle.polygon.color), opacity: this.selectedStyle.polygon.opacity }), false)
         }     
         this.mainContainer.addChild(polygon)
         this.ngZone.run(() => this.mode = null)
