@@ -22,7 +22,7 @@ import {OutlineFilter} from '@pixi/filter-outline';
 import {ColorOverlayFilter} from '@pixi/filter-color-overlay';
 import {DropShadowFilter} from '@pixi/filter-drop-shadow';
 import {DataService} from 'src/app/services/data.service';
-import { ShapeJData , MapJData, FloorPlanDataset, MapDataset, robotPose, DropListFloorplan, DropListLocation, DropListMap, DropListAction, DropListBuilding, JMap, JPoint, JPath, JFloorPlan, DropListRobot, DropListPointIcon, RobotStatusARCS, JChildPoint, FloorPlanAlertTypeDescMap, JFloorPlanRegion } from 'src/app/services/data.models';
+import { ShapeJData , MapJData, FloorPlanDataset, MapDataset, robotPose, DropListFloorplan, DropListLocation, DropListMap, DropListAction, DropListBuilding, JMap, JPoint, JPath, JFloorPlan, DropListRobot, DropListPointIcon, RobotStatusARCS, JChildPoint, FloorPlanAlertTypeDescMap, JFloorPlanZone } from 'src/app/services/data.models';
 import { AuthService } from 'src/app/services/auth.service';
 import * as roundSlider from "@maslick/radiaslider/src/slider-circular";
 import {GraphBuilder, DijkstraStrategy} from "js-shortest-path"
@@ -39,7 +39,7 @@ import { IDraw as IDraw, IReColor, Pixi1DGraphics, PixiBorder, PixiCircle, PixiC
 import { style } from '@angular/animations';
 import {calculateMapOrigin, calculateMapX, calculateMapY} from './pixi-ros-conversion'
 import {  PixiContainer} from 'src/app/utils/ng-pixi/ng-pixi-viewport/ng-pixi-base-container';
-import { PixiPath, PixiChildPoint, PixiWayPoint, PixiMap, PixiMapContainer, PixiEditableMapImage, PixiPointGroup, PixiBuildingPolygon, PixiRobotCountTag, PixiRobotMarker, PixiRosMapOriginMarker, PixiTaskPath, PixiMapGraphics, PixiEventMarker, PixiRegionPolygon } from '../../utils/ng-pixi/ng-pixi-viewport/ng-pixi-map-graphics'
+import { PixiPath, PixiChildPoint, PixiWayPoint, PixiMap, PixiMapContainer, PixiEditableMapImage, PixiPointGroup, PixiBuildingPolygon, PixiRobotCountTag, PixiRobotMarker, PixiRosMapOriginMarker, PixiTaskPath, PixiMapGraphics, PixiEventMarker, PixiZonePolygon } from '../../utils/ng-pixi/ng-pixi-viewport/ng-pixi-map-graphics'
 import { GetResizedBase64, GetResizedCanvas, GetSpriteFromUrl } from 'src/app/utils/ng-pixi/ng-pixi-viewport/ng-pixi-functions';
 import { MqService } from 'src/app/services/mq.service';
 import { RobotService, RobotState } from 'src/app/services/robot.service';
@@ -1093,11 +1093,12 @@ export class Map2DViewportComponent implements OnInit , AfterViewInit , OnDestro
       }
     })
 
-    dataset.floorPlanRegionList?.forEach((data : JFloorPlanRegion)=>{
-      let region = new PixiRegionPolygon(this.viewport , JSON.parse(data.polygon) ,  new PixiGraphicStyle().setProperties({ fillColor: ConvertColorToDecimal(this.viewport.selectedStyle.polygon.color), opacity: this.viewport.selectedStyle.polygon.opacity }) , this.readonly , data.regionCode , data.robotCodes ) ;
-      region.regionType = data.regionType
-      region.name = data.name
-      addPixiGraphic(region)
+    dataset.floorPlanZoneList?.forEach((data : JFloorPlanZone)=>{
+      let zone = new PixiZonePolygon(this.viewport , JSON.parse(data.polygon) ,  new PixiGraphicStyle().setProperties({ fillColor: ConvertColorToDecimal(this.viewport.selectedStyle.polygon.color), opacity: this.viewport.selectedStyle.polygon.opacity }) , this.readonly , data.zoneCode , data.robotCodes ) ;
+      zone.zoneType = data.zoneType
+      zone.name = data.name
+      zone.visible = false
+      addPixiGraphic(zone)
     })
 
     this.module.ui.toggleWaypoint(this.module.ui.toggle.showWaypoint)
@@ -1239,11 +1240,11 @@ export class Map2DViewportComponent implements OnInit , AfterViewInit , OnDestro
       mapList: maps,
       pointList: points,
       pathList: getPaths(),
-      floorPlanRegionList : this.viewport.allPixiRegions.map(r=>{
+      floorPlanZoneList : this.viewport.allPixiZones.map(r=>{
         return{
           floorPlanCode : floorPlanCode,
-          regionCode : r.regionCode,
-          regionType : r.regionType,
+          zoneCode : r.zoneCode,
+          zoneType : r.zoneType,
           name : r.name,
           polygon : JSON.stringify(r.vertices.map(v=> {return {x :r.position.x + v.x , y :r.position.y + v.y}})),
           robotCodes : r.robotCodes

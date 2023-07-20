@@ -344,17 +344,17 @@ export class RobotProfileResp {
     pointList: JPoint[]
     pathList: JPath[]
     mapList?:JMap[]
-    floorPlanRegionList : JFloorPlanRegion[]
+    floorPlanZoneList : JFloorPlanZone[]
     defaultPerBuilding? : boolean
     base64Image: string
     modifiedDateTime?: string
   }
 
-  export class JFloorPlanRegion{
+  export class JFloorPlanZone{
     floorPlanCode: string
-    regionCode: string
+    zoneCode: string
     name: string
-    regionType: string
+    zoneType: string
     polygon: string
     remark?: string
     robotCodes : string[]

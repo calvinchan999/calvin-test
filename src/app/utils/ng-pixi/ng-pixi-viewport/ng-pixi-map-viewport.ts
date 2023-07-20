@@ -1,6 +1,6 @@
 import { Subject } from 'rxjs'
 import {ModeType, PixiViewport} from './ng-pixi-base-viewport'
-import { PixiPath, PixiWayPoint, PixiMapContainer, PixiEditableMapImage, PixiBuildingPolygon, PixiRosMapOriginMarker, PixiTaskPath, PixiMapGraphics, PixiEventMarker, PixiRegionPolygon } from './ng-pixi-map-graphics'
+import { PixiPath, PixiWayPoint, PixiMapContainer, PixiEditableMapImage, PixiBuildingPolygon, PixiRosMapOriginMarker, PixiTaskPath, PixiMapGraphics, PixiEventMarker, PixiZonePolygon as PixiZonePolygon } from './ng-pixi-map-graphics'
 import { DRAWING_STYLE, PixiGraphicStyle } from './ng-pixi-styling-util'
 import { filter, take, takeUntil } from 'rxjs/operators'
 import { NgZone , EventEmitter, Renderer2 } from '@angular/core'
@@ -14,12 +14,12 @@ import { DataModule } from 'src/app/ui-components/map-2d-viewport/map-2d-viewpor
 import { DropListRobot } from 'src/app/services/data.models'
 
 export const DEFAULT_WAYPOINT_NAME = "WAYPOINT"
-export const DEFAULT_REGION_NAME = "REGION"
+export const DEFAULT_ZONE_NAME = "ZONE"
 
 
 type CreateType = 'point' | 'polygon' | 'line' | 'localize' | 'pickLoc' | 'brush' | 'arrow_bi_curved' | 'arrow_bi' | 'arrow' | 'arrow_curved'
 type EditType = 'resize' | 'move' | 'rotate' | 'vertex' | 'bezier'
-export type PolygonType = 'building' | 'region' | null
+export type PolygonType = 'building' | 'zone' | null
 
 class EditModule{ // TO BE DELETED
     type?: any
@@ -184,8 +184,8 @@ export class PixiMapViewport extends PixiViewport{
         })
         return ret
     }
-    get allPixiRegions(): PixiRegionPolygon[] {
-        return this.mainContainer.children.filter(c => c instanceof PixiRegionPolygon).map(c => <PixiRegionPolygon>c)
+    get allPixiZones(): PixiZonePolygon[] {
+        return this.mainContainer.children.filter(c => c instanceof PixiZonePolygon).map(c => <PixiZonePolygon>c)
     };
 
     constructor(arg : Viewport.Options , app : PIXI.Application, ngZone : NgZone,  ngRenderer : Renderer2, onDestroy : Subject<any> , METER_TO_PIXEL_RATIO : number , isStandaloneApp : boolean , isMobile : boolean , dataModule : DataModule = null){
@@ -335,11 +335,11 @@ export class PixiMapViewport extends PixiViewport{
         let polygon
         if (this.settings.polygonType == 'building') {
             polygon = new PixiBuildingPolygon(this, vertices, undefined, false)
-        } else if (this.settings.polygonType == 'region') {
-            let names = [DEFAULT_REGION_NAME].concat(Array.from(Array(this.allPixiRegions.length).keys()).map(k => `${DEFAULT_REGION_NAME}-${k + 1}`))
-            let newRegionCode = names.filter(n => !this.allPixiRegions.map(p => p.regionCode).some(t => t == n))[0]
-            polygon = new PixiRegionPolygon(this, vertices, new PixiGraphicStyle().setProperties({ fillColor: ConvertColorToDecimal(this.selectedStyle.polygon.color), opacity: this.selectedStyle.polygon.opacity }), false , newRegionCode);
-            (<PixiRegionPolygon>polygon).robotCodes = this.dataModule?.dropdownData.robots.map((r : DropListRobot )=> r.robotCode)
+        } else if (this.settings.polygonType == 'zone') {
+            let names = [DEFAULT_ZONE_NAME].concat(Array.from(Array(this.allPixiZones.length).keys()).map(k => `${DEFAULT_ZONE_NAME}-${k + 1}`))
+            let newZoneCode = names.filter(n => !this.allPixiZones.map(p => p.zoneCode).some(t => t == n))[0]
+            polygon = new PixiZonePolygon(this, vertices, new PixiGraphicStyle().setProperties({ fillColor: ConvertColorToDecimal(this.selectedStyle.polygon.color), opacity: this.selectedStyle.polygon.opacity }), false , newZoneCode);
+            (<PixiZonePolygon>polygon).robotCodes = this.dataModule?.dropdownData.robots.map((r : DropListRobot )=> r.robotCode)
         } else {
             polygon = new PixiEditablePolygon(this, vertices, new PixiGraphicStyle().setProperties({ fillColor: ConvertColorToDecimal(this.selectedStyle.polygon.color), opacity: this.selectedStyle.polygon.opacity }), false)
         }     

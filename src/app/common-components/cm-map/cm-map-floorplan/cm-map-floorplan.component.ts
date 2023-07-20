@@ -16,7 +16,7 @@ import { toJSON } from '@progress/kendo-angular-grid/dist/es2015/filtering/opera
 import { trimAngle } from 'src/app/utils/math/functions';
 import { Observable, Subject, of } from 'rxjs';
 import { PixiGraphicStyle , DRAWING_STYLE} from 'src/app/utils/ng-pixi/ng-pixi-viewport/ng-pixi-styling-util';
-import { PixiEditableMapImage, PixiRegionPolygon, PixiWayPoint } from 'src/app/utils/ng-pixi/ng-pixi-viewport/ng-pixi-map-graphics';
+import { PixiEditableMapImage, PixiZonePolygon, PixiWayPoint } from 'src/app/utils/ng-pixi/ng-pixi-viewport/ng-pixi-map-graphics';
 import { HttpEventType } from '@angular/common/http';
 import { ThreejsViewportComponent } from 'src/app/ui-components/threejs-viewport/threejs-viewport.component';
 import { DEFAULT_WAYPOINT_NAME } from 'src/app/utils/ng-pixi/ng-pixi-viewport/ng-pixi-map-viewport';
@@ -125,7 +125,7 @@ export class CmMapFloorplanComponent implements OnInit {
   get locationTabGraphics() {
     return (<any>this.pixiElRef.viewport.allPixiWayPoints).
       concat((<any>this.pixiElRef.viewport.allPixiPaths)).
-      concat((<any>this.pixiElRef.viewport.allPixiRegions)
+      concat((<any>this.pixiElRef.viewport.allPixiZones)
       )
   }
 
@@ -286,21 +286,22 @@ export class CmMapFloorplanComponent implements OnInit {
     return ret
   }
 
-  _validatingRegion = false
-  async validateRegion(code : string , region : PixiRegionPolygon){
-    this._validatingRegion = true
+  _validatingZone = false
+  async validateZone(code : string , zone : PixiZonePolygon){
+    this._validatingZone = true
+    zone.refreshDropDownOptions();
     let ret = true
-    if (!code || code.toString().trim() == '' || this.pixiElRef.viewport.allPixiRegions.filter(g => g.regionCode == code && g != region).length > 0) {
+    if (!code || code.toString().trim() == '' || this.pixiElRef.viewport.allPixiZones.filter(g => g.zoneCode == code && g != zone).length > 0) {
       await this.uiSrv.showMsgDialog(!code || code.toString().trim() == '' ? 'Please enter location name' : `Location Name Duplicated [${code}]`)
       ret = false
-    } else if(!region.robotCodes || region.robotCodes.length == 0){
-      await this.uiSrv.showMsgDialog("Please select at least 1 robot for the region")
+    } else if(!zone.robotCodes || zone.robotCodes.length == 0){
+      await this.uiSrv.showMsgDialog("Please select at least 1 robot for the zone")
       ret = false
     }
     if(ret == false){
-      this.pixiElRef.selectedGraphics = region
+      this.pixiElRef.selectedGraphics = zone
     }
-    this._validatingRegion = false
+    this._validatingZone = false
     return ret
   }
 
@@ -326,8 +327,8 @@ export class CmMapFloorplanComponent implements OnInit {
       }
     }
 
-    for (let i = 0; i < this.pixiElRef.viewport.allPixiRegions.length ; i++) {
-      if (! await this.validateRegion(this.pixiElRef.viewport.allPixiRegions[i].regionCode, this.pixiElRef.viewport.allPixiRegions[i])) {
+    for (let i = 0; i < this.pixiElRef.viewport.allPixiZones.length ; i++) {
+      if (! await this.validateZone(this.pixiElRef.viewport.allPixiZones[i].zoneCode, this.pixiElRef.viewport.allPixiZones[i])) {
         return false
       }
     }

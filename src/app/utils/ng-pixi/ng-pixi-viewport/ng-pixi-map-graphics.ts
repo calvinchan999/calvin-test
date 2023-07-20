@@ -16,7 +16,7 @@ import { ConvertColorToHexadecimal, ConvertColorToDecimal } from '../../graphics
 import { DRAWING_STYLE } from '../ng-pixi-viewport/ng-pixi-styling-util';
 import { IDraw as IDraw, IReColor, Pixi1DGraphics, PixiBorder, PixiCircle, PixiCurve, PixiDashedLine, PixiLine, PixiGraphics, canDraw, PixiArrow, PixiRotateHandle, PixiResizeHandle, PixiEditablePolygon } from '../ng-pixi-viewport/ng-pixi-base-graphics';
 import { calculateMapOrigin, calculateMapX, calculateMapY } from '../../../ui-components/map-2d-viewport/pixi-ros-conversion'
-import { JMap, JPath, JPoint } from 'src/app/services/data.models';
+import { DropListRobot, JMap, JPath, JPoint } from 'src/app/services/data.models';
 import { CLICK_EVENTS, MOVE_EVENTS } from './ng-pixi-constants';
 import { GetPixiAngleDescription } from './ng-pixi-functions';
 
@@ -1185,38 +1185,64 @@ export class PixiMapContainer extends PixiMap {
 
 }
 
-export class PixiRegionPolygon extends PixiEditablePolygon {
-  _regionCode: string
+export class PixiZonePolygon extends PixiEditablePolygon {
+  _zoneCode: string
   name: string = ''
-  regionType: string = 'RESTRICTED'
-  robotCodes : string[]
+  zoneType: string = 'RESTRICTED'
+  robotCodes : string[] = []
   text : PIXI.Text
-  get regionCode (){
-    return this._regionCode
+  get zoneCode (){
+    return this._zoneCode
   }
-  set regionCode(v){
-    this._regionCode = v
+  set zoneCode(v){
+    this._zoneCode = v
     this.text.text = v
   }
+  dropdownOptions = {
+    robots : []
+  }
+
   textContainer : PixiGraphics 
-  constructor(viewport: PixiMapViewport, _vertices: PIXI.Point[] , style: PixiGraphicStyle = new PixiGraphicStyle(), readonly = false , regionCode = null , robotCodes = [] ) {
+
+  constructor(viewport: PixiMapViewport, _vertices: PIXI.Point[] , style: PixiGraphicStyle = new PixiGraphicStyle(), readonly = false , zoneCode = null , robotCodes = [] ) {
     super(viewport, _vertices , style , readonly)
+    this.refreshDropDownOptions()
     this.textContainer = new PixiGraphics(this.viewport)    
     this.textContainer.autoScaleEnabled = true
-    this.type = 'region'
-    this.text = new PIXI.Text(regionCode , {fill : '0xFF0000' , fontSize : 12 , stroke : '0xFFFFFF' , strokeThickness : 3})
-    this.regionCode = regionCode
+    this.type = 'zone'
+    this.text = new PIXI.Text(zoneCode , {fill : '0xFF0000' , fontSize : 12 , stroke : '0xFFFFFF' , strokeThickness : 3})
+    this.zoneCode = zoneCode
     this.robotCodes = robotCodes 
     this.text.anchor.set(0.5)
     this.setTextPosition(new PIXI.Point(centroidOfPolygon(this.vertices).x, centroidOfPolygon(this.vertices).y))
     this.addChild(this.textContainer)
     this.textContainer.addChild(this.text)
     this.drawDone.pipe(takeUntil(this.events.destroyed)).subscribe(()=>  this.setTextPosition(new PIXI.Point(centroidOfPolygon(this.vertices).x, centroidOfPolygon(this.vertices).y)))
+    this.events.selected.pipe(takeUntil(this.events.destroyed)).subscribe(()=>this.refreshDropDownOptions())
   }
 
   setTextPosition(pos: PIXI.Point) {
     pos = inside(pos, this.vertices) ? pos : new PIXI.Point((this.vertices[0].x + this.vertices[1].x) / 2, (this.vertices[0].y + this.vertices[1].y) / 2)
     this.textContainer.position.set(pos.x, pos.y)
+  }
+
+  removeInvalidRobotCodes(){
+    const validCodes = this.dropdownOptions.robots.map(o=>o.value)
+    this.robotCodes = this.robotCodes.filter(r=> validCodes.includes(r))
+  }
+
+  refreshDropDownOptions(){
+    if (this.viewport.dataModule?.dropdownData?.robots) {
+      this.dropdownOptions.robots = this.viewport.dataModule.dropdownData.robots.
+        filter((r: DropListRobot) => Object.keys((<PixiMapViewport>this.viewport).mapLayerStore).includes(r.robotBase)).
+        map((r: DropListRobot) => {
+          return {
+            value: r.robotCode,
+            text: r.robotCode
+          }
+        })
+    }
+    this.removeInvalidRobotCodes()
   }
 }
 

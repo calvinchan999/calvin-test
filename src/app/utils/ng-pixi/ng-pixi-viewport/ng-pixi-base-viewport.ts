@@ -185,7 +185,7 @@ export class PixiViewport extends Viewport {
     
 
 
-    diabled = false
+    disabled = false
     get interactiveControlRadius(){
         return 10 * DRAWING_STYLE.arrowHeadScale * (this.MOBILE_MODE? 2 : 1)
     } 

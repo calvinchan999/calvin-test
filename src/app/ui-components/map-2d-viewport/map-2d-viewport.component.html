@@ -400,15 +400,15 @@
           <span>{{   viewport._selectedGraphicsList.length + ' ' + ( viewport._selectedGraphicsList.length == 1? 'item selected' : 'items selected' | label : uiSrv.langPack)}}</span>
         </div>
   
-        <div *ngIf="util.arcsApp && selectedGraphics?.type == 'region'" class = "bottom-sector multi-select">
-          <uc-txtbox  class="region-textbox" customClass="txtbox-container"  lab="Region Code" [(value)] = "selectedGraphics.regionCode" [upper] = "true" > 
+        <div *ngIf="util.arcsApp && selectedGraphics?.type == 'zone'" class = "bottom-sector multi-select">
+          <uc-txtbox  class="zone-textbox" customClass="txtbox-container"  lab="Zone Code" [(value)] = "selectedGraphics.zoneCode" [upper] = "true" > 
           </uc-txtbox>
-          <uc-dropdown  class="region-type" customClass="txtbox-container"  lab="Region Type" [(value)] = "selectedGraphics.regionType" 
+          <uc-dropdown  class="zone-type" customClass="txtbox-container"  lab="Zone Type" [(value)] = "selectedGraphics.zoneType" 
                      [disabled] = "true" [options] = "[{value : 'RESTRICTED' , text : 'Restricted'}]">  
                      <!-- TBR -->
           </uc-dropdown>
-          <uc-multiselect *ngIf="module.data.dropdownOptions.robots" class="robot-codes"  lab="Robot Codes" [useSummaryTag]="true" [checkboxes]="true" 
-                          [options]="module.data.dropdownOptions.robots" [(value)]="selectedGraphics.robotCodes"   
+          <uc-multiselect class="robot-codes"  lab="Robot Codes" [useSummaryTag]="true" [checkboxes]="true" 
+                          [options]="selectedGraphics.dropdownOptions.robots" [(value)]="selectedGraphics.robotCodes"   
                           (open)="suspendViewportPlugin('wheel')" (close)="resumeViewportPlugin('wheel')" ></uc-multiselect>
         </div>
       </div>
@@ -557,7 +557,7 @@
 </ng-template>
 
 <ng-template #createModeTpl>
-          <button kendoButton class="polygon" [matTooltip]="('Draw ' | label : uiSrv.langPack) + ' '  +  ((polygonType == 'region' ? 'Zone' : (polygonType == 'building' ? 'Building' : 'Polygon'))|label : uiSrv.langPack )" matTooltipPosition="right" [disabled] = "disableButton['polygon']"
+          <button kendoButton class="polygon" [matTooltip]="('Draw ' | label : uiSrv.langPack) + ' '  +  ((polygonType == 'zone' ? 'Zone' : (polygonType == 'building' ? 'Building' : 'Polygon'))|label : uiSrv.langPack )" matTooltipPosition="right" [disabled] = "disableButton['polygon']"
             *ngIf="!hideButton['polygon']" [ngClass]="{'btn-active': viewport.createData?.type == 'polygon'}"
             (click)="viewport.createData?.type == 'polygon' ? viewport.mode = null : viewport.startCreate('polygon')">
             <span class="mdi mdi-vector-polygon"> </span>
