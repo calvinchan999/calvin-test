@@ -40,6 +40,7 @@
       </div>
    
       <div *ngIf = "showRobot" class="title arcs">
+        <span *ngIf="util.standaloneApp && module.data.selectedFloorPlanName">{{module.data.selectedFloorPlanName}}</span>
         <div class="location-tree">
           <a class="site-name" *ngIf = "module.site?.locationTree.site.code" (click)="module.robot.unsubscribePose(); module.data.selectedFloorPlanCode = null ; module.data.activeFloorPlanCode = null ;onSiteSelected.emit()"> {{module.site.locationTree.site.name}} </a>
           <span class="mdi mdi-chevron-right" *ngIf = "module.site?.locationTree.site.code && module.site.locationTree.currentLevel == 'floorplan'"></span>

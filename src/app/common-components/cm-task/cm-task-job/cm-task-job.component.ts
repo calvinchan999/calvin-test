@@ -244,7 +244,7 @@ export class CmTaskJobComponent implements OnInit {
             pointCode : t.movement.pointCode,
             navigationMode : t.movement.navigationMode,
             actionAlias : null,        
-            actionProperties : {},
+            actionProperties : [],
             orientation : !t.movement.orientationIgnored
         })
       }  

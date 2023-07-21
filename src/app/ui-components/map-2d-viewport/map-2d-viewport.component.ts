@@ -2539,7 +2539,8 @@ export class DataModule{
     return this._activeMapCode
   }
 
-  selectedPointCode
+  selectedPointCode: string
+  selectedFloorPlanName : string
   private _selectedFloorPlanCode
   private _selectedMapCode
 
@@ -2559,6 +2560,7 @@ export class DataModule{
 
   set selectedFloorPlanCode(v){
     this._selectedFloorPlanCode = v
+    this.selectedFloorPlanName = (<DropListFloorplan[]>this.dropdownData.floorplans).filter(f=> f.floorPlanCode == v)[0]?.name
     this.dropdownOptions.locations = this.dataSrv.getDropListOptions('locations',this.dropdownData.locations , {floorPlanCode : v})
     this._selectedMapCode = (<DropListMap[]>this.dropdownData.maps).filter((m)=>m.floorPlanCode ==  this.selectedFloorPlanCode)[0]?.mapCode
   }

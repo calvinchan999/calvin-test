@@ -183,7 +183,7 @@ export class MqService {
     taskActive:{topic:'rvautotech/fobo/execution',   robotState:{
       isMovingInTask : ()=> true,
       taskItemIndex: ()=> 0 , 
-      nextTaskAction : (d : {moveTask : JTask})=> d.moveTask.taskItemList.filter(t=>t.actionList?.length > 0)[0]?.actionList[0].alias ,     
+      nextTaskAction : (d : {moveTask : JTask})=> d.moveTask.taskItemList.filter(t=>t.actionList?.length > 0)[0]?.actionList[0]?.alias ,     
       currentTaskId :  (d :  {taskId : string})=> d.taskId,
       taskActive: (d :  { robotId ? : string, taskId : string , moveTask : JTask}) => {
           let ret =  d.taskId!= null ? d : d.moveTask
@@ -207,7 +207,7 @@ export class MqService {
                         let lastActionOfTaskItem =  taskItemList[taskItemIndex].actionList?.length - 1 == actionIndex
                         let nextTaskItem = lastActionOfTaskItem? taskItemList[taskItemIndex + 1] : taskItemList[taskItemIndex]
                         let nextActionIdx = lastActionOfTaskItem ? 0 : actionIndex  + 1
-                        this.robotSrv.robotState(d.robotId).nextTaskAction.next(nextTaskItem?.actionList?.[nextActionIdx].alias)
+                        this.robotSrv.robotState(d.robotId).nextTaskAction.next(nextTaskItem?.actionList?.[nextActionIdx]?.alias)
                         return this.util.trimNum(currCnt/ttlActionsCnt * 100 , 2)
                       }else{
                         return 0
