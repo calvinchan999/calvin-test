@@ -417,7 +417,7 @@ export class MqService {
     arcsAiDetectionAlert : {
       topic : "rvautotech/fobo/object/detection",
       mapping : {
-        execute: async(d : {robotId : string , pose  : {mapName : string} , detectionType : string})=>{
+        execute: async(d : {robotId : string , pose  : {mapName : string} , detectionType : string , metadata? : string , count? : number})=>{
           const floorPlanState = await this.mapSrv.getFloorPlanStateByMapCode(d.pose?.mapName)
           const msg = this.uiSrv.translate(`${FloorPlanAlertTypeDescMap[d.detectionType]}`) + `${floorPlanState ? (this.uiSrv.translate(' at ') + floorPlanState?.dataWithoutImage.name) : ''}`
           this.onLoggedNotificationReceived( msg , d.robotId , "info")

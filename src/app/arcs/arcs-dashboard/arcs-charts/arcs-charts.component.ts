@@ -45,6 +45,8 @@ export class ArcsChartsComponent implements OnInit, OnDestroy {
   @ViewChild('utilizationByRobotTypeChart') utilizationByRobotTypeChart: ChartComponent
   @ViewChild('utilizationByHourChart') utilizationByHourChart: ChartComponent
   @ViewChild('pixi') pixiRef : Map2DViewportComponent
+  @ViewChild('detectionByFloorplanChart') detectionByFloorplanChart : ChartComponent
+  @ViewChild('detectionByTypeChart') detectionByTypeChart : ChartComponent
 
   frDateTplView
 
@@ -409,8 +411,9 @@ export class ArcsChartsComponent implements OnInit, OnDestroy {
       }
       let ret = arg.createVisual();
       let mainText = (<Group>ret).children.filter(c => typeof c?.['chartElement'] === typeof new Text(undefined, undefined))[0];
-      if (arg.sender == this.usabilityByRobotTypeChart) {
-        (<Text>mainText).content(this.uiSrv.translate(this.dataSrv.enumPipe.transform(arg.dataItem.category)));
+      if ([this.usabilityByRobotTypeChart, this.detectionByFloorplanChart , this.detectionByTypeChart].includes(arg.sender)) {        
+        let content = [this.usabilityByRobotTypeChart , this.detectionByTypeChart].includes(arg.sender) ? this.dataSrv.enumPipe.transform(arg.dataItem.category) : arg.dataItem.category;
+        (<Text>mainText).content(this.uiSrv.translate(content));
         let subTextContent = `${(arg.percentage * 100).toFixed(2)}%`;
         (<Group>ret).remove((<Group>ret).children.filter(c => typeof c?.['Path'])[0])
         let subText = new Text(subTextContent, [(<Text>mainText).position().x, (<Text>mainText).position().y + 15], { font: `11px Arial`, fill: { color: '#BBBBBB' } });

@@ -24,7 +24,10 @@ export class ArcsEventDetectionDetailComponent implements OnInit {
     base64Image? : string,
     rosX? : number, 
     rosY? : number,
-    mapCode? : string
+    mapCode? : string,
+    metadata?: string,
+    count? : number,
+    confidence? : number
 
   } = {
     detectionType : null,
@@ -32,7 +35,10 @@ export class ArcsEventDetectionDetailComponent implements OnInit {
     base64Image : null,
     rosX : null, 
     rosY : null,
-    mapCode : null
+    mapCode : null,
+    metadata : null,
+    count : null,
+    confidence : null
   }
   title
   message
@@ -53,6 +59,9 @@ export class ArcsEventDetectionDetailComponent implements OnInit {
       this.data = this.data ? this.data : {}
       this.data.base64Image =  this.mapSrv.alertImageCache.base64Image
       this.data.detectionType =  this.mapSrv.alertImageCache.detectionType
+      this.data.metadata =  this.mapSrv.alertImageCache.metadata
+      this.data.count =  this.mapSrv.alertImageCache.count
+      this.data.confidence =this.mapSrv.alertImageCache.confidence
     }else{
       await this.loadData()
     }
@@ -70,12 +79,13 @@ export class ArcsEventDetectionDetailComponent implements OnInit {
   }
 
   async setMessage(){
+    const showCount = ['PEOPLE_PPC'].includes(this.data.detectionType) && this.data.count != null
     const robotConcatWords = this.uiSrv.translate(` - Reported By `)
     const floorPlanConcatWords = this.uiSrv.translate( ` at `)
     const floorPlanName = this.data?.floorPlanCode ? (<DropListFloorplan> (await this.dataSrv.getDropListData( 'floorplans', this.data?.floorPlanCode))[0])?.name :null
     const robotFloorPlanDesc = `${robotConcatWords} ${this.robotCode} ${floorPlanName? (floorPlanConcatWords + floorPlanName) : '' }`
     const timeStr = this.datePipe.transform(new Date(this.timestamp) , 'dd/MM/yyyy HH:mm:ss')
-    this.message = `[${timeStr}] ${this.uiSrv.translate(this.title)} ${robotFloorPlanDesc}`
+    this.message = `[${timeStr}] ${this.uiSrv.translate(this.title)} ${showCount?  `(${this.uiSrv.translate('Count')} : ${this.data.count})`  : ''} ${robotFloorPlanDesc}`
   }
 
   async loadData(){
@@ -87,6 +97,18 @@ export class ArcsEventDetectionDetailComponent implements OnInit {
       this.data.rosX = resp.positionX
       this.data.rosY = resp.positionY
       this.data.mapCode = resp.mapCode
+      this.data.metadata = resp.metadata
+      this.data.count = resp.count
+      this.data.confidence = resp.confidence
+    }
+    if(this.data.floorPlanCode != null){
+      let floorPlan = await this.mapSrv.getFloorPlan(this.data.floorPlanCode)
+      if(!floorPlan || new Date(this.timestamp) < new Date(floorPlan.modifiedDateTime)){
+        console.log(!floorPlan ? 
+                      `Floor plan no longer found : ${this.data.floorPlanCode}`: 
+                      `Floor Plan [ ${this.data.floorPlanCode}] updated at ${this.datePipe.transform(new Date(floorPlan.modifiedDateTime) , 'dd/MM/yyyy HH:mm:ss') }. Location of event will not be shown`)
+        this.data.floorPlanCode = null
+      }
     }
   }
 
@@ -100,7 +122,16 @@ export class ArcsEventDetectionDetailComponent implements OnInit {
           this.uiSrv.loadAsyncDone(ticket)
           // this.pixiElRef.module.ui.toggleDarkMode(this.pixiElRef.module.ui.toggle)
           if(this.data?.mapCode && this.data?.rosX!=null && this.data?.rosY!=null){
-            const marker = this.pixiElRef.module.data.setPixiEventMarker({robotId:this.robotCode , timestamp : this.timestamp , rosX : this.data.rosX , rosY : this.data.rosY , mapCode : this.data.mapCode , alertType : this.data.detectionType})
+            const marker = this.pixiElRef.module.data.setPixiEventMarker(
+              {
+                robotId: this.robotCode,
+                timestamp: this.timestamp,
+                rosX: this.data.rosX,
+                rosY: this.data.rosY,
+                mapCode: this.data.mapCode,
+                alertType: this.data.detectionType
+              }
+            )
             if(marker){
               marker.visible = true
               const position = this.pixiElRef.viewport.toLocal(marker.getGlobalPosition())

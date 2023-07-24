@@ -56,7 +56,10 @@ export class MapService {
     robotId : string ,
     timestamp : string ,
     base64Image : string,
-    detectionType : string
+    detectionType : string,
+    metadata? : string,
+    count? : number,
+    confidence? : number
   }
   floorPlanStateChanged : EventEmitter<FloorPlanState> = new EventEmitter<FloorPlanState>()
 
@@ -324,7 +327,7 @@ export class FloorPlanState {
     this.mapSrv.dataSrv.setLocalStorage('floorPlanAlerts' , JSON.stringify(alerts))
   }
 
-  addAlert(d: {robotId : string , detectionType : string, base64Image : string ,  pose : {mapName : string , x : number , y : number , angle : number} ,  timestamp : number , confidence : number}) {
+  addAlert(d: {robotId : string , detectionType : string, base64Image : string ,  pose : {mapName : string , x : number , y : number , angle : number} ,  timestamp : number , confidence? : number , metadata? : string , count? : number }) {
     const newAlert = {
       floorPlanCode : this.floorPlanCode,
       robotId : d.robotId , 
@@ -335,14 +338,19 @@ export class FloorPlanState {
       rosY : d.pose?.y , 
       mapAngle : d.pose?.angle , 
       confidence : d.confidence,
-      noted : false
+      noted : false,
+      metadata : d.metadata,
+      count : d.count
     }
     this.alerts.push(newAlert);
     this.mapSrv.alertImageCache = {
       robotId : d.robotId,
       timestamp : d.timestamp.toString(),
       base64Image : d.base64Image,
-      detectionType : d.detectionType
+      detectionType : d.detectionType,
+      metadata : d.metadata,
+      count : d.count,
+      confidence:d.confidence      
     }
     this.mapSrv.floorPlanStateChanged.emit(this)
     this.updateAlertsInLocalStorage()

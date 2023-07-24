@@ -497,8 +497,29 @@
         </kendo-chart>
     </kendo-tilelayout-item>
 
+    <kendo-tilelayout-item [title]="'Event Count By Type'| label: uiSrv.langPack"   [col]="8" [row]="4" [rowSpan]="2" [colSpan] = "2">
+        <kendo-chart #detectionByTypeChart name="detectionType" [seriesColors] = "style.seriesColors"  (seriesClick) = "onSeriesClick($event)"  >
+            <kendo-chart-area background="transparent"></kendo-chart-area>
+            <!-- <kendo-chart-title [align]="'left'" [text]="'Job Order by Type' | label: uiSrv.langPack"  [color]="style.textColor" ></kendo-chart-title>     -->
+            <ng-template kendoChartDonutCenterTemplate>
+                <div [style.color]="style.textColor">{{detection.floorplan.centerText}}</div>
+            </ng-template>
+            <kendo-chart-legend [visible]="false" ></kendo-chart-legend>
+            <kendo-chart-series>
+              <kendo-chart-tooltip>
+                    <ng-template kendoChartSeriesTooltipTemplate  let-value="value" let-category="category" let-series="series" >
+                      {{ category | enum |  label: uiSrv.langPack}} : {{ value }}
+                    </ng-template>
+              </kendo-chart-tooltip>
+              <kendo-chart-series-item type="donut" [data]="detection.detectionType.data" field="value" categoryField="category" [holeSize] = "30" [padding] = "35"
+                                       [visual]="style.seriesVisual" [labels]="{ visible: true, visual: style.labelVisual, position : 'outsideEnd' , distance:10 , color:style.textColor }"  
+              >
+              </kendo-chart-series-item>
+            </kendo-chart-series>
+        </kendo-chart>
+    </kendo-tilelayout-item>
 
-    <kendo-tilelayout-item [title]="'Event Count By Floor Plan'| label: uiSrv.langPack"   [col]="8" [row]="4" [rowSpan]="2" [colSpan] = "5">
+    <kendo-tilelayout-item [title]="'Event Count By Floor Plan'| label: uiSrv.langPack"   [col]="10" [row]="4" [rowSpan]="2" [colSpan] = "3">
         <kendo-chart #detectionByFloorplanChart name="floorplan" [seriesColors] = "style.seriesColors"  (seriesClick) = "onSeriesClick($event)"  >
             <kendo-chart-area background="transparent"></kendo-chart-area>
             <!-- <kendo-chart-title [align]="'left'" [text]="'Job Order by Type' | label: uiSrv.langPack"  [color]="style.textColor" ></kendo-chart-title>     -->
@@ -518,6 +539,7 @@
               </kendo-chart-series-item>
             </kendo-chart-series>
         </kendo-chart>
+        
         <!-- <kendo-chart #floorplanEvent [seriesColors]="style.seriesColors"  (seriesClick) = "onSeriesClick($event)">  
             <kendo-chart-area background="transparent"></kendo-chart-area>   
             <kendo-chart-tooltip format="{0}"></kendo-chart-tooltip>      

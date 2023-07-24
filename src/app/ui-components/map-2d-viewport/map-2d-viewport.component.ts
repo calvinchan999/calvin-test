@@ -2650,7 +2650,7 @@ export class DataModule{
     
     floorPlanState.alerts.filter(a => a.noted == true).forEach(a => {
       const notedAlertMaker = this.master.viewport.allPixiEventMarkers.filter(m => m.robotCode == a.robotId && m.eventId == a.timestamp)[0]
-      notedAlertMaker.toolTip.hide()
+      notedAlertMaker?.toolTip?.hide()
       notedAlertMaker?.parent?.removeChild(notedAlertMaker)
     })
   }
@@ -2659,7 +2659,7 @@ export class DataModule{
 
   }
 
-  setPixiEventMarker(a : { robotId : string , timestamp : any , rosX : any , rosY : any , mapCode : string , alertType :string} , markerType = 'alert'){
+  setPixiEventMarker(a : { robotId : string , timestamp : any , rosX : any , rosY : any , mapCode : string , alertType :string } , markerType = 'alert'){
     const robotBase = (<DropListRobot[]>this.dropdownData.robots)?.filter(r=>r.robotCode == a.robotId)[0]?.robotBase
     const pixiMap = this.master.viewport.mapContainerStore[`${a.mapCode}${this.master.util.arcsApp ? ('@' + robotBase) : ''}`]
     let pixiEventMarker : PixiEventMarker

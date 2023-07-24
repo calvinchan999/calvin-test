@@ -488,6 +488,24 @@ export class CmMapFloorplanComponent implements OnInit {
         }
       })
       this.pixiElRef.module.ui.toggleRosMap(this.pixiElRef.module.ui.toggle.showRosMap)
+      // Object.values(this.pixiElRef.viewport.mapLayerStore).forEach(m=>{     
+      //   this.pixiElRef.viewport.allPixiZones.forEach(z=>{
+      //     let pointList = []
+      //     z.vertices.forEach(v=>{
+      //       let pos : PIXI.Point =  this.pixiElRef.viewport.mainContainer.toGlobal(new PIXI.Point(v.x , v.y))
+      //       pointList.push({
+      //         x: m.calculateRosPosition(pos).x,
+      //         y: m.calculateRosPosition(pos).y
+      //       })
+      //     })
+      //     console.log(JSON.stringify({
+      //       mapCode: m.mapCode,
+      //       robotBase : m.robotBase,
+      //       zoneCode : z.zoneCode,
+      //       points : pointList
+      //     }))
+      //   })
+      // })
     }
 
     // this.pixiElRef.toggleRosMap(false)

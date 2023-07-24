@@ -36,7 +36,7 @@
             <!-- tab buttons -->
             <div class="card-buttons">
                 <kendo-buttongroup #buttonGroup selection="single">
-                    <button *ngFor="let tab of tabs" kendoButton [toggleable]="true" [selected]="selectedTab == tab.id" (click) = "selectedTab = tab.id ; selectedTab == 'camera' ? getStreamingUrl() : null;" [disabled] = "false && tab.id!='info' && ds.status.content == ARCS_STATUS_MAP.UNKNOWN "> 
+                    <button *ngFor="let tab of tabs" kendoButton [toggleable]="true" [selected]="selectedTab == tab.id" (click) = "selectedTab = tab.id ; selectedTab == 'camera' ? getStreamingUrl() : null;" [disabled] = "tab.id!='info' && ds.status.content == ARCS_STATUS_MAP.UNKNOWN "> 
                         {{ tab.label | label : uiSrv.langPack }}
                     </button>
                 </kendo-buttongroup>
