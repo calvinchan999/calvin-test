@@ -1,6 +1,6 @@
 var replace = require('replace-in-file');
 var app = process.argv[2];
-var isArcs = app.toUpperCase() == "ARCS" || app.toUpperCase() == "AZURE" || app.toUpperCase() == "QMH";
+var isArcs = app.toUpperCase() == "ARCS" || app.toUpperCase() == "AZURE" || app.toUpperCase() == "QMH" || app.toUpperCase() === "KONE";
 // var isAzure = app.toUpperCase() == "AZURE" || app.toUpperCase() == "QMH";
 // const isOther = (app.toUpperCase() === 'ARCS' || app.toUpperCase() === 'AZURE') ? null : 'qmh';
 // app = app.toUpperCase() == "AZURE" ? "arcs" : app
@@ -74,4 +74,3 @@ async function main() {
 
 
 main();
-
