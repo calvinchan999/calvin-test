@@ -1542,7 +1542,7 @@ export class RobotObject3D extends Object3DCommon implements IDestroy{
       // replaceColors:[{r: 0 , g : 0 , b : 0 , tolerance : 0.1}], 
     },
     CONCIERGE: {
-      path: "assets/3D/concierge.glb",
+      path: ASSETS_ROOT + "/concierge.glb",
       scale: 20,
       position: {
         x: 0,
@@ -1989,6 +1989,7 @@ export class ElevatorObject3D extends Object3DCommon{
   height = 60
   depth = 90
   _liftCode
+  elevatorModel : THREE.Group
   get liftCode (){
     return this._liftCode
   }
@@ -2007,11 +2008,10 @@ export class ElevatorObject3D extends Object3DCommon{
     return this._currentFloor
   }
   set currentFloor(v){
-    this._currentFloor = v
-    this.boxMesh.visible = this.currentFloor == this.floorplanFloor
-    
+    this._currentFloor = v;
+    (<any>this.boxMesh).defaultOpacity = this.currentFloor != this.floorplanFloor ? 0.3 : 1
     //show at higher position if with box
-    this.toolTipSettings.position.z =  this.boxMesh.visible ? this.height * 1.3 : 0
+    this.toolTipSettings.position.z =   this.height * 1.3
     if(this.toolTip){
       this.toolTip.position.z = this.toolTipSettings.position.z
     }
@@ -2034,7 +2034,7 @@ export class ElevatorObject3D extends Object3DCommon{
   async setRobotCode(v){
     this._robotCode = v;
     (<any>this.planeMesh.material).color.set(this.robotCode ? 0xADFF2F : this.planeColor)
-    this.displayRobotData =  this.robotCode ? (await this.master.dataSrv.getRobotList()).filter(r=>r.robotCode == this.robotCode)[0] : null
+    this.displayRobotData = this.robotCode ? (await this.master.dataSrv.getRobotList()).filter(r=>r.robotCode == this.robotCode)[0] : null
   }
   
   _displayRobotData : DropListRobot
@@ -2044,7 +2044,7 @@ export class ElevatorObject3D extends Object3DCommon{
 
   set displayRobotData(data) {      
     this._displayRobotData = data;
-    (<any>this.boxMesh).defaultOpacity = data ? 0.45 : 0.85
+    (<any>this.boxMesh).defaultOpacity = this.currentFloor != this.floorplanFloor ? 0.3 :  ( data ? 0.65 : 1)
     this.refreshDisplayRobot()
   }
 
@@ -2068,13 +2068,28 @@ export class ElevatorObject3D extends Object3DCommon{
     this.height = height ? height : this.height
     this.depth = depth ? depth : this.depth
     this.planeMesh = new Mesh(new THREE.PlaneGeometry(this.width, this.height) , new THREE.MeshBasicMaterial({ color: this.planeColor, side: THREE.FrontSide , transparent : true , opacity : 0.6}));
-    (<any> this.planeMesh).defaultOpacity = 0.6
+    (<any> this.planeMesh).defaultOpacity = 0.6;
     this.add(this.planeMesh)
-    this.boxMesh = new THREE.Mesh(new THREE.BoxGeometry(this.width, this.height, this.depth),  new THREE.MeshLambertMaterial({side: THREE.DoubleSide , color: 0xAAAAAA, opacity: 0.8, transparent: true }));
-    (<any> this.boxMesh).defaultOpacity = 0.8
+    this.boxMesh = new THREE.Mesh(new THREE.BoxGeometry(this.width, this.height, this.depth),  new THREE.MeshLambertMaterial({side: THREE.DoubleSide , color: 0xAAAAAA, opacity: 0, transparent: true }));
+    (<any>this.boxMesh).defaultOpacity = 1;
     this.boxMesh.position.set(0, 0, this.depth / 2)
     const liftData = this.master.mqSrv.data.arcsLift.value?.[this.liftCode]
-    this.boxMesh.visible = false 
+    // this.boxMesh.visible = false 
+
+    const liftModelPath = ASSETS_ROOT + '/elevator.glb';
+    new GLTFLoader().load(liftModelPath, (gltf: GLTF) => {
+      this.elevatorModel = gltf.scene
+      this.elevatorModel.rotation.set(NORMAL_ANGLE_ADJUSTMENT , NORMAL_ANGLE_ADJUSTMENT , 0)      
+      this.elevatorModel.position.set(37, -71 , 135)
+      this.elevatorModel.scale.set(29.5, 37.5, 29.5);
+      this.elevatorModel.traverse((obj:any)=>{
+        if(obj.material){
+          obj.material.transparent = true
+        }
+      })
+      this.boxMesh.add(this.elevatorModel)
+    })
+
     this.add(this.boxMesh)
     this.currentFloor = liftData?.floor
     this.robotCode = liftData?.robotCode 
