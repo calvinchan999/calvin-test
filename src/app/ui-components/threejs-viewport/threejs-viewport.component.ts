@@ -1564,7 +1564,14 @@ export class RobotObject3D extends Object3DCommon implements IDestroy{
           position: { x: 0, y: 0, z: -12.5 },
           rotate: {x : NORMAL_ANGLE_ADJUSTMENT, y: 0, z: 180 / radRatio },
           toolTipPositionZ : 40
-        }
+        },
+        NA : {
+          path : ASSETS_ROOT + "/europa_v3.glb",
+          scale : 0.6,
+          position: { x: 0, y: 0, z: -12.5 },
+          rotate: {x : NORMAL_ANGLE_ADJUSTMENT, y: 0, z: 180 / radRatio },
+          toolTipPositionZ : 40
+        },
       },
       robotBase : {
         MIR : {

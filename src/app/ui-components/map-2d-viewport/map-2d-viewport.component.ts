@@ -553,13 +553,18 @@ export class Map2DViewportComponent implements OnInit , AfterViewInit , OnDestro
     setTimeout(async () => {
       this.onDestroy.next()
       this.module.ui.toggle.darkMode = this.showRobot
-      if (this.showRobot && this.dataSrv.getLocalStorage('uitoggle')) {
-        let storedToggle = JSON.parse(this.dataSrv.getLocalStorage('uitoggle')) //SHARED by 2D & 3D viewport
-        Object.keys(storedToggle).forEach(k => {
-          if (Object.keys(this.module.ui.toggle).includes(k)) {
-            this.module.ui.toggle[k] = storedToggle[k]
-          }
-        })
+      if (this.showRobot ) {
+        this.palette.map = ['#FFCC00' ]
+        this.viewport.selectedStyle.polygon = { color : "#FFCC00" , opacity: 0.5 }
+        if(this.dataSrv.getLocalStorage('uitoggle')){
+          let storedToggle = JSON.parse(this.dataSrv.getLocalStorage('uitoggle')) //SHARED by 2D & 3D viewport
+          Object.keys(storedToggle).forEach(k => {
+            if (Object.keys(this.module.ui.toggle).includes(k)) {
+              this.module.ui.toggle[k] = storedToggle[k]
+            }
+          })
+        }
+        
         // this.module.ui.toggle = JSON.parse(this.dataSrv.getlocalStorage('module.ui.toggle'))
       }
       if (!this.width || !this.height) {
@@ -2778,6 +2783,13 @@ export class UiModule {
         this.gridLine.layer.pivot.set(gridSize / 2 ,gridSize / 2 )
       })
     }
+  }
+
+  toggleZone(show = this.toggle.showZone){
+    this.viewport.allPixiZones.forEach(z=>{
+      z.visible = show
+      z.text.visible = this.toggle.showZoneName
+    })
   }
 
   toggleGridLine(show : boolean){

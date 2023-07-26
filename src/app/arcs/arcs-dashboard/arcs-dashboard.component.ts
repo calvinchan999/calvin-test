@@ -452,7 +452,10 @@ export class ArcsDashboardComponent implements OnInit {
     }
 
     let floorplan = await this.mapSrv.getFloorPlan(code);
+ 
     if(!floorplan){
+      this.uiSrv.loadAsyncDone(ticket)
+      await this.uiSrv.showMsgDialog(this.uiSrv.translate('Floor plan not found') + ` : [${code}]. ` , undefined , [this.uiSrv.translate('Refresh and retry')])
       location.reload()
       return
     }

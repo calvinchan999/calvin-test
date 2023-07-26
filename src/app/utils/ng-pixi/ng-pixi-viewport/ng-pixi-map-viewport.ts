@@ -68,7 +68,9 @@ export class PixiMapViewport extends PixiViewport{
             darkMode : true,
             showPoseDeviation : false,
             alert : true,
-            showGridLine : false
+            showGridLine : false,
+            showZone : false,
+            showZoneName : false
         },
         updateLocalStorage:()=>{
             let storedFlags = getLocalStorage('uitoggle') ?  JSON.parse(getLocalStorage('uitoggle')) : {};

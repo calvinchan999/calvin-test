@@ -986,7 +986,7 @@ export class ArcsChartsComponent implements OnInit, OnDestroy {
       newDate.setTime(date.getTime() + 86400000)
       date = newDate
     }
-    this.refreshDetection()
+    setTimeout(()=>this.refreshDetection())
   }
 
   selectWaypoint(e) {

@@ -40,7 +40,7 @@
       </div>
    
       <div *ngIf = "showRobot && !module?.localization?.localizing" class="title arcs">
-        <span *ngIf="util.standaloneApp && !module.data.selectedFloorPlanName">{{module.data.selectedFloorPlanName}}</span>
+        <span *ngIf="util.standaloneApp && module.data.selectedFloorPlanName">{{module.data.selectedFloorPlanName}}</span>
         <div class="location-tree">
           <a class="site-name" *ngIf = "module.site?.locationTree.site.code" (click)="module.robot.unsubscribePose(); module.data.selectedFloorPlanCode = null ; module.data.activeFloorPlanCode = null ;onSiteSelected.emit()"> {{module.site.locationTree.site.name}} </a>
           <span class="mdi mdi-chevron-right" *ngIf = "module.site?.locationTree.site.code && module.site.locationTree.currentLevel == 'floorplan'"></span>
@@ -479,6 +479,13 @@
     <button  kendoButton class="show-alert" [matTooltip]="(module.ui.toggle.alert ? 'Hide Event Alerts' : 'Show Event Alerts') | label : uiSrv.langPack"  
                   (click)="module.ui.toggleAlerts(!module.ui.toggle.alert)"  [ngClass]="{'btn-active': module.ui.toggle.alert}">
                <span [class]="'mdi mdi-alert'"></span>
+    </button>
+
+    <button  kendoButton class="show-zone" 
+    [matTooltip]="((module.ui.toggle.showZone && module.ui.toggle.showZoneName) ? 'Hide Zone Name' : ((module.ui.toggle.showZone && !module.ui.toggle.showZoneName) ? 'Hide Zone' : 'Show Zone'))| label : uiSrv.langPack"  
+    (click)=" module.ui.toggle.showZoneName = !(module.ui.toggle.showZone && module.ui.toggle.showZoneName); module.ui.toggle.showZone = !(module.ui.toggle.showZone && module.ui.toggle.showZoneName) ; module.ui.toggleZone()"  
+    [ngClass]="{'btn-intermediate': module.ui.toggle.showZone && !module.ui.toggle.showZoneName , 'btn-active': module.ui.toggle.showZone && module.ui.toggle.showZoneName , 'show-zone-commonModule.ui.popupScreen' : commonModule.ui.popupScreen}">
+               <span [class]="'mdi mdi-texture-box'"></span>
     </button>
   </ng-container> 
 </ng-template>

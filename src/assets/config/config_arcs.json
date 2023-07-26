@@ -164,8 +164,8 @@
 				}
 			},
 			"DELIVERY": {
-				"subType":{
-					"CABINET_DELIVERY":{
+				"subType": {
+					"CABINET_DELIVERY": {
 						"path": "assets/3D/robot_cabinet_delivery.glb",
 						"scale": 0.6,
 						"position": {
@@ -179,9 +179,28 @@
 							"z": 3.14
 						},
 						"toolTipPositionZ": 40,
-						"pointer":{
-							"position" : {"x" : 0 , "y": 6 , "z" : -13 }
+						"pointer": {
+							"position": {
+								"x": 0,
+								"y": 6,
+								"z": -13
+							}
 						}
+					},
+					"NA": {
+						"path": "assets/3D/europa_v3.glb",
+						"scale": 25,
+						"position": {
+							"x": 0,
+							"y": 0,
+							"z": -12.5
+						},
+						"rotate": {
+							"x": 1.57,
+							"y": 3.14,
+							"z": 0
+						},
+						"toolTipPositionZ": 40
 					}
 				},
 				"robotBase": {
