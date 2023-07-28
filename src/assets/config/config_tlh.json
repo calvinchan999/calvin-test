@@ -1,0 +1,339 @@
+{
+	"USE_SIGNALR": true,
+	"CLIENT_ID":"11B7ED76-B978-411B-8ECB-36B21220DE3E",
+	"DEBUG_SIGNALR":false,
+	"DEBUG_SIGNALR_TYPE": "",
+	"SIGNALR_URL":"https://rv-arcs-signalR.azurewebsites.net/signalR",
+	"SIGNALR_PORTx":"5001",
+	"SIGNALR_ENDPOINTx" : "signalR",
+	"PROTOCOL"    : "https",
+	"SERVER_URL": "rv-arcs-api.azurewebsites.net", 
+	"PORT_NO"     : "",
+	"APPLICATION_RV" : "/api",
+	"APPLICATION" : "",
+	"API_KEY"     : "f05914ea33124ba7a6cab301627c8adf",
+	"PAGE_SIZE"   : 10,
+	"PAGE_CONFIG" : {
+		"DASHBOARD_TOTAL_DEVICE" : 10,
+		"REFRESH_TIME_SECOND"    : 60 
+	}, 
+	"DASHBOARD_MAP_REFRESH_INTERVAL" : 1000,
+	"DASHBOARD_MAP_REFRESH_COUNT" : 0,
+	"MOVE_USING_TRANSITION" : true,
+
+	"IS_DUMMY" : false,
+	"ROBOT_TYPE":["MOBILE_CHAIR" , "DISINFECTION" , "FLOOR_SCRUB" , "DELIVERY" , "PATROL" ,  "FORKLIFT" , "STOCKTAKING" , 	"CONCIERGE"],
+	"ROBOT_1": {
+		"ID": "ROBOT-01",
+		"ROBOT_TYPE": "patrol",
+		"IS_DUMMY_ROBOT": false,
+		"DUMMY_ROUTE": {
+			"init_x": 1050,
+			"init_y": 750,
+			"min_x": 1050,
+			"max_x": 1200,
+			"min_y": 750,
+			"max_y": 860,
+			"step": 20
+		}
+	},
+	"ROBOT_2": {
+		"ID" : "ROBOT-02",
+		"ROBOT_TYPE" : "delivery",
+		"IS_DUMMY_ROBOT" : false,
+		"DUMMY_ROUTE" : {
+			"init_x2" : 1390,
+			"init_y2" : 980
+		}
+	},
+
+	"MAP_ZOOM_PERCENTAGE" : 0.85,
+	"MAP_RESOLUTION" : 1,
+	"METER_TO_PIXEL_RATIO": 20,
+	"map": {
+		"origin_x": -18.150000,
+		"origin_y": -10.274847,
+		"resolution": 0.050000,
+		"init_focus_x" : 1240,
+		"init_focus_y" : 1000
+	},
+    "robot": {
+        "radius": 0.4, 
+        "resolution": 0.05,
+		"visuals" :  [
+			{ "fillColor": "0x00CED1", "highlightColor": "0x00CED1" }, 
+			{ "fillColor": "0xFF66B9", "highlightColor": "0xFF66B9" }, 
+			{ "fillColor": "0xFFD700", "highlightColor": "0xFFD700" }, 
+			{ "fillColor": "0x87CEFA", "highlightColor": "0x87CEFA" }, 
+			{ "fillColor": "0x9ACD32", "highlightColor": "0x9ACD32" }, 
+			{ "fillColor": "0xFF8C00", "highlightColor": "0xFF8C00" },
+			{ "fillColor": "0xB3B3FF", "highlightColor": "0xB3B3FF" }
+		],
+		"DEFAULT":{
+			"fillColor": "0x00CED1", 
+			"highlightColor": "0x00CED1"
+		},
+		"PATROL":{
+			"fillColor": "0x00CED1", 
+			"highlightColor": "0x00CED1"
+		},
+		"DELIVERY":	{ 
+			"fillColor": "0xFF66B9", 
+			"highlightColor": "0xFF66B9" 
+		}
+    },
+	"UPLOAD_IMAGE_MAX_SIZE_KB" : 5120,
+	"MAP_3D": {
+		"ROBOT": {
+			"BASE": {
+				"path": "assets/3D/robot.glb",
+				"scale": 30,
+				"position": {
+					"x": 0,
+					"y": 0,
+					"z": -12.5
+				},
+				"rotate": {
+					"x": 0,
+					"y": 0,
+					"z": 3.14
+				},
+				"toolTipPositionZ": 45
+			},
+			"FLOOR_SCRUB": {
+				"path": "assets/3D/robot_floor_scrub.glb",
+				"scale": 0.6,
+				"position": {
+					"x": 0,
+					"y": 0,
+					"z": -12.5
+				},
+				"rotate": {
+					"x": 1.57,
+					"y": 3.14,
+					"z": 0
+				},
+				"toolTipPositionZ": 45
+			},
+			"MOBILE_CHAIR": {
+				"path": "assets/3D/robot_mobile_chair.glb",
+				"scale": 0.6,
+				"position": {
+					"x": 0,
+					"y": 0,
+					"z": -12.5
+				},
+				"rotate": {
+					"x": 1.57,
+					"y": 3.14,
+					"z": 0
+				},
+				"toolTipPositionZ": 45
+			},
+			"PATROL": {
+				"path": "assets/3D/robot_patrol.glb",
+				"scale": 30,
+				"position": {
+					"x": 0,
+					"y": 0,
+					"z": -12.5
+				},
+				"rotate": {
+					"x": 0,
+					"y": 0,
+					"z": 3.14
+				},
+				"toolTipPositionZ": 55
+			},
+			"CONCIERGE": {
+				"path": "assets/3D/concierge.glb",
+				"scale": 20,
+				"position": {
+					"x": 0,
+					"y": 0,
+					"z": -12.5
+				},
+				"rotate": {
+					"x": -1.57,
+					"y": 3.14,
+					"z": 3.14
+				},
+				"toolTipPositionZ": 40,
+				"pointer":{
+					"position" : {"x" : 0 , "y": 3 , "z" : -13 }
+				}
+			},
+			"DELIVERY": {
+				"subType":{
+					"CABINET_DELIVERY":{
+						"path": "assets/3D/robot_cabinet_delivery.glb",
+						"scale": 0.6,
+						"position": {
+							"x": 0,
+							"y": 0,
+							"z": -12.5
+						},
+						"rotate": {
+							"x": -1.57,
+							"y": 0,
+							"z": 3.14
+						},
+						"toolTipPositionZ": 40,
+						"pointer":{
+							"position" : {"x" : 0 , "y": 6 , "z" : -13 }
+						}
+					}
+				},
+				"robotBase": {
+					"MIR": {
+						"path": "assets/3D/mir100.glb",
+						"scale": 25,
+						"position": {
+							"x": 0,
+							"y": 0,
+							"z": -12.5
+						},
+						"rotate": {
+							"x": -1.57,
+							"y": 0,
+							"z": 3.14
+						},
+						"toolTipPositionZ": 40
+					}
+				},
+				"path": "assets/3D/robot_delivery.glb",
+				"scale": 0.6,
+				"position": {
+					"x": 0,
+					"y": 0,
+					"z": -12.5
+				},
+				"rotate": {
+					"x": -1.57,
+					"y": 0,
+					"z": 3.14
+				},
+				"toolTipPositionZ": 40
+			},
+			"DISINFECTION": {
+				"path": "assets/3D/robot_disinfection.glb",
+				"scale": 0.6,
+				"position": {
+					"x": 0,
+					"y": 0,
+					"z": -12.5
+				},
+				"rotate": {
+					"x": 1.57,
+					"y": 3.14,
+					"z": 0
+				},
+				"toolTipPositionZ": 40
+			},
+			"FORKLIFT": {
+				"path": "assets/3D/robot_forklift.glb",
+				"scale": 0.6,
+				"position": {
+					"x": 0,
+					"y": 0,
+					"z": -12.5
+				},
+				"rotate": {
+					"x": 1.57,
+					"y": 3.14,
+					"z": 0
+				},
+				"toolTipPositionZ": 40
+			},
+			"STOCKTAKING": {
+				"path": "assets/3D/robot_stocktaking.glb",
+				"scale": 0.6,
+				"position": {
+					"x": 0,
+					"y": 0,
+					"z": -12.5
+				},
+				"rotate": {
+					"x": 1.57,
+					"y": 3.14,
+					"z": 0
+				},
+				"toolTipPositionZ": 40
+			}
+		}
+	},
+	"CAMERA_STREAM_URL":"",
+	"IEQ_LEVELS":["Fair" , "Good" , "Excellent"],
+	"IEQ_STANDARD": {		
+		"co2_ppm": [
+			[
+				null,
+				1440
+			],
+			[
+				null,
+				1800
+			]
+		],
+		"co_ppb": [
+			[
+				null,
+				1700
+			],
+			[
+				null,
+				6100
+			]
+		],
+		"pm10_ugPerM3": [
+			[
+				null,
+				20
+			],
+			[
+				null,
+				100
+			]
+		],
+		"no2_ppb": [
+			[
+				null,
+				53
+			],
+			[
+				null,
+				106
+			]
+		],
+		"o3_ppb": [
+			[
+				null,
+				25
+			],
+			[
+				null,
+				61
+			]
+		],
+		"hcho_ppb": [
+			[
+				null,
+				57
+			],
+			[
+				null,
+				81
+			]
+		],
+		"tvoc_ppb": [
+			[
+				null,
+				87
+			],
+			[
+				null,
+				261
+			]
+		]
+	}
+}
