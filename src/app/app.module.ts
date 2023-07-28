@@ -134,7 +134,7 @@ if (standaloneApp) {
         // { path: 'login/:clientId', component : CmLoginComponent },
         { path: 'home' , component: ArcsDashboardComponent,  canActivate: [AuthGuard]},
         { path: 'setup' , component: ArcsSetupComponent,  canActivate: [AuthGuard]},
-        // { path: 'delivery',  component: ArcsDashboardComponent,  canActivate: [AuthGuard]},
+        { path: 'waypoint',  component: ArcsTabletWaypointHomeComponent},
         // { path: 'patrol',  component: ArcsDashboardComponent,  canActivate: [AuthGuard]},
         // { path: 'disinfection', component: ArcsDashboardComponent,  canActivate: [AuthGuard]},
         // { path: 'mobile_chair',  component: ArcsDashboardComponent,  canActivate: [AuthGuard]},
@@ -241,6 +241,10 @@ import { ArcsEventDetectionDetailComponent } from './arcs/arcs-event-detection-d
 import { ArcsDashboardMapPanelComponent } from './arcs/arcs-dashboard/arcs-dashboard-map-panel/arcs-dashboard-map-panel.component';
 import { ArcsDashboardNewTaskComponent } from './arcs/arcs-dashboard/arcs-dashboard-new-task/arcs-dashboard-new-task.component';
 import { ArcsBroadcastComponent } from './arcs/arcs-broadcast/arcs-broadcast.component';
+import { ArcsTabletWaypointHomeComponent } from './arcs-tablet/waypoint/arcs-tablet-waypoint-home/arcs-tablet-waypoint-home.component';
+import { ArcsTabletWaypointMapComponent } from './arcs-tablet/waypoint/arcs-tablet-waypoint-map/arcs-tablet-waypoint-map.component';
+import { ArcsTabletWaypointTaskComponent } from './arcs-tablet/waypoint/arcs-tablet-waypoint-task/arcs-tablet-waypoint-task.component';
+import { ArcsTabletWaypointSettingsComponent } from './arcs-tablet/waypoint/arcs-tablet-waypoint-settings/arcs-tablet-waypoint-settings.component';
 // import { WorkflowComponent } from './ui-components/workflow/workflow.component';
 // import { SequentialWorkflowDesignerModule } from 'sequential-workflow-designer-angular';
 
@@ -351,6 +355,10 @@ import { ArcsBroadcastComponent } from './arcs/arcs-broadcast/arcs-broadcast.com
         ArcsDashboardMapPanelComponent,
         ArcsDashboardNewTaskComponent,
         ArcsBroadcastComponent,
+        ArcsTabletWaypointHomeComponent,
+        ArcsTabletWaypointMapComponent,
+        ArcsTabletWaypointTaskComponent,
+        ArcsTabletWaypointSettingsComponent,
         // WorkflowComponent        
     ],
     imports: [

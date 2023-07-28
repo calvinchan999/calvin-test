@@ -1,0 +1,33 @@
+    <div class="top-bar" >
+        <div class="logo"></div>
+        <div *ngIf="floorPlanName && waypoint">
+            <span class="floor"> {{floorPlanName}}</span>
+            <span class="delimiter"> , </span>
+            <span class="waypoint">{{waypoint}}</span>
+        </div>
+        <div class="logout"></div>
+    </div>
+    
+    <div class="main">
+        <app-arcs-tablet-waypoint-map *ngIf="selectedTab == 'map'" [floorPlanCode]="floorPlanCode"></app-arcs-tablet-waypoint-map>
+        <app-arcs-tablet-waypoint-task *ngIf="selectedTab == 'task'"></app-arcs-tablet-waypoint-task>
+        <app-arcs-tablet-waypoint-settings *ngIf="selectedTab == 'settings'"></app-arcs-tablet-waypoint-settings>
+    </div>
+    
+    <div class="bottom-bar">
+        <a class="mdi mdi-map-marker-outline" (click)="selectedTab = 'map'" ></a>
+        <a class="mdi mdi-clipboard-outline" (click)="selectedTab = 'task'"></a>
+        <a class="mdi mdi-cogs"  (click)="selectedTab = 'settings'"></a>
+    </div>
+
+
+<kendo-dialog *ngIf="showSelectWaypointDialog" [title]="'Select Current Location' | label : uiSrv.langPack" [minWidth]="250" [width]="450">
+    <form [formGroup]="frmGrp" class="content">
+        <uc-dropdown lab = "Floor Plan" [frmGrp] = "frmGrp" frmCtrl = "floorPlanCode"  [options] = "dropdownOptions.floorplans" (valueChange)="refreshWaypointDropDown()"></uc-dropdown>
+        <uc-dropdown lab = "Waypoint" [frmGrp] = "frmGrp" frmCtrl = "waypoint"  [options] = "dropdownOptions.locations"></uc-dropdown>
+    </form>    
+    <div class="button-container">
+        <button kendoButton (click) = "showSelectWaypointDialog = false ; updateLocation() ; " > {{'OK' | label : uiSrv.langPack}}</button>
+    </div>
+
+</kendo-dialog>

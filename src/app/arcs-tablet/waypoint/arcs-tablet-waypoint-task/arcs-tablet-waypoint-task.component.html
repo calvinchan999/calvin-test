@@ -1,0 +1,23 @@
+<div class="main">
+    <div class="robot-list">
+        <div *ngFor="let robotState of robotStates">
+            <span class="status"  *ngIf="robotState.status?.value"> 
+                <i [class]="'status mdi mdi-circle ' +  ( robotState.status?.value ? (ARCS_STATUS_MAP[robotState.status?.value ]| cssClassName) : '')  " ></i> 
+                <span>{{ARCS_STATUS_MAP[robotState.status.value] | label : uiSrv.langPack}}</span>
+            </span>
+            
+            <span class="status"  *ngIf="robotState.status?.value"> 
+                <i [class]="'status mdi mdi-circle ' +  ( robotState.status?.value ? (ARCS_STATUS_MAP[robotState.status?.value ]| cssClassName) : '')  " ></i> 
+                <span>{{ARCS_STATUS_MAP[robotState.status.value] | label : uiSrv.langPack}}</span>
+            </span>
+    
+            <span class="battery" *ngIf="robotState.batteryRounded?.value">
+                <i [class]="'mdi mdi-battery' + ( robotState.batteryRounded?.value == 100 ? '' : ('-' + ( robotState.batteryRounded?.value < 10 ? '10' : ((robotState.batteryRounded?.value / 10) | roundDown) * 10))) "></i> 
+                <span>{{robotState.batteryRounded?.value}}%</span>
+            </span>
+        </div>
+    </div>
+    <div class="command-container">
+
+    </div>
+</div>

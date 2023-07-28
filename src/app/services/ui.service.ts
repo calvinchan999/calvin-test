@@ -35,6 +35,7 @@ export class UiService {
     // } 
     this.initNotification()
   }
+  public arcsTabletMode : 'WAYPOINT' | null = null
   public isTablet = false
   public langPack = { }
   public langOptions = [{text:'English' , value:'EN'} ,{text:'繁體中文',value :'ZH'}]

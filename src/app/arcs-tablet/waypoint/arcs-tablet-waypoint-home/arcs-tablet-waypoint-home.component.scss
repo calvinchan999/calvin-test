@@ -1,0 +1,28 @@
+:host .main{
+   height: calc(100vh - 100px);
+}
+
+:host .top-bar{
+  height: 50px;
+  display: flex;
+  justify-content: space-between;
+  font-size: 25px;
+  line-height: 45px;
+  background: darkturquoise;
+}
+
+:host .bottom-bar{
+    font-size: 35px;
+    height: 50px;
+    display: flex;
+    justify-content: space-around;
+    background: rgba(255,255,255,0.2);
+}
+
+:host .logo{
+
+}
+
+:host .logout{
+
+}

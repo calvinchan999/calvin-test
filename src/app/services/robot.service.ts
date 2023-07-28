@@ -220,7 +220,7 @@ export class RobotState {
         this.estop.next(s.estopped)
         this.tiltActive.next(s.tiltDetected)
         this.obstacleDetected.next(s.obstacleDetected)
-        //this.batteryRounded.next((s.batteryPercentage * 100).toFixed(0))   //fms send null sometimes , temporarily dont update this 
+        this.batteryRounded.next((s.batteryPercentage * 100).toFixed(0))   //fms send null sometimes , temporarily dont update this 
         this.destination.next(s.pointCode)
         if (s.ieqDTO) {
             this.topModule.patrol.updateAirQuality(s.ieqDTO, this.util.config.IEQ_LEVELS, this.util.config.IEQ_STANDARD)

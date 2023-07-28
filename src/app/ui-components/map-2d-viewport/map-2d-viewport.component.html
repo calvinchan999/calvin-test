@@ -39,7 +39,7 @@
         {{ 'Localization' | label : uiSrv.langPack }}
       </div>
    
-      <div *ngIf = "showRobot && !module?.localization?.localizing" class="title arcs">
+      <div *ngIf = "showRobot && !module?.localization?.localizing && !uiSrv.arcsTabletMode" class="title arcs">
         <span *ngIf="util.standaloneApp && module.data.selectedFloorPlanName">{{module.data.selectedFloorPlanName}}</span>
         <div class="location-tree">
           <a class="site-name" *ngIf = "module.site?.locationTree.site.code" (click)="module.robot.unsubscribePose(); module.data.selectedFloorPlanCode = null ; module.data.activeFloorPlanCode = null ;onSiteSelected.emit()"> {{module.site.locationTree.site.name}} </a>
@@ -71,7 +71,7 @@
           <ng-container *ngTemplateOutlet = "createModeTpl"></ng-container>
         </ng-container>
         
-        <button *ngIf="!util.standaloneApp && showRobot" kendoButton class="full-screen" [matTooltip]="'Full Screen' | label : uiSrv.langPack" (click)="commonModule.ui.fullScreen = !commonModule.ui.fullScreen"  [ngClass]="{'btn-active':commonModule.ui.fullScreen}" >
+        <button *ngIf="!util.standaloneApp && showRobot && !uiSrv.arcsTabletMode" kendoButton class="full-screen" [matTooltip]="'Full Screen' | label : uiSrv.langPack" (click)="commonModule.ui.fullScreen = !commonModule.ui.fullScreen"  [ngClass]="{'btn-active':commonModule.ui.fullScreen}" >
           <span [class]="'mdi mdi-' + (commonModule.ui.fullScreen ? 'fullscreen-exit' : 'fullscreen')"></span>
         </button>    
       </div>
@@ -466,7 +466,7 @@
     <span [class]="'mdi mdi-vector-polyline'"></span>
     </button>
     
-    <button  kendoButton class="3d-switch" [matTooltip]="'3D Map' | label : uiSrv.langPack"  
+    <button  kendoButton class="3d-switch" [matTooltip]="'3D Map' | label : uiSrv.langPack"   *ngIf="!uiSrv.arcsTabletMode"
     (click)="dataSrv.setLocalStorage('dashboardMapType' , '3D'); to3D.emit()" >
     <span [class]="'mdi mdi-video-3d'"></span>
     </button>

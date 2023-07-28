@@ -5,7 +5,7 @@ import { MqService } from 'src/app/services/mq.service';
 import { Map2DViewportComponent, Robot } from 'src/app/ui-components/map-2d-viewport/map-2d-viewport.component';
 import { GeneralUtil } from 'src/app/utils/general/general.util';
 import { DataService } from 'src/app/services/data.service';
-import {DropListBuilding, DropListFloorplan, DropListType, FloorPlanAlertTypeDescMap, FloorPlanDataset, JFloorPlan, JSite, RobotStatusARCS as RobotStatus, RobotStatusARCS, ShapeJData, TaskStateOptions} from 'src/app/services/data.models';
+import {ARCS_STATUS_MAP, DropListBuilding, DropListFloorplan, DropListType, FloorPlanAlertTypeDescMap, FloorPlanDataset, JFloorPlan, JSite, RobotStatusARCS as RobotStatus, RobotStatusARCS, ShapeJData, TaskStateOptions} from 'src/app/services/data.models';
 import { Router } from '@angular/router';
 import { DialogRef } from '@progress/kendo-angular-dialog';
 import { CmTaskJobComponent } from 'src/app/common-components/cm-task/cm-task-job/cm-task-job.component';
@@ -546,13 +546,13 @@ export class ArcsDashboardComponent implements OnInit {
       this.pixiElRef.robots.filter(r => !data.map(r2 => r2.robotCode).includes(r.id)).forEach(r => this.pixiElRef.robotModule.removeRobot(r))
     }
 
-    let robotStatusCssClassMap = {
-      IDLE : 'idle',
-      EXECUTING : 'working',
-      CHARGING: 'charging',
-      UNKNOWN : 'offline',
-      HOLD : 'reserved'
-    }
+    // let robotStatusCssClassMap = {
+    //   IDLE : 'idle',
+    //   EXECUTING : 'working',
+    //   CHARGING: 'charging',
+    //   UNKNOWN : 'offline',
+    //   HOLD : 'reserved'
+    // }
     this.robotInfos.forEach(i=>{
       let robot = data.filter(t=>t.robotCode == i.robotCode)[0]
       i.robotType = robot?.robotType
@@ -561,7 +561,7 @@ export class ArcsDashboardComponent implements OnInit {
       i.executingTaskCount = robot?.executingTaskCount
       i.waitingTaskCount = robot?.waitingTaskCount
       i.completedTaskCount = robot?.completedTaskCount
-      i.robotStatusCssClass =  robotStatusCssClassMap[robot?.robotStatus]
+      i.robotStatusCssClass =  ARCS_STATUS_MAP[robot?.robotStatus]?.toLowerCase()
       i.alert = (robot.estopped ? [this.uiSrv.commonAlertMessages.estopped] :[]).concat(robot.obstacleDetected ? [this.uiSrv.commonAlertMessages.obstacleDetected] :[]).concat(robot.tiltDetected ? [this.uiSrv.commonAlertMessages.tiltDetected] :[]).join(" ,\n")
     })    
     
