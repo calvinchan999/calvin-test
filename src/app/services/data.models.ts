@@ -1,6 +1,6 @@
 import { BehaviorSubject } from "rxjs"
 
-
+  export const AUTONOMY = "AUTONOMY"
   export class robotPose{
     x
     y

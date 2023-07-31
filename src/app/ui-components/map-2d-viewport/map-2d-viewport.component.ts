@@ -22,7 +22,7 @@ import {OutlineFilter} from '@pixi/filter-outline';
 import {ColorOverlayFilter} from '@pixi/filter-color-overlay';
 import {DropShadowFilter} from '@pixi/filter-drop-shadow';
 import {DataService} from 'src/app/services/data.service';
-import { ShapeJData , MapJData, FloorPlanDataset, MapDataset, robotPose, DropListFloorplan, DropListLocation, DropListMap, DropListAction, DropListBuilding, JMap, JPoint, JPath, JFloorPlan, DropListRobot, DropListPointIcon, RobotStatusARCS, JChildPoint, FloorPlanAlertTypeDescMap, JFloorPlanZone } from 'src/app/services/data.models';
+import { ShapeJData , MapJData, FloorPlanDataset, MapDataset, robotPose, DropListFloorplan, DropListLocation, DropListMap, DropListAction, DropListBuilding, JMap, JPoint, JPath, JFloorPlan, DropListRobot, DropListPointIcon, RobotStatusARCS, JChildPoint, FloorPlanAlertTypeDescMap, JFloorPlanZone, AUTONOMY } from 'src/app/services/data.models';
 import { AuthService } from 'src/app/services/auth.service';
 import * as roundSlider from "@maslick/radiaslider/src/slider-circular";
 import {GraphBuilder, DijkstraStrategy} from "js-shortest-path"
@@ -548,7 +548,8 @@ export class Map2DViewportComponent implements OnInit , AfterViewInit , OnDestro
 
   async init() {
     await this.commonModule.data.initDropDown()
-    this.defaultPointType = (<DropListPointIcon[]>this.commonModule.data.dropdownData.iconTypes).filter(t=> !t.base64Image || t.base64Image.length == 0)[0].code//TBR
+    this.defaultPointType = (<DropListPointIcon[]>this.commonModule.data.dropdownData.iconTypes).filter(t=> !t.base64Image || t.base64Image.length == 0)[0]?.code//TBR
+    this.defaultPointType =  this.defaultPointType ?  this.defaultPointType  : 'NORMAL'
     let ret = new Subject()
     setTimeout(async () => {
       this.onDestroy.next()
@@ -1850,7 +1851,7 @@ export class NavigationModule { //Standalone Function : navigate to waypoint / c
       await this.cm.httpSrv.fmsRequest('POST', 'mode/v1/navigation')
       resp = await this.cm.httpSrv.fmsRequest('POST', 'navigation/v1', {
         waypointName:  this.cm.data.selectedPointCode,
-        navigationMode: "AUTONOMY",
+        navigationMode: AUTONOMY,
         orientationIgnored: false,
         fineTuneIgnored: true
       })      

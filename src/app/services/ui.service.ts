@@ -22,6 +22,7 @@ export class UiService {
   public taskOverlay = false
   refreshDrawerItems = new BehaviorSubject<any>(null)
   loadingTickets = []
+  robotTypeIconMap = {}
   loaderStyle = {
     type: "infinite-spinner",
     themeColor: "secondary",
@@ -30,6 +31,7 @@ export class UiService {
   constructor(public dialogSrv: DialogService, public windowSrv : WindowService, private http: HttpClient ,public ngZone: NgZone,private notificationService: NotificationService , private titleSrv: Title , public datePipe : DatePipe) { 
     this.isTablet = this.detectMob() && environment.app.toUpperCase() == 'STANDALONE'
     this.titleSrv.setTitle(this.translate(environment.app.toUpperCase() == 'STANDALONE' ? "RV Robotic System" : "ARCS"))
+    this.initRobotTypeIconMap()
     // if(this.isTablet){
     //   this.fullScreen()
     // } 
@@ -53,6 +55,13 @@ export class UiService {
   }
   public browserNotifications : Notification [] = []
 
+  initRobotTypeIconMap(){
+    const routes = environment.routes
+    routes.forEach(r=>{
+      this.robotTypeIconMap[r.path.replace('/' , '')?.toUpperCase()] = r.icon
+    })
+  }
+  
   initNotification(){
     // if(this.isIos()){
     //   return

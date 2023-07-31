@@ -6,9 +6,221 @@
 
 :host .robot-list{
     width: 30%;
-    background: rgba(80,80,80,0.8);
+    background: rgba(80,80,80,0.8);    
+    height: 100%;
+    overflow: auto;
 }
 
 :host .command-container{
     width: 70%;
 }
+
+
+:host ::ng-deep .robot-status i.status span{
+    font-style: initial;
+    line-height: 12px;
+}
+
+:host ::ng-deep .robot-status i.status.idle , i.robot-status .status.reserved {
+    color: Darkturquoise;
+}
+
+:host ::ng-deep .robot-status i.status.working{
+    color: greenyellow;
+}
+
+:host ::ng-deep .robot-status i.status.charging{
+    color: orange;
+}
+
+:host ::ng-deep .robot-status i.status.offline{
+    color: #aaa;
+}
+
+:host ::ng-deep .robot-status i.mdi-battery , :host ::ng-deep .robot-status i.mdi-battery-90,  :host ::ng-deep .robot-status i.mdi-battery-80 {
+    color: greenyellow;
+}
+:host ::ng-deep .robot-status i.mdi-battery-70,  :host ::ng-deep .robot-status i.mdi-battery-60 , :host ::ng-deep .robot-status i.mdi-battery-50, :host ::ng-deep .robot-status i.mdi-battery-40{
+    color:  darkturquoise;
+}
+:host ::ng-deep .robot-status i.mdi-battery-30,  :host ::ng-deep .robot-status i.mdi-battery-20 {
+    color: orange;
+}
+:host ::ng-deep .robot-status i.mdi-battery-10 {
+    color: red;
+}
+
+:host .robot-item.status-working{
+    border-right: 5px solid greenyellow
+}
+:host .robot-item.status-charging{
+    border-right: 5px solid orange
+}
+
+:host .robot-item.status-offline{
+    border-right: 5px solid #aaa
+}
+
+:host .robot-item.status-idle, .robot-item.status-reserved{
+    border-right: 5px solid Darkturquoise
+}
+
+
+
+:host .robot-item {
+    width: calc(100% - 5px);
+    display: flex;
+    border-bottom: solid rgba(255 , 255 ,255 ,0.6) 1px;
+    .icon{
+        padding:15px ;
+        font-size: 40px;
+    }
+    .robot-status {
+        flex-grow:  1;
+        flex-shrink: 1;
+        .robot-code {
+            font-size: 20px;
+            padding: 5px;
+            font-weight: 600;
+        }
+
+        .state {
+            .status{
+                display: flex;
+                gap:5px
+            }
+            display: flex;
+            justify-content: space-between;
+            padding: 5px 25px 5px 5px;
+        }
+    }
+}
+
+:host .select-robot-message{
+    text-align: center;
+    align-self: center;
+    font-size: 18px;
+    padding: 10px;
+}
+
+:host .command-container {
+    flex-shrink: 1;
+    flex-grow: 1;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-around;
+
+    .grid{
+        flex-grow: 1;
+        flex-shrink: 1;
+        padding: 30px;
+        height: 200px;        
+        overflow: auto;
+    }
+
+    .command-list{
+        display: grid;
+        grid-template-columns: 1fr 1fr 1fr;
+        grid-gap: 25px;
+    }
+
+    .button-group {
+        width: 100%;
+        justify-content: center;
+        padding: 15px;
+    }
+
+    .waypoint-item {
+        background-color: rgba(255, 255, 255, 0.3);
+        color: darkturquoise;
+        text-align: center;
+        padding: 30px 0;
+        font-size: 28px;
+    }
+
+    .action-item {
+        background-color: rgba(255, 255, 255, 0.3);
+        color: darkturquoise;
+        text-align: center;
+        padding: 30px 0;
+        font-size: 18px;
+    }
+}
+
+
+:host .no-robot-message{
+    width: 100%;
+    text-align: center;
+    align-self: center;
+    font-size: 18px;
+    padding: 10px;
+}
+
+:host .waypoint{
+    display: flex;
+    gap:10px;
+    color:paleturquoise;
+    padding: 5px ;
+    min-height: 18px;
+}
+
+:host .robot-item.selected ::after  {
+    display: inline-block;
+    position: absolute;
+    border-top: 20px solid #eee;
+    border-bottom: 20px solid #eee;
+    border-left: 20px solid #ccc;
+}
+:host .robot-item.selected{
+    background: rgba(0,0,0,0.8);
+}
+
+:host .dialog-content {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
+@keyframes dot-keyframes {
+    0% {
+      opacity: .6;
+      transform: scale(0.8, 0.8);
+    }
+  
+    50% {
+      opacity: 1;
+      transform: scale(1.4, 1.4);
+    }
+  
+    100% {
+      opacity: .6;
+      transform: scale(0.8, 0.8);
+    }
+  }
+
+  :host .loading-dots {
+      text-align: center;
+      &--dot {
+          animation: dot-keyframes 2.5s infinite ease-in-out;
+          width: 0;
+          height: 0;
+          border-style: solid;
+          border-width: 4px 0 4px 6px;
+          border-color: transparent transparent transparent paleturquoise;
+          margin-left: 2px;
+          margin-right: 2px;
+          //   background-color: paleturquoise;
+          //   border-radius: 10px;
+          display: inline-block;
+          //   height: 5px;
+          //   width: 5px;
+
+          &:nth-child(2) {
+              animation-delay: 1s;
+          }
+
+          &:nth-child(3) {
+              animation-delay: 1.5s;
+          }
+      }
+  }

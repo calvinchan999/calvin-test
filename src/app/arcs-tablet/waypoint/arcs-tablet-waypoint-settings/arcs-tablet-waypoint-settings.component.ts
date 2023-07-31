@@ -1,4 +1,4 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, Input, OnInit } from '@angular/core';
 
 @Component({
   selector: 'app-arcs-tablet-waypoint-settings',
@@ -6,7 +6,7 @@ import { Component, OnInit } from '@angular/core';
   styleUrls: ['./arcs-tablet-waypoint-settings.component.scss']
 })
 export class ArcsTabletWaypointSettingsComponent implements OnInit {
-
+@Input() fixedWaypoint  
   constructor() { }
 
   ngOnInit(): void {

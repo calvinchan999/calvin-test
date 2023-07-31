@@ -431,6 +431,10 @@ export class MqService {
           }
         }
       }
+    },
+    robotCurrentWaypoint : {
+      topic: "rvautotech/fobo/waypoint/current",
+      robotState: { currentWaypoint: (d: { id: number, name: string, mapName: string, x: number, y: number, angle: number }) => { d.name } }
     }
   }
 

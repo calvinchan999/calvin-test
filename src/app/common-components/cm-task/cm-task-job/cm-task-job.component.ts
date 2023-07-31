@@ -4,7 +4,7 @@ import { DialogRef, DialogService, WindowRef } from '@progress/kendo-angular-dia
 import { ListViewComponent } from '@progress/kendo-angular-listview';
 import { filter, take, takeUntil } from 'rxjs/operators';
 import { DataService} from 'src/app/services/data.service';
-import { DropListAction, DropListDataset, DropListLocation, FloorPlanDataset, RobotProfile, ShapeJData, JTask, ActionParameter, TaskStateOptions, DropListMission } from 'src/app/services/data.models';
+import { DropListAction, DropListDataset, DropListLocation, FloorPlanDataset, RobotProfile, ShapeJData, JTask, ActionParameter, TaskStateOptions, DropListMission, AUTONOMY } from 'src/app/services/data.models';
 import { RvHttpService } from 'src/app/services/rv-http.service';
 import { TranslatePipe, UiService } from 'src/app/services/ui.service';
 import { Map2DViewportComponent } from 'src/app/ui-components/map-2d-viewport/map-2d-viewport.component';
@@ -549,7 +549,7 @@ export class CmTaskJobComponent implements OnInit {
             floorPlanCode : r.floorPlanCode,
             pointCode: r.pointCode,
             waypointName : r.pointCode,
-            navigationMode: this.configSrv.disabledModule_SA.pathFollowing || this.configSrv.dbConfig.DISABLE_PATH_FOLLOWING ?  "AUTONOMY" : r.navigationMode ,
+            navigationMode: this.configSrv.disabledModule_SA.pathFollowing || this.configSrv.dbConfig.DISABLE_PATH_FOLLOWING ?  AUTONOMY : r.navigationMode ,
             orientationIgnored: !r.orientation,
             fineTuneIgnored: true
           },
@@ -642,7 +642,7 @@ export class CmTaskJobComponent implements OnInit {
         r.orientation =  getReferenceRow(r)?.orientation
       })
     }
-    rows.forEach(r=> r.navigationMode = r.navigationMode ? r.navigationMode : "AUTONOMY")
+    rows.forEach(r=> r.navigationMode = r.navigationMode ? r.navigationMode : AUTONOMY)
     return rows
  }
 

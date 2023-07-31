@@ -1,17 +1,16 @@
     <div class="top-bar" >
         <div class="logo"></div>
-        <div *ngIf="floorPlanName && waypoint">
-            <span class="floor"> {{floorPlanName}}</span>
-            <span class="delimiter"> , </span>
-            <span class="waypoint">{{waypoint}}</span>
+        <div *ngIf="floorPlanName && waypoint">       
+            <span class="waypoint mdi mdi-map-marker-outline">{{waypoint}}</span>
+            <span class="floor">  ({{floorPlanName}})</span>
         </div>
         <div class="logout"></div>
     </div>
     
     <div class="main">
         <app-arcs-tablet-waypoint-map *ngIf="selectedTab == 'map'" [floorPlanCode]="floorPlanCode"></app-arcs-tablet-waypoint-map>
-        <app-arcs-tablet-waypoint-task *ngIf="selectedTab == 'task'"></app-arcs-tablet-waypoint-task>
-        <app-arcs-tablet-waypoint-settings *ngIf="selectedTab == 'settings'"></app-arcs-tablet-waypoint-settings>
+        <app-arcs-tablet-waypoint-task *ngIf="selectedTab == 'task'" [floorPlanCode]="floorPlanCode" [fixedWaypoint]="waypoint"></app-arcs-tablet-waypoint-task>
+        <app-arcs-tablet-waypoint-settings *ngIf="selectedTab == 'settings'" [fixedWaypoint]="waypoint"></app-arcs-tablet-waypoint-settings>
     </div>
     
     <div class="bottom-bar">

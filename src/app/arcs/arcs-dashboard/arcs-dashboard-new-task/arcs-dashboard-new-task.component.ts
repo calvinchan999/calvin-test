@@ -3,7 +3,7 @@ import { DialogRef } from '@progress/kendo-angular-dialog';
 import { ArcsDashboardComponent } from '../arcs-dashboard.component';
 import { UiService } from 'src/app/services/ui.service';
 import { DataService } from 'src/app/services/data.service';
-import { ActionParameter, DropListAction, DropListLocation, DropListRobot, TaskItem } from 'src/app/services/data.models';
+import { AUTONOMY, ActionParameter, DropListAction, DropListLocation, DropListRobot, TaskItem } from 'src/app/services/data.models';
 import { CdkDragDrop, moveItemInArray } from '@angular/cdk/drag-drop';
 import { CustomButtonComponent } from 'src/app/ui-components/threejs-viewport/custom-button/custom-button.component';
 import { CSS2DObject } from 'three/examples/jsm/renderers/CSS2DRenderer';
@@ -108,7 +108,7 @@ export class ArcsDashboardNewTaskComponent implements OnInit , OnDestroy {
           floorPlanCode: this.dashboardCompRef.selectedFloorPlanCode,
           pointCode: this.singleMovementPointCode,
           waypointName: this.singleMovementPointCode,
-          navigationMode:  "AUTONOMY" ,
+          navigationMode:  AUTONOMY ,
           orientationIgnored: true,
           fineTuneIgnored: true
         },
@@ -138,7 +138,7 @@ export class ArcsDashboardNewTaskComponent implements OnInit , OnDestroy {
         pointCode: pointCode,
         fineTuneIgnored: true,
         orientationIgnored: true,
-        navigationMode : "AUTONOMY"
+        navigationMode : AUTONOMY
       }
       this.taskItems.push(taskItem)
       this.selectedAction = null

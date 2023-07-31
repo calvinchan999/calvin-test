@@ -89,7 +89,7 @@ export class RobotState {
     util : GeneralUtil
 
     robotCode : string
-    // robotType : string
+    robotType? : string
     // robotSubType : string
 
     execute: any = new BehaviorSubject<any>(null)//dummyKeyForMqService
@@ -137,7 +137,7 @@ export class RobotState {
     nextTaskAction = new BehaviorSubject<string | null>(null)
     poseDeviation = new BehaviorSubject<{ poseValid: boolean, translationDeviation: boolean, angleDeviation: boolean } | null>(null)
     cpuTemp = new BehaviorSubject<number|null> (null)
-
+    currentWaypoint = new BehaviorSubject<string|null> (null)
     // topModules
 
     get ieq() {

@@ -1,23 +1,119 @@
 <div class="main">
-    <div class="robot-list">
-        <div *ngFor="let robotState of robotStates">
-            <span class="status"  *ngIf="robotState.status?.value"> 
-                <i [class]="'status mdi mdi-circle ' +  ( robotState.status?.value ? (ARCS_STATUS_MAP[robotState.status?.value ]| cssClassName) : '')  " ></i> 
-                <span>{{ARCS_STATUS_MAP[robotState.status.value] | label : uiSrv.langPack}}</span>
-            </span>
-            
-            <span class="status"  *ngIf="robotState.status?.value"> 
-                <i [class]="'status mdi mdi-circle ' +  ( robotState.status?.value ? (ARCS_STATUS_MAP[robotState.status?.value ]| cssClassName) : '')  " ></i> 
-                <span>{{ARCS_STATUS_MAP[robotState.status.value] | label : uiSrv.langPack}}</span>
-            </span>
-    
-            <span class="battery" *ngIf="robotState.batteryRounded?.value">
-                <i [class]="'mdi mdi-battery' + ( robotState.batteryRounded?.value == 100 ? '' : ('-' + ( robotState.batteryRounded?.value < 10 ? '10' : ((robotState.batteryRounded?.value / 10) | roundDown) * 10))) "></i> 
-                <span>{{robotState.batteryRounded?.value}}%</span>
-            </span>
-        </div>
-    </div>
-    <div class="command-container">
+    <div class="no-robot-message" *ngIf="robotStates.length == 0"> {{'(No robots on current floor plan)' | label : uiSrv.langPack}} </div>
+    <ng-container *ngIf="robotStates.length > 0">
+        <div class="robot-list">
+            <div  *ngFor="let robotState of robotStates" 
+                  (click)="selectedRobotCode = robotState.robotCode"
+                  [class]="'robot-item ' + ( selectedRobotCode == robotState.robotCode ? 'selected ':'') + ( 'status-' +  ( robotState.status?.value ? (ARCS_STATUS_MAP[robotState.status?.value ]| cssClassName) : ''))">
+                <div class="icon">
+                    <span [class]="uiSrv.robotTypeIconMap[robotState.robotType] ? uiSrv.robotTypeIconMap[robotState.robotType] : 'mdi mdi-robot' "></span>
+                </div>
+                <div class="robot-status">
+                    <div class="robot-code">{{robotState.robotCode}}</div>
+                    <div class="state">
+                        <span class="status"  *ngIf="robotState.status?.value"> 
+                            <i [class]="'status mdi mdi-circle ' +  ( robotState.status?.value ? (ARCS_STATUS_MAP[robotState.status?.value ]| cssClassName) : '')  " >
+                                <span>{{ARCS_STATUS_MAP[robotState.status.value] | label : uiSrv.langPack}}</span>
+                            </i> 
+                            
+                        </span>
+                        
+                        <span class="battery" *ngIf="robotState.batteryRounded?.value">
+                            <i [class]="'mdi mdi-battery' + ( robotState.batteryRounded?.value == 100 ? '' : ('-' + ( robotState.batteryRounded?.value < 10 ? '10' : ((robotState.batteryRounded?.value / 10) | roundDown) * 10))) "></i> 
+                            <span>{{robotState.batteryRounded?.value}}%</span>
+                        </span>
+                    </div>
 
-    </div>
+                    <div class="waypoint">
+                        <span  *ngIf="!robotState.destination.value && robotState.currentWaypoint.value" class="waypoint mdi mdi-map-marker">{{robotState.currentWaypoint.value}}</span>
+                        <ng-container  *ngIf="robotState.status?.value != 'UNKNOWN' && robotState.status?.value != 'CHARGING'  && robotState.destination?.value && !robotState.currentWaypoint.value"  class="waypoint">         
+                            <span class="loading-dots">
+                                <i class="loading-dots--dot"></i>
+                                <i class="loading-dots--dot"></i>
+                                <i class="loading-dots--dot"></i>
+                            </span>
+                
+                            <span class="destination">
+                                <i class="mdi mdi-map-marker"></i>
+                                <span>{{robotState.destination.value}}</span>
+                            </span>
+                        </ng-container>
+                    </div>                   
+                </div>                
+            </div>
+        </div>
+
+        <div class="command-container" >
+            <div *ngIf="selectedRobotCode == null " class="select-robot-message" >
+                {{'(Please select a robot first)' | label : uiSrv.langPack}}
+            </div>
+            <ng-container *ngIf="selectedRobotCode != null ">
+                <kendo-buttongroup class="button-group" selection="single">
+                    <button *ngFor="let tab of tabs" kendoButton [toggleable]="true" [selected]="selectedTab == tab.id" (click)="selectedTab = tab.id  ; ">
+                        {{ tab.label | label : uiSrv.langPack }}
+                    </button>
+                </kendo-buttongroup>
+        
+                <div class="grid">
+                    <div class="command-list">
+                        <ng-container *ngIf="selectedTab == 'destination'">
+                            <div class="waypoint-item" *ngFor="let waypoint of waypoints" (click)="resetSelectedAction(); selectedWaypoint = waypoint.pointCode ; showCreateTaskDialog = true" >
+                                <span class="mdi mdi-map-marker">{{waypoint.pointCode}}</span>
+                            </div>
+                        </ng-container>
+                        <ng-container *ngIf="selectedTab == 'action'">
+                            <div class="action-item">
+                                <span (click) = "selectedAction = null; showCreateTaskDialog = true;">{{ 'Send it here' | label : uiSrv.langPack }}</span>
+                            </div>
+                            <div class="action-item" *ngFor="let action of taskActions">
+                                <span (click) = "actionAliasChanged(action.alias) ; showCreateTaskDialog = true;">{{action.name}}</span>
+                            </div>
+                        </ng-container>
+                    </div>
+                </div>   
+            </ng-container>   
+        </div>
+    </ng-container>
 </div>
+
+<kendo-dialog *ngIf="showCreateTaskDialog" 
+              [title]="selectedWaypoint ? 
+                        (('Send ' | label : uiSrv.langPack ) + selectedRobotCode + (' to ' | label : uiSrv.langPack) + selectedWaypoint) : 
+                        (('Request ' | label : uiSrv.langPack ) + selectedRobotCode + (' here' | label : uiSrv.langPack))
+                      "
+              [minWidth]="250" [width]="450" (close) = "showCreateTaskDialog = false">
+    <div class="dialog-content">
+        <ng-container  *ngIf="selectedAction != null" >
+            <uc-dropdown  [options]= "taskActions"  textFld = 'name' valueFld = 'alias' [(value)] = "selectedAction.actionItem.alias" [lab] = "'Action' | label : uiSrv.langPack"
+                      (valueChange) = " selectedAction.actionItem.alias = $event ;
+                                        selectedAction.actionItem.properties = {} ; 
+                                        actionAliasChanged($event)"  
+                      [allowClear]="true"></uc-dropdown>
+            <ng-container *ngIf="selectedAction.actionParams?.length > 0">
+                <div *ngFor="let param of selectedAction.actionParams ?  selectedAction.actionParams  : []" class="param-container">
+                   <ng-container *ngIf=" param.enumList.length > 0" >
+                        <div *ngFor="let enum of param.enumList"  class="param-enum">
+                            <input class="radio-button" type="radio" [value]="enum.value" [(ngModel)]="selectedAction.actionItem.properties[param.parameterCode]"  kendoRadioButton />
+                            <label class="radio-label">{{enum.label | label: uiSrv.langPack}}</label>
+                     </div>  
+                   </ng-container> 
+                    <uc-txtbox *ngIf="(param.parameterType == 'STRING' || param.parameterType  == 'NUMBER') && param.enumList.length == 0"
+                      [lab]="param.name" 
+                      [numMin] = "param.parameterType == 'NUMBER' &&  param.min != null ? param.min  : undefined " 
+                      [numMax] = "param.parameterType == 'NUMBER' && param.max != null ? param.max  : undefined "
+                      [numeric] = "param.parameterType == 'NUMBER'"                                        
+                      [(value)]="selectedAction.actionItem.properties[param.parameterCode]">
+                    </uc-txtbox>
+                    <span *ngIf="param.parameterType == 'BOOLEAN' && param.enumList.length == 0" class="param-checkbox">
+                        <label class="col-form-label">{{param.name | label: uiSrv.langPack }}</label>
+                        <input type="checkbox" kendoCheckBox  [(ngModel)]="selectedAction.actionItem.properties[param.parameterCode]" />
+                    </span>       
+                </div>              
+            </ng-container>
+        </ng-container>
+    </div>
+    <div class="button-container">
+        <button kendoButton (click) = "showCreateTaskDialog = false " > {{'Cancel' | label : uiSrv.langPack}}</button>
+        <button kendoButton (click) = "createTask()" > {{'OK' | label : uiSrv.langPack}}</button>
+    </div>
+</kendo-dialog>
