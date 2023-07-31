@@ -74,7 +74,8 @@ export class AppComponent implements OnInit, OnDestroy {
                     // }
                 });
             }
-            this.currentRoute = this.router.url.split('?')[0]         
+            this.currentRoute = this.router.url.split('?')[0]       
+            this.uiSrv.arcsTabletMode = this.currentRoute.toLowerCase() == '/waypoint' ? 'WAYPOINT' : null
         });
 
         this.setDrawerConfig();

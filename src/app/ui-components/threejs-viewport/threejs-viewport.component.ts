@@ -30,7 +30,7 @@ import { ArcsLiftIotComponent } from 'src/app/arcs/arcs-iot/arcs-lift-iot/arcs-l
 import { ArcsTurnstileIotComponent } from 'src/app/arcs/arcs-iot/arcs-turnstile-iot/arcs-turnstile-iot.component';
 import {GetImageDimensions} from 'src/app/utils/graphics/image'
 import { TransformControls } from 'three/examples/jsm/controls/TransformControls.js';
-import { DropListRobot, FloorPlanAlertTypeDescMap, JFloorPlan, JFloorPlan3DModel, JLift3DModel, JMap, JPoint } from 'src/app/services/data.models';
+import { DropListRobot, FloorPlanAlertTypeDescMap, JFloorPlan, JFloorPlan3DModel, JFloorPlanZone, JLift3DModel, JMap, JPoint } from 'src/app/services/data.models';
 import { MqService , MQType} from 'src/app/services/mq.service';
 import { RobotService } from 'src/app/services/robot.service';
 import { FloorPlanState, MapService } from 'src/app/services/map.service';
@@ -41,6 +41,7 @@ import { ArcsEventDetectionDetailComponent } from 'src/app/arcs/arcs-event-detec
 import { ArcsRobotIotComponent } from 'src/app/arcs/arcs-iot/arcs-robot-iot/arcs-robot-iot.component';
 import { CLICK_EVENTS } from 'src/app/utils/ng-pixi/ng-pixi-viewport/ng-pixi-constants';
 import { DRAWING_STYLE } from 'src/app/utils/ng-pixi/ng-pixi-viewport/ng-pixi-styling-util';
+import { Geometry } from 'pixi.js';
 
 const NORMAL_ANGLE_ADJUSTMENT =  - 90 / radRatio
 const ASSETS_ROOT = 'assets/3D'
@@ -402,6 +403,16 @@ export class ThreejsViewportComponent implements OnInit , OnDestroy{
     return this.mapMeshes.filter(m=>  m.robotBase == robotBase)[0]
   }
 
+  getZoneMesh(zoneName : string , coordinates:{x : number , y : number}[]){
+    const shape = new THREE.Shape();
+    shape.moveTo(coordinates[0]?.x , coordinates[0]?.y)
+    coordinates.slice(1).forEach(c=>{
+      shape.lineTo(c.x , c.y)
+    })
+    shape.lineTo(coordinates[0]?.x , coordinates[0]?.y)
+    return new ZoneMesh(zoneName , new ShapeGeometry(shape))
+  }
+
   ngOnDestroy(){
     this.$onDestroy.next()
     // this.unsubscribeIot()
@@ -490,6 +501,7 @@ export class ThreejsViewportComponent implements OnInit , OnDestroy{
     if(this.parent?.rightMapPanel?.taskComp){
       this.parent.rightMapPanel.taskComp.refreshMapPoints()
     }
+    this.initZones(floorplan.floorPlanZoneList)
   }
 
   loadFloorPlanModelFrom2DImage(){
@@ -568,6 +580,17 @@ export class ThreejsViewportComponent implements OnInit , OnDestroy{
     if(subscribe && setting.length > 0 && !this.subcribedIotSignalRTypes.includes('arcsLift')){
       this.subscribeElevators()
     }
+  }
+
+  initZones(zoneList: JFloorPlanZone[]) {
+    // zoneList.forEach(z => {
+    //   const zone =  this.getZoneMesh( z.name , JSON.parse(z.polygon))
+    //   let box3 = new THREE.Box3().setFromObject( zone );
+    //   let size = new THREE.Vector3();
+    //   box3.getSize(size);
+    //   zone.position.set(- this.floorplan.width / 2 + size.x / 2, - this.floorplan.height / 2 + size.y / 2, 2)
+    //   this.floorPlanModel.add(zone)
+    // })
   }
 
   // async initElevators(floor : string , elevators : { liftId : string , position? : {x : number , y : number , z : number } , rotation? : number , width? : number , height? : number , depth? : number }[]){
@@ -1113,6 +1136,14 @@ class MapMesh extends Mesh {
     // this.rotateX(this.transformedRadian);
     // this.position.set( x  , y , 0.1 )
     this.scale.set(scale , scale , scale )
+  }
+}
+
+class ZoneMesh extends Mesh{
+  zoneName
+  constructor(zoneName : string , geometry : THREE.ShapeGeometry){
+    super(geometry ,new THREE.MeshBasicMaterial({ color: 0x00ff00 }))
+    this.zoneName = zoneName
   }
 }
 

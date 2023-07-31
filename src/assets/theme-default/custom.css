@@ -302,7 +302,7 @@ a:hover {
 
 .drawing-board .buttons-container .k-button:hover, .drawing-board .buttons-container .k-button.btn-active, .tablet .drawing-board .buttons-container .k-button.btn-active:hover {
   color: white;
-  background: Darkturquoise;
+  background: darkturquoise;
 }
 
 .tablet .drawing-board .buttons-container .k-button:hover {

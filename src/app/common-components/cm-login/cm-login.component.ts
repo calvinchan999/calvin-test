@@ -31,6 +31,16 @@ export class CmLoginComponent implements OnInit {
   auth2FASegment
   recaptchaV3Service
   temporaryBearerToken
+  arcsTabletMode = {
+    waypoint : null,
+    floorplan : null
+  }
+  params : {
+    floorplan? :string | null,
+    waypoint? :string | null,
+    clientId? :string | null,
+  }
+
   set showChangePasswordDialog(v){
     if(!v){
       this.temporaryBearerToken = null
@@ -68,9 +78,14 @@ export class CmLoginComponent implements OnInit {
   errMsg = null
   dialogRef
   ngOnInit(): void {
-    this.route.queryParamMap.subscribe(v=>{
-      this.clientId = v?.['params']?.['clientId']
+    this.route.queryParamMap.subscribe((v:any)=>{
+      const params = v?.params
+      this.clientId = params?.clientId
       console.log( 'CLIENT ID : ' + this.clientId)
+      if(params?.floorplan && params?.waypoint){
+        this.uiSrv.arcsTabletMode = 'WAYPOINT'
+        this.params = params 
+      }
     })
   }
 
@@ -122,7 +137,11 @@ export class CmLoginComponent implements OnInit {
           if(recaptchaTagEl){
             (<HTMLElement> recaptchaTagEl).style.opacity = '0' ;
           }
-          this.router.navigate(['/home'] )
+          if (this.params?.floorplan && this.params?.waypoint) {
+            this.router.navigate(['/waypoint'], { queryParams: { floorplan: this.params.floorplan, waypoint: this.params.waypoint } })
+          } else {
+            this.router.navigate(['/home'])
+          }
           let pwExpire = resp?.validationResults?.password_expires_in
           if(pwExpire != null){
             setTimeout(()=>{

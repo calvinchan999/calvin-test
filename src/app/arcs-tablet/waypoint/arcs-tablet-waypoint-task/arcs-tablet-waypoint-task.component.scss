@@ -1,0 +1,14 @@
+:host .main{
+    display: flex;  
+    height: 100%;
+    width: 100%;  
+}
+
+:host .robot-list{
+    width: 30%;
+    background: rgba(80,80,80,0.8);
+}
+
+:host .command-container{
+    width: 70%;
+}

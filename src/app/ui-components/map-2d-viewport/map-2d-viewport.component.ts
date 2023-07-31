@@ -969,6 +969,7 @@ export class Map2DViewportComponent implements OnInit , AfterViewInit , OnDestro
   async loadDataset(dataset: JFloorPlan, readonly = false, locationOnly = null, showFloorPlanName = true, setCamera = true , refreshToggled = true) {
     let ret = new Subject()
     let ticket
+
     this.ngZone.runOutsideAngular(async () => {
       ticket = this.uiSrv.loadAsyncBegin()
       this.reset()
@@ -1004,7 +1005,7 @@ export class Map2DViewportComponent implements OnInit , AfterViewInit , OnDestro
         this.viewport.settings.mapTransformedScale = Math.max.apply(null , dataset.mapList.map(m=>m.transformedScale))
       }
     })
-    ret =  await <any>ret.pipe(filter(v => ![null, undefined].includes(v)), take(1)).toPromise()
+    ret = await <any>ret.pipe(filter(v => ![null, undefined].includes(v)), take(1)).toPromise()
     this.uiSrv.loadAsyncDone(ticket)
     if (this.module.site) {
       this.module.site.locationTree.currentLevel = 'floorplan'
@@ -1013,10 +1014,12 @@ export class Map2DViewportComponent implements OnInit , AfterViewInit , OnDestro
       }      
       this.arcsLocationTreeChange.emit( this.module.site.locationTree)
     }
-    if(refreshToggled){
+   
+    if (refreshToggled) {
       this.module.ui.toggleDarkMode(this.module.ui.toggle.darkMode)
       this.module.ui.toggleRosMap(this.module.ui.toggle.showRosMap)
     }
+
     return ret
   }
 
