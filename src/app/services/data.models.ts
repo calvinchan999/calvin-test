@@ -552,7 +552,7 @@ export class RobotProfileResp {
   export type RobotStateTypes = 'speed'| 'batteryRounded' | 'state' | 'ieq' |  'estop' | 'obstacleDetected' | 'tiltActive' | 'status' | 'destination' | 'availContainersCount' | 'totalContainersCount' | 'containersAvail' | 'containersDoorStatus'
 
   
-  export const TaskStateOptions = [{text : "Pending" , value : "WAITING"} , {text : "Executing" , value : "EXECUTING"},{text : "Completed" , value : "SUCCEEDED"} , {text : "Canceled" , value : "CANCELED"} , {text : "Failed" , value : "FAILED"}, {text : "Busy" , value : "BUSY"}]
+  export const TaskStateOptions = [{text : "Pending" , value : "WAITING"} , {text : "Executing" , value : "EXECUTING"},{text : "Completed" , value : "SUCCEEDED"} , {text : "Cancelled" , value : "CANCELLED"} , {text : "Failed" , value : "FAILED"}, {text : "Busy" , value : "BUSY"}]
   
 
   export class LiftState {

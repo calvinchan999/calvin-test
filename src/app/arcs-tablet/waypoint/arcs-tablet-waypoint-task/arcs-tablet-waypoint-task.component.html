@@ -3,7 +3,7 @@
     <ng-container *ngIf="robotStates.length > 0">
         <div class="robot-list">
             <div  *ngFor="let robotState of robotStates" 
-                  (click)="selectedRobotCode = robotState.robotCode"
+                  (click)="selectedRobotCode = robotState.robotCode ; refreshDropdownActions()"
                   [class]="'robot-item ' + ( selectedRobotCode == robotState.robotCode ? 'selected ':'') + ( 'status-' +  ( robotState.status?.value ? (ARCS_STATUS_MAP[robotState.status?.value ]| cssClassName) : ''))">
                 <div class="icon">
                     <span [class]="uiSrv.robotTypeIconMap[robotState.robotType] ? uiSrv.robotTypeIconMap[robotState.robotType] : 'mdi mdi-robot' "></span>
@@ -54,19 +54,31 @@
                     </button>
                 </kendo-buttongroup>
         
+
+                <div class="top waypoint-item" (click) = "resetSelectedAction(); 
+                                                             selectedWaypoint = selectedTab == 'action' ? null : staticWaypoint ; 
+                                                             selectedAction = selectedTab == 'action' ? null : selectedAction;
+                                                             showCreateTaskDialog = true;">
+                    <span >{{ 'Send it here' | label : uiSrv.langPack }} </span>
+
+                    <span> (<span class="mdi mdi-map-marker-outline">{{staticWaypoint}}</span>)</span>
+                </div>
+
+                <div class="break-line"></div>
+                <!-- <div *ngIf="selectedTab == 'destination'" class="waypoint-item"  (click)="resetSelectedAction(); selectedWaypoint = staticWaypoint ; showCreateTaskDialog = true" >
+                    <span class="mdi mdi-map-marker">{{staticWaypoint}}</span>
+                </div> -->
+
                 <div class="grid">
                     <div class="command-list">
-                        <ng-container *ngIf="selectedTab == 'destination'">
+                        <ng-container *ngIf="selectedTab == 'destination'">                         
                             <div class="waypoint-item" *ngFor="let waypoint of waypoints" (click)="resetSelectedAction(); selectedWaypoint = waypoint.pointCode ; showCreateTaskDialog = true" >
                                 <span class="mdi mdi-map-marker">{{waypoint.pointCode}}</span>
                             </div>
                         </ng-container>
-                        <ng-container *ngIf="selectedTab == 'action'">
-                            <div class="action-item">
-                                <span (click) = "selectedAction = null; showCreateTaskDialog = true;">{{ 'Send it here' | label : uiSrv.langPack }}</span>
-                            </div>
-                            <div class="action-item" *ngFor="let action of taskActions">
-                                <span (click) = "actionAliasChanged(action.alias) ; showCreateTaskDialog = true;">{{action.name}}</span>
+                        <ng-container *ngIf="selectedTab == 'action'">          
+                            <div class="action-item" *ngFor="let action of dropdownActions">
+                                <span (click) = "actionAliasChanged(action.value) ; showCreateTaskDialog = true;">{{action.text}}</span>
                             </div>
                         </ng-container>
                     </div>
@@ -84,11 +96,11 @@
               [minWidth]="250" [width]="450" (close) = "showCreateTaskDialog = false">
     <div class="dialog-content">
         <ng-container  *ngIf="selectedAction != null" >
-            <uc-dropdown  [options]= "taskActions"  textFld = 'name' valueFld = 'alias' [(value)] = "selectedAction.actionItem.alias" [lab] = "'Action' | label : uiSrv.langPack"
+            <uc-dropdown  [options]= "dropdownActions"  [(value)] = "selectedAction.actionItem.alias" [lab] = "'Action' | label : uiSrv.langPack"
                       (valueChange) = " selectedAction.actionItem.alias = $event ;
                                         selectedAction.actionItem.properties = {} ; 
                                         actionAliasChanged($event)"  
-                      [allowClear]="true"></uc-dropdown>
+                      [allowClear]="selectedWaypoint" [disabled] = "!selectedWaypoint"></uc-dropdown>
             <ng-container *ngIf="selectedAction.actionParams?.length > 0">
                 <div *ngFor="let param of selectedAction.actionParams ?  selectedAction.actionParams  : []" class="param-container">
                    <ng-container *ngIf=" param.enumList.length > 0" >

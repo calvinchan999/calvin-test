@@ -1,26 +1,28 @@
     <div class="top-bar" >
-        <div class="logo"></div>
+        <div class="logo">  </div>
         <div *ngIf="floorPlanName && waypoint">       
             <span class="waypoint mdi mdi-map-marker-outline">{{waypoint}}</span>
             <span class="floor">  ({{floorPlanName}})</span>
         </div>
-        <div class="logout"></div>
+        <a class="logout mdi mdi-power" (click)="authSrv.logout('EN' ,  { floorplan : floorPlanCode , waypoint: waypoint })"></a>
     </div>
     
     <div class="main">
         <app-arcs-tablet-waypoint-map *ngIf="selectedTab == 'map'" [floorPlanCode]="floorPlanCode"></app-arcs-tablet-waypoint-map>
-        <app-arcs-tablet-waypoint-task *ngIf="selectedTab == 'task'" [floorPlanCode]="floorPlanCode" [fixedWaypoint]="waypoint"></app-arcs-tablet-waypoint-task>
-        <app-arcs-tablet-waypoint-settings *ngIf="selectedTab == 'settings'" [fixedWaypoint]="waypoint"></app-arcs-tablet-waypoint-settings>
+        <app-arcs-tablet-waypoint-task *ngIf="selectedTab == 'task'" [floorPlanCode]="floorPlanCode" [staticWaypoint]="waypoint"></app-arcs-tablet-waypoint-task>
+        <app-arcs-tablet-waypoint-settings *ngIf="selectedTab == 'settings'" [floorPlanCode]="floorPlanCode"
+                                             [floorPlanName]="floorPlanName" [staticWaypoint]="waypoint" (selectLocation)="showSelectWaypointDialog = true">
+        </app-arcs-tablet-waypoint-settings>
     </div>
     
     <div class="bottom-bar">
-        <a class="mdi mdi-map-marker-outline" (click)="selectedTab = 'map'" ></a>
-        <a class="mdi mdi-clipboard-outline" (click)="selectedTab = 'task'"></a>
-        <a class="mdi mdi-cogs"  (click)="selectedTab = 'settings'"></a>
+        <a [class]="'mdi mdi-map-marker-outline ' + (selectedTab == 'map' ? 'selected' : '')"  (click)="selectedTab = 'map'" ></a>
+        <a [class]="'mdi mdi-clipboard-outline '  + (selectedTab == 'task' ? 'selected' : '')" (click)="selectedTab = 'task'"></a>
+        <a [class]="'mdi mdi-cogs '  + (selectedTab == 'settings' ? 'selected' : '')"  (click)="selectedTab = 'settings'"></a>
     </div>
 
 
-<kendo-dialog *ngIf="showSelectWaypointDialog" [title]="'Select Current Location' | label : uiSrv.langPack" [minWidth]="250" [width]="450">
+<kendo-dialog *ngIf="showSelectWaypointDialog" [title]="'Select Current Location' | label : uiSrv.langPack" [minWidth]="250" [width]="450" (close) = "showSelectWaypointDialog = false">
     <form [formGroup]="frmGrp" class="content">
         <uc-dropdown lab = "Floor Plan" [frmGrp] = "frmGrp" frmCtrl = "floorPlanCode"  [options] = "dropdownOptions.floorplans" (valueChange)="refreshWaypointDropDown()"></uc-dropdown>
         <uc-dropdown lab = "Waypoint" [frmGrp] = "frmGrp" frmCtrl = "waypoint"  [options] = "dropdownOptions.locations"></uc-dropdown>

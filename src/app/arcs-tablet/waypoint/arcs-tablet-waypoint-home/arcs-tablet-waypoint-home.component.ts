@@ -53,7 +53,7 @@ export class ArcsTabletWaypointHomeComponent implements OnInit {
       return
     }
     this.route.queryParamMap.subscribe(async (v: any) => {
-      const params : {floorplan : string , waypoint : string} | null = v?.params
+      const params : {floorplan : string , waypoint : string , selectedTab? : string} | null = v?.params
       let ticket = this.uiSrv.loadAsyncBegin()
       await this.initDropDown()
       if (params?.floorplan && params?.waypoint) {
@@ -72,6 +72,9 @@ export class ArcsTabletWaypointHomeComponent implements OnInit {
           this.selectedTab = 'map'
         }
       }
+      if(params.selectedTab){
+        this.selectedTab = params.selectedTab
+      }
       this.uiSrv.loadAsyncDone(ticket)
     })
   }
@@ -85,7 +88,7 @@ export class ArcsTabletWaypointHomeComponent implements OnInit {
   }
 
   updateLocation(){
-    this.router.navigate(['/waypoint'], { queryParams: { floorplan : this.frmGrp.controls['floorPlanCode'].value, waypoint: this.frmGrp.controls['waypoint'].value } }).then(page => { window.location.reload(); });
+    this.router.navigate(['/waypoint'], { queryParams: { floorplan : this.frmGrp.controls['floorPlanCode'].value, waypoint: this.frmGrp.controls['waypoint'].value  , selectedTab : this.selectedTab} }).then(page => { window.location.reload(); });
   }
 
 }

@@ -99,7 +99,7 @@ export class AuthService {
 			// response['data'][this.sessionStorageCredentialsMap[k]]
 	}
 
-	public async logout(lang = 'EN') {
+	public async logout(lang = 'EN' , queryParams = null) {
 		let username = this.generalUtil.getCurrentUser()
 		Object.keys(this.sessionStorageCredentialsMap).forEach(k => sessionStorage.removeItem(k))
 		// sessionStorage.removeItem('userAccess')
@@ -121,7 +121,10 @@ export class AuthService {
 		}else{
 			this.mqSrv.signalRSrv.disconnect()
 		}
-		this.router.navigate(['login'] ,{ queryParams: { clientId : this.tenantId } })
+		
+		queryParams = queryParams? queryParams: {  }
+		queryParams.clientId = this.tenantId
+		this.router.navigate(['login'] ,{ queryParams: queryParams})
 		// var dataObj = {
 		// 	userId : username
 		// }

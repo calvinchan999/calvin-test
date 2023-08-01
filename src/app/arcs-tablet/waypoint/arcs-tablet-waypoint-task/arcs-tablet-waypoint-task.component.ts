@@ -16,7 +16,7 @@ import { environment } from 'src/environments/environment';
 })
 export class ArcsTabletWaypointTaskComponent implements OnInit {
   @Input() floorPlanCode 
-  @Input() fixedWaypoint  
+  @Input() staticWaypoint  
   robotStates : RobotState[] = []  
   constructor(public dataSrv : DataService , public robotSrv : RobotService , public mqSrv : MqService , public uiSrv : UiService) { 
     this.resetSelectedAction()
@@ -37,8 +37,11 @@ export class ArcsTabletWaypointTaskComponent implements OnInit {
     { id: 'action', label: 'Action' }
   ]
   selectedTab = 'destination'
-  waypoints: DropListLocation[] = []
+  waypointsData: DropListLocation[] = []
   taskActions : DropListAction [] = []
+
+  dropdownActions = []
+  waypoints = []
 
   async ngOnInit() {
     const ticket = this.uiSrv.loadAsyncBegin()
@@ -50,11 +53,16 @@ export class ArcsTabletWaypointTaskComponent implements OnInit {
     })
     const DDL = await this.dataSrv.getDropLists(['actions' , 'locations'])
 
-    this.waypoints = DDL.data['locations'].filter((l:DropListLocation) => l.floorPlanCode == this.floorPlanCode) 
+    this.waypointsData = DDL.data['locations'].filter((l: DropListLocation) => l.floorPlanCode == this.floorPlanCode)
     this.taskActions = DDL.data['actions']
-    console.log(this.waypoints)
-    console.log(this.taskActions)
+    this.waypoints = this.waypointsData.filter(wp => wp != this.staticWaypoint)
     this.uiSrv.loadAsyncDone(ticket)
+  }
+
+  refreshDropdownActions(){
+    let point = this.waypointsData.filter(w=>w.pointCode == this.selectedWaypoint || w.pointCode == this.staticWaypoint)[0]
+    let robotType = this.robotStates.filter(r=>r.robotCode == this.selectedRobotCode)[0]?.robotType
+    this.dropdownActions = this.dataSrv.getDropListOptions('actions' ,  this.taskActions.filter(a=>(a.allowedPointTypes == null || a.allowedPointTypes.includes(point.pointType)) && (a.allowedRobotTypes == null || a.allowedRobotTypes.includes(robotType))))
   }
 
   refreshRobotStates(data: RobotStatusARCS[]) {
@@ -115,7 +123,7 @@ export class ArcsTabletWaypointTaskComponent implements OnInit {
     let taskItem = new TaskItem()
     taskItem.movement = {
       floorPlanCode : this.floorPlanCode,
-      pointCode : this.selectedWaypoint ? this.selectedWaypoint : this.fixedWaypoint  ,
+      pointCode : this.selectedWaypoint ? this.selectedWaypoint : this.staticWaypoint  ,
       navigationMode : AUTONOMY ,
       orientationIgnored : false,
       fineTuneIgnored : true
@@ -125,7 +133,9 @@ export class ArcsTabletWaypointTaskComponent implements OnInit {
       taskId: "", 
       robotCode :  this.selectedRobotCode,
       robotType :  this.robotStates.filter((r)=> r.robotCode == this.selectedRobotCode)[0]?.robotType ,
-      name : this.uiSrv.translate("Navigate to ") + this.selectedWaypoint,
+      name: this.selectedWaypoint || taskItem.actionList.length == 0 ? 
+              (this.uiSrv.translate("Navigate to ") + (this.selectedWaypoint ? this.selectedWaypoint : this.staticWaypoint)) :
+             `${this.uiSrv.translate(this.taskActions.filter(a => a.alias == taskItem.actionList[0]?.alias)[0]?.name)} ${this.uiSrv.translate('at')} ${this.staticWaypoint}`  ,
       taskItemList: [
         taskItem
       ]

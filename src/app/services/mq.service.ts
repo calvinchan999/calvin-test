@@ -18,6 +18,7 @@ import { RobotStateTypes, DropListMap, JTask, RobotStatusARCS, TaskItem, FloorPl
 import { DataService } from './data.service';
 import {RobotService, RobotState} from './robot.service'
 import {MapService} from './map.service'
+import { EditorUnderlineButtonDirective } from '@progress/kendo-angular-editor';
 
 const PUB_SUB_IGNORE_SFX_LIST = ['arcsPoses' , 'battery' , 'speed'];
 export type syncStatus = 'TRANSFERRED' | 'TRANSFERRING' | 'MALFUNCTION'
@@ -31,7 +32,8 @@ export type MQType = 'activeMap' | 'occupancyGridMap' | 'navigationMove' | 'char
                     'followMeAoa' | 'digitalOutput' | 'wifi' | 'cellular' | 'ieq' | 'rfid' | 'cabinet' | 'rotaryHead' | 'nirCamera' | 'nirCameraDetection' |
                     'thermalCamera' | 'thermalCameraDetection' | 'webcam' | 'heartbeatServer' | 'heartbeatClient' | 'arcsPoses' | 'taskActive' | 'lidarStatus' |
                     'led' | 'fan' | 'pauseResume' | 'taskComplete' | 'taskDepart' | 'taskArrive' | 'destinationReached' | 'taskProgress' | 'moving' | 'lidar'| 'taskPopups'|
-                    'arcsRobotStatusChange' | 'arcsSyncLog' | 'arcsRobotDestination' | 'arcsLift' | 'arcsTurnstile' | 'arcsAiDetectionAlert' | 'cpuTemp'
+                    'arcsRobotStatusChange' | 'arcsSyncLog' | 'arcsRobotDestination' | 'arcsLift' | 'arcsTurnstile' | 'arcsAiDetectionAlert' | 'cpuTemp' | 'restrictedZone' |
+                    'requestAssistance'
 
 @Injectable({
   providedIn: 'root'
@@ -434,13 +436,30 @@ export class MqService {
     },
     robotCurrentWaypoint : {
       topic: "rvautotech/fobo/waypoint/current",
-      robotState: { currentWaypoint: (d: { id: number, name: string, mapName: string, x: number, y: number, angle: number }) => { d.name } }
+      robotState: { currentWaypoint: (d: { robotId : string, id: number, name: string, mapName: string, x: number, y: number, angle: number }) => { d.name } }
+    },
+    restrictedZone :{
+      topic: "rvautotech/fobo/restrictedZoneAlert",
+      mapping : {
+        execute: (d : {robotCode : string , floorPlanCode : string , alertZoneCodes : string[]})=>{
+          let msg = this.uiSrv.translate('Trespassed to restricted zone(s) ') + d.alertZoneCodes?.join(', ')
+          this.onLoggedNotificationReceived(msg , d.robotCode , 'warning')
+        }
+      }
+    },
+    requestAssistance :{
+      topic: "rvautotech/fobo/assistance",
+      mapping : {
+        execute: async(d : {robotId : string , pose : {robotId : string , mapName : string , x : number , y : number , angle : number}})=>{     
+          this.uiSrv.showMsgDialog( `[${this.uiSrv.datePipe.transform(new Date() , 'yyyy-MM-dd HH:mm:ss')}] ${d.robotId}` + this.uiSrv.translate(' Requested for assistance.') , undefined , undefined , undefined , false)
+        }
+      }
     }
   }
 
   constructor( public mapSrv : MapService, public robotSrv : RobotService, public util : GeneralUtil , public httpSrv : RvHttpService, public dataSrv : DataService ,private uiSrv : UiService,  public signalRSrv : SignalRService, private router : Router , public pubsubSrv : AzurePubsubService , private datePipe : DatePipe , public configSrv : ConfigService , public ngZone : NgZone) { 
     this.backgroundSubscribeTypes =  this.util.arcsApp? 
-    ['exception' , 'estop' , 'tilt' , 'obstacleDetection' , 'arcsSyncLog' ]: 
+    ['exception' , 'estop' , 'tilt' , 'obstacleDetection' , 'arcsSyncLog' , 'requestAssistance']: 
     ['estop' , 'tilt' , 'obstacleDetection' , 'exception', 'taskActive' , 'taskComplete' , 'destinationReached', 'moving']
     if(this.util.$initDone.value == true){
       this.init()

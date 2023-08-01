@@ -17,12 +17,22 @@
     display: flex;
     justify-content: space-around;
     background: rgba(255,255,255,0.2);
+    
+    .selected{
+      color: darkturquoise;
+    }
 }
 
 :host .logo{
-
+  width: 50px;
+  background:  url(../../../../assets/theme-default/images/logo.png) center center no-repeat;
+  background-size: contain;
+  margin: 5px 5px 5px 10px;
 }
 
 :host .logout{
-
+  font-size: 35px;
+  padding: 0px 15px;
+  width: 35px;
 }
+

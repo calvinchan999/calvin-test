@@ -1,0 +1,15 @@
+<div class="header"> 
+    <span class="mdi mdi-cog">  {{'Settings' | label : uiSrv.langPack}}</span>
+    <span class="mdi mdi-account-circle">  {{authSrv.username}} </span>
+</div>
+
+
+<div class="item" (click)="selectLocation.emit()">
+    <span class="mdi mdi-floor-plan"> {{'Floor Plan' | label : uiSrv.langPack}}</span>
+    <span class="value"> {{floorPlanName}} </span>
+</div>
+
+<div class="item" (click)="selectLocation.emit()">
+    <span class="mdi mdi-map-marker-outline"> {{'Location' | label : uiSrv.langPack}}</span>
+    <span class="value"> {{staticWaypoint}} </span>
+</div>
