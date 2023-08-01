@@ -5,7 +5,7 @@
   "background_color": "#fafafa",
   "display": "ARCS",
   "scope": "./",
-  "start_url": "./waypoint",
+  "start_url": "/waypoint",
   "icons": [
     {
       "src": "assets/rvicon.png",
