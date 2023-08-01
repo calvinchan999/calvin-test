@@ -54,17 +54,19 @@ export class ArcsTabletWaypointHomeComponent implements OnInit {
     }
     this.route.queryParamMap.subscribe(async (v: any) => {
       const params : {floorplan : string , waypoint : string , selectedTab? : string} | null = v?.params
+      const fpCode = params?.floorplan?.trim().length > 0 ? params?.floorplan : this.dataSrv.getLocalStorage('pwaFloorPlanCode')
+      const wpCode = params?.waypoint?.trim().length > 0 ? params?.waypoint : this.dataSrv.getLocalStorage('pwaWaypointCode')
       let ticket = this.uiSrv.loadAsyncBegin()
       await this.initDropDown()
-      if (params?.floorplan && params?.waypoint) {
+      if (fpCode  && wpCode) {
         this.uiSrv.arcsTabletMode = 'WAYPOINT'
-        if ((<DropListFloorplan[]>this.dropdownData.floorplans).filter(f => f.floorPlanCode == params.floorplan).length == 0 ||
-          (<DropListLocation[]>this.dropdownData.locations).filter(l => l.floorPlanCode == params.floorplan && l.pointCode == params.waypoint).length == 0) {
+        if ((<DropListFloorplan[]>this.dropdownData.floorplans).filter(f => f.floorPlanCode == fpCode).length == 0 ||
+          (<DropListLocation[]>this.dropdownData.locations).filter(l => l.floorPlanCode == fpCode && l.pointCode == wpCode).length == 0) {
             this.refreshWaypointDropDown()
             this.showSelectWaypointDialog = true
         } else {
-          this.floorPlanCode = params.floorplan
-          this.waypoint = params.waypoint
+          this.floorPlanCode = fpCode
+          this.waypoint = wpCode
           this.frmGrp.controls['floorPlanCode'].setValue(this.floorPlanCode)
           this.frmGrp.controls['waypoint'].setValue(this.waypoint)
           this.refreshWaypointDropDown()
@@ -88,6 +90,8 @@ export class ArcsTabletWaypointHomeComponent implements OnInit {
   }
 
   updateLocation(){
+    this.dataSrv.setLocalStorage('pwaFloorPlanCode' ,  this.frmGrp.controls['floorPlanCode'].value)
+    this.dataSrv.setLocalStorage('pwaWaypointCode' ,  this.frmGrp.controls['waypoint'].value)
     this.router.navigate(['/waypoint'], { queryParams: { floorplan : this.frmGrp.controls['floorPlanCode'].value, waypoint: this.frmGrp.controls['waypoint'].value  , selectedTab : this.selectedTab} }).then(page => { window.location.reload(); });
   }
 

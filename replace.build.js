@@ -67,6 +67,13 @@ async function main() {
         throw err;
       }
     })
+    fs.copyFile(`src/manifest_${isArcs ? 'arcs' : 'sa'}.json`, 'src/manifest.json', async (err) => {
+      if (err) {
+        console.log('An error has occured during manifest.json replacement');
+        console.log(err)
+        throw err;
+      }
+    })
   } catch (error) {
     console.error('Error occurred:', error);
   }
