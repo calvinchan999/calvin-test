@@ -44,7 +44,7 @@ export class PixiViewport extends Viewport {
     mainContainer : PixiContainer = new PixiContainer()
     APP_BUILD : 'ARCS' | 'STANDALONE'
     readonly 
-    MOBILE_MODE
+    MOBILE_MODE : boolean
     _selectedGraphics : PixiGraphics = null
     _selectedGraphicsList : PixiGraphics[] = []
 

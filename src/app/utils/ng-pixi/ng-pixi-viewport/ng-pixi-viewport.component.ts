@@ -90,7 +90,7 @@ export class NgPixiViewportComponent implements OnInit, AfterViewInit, OnDestroy
                     worldWidth: 400,
                     interaction: this.app.renderer.plugins.interaction,
                     passiveWheel: true,
-                } , this.app , this._ngZone, this.ngRenderer, this.onDestroy ,  this.util.config.METER_TO_PIXEL_RATIO , this.util.standaloneApp , this.uiSrv.isTablet , this.dataModule);
+                } , this.app , this._ngZone, this.ngRenderer, this.onDestroy ,  this.util.config.METER_TO_PIXEL_RATIO , this.util.standaloneApp , this.uiSrv.detectMob() , this.dataModule);
                 this.viewport.onDestroy = this.onDestroy
             }else{
                 this.viewport = new PixiViewport({

@@ -22,7 +22,7 @@
     </div>
 
 
-<kendo-dialog *ngIf="showSelectWaypointDialog" [title]="'Select Current Location' | label : uiSrv.langPack" [minWidth]="250" [width]="450" (close) = "showSelectWaypointDialog = false">
+<kendo-dialog *ngIf="showSelectWaypointDialog" [title]="'Select Current Location' | label : uiSrv.langPack" [minWidth]="250" [width]="450" (close) = " selectedTab == 'settings' ? showSelectWaypointDialog = false : null">
     <form [formGroup]="frmGrp" class="content">
         <uc-dropdown lab = "Floor Plan" [frmGrp] = "frmGrp" frmCtrl = "floorPlanCode"  [options] = "dropdownOptions.floorplans" (valueChange)="refreshWaypointDropDown()"></uc-dropdown>
         <uc-dropdown lab = "Waypoint" [frmGrp] = "frmGrp" frmCtrl = "waypoint"  [options] = "dropdownOptions.locations"></uc-dropdown>

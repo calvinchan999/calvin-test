@@ -1344,6 +1344,7 @@ export class PixiBuildingPolygon extends PixiEditablePolygon implements IReColor
 export class PixiRobotMarker extends PixiMapGraphics {
   pixiAlertBadge
   _color
+  
   get color() {
     return this._color
   }
@@ -1390,6 +1391,17 @@ export class PixiRobotMarker extends PixiMapGraphics {
       // this.autoScaleEnabled = false
       // this.autoScaleEnabled = true
     })
+   
+    if (this.viewport.MOBILE_MODE) {
+      this.events.click.pipe(takeUntil(this.events.destroyed)).subscribe((evt) => {
+        if (this.toolTip.visible) {
+          this.toolTip.hide()
+        } else {
+          this.toolTip.show(evt)
+          setTimeout(() => this.toolTip.hide(), 2000)
+        }
+      })
+    }
   }
 
   public getAvatar(fillColor) {
