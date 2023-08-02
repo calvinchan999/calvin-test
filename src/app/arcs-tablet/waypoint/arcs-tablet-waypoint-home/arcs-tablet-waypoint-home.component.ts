@@ -58,22 +58,22 @@ export class ArcsTabletWaypointHomeComponent implements OnInit {
       const wpCode = params?.waypoint?.trim().length > 0 ? params?.waypoint : this.dataSrv.getLocalStorage('pwaWaypointCode')
       let ticket = this.uiSrv.loadAsyncBegin()
       await this.initDropDown()
-      if (fpCode  && wpCode) {
-        this.uiSrv.arcsTabletMode = 'WAYPOINT'
-        if ((<DropListFloorplan[]>this.dropdownData.floorplans).filter(f => f.floorPlanCode == fpCode).length == 0 ||
-          (<DropListLocation[]>this.dropdownData.locations).filter(l => l.floorPlanCode == fpCode && l.pointCode == wpCode).length == 0) {
-            this.refreshWaypointDropDown()
-            this.showSelectWaypointDialog = true
-        } else {
-          this.floorPlanCode = fpCode
-          this.waypoint = wpCode
-          this.frmGrp.controls['floorPlanCode'].setValue(this.floorPlanCode)
-          this.frmGrp.controls['waypoint'].setValue(this.waypoint)
-          this.refreshWaypointDropDown()
-          this.refreshFloorPlanName()
-          this.selectedTab = 'map'
-        }
+      console.log(fpCode)
+      this.uiSrv.arcsTabletMode = 'WAYPOINT'
+      if ((<DropListFloorplan[]>this.dropdownData.floorplans).filter(f => f.floorPlanCode == fpCode).length == 0 ||
+        (<DropListLocation[]>this.dropdownData.locations).filter(l => l.floorPlanCode == fpCode && l.pointCode == wpCode).length == 0) {
+        this.refreshWaypointDropDown()
+        this.showSelectWaypointDialog = true
+      } else {
+        this.floorPlanCode = fpCode
+        this.waypoint = wpCode
+        this.frmGrp.controls['floorPlanCode'].setValue(this.floorPlanCode)
+        this.frmGrp.controls['waypoint'].setValue(this.waypoint)
+        this.refreshWaypointDropDown()
+        this.refreshFloorPlanName()
+        this.selectedTab = 'map'
       }
+
       if(params.selectedTab){
         this.selectedTab = params.selectedTab
       }

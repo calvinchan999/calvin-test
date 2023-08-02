@@ -293,6 +293,9 @@ export class RobotProfileResp {
     missionId : string
     name: string
     floorPlanCode: string
+    robotCode : string
+    robotType : string
+    robotSubType : string
   }
 
   export class DropListLift{

@@ -3,7 +3,7 @@
     <ng-container *ngIf="robotStates.length > 0">
         <div class="robot-list">
             <div  *ngFor="let robotState of robotStates" 
-                  (click)="selectedRobotCode = robotState.robotCode ; refreshDropdownActions()"
+                  (click)="selectedRobotCode = robotState.robotCode ; refreshDropdown()"
                   [class]="'robot-item ' + ( selectedRobotCode == robotState.robotCode ? 'selected ':'') + ( 'status-' +  ( robotState.status?.value ? (ARCS_STATUS_MAP[robotState.status?.value ]| cssClassName) : ''))">
                 <div class="icon">
                     <span [class]="uiSrv.robotTypeIconMap[robotState.robotType] ? uiSrv.robotTypeIconMap[robotState.robotType] : 'mdi mdi-robot' "></span>
@@ -44,32 +44,45 @@
         </div>
 
         <div class="command-container" >
-            <div *ngIf="selectedRobotCode == null " class="select-robot-message" >
-                {{'(Please select a robot first)' | label : uiSrv.langPack}}
-            </div>
-            <ng-container *ngIf="selectedRobotCode != null ">
-                <kendo-buttongroup class="button-group" selection="single">
-                    <button *ngFor="let tab of tabs" kendoButton [toggleable]="true" [selected]="selectedTab == tab.id" (click)="selectedTab = tab.id  ; ">
-                        {{ tab.label | label : uiSrv.langPack }}
-                    </button>
-                </kendo-buttongroup>
-        
+            <ng-container *ngIf="selectedRobotCode == null ">
+                <div class="card-header-wrapper">
+                    <div class="card-buttons">
+                        <kendo-buttongroup class="button-group" selection="single">
+                            <button *ngFor="let tab of [tabs[0]]" kendoButton [toggleable]="true" [selected]="selectedTab == tab.id" (click)="selectedTab = tab.id  ; ">
+                                {{ tab.label | label : uiSrv.langPack }}
+                            </button>
+                        </kendo-buttongroup>
+                    </div>
+                </div>
+            </ng-container>
 
-                <div class="top waypoint-item" (click) = "resetSelectedAction(); 
+            <ng-container *ngIf="selectedRobotCode != null ">
+                <div class="card-header-wrapper">
+                    <div class="card-buttons">
+                        <kendo-buttongroup class="button-group" selection="single">
+                            <button *ngFor="let tab of tabs" kendoButton [toggleable]="true" [selected]="selectedTab == tab.id" (click)="selectedTab = tab.id  ; ">
+                                {{ tab.label | label : uiSrv.langPack }}
+                            </button>
+                        </kendo-buttongroup>
+                    </div>
+                </div>
+            </ng-container>   
+
+            <div *ngIf="selectedTab == 'destination' || selectedTab == 'action'" class="top waypoint-item" (click) = "resetSelectedAction(); 
                                                              selectedWaypoint = selectedTab == 'action' ? null : staticWaypoint ; 
                                                              selectedAction = selectedTab == 'action' ? null : selectedAction;
                                                              showCreateTaskDialog = true;">
                     <span >{{ 'Send it here' | label : uiSrv.langPack }} </span>
 
                     <span> (<span class="mdi mdi-map-marker-outline">{{staticWaypoint}}</span>)</span>
-                </div>
+            </div>
 
-                <div class="break-line"></div>
+            <div class="break-line"></div>
                 <!-- <div *ngIf="selectedTab == 'destination'" class="waypoint-item"  (click)="resetSelectedAction(); selectedWaypoint = staticWaypoint ; showCreateTaskDialog = true" >
                     <span class="mdi mdi-map-marker">{{staticWaypoint}}</span>
                 </div> -->
 
-                <div class="grid">
+            <div class="grid">
                     <div class="command-list">
                         <ng-container *ngIf="selectedTab == 'destination'">                         
                             <div class="waypoint-item" *ngFor="let waypoint of waypoints" (click)="resetSelectedAction(); selectedWaypoint = waypoint.pointCode ; showCreateTaskDialog = true" >
@@ -77,13 +90,18 @@
                             </div>
                         </ng-container>
                         <ng-container *ngIf="selectedTab == 'action'">          
-                            <div class="action-item" *ngFor="let action of dropdownActions">
-                                <span (click) = "actionAliasChanged(action.value) ; showCreateTaskDialog = true;">{{action.text}}</span>
+                            <div class="action-item" *ngFor="let action of dropdownActions" (click) = "actionAliasChanged(action.value) ; showCreateTaskDialog = true;">
+                                <span>{{action.text}}</span>
+                            </div>
+                        </ng-container>
+                        <ng-container *ngIf="selectedTab == 'template'">          
+                            <div class="template-item" *ngFor="let tpl of dropdownTemplates" (click) = "createTaskFromTemplate(tpl.missionId)">
+                                <span  [class]="(selectedRobotCode == null && uiSrv.robotTypeIconMap[tpl.robotType] ? uiSrv.robotTypeIconMap[tpl.robotType] : 'mdi mdi-clipboard-text-outline' ) + ' icon'"></span>
+                                <span >{{tpl.missionId}}</span>
                             </div>
                         </ng-container>
                     </div>
-                </div>   
-            </ng-container>   
+            </div>   
         </div>
     </ng-container>
 </div>

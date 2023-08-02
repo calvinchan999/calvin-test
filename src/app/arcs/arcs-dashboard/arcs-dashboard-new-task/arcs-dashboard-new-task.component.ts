@@ -117,15 +117,8 @@ export class ArcsDashboardNewTaskComponent implements OnInit , OnDestroy {
       }]
     }
 
-    let ticket = this.uiSrv.loadAsyncBegin()
-    let resp = await this.dataSrv.httpSrv.post('api/task/v1', payload)
-    this.uiSrv.loadAsyncDone(ticket)
-    resp = resp ? resp : { result: false }
-    if (resp?.result) {
-      this.uiSrv.showNotificationBar('Sent Successful' , 'success')
+    if(this.dataSrv.fmsCreateTask(payload)){
       this.close.emit(true)
-    } else {
-      this.uiSrv.showNotificationBar('Sent Failed ' + resp?.msg ? ` - ${resp?.msg}`: '' , 'error')
     }
   }
 

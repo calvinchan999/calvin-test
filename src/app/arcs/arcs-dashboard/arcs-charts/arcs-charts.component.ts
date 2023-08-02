@@ -818,6 +818,9 @@ export class ArcsChartsComponent implements OnInit, OnDestroy {
     // if( !this.detectionTestData){
     //   return
     // }
+    if(!this.pixiRef){
+      return
+    }
 
     if(this.pixiRef && this.pixiRef.module.data.activeFloorPlanCode != this.detection.floorplan.selected){
       await this.pixiRef.module.data.loadFloorPlan(this.detection.floorplan.selected)

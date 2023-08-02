@@ -379,6 +379,19 @@ export class DataService {
     return target
   }
 
+  async fmsCreateTask(payload){
+    let ticket = this.uiSrv.loadAsyncBegin()
+    let resp = await this.httpSrv.post('api/task/v1', payload)
+    this.uiSrv.loadAsyncDone(ticket)
+    resp = resp ? resp : { result: false }
+    if (resp?.result) {
+      this.uiSrv.showNotificationBar('Sent Successful' , 'success')
+    } else {
+      this.uiSrv.showNotificationBar('Sent Failed ' + resp?.msg ? ` - ${resp?.msg}`: '' , 'error')
+    }
+    return resp?.result
+  }
+
 
 
   // // * * * v RV STANDALONE ACTIONS v * * * 

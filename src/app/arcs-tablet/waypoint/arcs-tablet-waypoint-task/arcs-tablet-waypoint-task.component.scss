@@ -124,10 +124,13 @@
         grid-gap: 25px;
     }
 
-    .button-group {
-        width: 100%;
+    .card-header-wrapper{
+        display: flex;
         justify-content: center;
-        padding: 15px;
+        width: 100%;
+        .button-group {
+            margin: 15px;
+        }
     }
 
     .waypoint-item {
@@ -139,13 +142,16 @@
         border-radius: 5px;
     }
 
-    .action-item {
+    .action-item , .template-item {
         background-color: rgba(255, 255, 255, 0.3);
         color: darkturquoise;
         text-align: center;
         padding: 30px 0;
         font-size: 18px;
         border-radius: 5px;
+        .icon{
+            padding: 0px 10px;
+        }
     }
     .top{
         margin: 5px 30px 15px 30px;
