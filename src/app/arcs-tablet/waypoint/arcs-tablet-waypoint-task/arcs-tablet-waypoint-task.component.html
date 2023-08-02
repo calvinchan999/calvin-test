@@ -2,10 +2,13 @@
     <div class="no-robot-message" *ngIf="robotStates.length == 0"> {{'(No robots on current floor plan)' | label : uiSrv.langPack}} </div>
     <ng-container *ngIf="robotStates.length > 0">
         <div class="robot-list">
-            <div  *ngFor="let robotState of robotStates" 
-                  (click)="selectedRobotCode = robotState.robotCode ; refreshDropdown()"
-                  [class]="'robot-item ' + ( selectedRobotCode == robotState.robotCode ? 'selected ':'') + ( 'status-' +  ( robotState.status?.value ? (ARCS_STATUS_MAP[robotState.status?.value ]| cssClassName) : ''))">
-                <div class="icon">
+            <button  *ngFor="let robotState of robotStates" 
+                  (click)="selectedRobotCode = robotState.robotCode; refreshDropdown()"
+                  [class]="'robot-item ' + ( selectedRobotCode == robotState.robotCode ? 'selected ':'') + ( 'status-' +  ( robotState.status?.value ? (ARCS_STATUS_MAP[robotState.status?.value ]| cssClassName) : ''))"
+                  [disabled] = "robotState.status?.value == 'UNKNOWN'"
+                  >
+                  
+                  <div class="header icon">
                     <span [class]="uiSrv.robotTypeIconMap[robotState.robotType] ? uiSrv.robotTypeIconMap[robotState.robotType] : 'mdi mdi-robot' "></span>
                 </div>
                 <div class="robot-status">
@@ -24,6 +27,14 @@
                         </span>
                     </div>
 
+                    <div class="task" >
+                        <ng-container *ngIf="robotState.pendingTaskCount.value != null">
+                            <span class="icon mdi mdi-clipboard-outline"></span>
+                            <span *ngIf="robotState.pendingTaskCount.value == 0">{{'No Pending Task' | label : uiSrv.langPack}}</span>
+                            <span *ngIf="robotState.pendingTaskCount.value > 0">{{robotState.pendingTaskCount.value}} {{'Pending Task' | label : uiSrv.langPack}}</span>
+                        </ng-container>
+                    </div>  
+
                     <div class="waypoint">
                         <span  *ngIf="!robotState.destination.value && robotState.currentWaypoint.value" class="waypoint mdi mdi-map-marker">{{robotState.currentWaypoint.value}}</span>
                         <ng-container  *ngIf="robotState.status?.value != 'UNKNOWN' && robotState.status?.value != 'CHARGING'  && robotState.destination?.value && !robotState.currentWaypoint.value"  class="waypoint">         
@@ -38,9 +49,10 @@
                                 <span>{{robotState.destination.value}}</span>
                             </span>
                         </ng-container>
-                    </div>                   
+                    </div>        
+ 
                 </div>                
-            </div>
+            </button>
         </div>
 
         <div class="command-container" >

@@ -4,11 +4,21 @@
     width: 100%;  
 }
 
-:host .robot-list{
+:host ::ng-deep  .robot-list{
     width: 30%;
     background: rgba(80,80,80,0.8);    
     height: 100%;
     overflow: auto;
+
+    button{
+        background: transparent;
+        color: white;
+        text-align: initial;
+        padding: 0px;
+        box-sizing: initial;
+        border-width: 0px;
+        font-family: Roboto, Microsoft JhengHei, STXihei, "Helvetica Neue", Arial, sans-serif;
+    }
 }
 
 :host .command-container{
@@ -35,6 +45,13 @@
 
 :host ::ng-deep .robot-status i.status.offline{
     color: #aaa;
+}
+
+:host ::ng-deep .robot-item.status-offline {
+    color: rgba(255,255,255,0.5);
+    .mdi{
+        color: rgba(255,255,255,0.5)!important;
+    }
 }
 
 :host ::ng-deep .robot-status i.mdi-battery , :host ::ng-deep .robot-status i.mdi-battery-90,  :host ::ng-deep .robot-status i.mdi-battery-80 {
@@ -65,13 +82,20 @@
     border-right: 5px solid Darkturquoise
 }
 
-
-
 :host .robot-item {
+
+    
     width: calc(100% - 5px);
     display: flex;
     border-bottom: solid rgba(255 , 255 ,255 ,0.6) 1px;
-    .icon{
+    
+    .disabled-overlay{
+        height: 100%;
+        width: 100%;
+        background: rgba(255,255,255,0.2);
+        z-index: 10;
+    }
+    .header.icon{
         padding:15px ;
         font-size: 40px;
     }
@@ -92,6 +116,14 @@
             display: flex;
             justify-content: space-between;
             padding: 5px 25px 5px 5px;
+        }
+    }
+
+    .task{
+        min-height: 13px;
+        padding: 5px 0px;
+        .icon{
+            padding: 5px;
         }
     }
 }

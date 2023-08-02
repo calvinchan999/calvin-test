@@ -40,7 +40,8 @@
               "src/favicon.ico",
               "src/assets",
               "src/web.config",
-              "src/staticwebapp.config.json",
+              "src/staticwebapp.config.json",              
+              "src/manifest.json",
               {
                 "glob": "**/*",
                 "input": "node_modules/@progress/kendo-theme-bootstrap/dist",
@@ -55,8 +56,7 @@
                 "glob": "**/*",
                 "input": "node_modules/@progress/kendo-theme-material/dist",
                 "output": "/assets/kendo-theme-material/dist"
-              },
-              "src/manifest.json"
+              }
             ],
             "styles": [              
             ],
