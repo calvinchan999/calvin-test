@@ -77,10 +77,10 @@
       </div>
   
       <div class="buttons-container t2">
-        <button *ngIf="util.arcsApp && !showRobot" kendoButton class="dark-mode-switch" [matTooltip]="'Light / Dark Map' | label : uiSrv.langPack"  
+        <!-- <button *ngIf="util.arcsApp && !showRobot" kendoButton class="dark-mode-switch" [matTooltip]="'Light / Dark Map' | label : uiSrv.langPack"  
                   (click)="module.ui.toggleDarkMode(!module.ui.toggle.darkMode)"  [ngClass]="{'btn-active': module.ui.toggle.darkMode}">
                <span [class]="'mdi mdi-theme-light-dark'"></span>
-        </button>  
+        </button>   -->
 
         <button *ngIf="!hideButton.all && ( util.arcsApp || showRosToggle)" kendoButton class="select-drag" [matTooltip]="'Drag Select'| label : uiSrv.langPack" matTooltipPosition="right" (click)="viewport.multiSelectEnabled = !viewport.multiSelectEnabled" [ngClass]="{'btn-active': viewport._multiSelectEnabled}" >
           <span class="mdi mdi-select-drag"></span>

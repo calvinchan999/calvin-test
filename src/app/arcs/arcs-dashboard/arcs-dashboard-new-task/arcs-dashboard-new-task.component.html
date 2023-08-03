@@ -77,8 +77,10 @@
 <div class="action-item-dialog" *ngIf="selectedAction" [style.right]="((taskContainer.nativeElement.offsetWidth ? taskContainer.nativeElement.offsetWidth : 260) + 10 )+ 'px'">
     <div class="header">
         <span class="index font-13 selected" >{{selectedAction.taskItemIndex + 1}}</span>  
-        <span class="mdi mdi-map-marker font-20"></span>
-        <span class="action-header-name">{{selectedAction.taskItem.movement.pointCode }}</span>
+        <span>            
+            <span class="mdi mdi-map-marker font-20"></span>
+            <span class="action-header-name">{{selectedAction.taskItem.movement.pointCode}}</span>
+        </span>
         <a class="close mdi mdi-close-circle" (click) = "selectedAction = null"></a>
     </div>
     <div class="action-content">

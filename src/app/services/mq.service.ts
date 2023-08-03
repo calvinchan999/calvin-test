@@ -442,7 +442,7 @@ export class MqService {
       topic: "rvautotech/fobo/restrictedZoneAlert",
       mapping : {
         execute: (d : {robotCode : string , floorPlanCode : string , alertZoneCodes : string[]})=>{
-          let msg = this.uiSrv.translate('Trespassed to restricted zone(s) ') + d.alertZoneCodes?.join(', ')
+          let msg = this.uiSrv.translate('Trespassed on restricted zone(s) ') + d.alertZoneCodes?.join(', ')
           this.onLoggedNotificationReceived(msg , d.robotCode , 'warning')
         }
       }

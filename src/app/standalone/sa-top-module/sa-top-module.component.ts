@@ -45,52 +45,7 @@ export class SaTopModuleComponent implements OnInit , OnDestroy {
   ngModelObj = {}
   $onDestroy = new Subject()
   airQualitySubj = new BehaviorSubject<any>(null)
-  topModule = {
-    patrol: [
-      [{
-        id: 'air_1',
-        row :  1,
-        rowSpan: 5 ,
-        colSpan:  3,
-        cells: [
-          {
-            cells: [
-              { id: 'air_quality' },
-            ]
-          },
-          {
-            cells: [
-              { id: 'temperature' },
-              { id: 'humidity' },
-              // { id: 'pressure'},
-              { id: 'tvoc_pid'},
-              { id: 'co2'},
-              { id: 'co' },
-              { id: 'no2' },
-            ]
-          }
-        ]
-      }],
-      [{
-        id: 'air_2',
-        row:  1,
-        rowSpan:  5,
-        col:  4,
-        colSpan: 1 ,
-        cells: [
-          // { id: 'formaldehyde' },
-          // { id: 'co' },
-          { id: 'pm2_5' },
-          { id: 'pm1' },
-          { id: 'pm10' },
-          // { id: 'no2' },
-          // { id: 'o3' },
-        ]
-      }]
-    ],
-    delivery:[],
-    tray:[]
-  }
+  topModule = {patrol : [], delivery: [] , tray:[] }
   dashboardLayout = []
   loadingTicket
   robotType
@@ -108,7 +63,56 @@ export class SaTopModuleComponent implements OnInit , OnDestroy {
   // }
 
   constructor( public robotSrv : RobotService , public util : GeneralUtil, public uiSrv : UiService ,  public authSrv : AuthService, public mqSrv : MqService,
-               public router: Router , public dataSrv :  DataService ,  private configSrv : GeneralUtil) { }
+               public router: Router , public dataSrv :  DataService ,  private configSrv : GeneralUtil) { 
+
+    this.topModule = {
+      patrol: [
+        [{
+          id: 'air_1',
+          row: 1,
+          rowSpan: 5,
+          colSpan: 3,
+          cells: [
+            {
+              cells: [
+                { id: 'air_quality' },
+              ]
+            },
+            {
+              cells: [
+                { id: 'temperature' },
+                { id: 'humidity' },
+                // { id: 'pressure'},
+                { id: 'tvoc_pid' },
+                { id: 'co2' },
+                { id: 'co' },
+                { id: 'no2' },
+              ]
+            }
+          ]
+        }],
+        [{
+          id: 'air_2',
+          row: 1,
+          rowSpan: 5,
+          col: 4,
+          colSpan: 1,
+          cells: [
+            // { id: 'formaldehyde' },
+            // { id: 'co' },
+            { id: 'pm2_5' },
+            { id: 'pm1' },
+            { id: 'pm10' },
+            { id: 'light' }
+            // { id: 'no2' },
+            // { id: 'o3' },
+          ]
+        }]
+      ],
+      delivery: [],
+      tray: []
+    }
+  }
                
   async ngOnInit(){
 

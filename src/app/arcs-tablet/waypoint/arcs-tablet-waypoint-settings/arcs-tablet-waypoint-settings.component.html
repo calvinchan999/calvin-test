@@ -13,3 +13,16 @@
     <span class="mdi mdi-map-marker-outline"> {{'Location' | label : uiSrv.langPack}}</span>
     <span class="value"> {{staticWaypoint}} </span>
 </div>
+
+<div class="item"  (click) = "showBookmarkTemplateDialog = true">
+    <span class="mdi mdi-star-outline bookmark"> {{'Bookmark Task Templates' | label : uiSrv.langPack}}</span>
+    <span class="value"> {{templatesDesc?.length > 0 ? templatesDesc : ' - ' }} </span>
+</div>
+
+<kendo-dialog *ngIf="showBookmarkTemplateDialog" [title]="'Bookmark task templates' | label : uiSrv.langPack" [minWidth]="250" [width]="450" (close) = "showBookmarkTemplateDialog = false ">
+    <uc-multiselect lab="Task Templates" [options] = "taskTemplates"  [(value)] = "bookMarkTemplateCodes"  [checkboxes]="true"></uc-multiselect>   
+    <div class="button-container">
+        <button kendoButton  (click) = "updateBookmarkedTaskTemplates() ; showBookmarkTemplateDialog = false"> {{'OK' | label : uiSrv.langPack}}</button>
+    </div>
+
+</kendo-dialog>

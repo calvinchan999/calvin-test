@@ -47,10 +47,13 @@ export class ArcsTabletWaypointTaskComponent implements OnInit {
   templates : DropListMission[] = []
 
   dropdownActions = []
-  dropdownTemplates = []
+  dropdownTemplates : DropListMission[] = []
   waypoints = []
+  bookMarkTemplateCodesAll = []
+  bookMarkTemplateCodes = []
 
   async ngOnInit() {
+    this.bookMarkTemplateCodesAll = this.dataSrv.getLocalStorage('pwaBookmarkedMissionId') ? JSON.parse(this.dataSrv.getLocalStorage('pwaBookmarkedMissionId')) : []
     const ticket = this.uiSrv.loadAsyncBegin()
     let data : RobotStatusARCS [] = await this.dataSrv.httpSrv.fmsRequest('GET', 'robot/v1/info?floorPlanCode=' + this.floorPlanCode, undefined, false);   
     this.refreshRobotStates(data);
@@ -91,6 +94,7 @@ export class ArcsTabletWaypointTaskComponent implements OnInit {
                                                           (t.robotType == null || t.robotType == this.selectedRobotState?.robotType)
                                                         )
                                                     )
+    this.bookMarkTemplateCodes = this.bookMarkTemplateCodesAll.filter(c => this.dropdownTemplates.map(m=>m.missionId).includes(c))
   }
 
   refreshRobotStates(data: RobotStatusARCS[]) {

@@ -181,6 +181,9 @@
 :host .action-item-dialog {
     .header{
         color: darkturquoise;
+        .close{
+            margin-left: 10px;
+        }
     }
     position: absolute;
     top: 70px;

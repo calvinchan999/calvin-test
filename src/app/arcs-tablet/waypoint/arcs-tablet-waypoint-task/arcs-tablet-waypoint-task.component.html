@@ -95,25 +95,45 @@
                 </div> -->
 
             <div class="grid">
-                    <div class="command-list">
+                    <div class="command-list">                        
                         <ng-container *ngIf="selectedTab == 'destination'">                         
                             <div class="waypoint-item" *ngFor="let waypoint of waypoints" (click)="resetSelectedAction(); selectedWaypoint = waypoint.pointCode ; showCreateTaskDialog = true" >
                                 <span class="mdi mdi-map-marker">{{waypoint.pointCode}}</span>
                             </div>
                         </ng-container>
+
                         <ng-container *ngIf="selectedTab == 'action'">          
                             <div class="action-item" *ngFor="let action of dropdownActions" (click) = "actionAliasChanged(action.value) ; showCreateTaskDialog = true;">
                                 <span>{{action.text}}</span>
                             </div>
                         </ng-container>
+
                         <ng-container *ngIf="selectedTab == 'template'">          
-                            <div class="template-item" *ngFor="let tpl of dropdownTemplates" (click) = "createTaskFromTemplate(tpl.missionId)">
-                                <span  [class]="(selectedRobotCode == null && uiSrv.robotTypeIconMap[tpl.robotType] ? uiSrv.robotTypeIconMap[tpl.robotType] : 'mdi mdi-clipboard-text-outline' ) + ' icon'"></span>
-                                <span >{{tpl.missionId}}</span>
-                            </div>
+                            <ng-container  *ngFor="let tpl of dropdownTemplates">
+                                <div *ngIf="bookMarkTemplateCodes.includes(tpl.missionId) || bookMarkTemplateCodes.length == 0" class="template-item" (click) = "createTaskFromTemplate(tpl.missionId)">
+                                    <span  [class]="(selectedRobotCode == null && uiSrv.robotTypeIconMap[tpl.robotType] ? uiSrv.robotTypeIconMap[tpl.robotType] : 'mdi mdi-clipboard-text-outline' ) + ' icon'"></span>
+                                    <span >{{tpl.missionId}}</span>
+                                </div>
+                            </ng-container>                          
                         </ng-container>
                     </div>
             </div>   
+
+            <ng-container *ngIf="selectedTab == 'template' && bookMarkTemplateCodes.length > 0">    
+                <kendo-expansionpanel class="more-templates-panel"  [expanded]="false">
+                    <ng-template kendoExpansionPanelTitleDirective>
+                       <span class="expansion-header"> {{'More Templates ...' |  label : uiSrv.langPack }} </span>
+                    </ng-template>
+                    <div class="command-list bottom">   
+                        <ng-container  *ngFor="let tpl of dropdownTemplates">
+                            <div *ngIf="!bookMarkTemplateCodes.includes(tpl.missionId)" class="template-item"  (click) = "createTaskFromTemplate(tpl.missionId)">
+                                <span  [class]="(selectedRobotCode == null && uiSrv.robotTypeIconMap[tpl.robotType] ? uiSrv.robotTypeIconMap[tpl.robotType] : 'mdi mdi-clipboard-text-outline' ) + ' icon'"></span>
+                                <span >{{tpl.missionId}}</span>
+                            </div>
+                        </ng-container>    
+                    </div>
+                </kendo-expansionpanel>
+           </ng-container>
         </div>
     </ng-container>
 </div>

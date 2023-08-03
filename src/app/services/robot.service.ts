@@ -139,6 +139,7 @@ export class RobotState {
     cpuTemp = new BehaviorSubject<number|null> (null)
     currentWaypoint = new BehaviorSubject<string|null> (null)
     pendingTaskCount =  new BehaviorSubject<number|null> (null)
+    
     // topModules
 
     get ieq() {
