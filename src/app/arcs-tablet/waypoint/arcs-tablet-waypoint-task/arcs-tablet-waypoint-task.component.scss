@@ -193,12 +193,18 @@
 
 }
 
-:host .expansion-header{
-    color: rgba(255,255,255,0.85);
+
+:host .more-templates-panel{
+    .expansion-header{
+        color: rgba(255,255,255,0.85);
+    }
+    .k-expander-content{
+        height: 50vh;
+    }
 }
 
 :host .command-list.bottom{
-    max-height: 50vh;
+    max-height: calc(100% - 15px);
     overflow: auto;
 }
 

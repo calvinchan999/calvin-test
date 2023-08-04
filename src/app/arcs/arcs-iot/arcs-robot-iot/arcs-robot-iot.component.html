@@ -1,4 +1,4 @@
-<div [class] = "'iot ' + (threejsElRef?.parent?.btmMapPanel?.robotState?.robotCode == robotId? 'selected' : '') " >
+<div *ngIf="mode == 'STANDARD'" [class] = "'iot label-3js '  + (threejsElRef?.parent?.btmMapPanel?.robotState?.robotCode == robotId? 'selected' : '') " >
     <span  class = "iot-id">
        <i class="mdi mdi-robot"></i>
        <span> {{robotId}} </span>
@@ -52,4 +52,20 @@
             </span>
         </div>
     </div>
+</div>
+
+<div *ngIf="mode == 'MINI'" [class] = "'iot teardrop ' + ' mini-robot'" >
+    <span [class]="uiSrv.robotTypeIconMap[robotType] ? uiSrv.robotTypeIconMap[robotType] : 'mdi mdi-robot-outline'" 
+          [matTooltip] = "robotId" matTooltipPosition = "right"> 
+    </span>
+</div>
+
+<div *ngIf="mode == 'ALERT'" [class] = "'iot teardrop red-glow ' + ' mini-robot'" >
+    <span [class]="uiSrv.robotTypeIconMap[robotType] ? uiSrv.robotTypeIconMap[robotType] : 'mdi mdi-robot-outline'" 
+          [matTooltip] = "robotId + ' : ' + ((robotState.estop?.value ? uiSrv.commonAlertMessages.estopped : (
+                                                 robotState.tiltActive?.value ?  uiSrv.commonAlertMessages.tiltDetected : uiSrv.commonAlertMessages.obstacleDetected
+                                                )
+                                             ) | label : uiSrv.langPack)" 
+          matTooltipPosition = "right"> 
+    </span>
 </div>

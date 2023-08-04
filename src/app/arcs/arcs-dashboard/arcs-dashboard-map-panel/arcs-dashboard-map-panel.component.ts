@@ -112,6 +112,9 @@ export class ArcsDashboardMapPanelComponent implements OnInit , OnDestroy {
         this.selectedObj.toolTipSettings.cssClass = 'label-3js'
         this.selectedObj.toolTip.element.className = 'label-3js'
     } 
+    if(this.selectedObj instanceof RobotObject3D){
+      this.selectedObj.refreshMiniLabel()
+    }
     this.waypointState  = null
     this.robotState = null
     this.liftCode = null
@@ -119,7 +122,7 @@ export class ArcsDashboardMapPanelComponent implements OnInit , OnDestroy {
 
   setSelectedObjStyle(){
     let obj = this.selectedObj
-    this.originalToolTipsOn = (obj instanceof WaypointMarkerObject3D || obj instanceof RobotObject3D || obj instanceof ElevatorObject3D) && obj.toolTipAlwaysOn 
+    this.originalToolTipsOn = (obj instanceof WaypointMarkerObject3D || (obj instanceof RobotObject3D && obj.robotIotCompRef?.instance?.mode != 'MINI' ) || obj instanceof ElevatorObject3D) && obj.toolTipAlwaysOn 
     if(obj instanceof Object3DCommon){
       obj.toolTipSettings.cssClass = 'label-3js selected'
       obj.toolTipAlwaysOn = true 

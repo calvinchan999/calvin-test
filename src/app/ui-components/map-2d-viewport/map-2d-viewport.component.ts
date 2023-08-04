@@ -1002,7 +1002,7 @@ export class Map2DViewportComponent implements OnInit , AfterViewInit , OnDestro
       }
 
       ret.next(this.loadGraphics(dataset, readonly, locationOnly))
-      if(readonly && locationOnly){
+      if(this.showRobot){
         this.viewport.settings.mapTransformedScale = Math.max.apply(null , dataset.mapList.map(m=>m.transformedScale))
       }
     })
@@ -2894,7 +2894,7 @@ export class UiModule {
     this.viewport.allPixiWayPoints.forEach(p => {
       p.visible = show
       p.pixiText.visible = this.toggle.showWaypointName
-      p.txtBg.visible = this.toggle.showWaypointName
+      // p.txtBg.visible = this.toggle.showWaypointName
     })
   }
 

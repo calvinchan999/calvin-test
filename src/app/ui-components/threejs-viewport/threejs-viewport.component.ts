@@ -11,7 +11,7 @@ import { AmbientLight, DirectionalLight, DoubleSide, Group, Mesh, Object3D, Shap
 import { GeneralUtil } from 'src/app/utils/general/general.util';
 import { DataService } from 'src/app/services/data.service';
 import { debounce, debounceTime, filter, retry, share, skip, switchMap, take, takeUntil , map } from 'rxjs/operators';
-import { radRatio } from '../map-2d-viewport/map-2d-viewport.component';
+import { Robot, radRatio } from '../map-2d-viewport/map-2d-viewport.component';
 import { BehaviorSubject, interval, Observable, Subject, Subscription } from 'rxjs';
 import { CSS2DRenderer, CSS2DObject } from 'three/examples/jsm/renderers/CSS2DRenderer'; //three-css2drender
 import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls';
@@ -105,6 +105,9 @@ export class ThreejsViewportComponent implements OnInit , OnDestroy{
   transformObjName : string
 
   pointCloud //For EMSD tender screen cap
+  events = {
+    zoomed : new EventEmitter<any>()
+  }
 
   @Input() uiToggles: {
     showWall?: boolean,
@@ -694,6 +697,9 @@ export class ThreejsViewportComponent implements OnInit , OnDestroy{
     this.animate()
     await this.getRobotList()  
     this.orbitCtrl = new OrbitControls( this.camera, this.labelRenderer.domElement );
+    this.orbitCtrl.addEventListener( 'change', ()=>{
+      this.events.zoomed.emit(this.orbitCtrl.target.distanceTo(  this.orbitCtrl.object.position )) 
+    } );
     this.transformCtrl = new TransformControls(this.camera, this.labelRenderer.domElement)
     this.transformCtrl.addEventListener("dragging-changed", (event) => {
       this.orbitCtrl.enabled = !event.value;
@@ -1147,6 +1153,20 @@ class ZoneMesh extends Mesh{
   }
 }
 
+const DEFAULT_TOOL_TIP_SETTING =  {
+  customEl: null,
+  staticComp : false,
+  position: new Vector3(0, 0, 0),
+  cssClass  : 'label-3js',
+  style: {
+    padding: '8px',
+    borderRadius: '5px',
+    lineHeight: '0px',
+    fontSize: '10px',
+    whiteSpace: 'pre',
+    background : 'rgba(0 , 0 , 0 , 0.45)'
+  }
+}
 export class Object3DCommon extends Object3D implements IDestroy{
   $destroyed = new Subject()
   scene : THREE.Scene = new THREE.Scene()
@@ -1262,6 +1282,9 @@ export class Object3DCommon extends Object3D implements IDestroy{
     if(position){
       this.toolTip.position.set(position.x , position.y , position.z)
     }
+    if(this instanceof RobotObject3D && this.robotIotCompRef?.instance){
+      this.robotIotCompRef.instance.mode = 'STANDARD'
+    }
     this.add(this.toolTip)
   }
 
@@ -1369,6 +1392,9 @@ export class Object3DCommon extends Object3D implements IDestroy{
       this.master.uiToggles.showIot = false
     } else if (this.master) {
       this.master.uiToggles.showIot = true
+    }
+    if(this instanceof RobotObject3D && this.robotIotCompRef?.instance){
+      this.refreshMiniLabel()
     }
   }
 
@@ -1511,7 +1537,7 @@ export class RobotObject3D extends Object3DCommon implements IDestroy{
   robotIotCompRef : ComponentRef<ArcsRobotIotComponent>
   aabb = new THREE.Box3() //Axis Align Bounding Box
   loader : GLTFLoader
-  alertIcon : Group
+  // alertIcon : Group
   robotCode : string
   robotBase : string
   robotType : string
@@ -1688,25 +1714,25 @@ export class RobotObject3D extends Object3DCommon implements IDestroy{
   }
   set alert(v){
     this._alert = v
-    if(this.alertIcon){
-      this.alertIcon.visible = v
-    }
+    this.toolTipAlwaysOn = v ? true : this.toolTipAlwaysOn
+    this.robotIotCompRef.instance.mode = v ?  'ALERT' :  this.robotIotCompRef.instance.mode
   }
   get alert(){
     return this._alert
   }
   _alert = false
   readonly size = 4
-  readonly alertIconSetting = {
-    size : 3 ,
-    positionZ : 5
-  }
+
   // spotLight : THREE.SpotLight
   // mesh : Mesh  
   // readonly glbPath = ASSESTS_ROOT + "/robot.glb" // Raptor Heavy Planetary Crawler by Aaron Clifford [CC-BY] via Poly Pizza
-  readonly alertIconPath = ASSETS_ROOT + '/exclamation.glb' //This work is based on "Exclamation Mark 3D icon" (https://sketchfab.com/3d-models/exclamation-mark-3d-icon-35fcb8285f134554989f822ab90ee974) by summer57 (https://sketchfab.com/summer5717) licensed under CC-BY-4.0 (http://creativecommons.org/licenses/by/4.0/)
+  //readonly alertIconPath = ASSETS_ROOT + '/exclamation.glb' //This work is based on "Exclamation Mark 3D icon" (https://sketchfab.com/3d-models/exclamation-mark-3d-icon-35fcb8285f134554989f822ab90ee974) by summer57 (https://sketchfab.com/summer5717) licensed under CC-BY-4.0 (http://creativecommons.org/licenses/by/4.0/)
   constructor( master: ThreejsViewportComponent , _robotCode : string , _robotBase : string , _robotType : string , _robotSubType : string ){
     super(master)
+
+    this.master.events.zoomed.subscribe((zoom)=>{
+      this.refreshMiniLabel(zoom)
+    })
     this.add(this.scene)
     this.robotImportSetting = this.master.util.config.MAP_3D?.ROBOT ? this.master.util.config.MAP_3D.ROBOT : this.robotImportSetting
     this.robotCode = _robotCode;
@@ -1723,52 +1749,35 @@ export class RobotObject3D extends Object3DCommon implements IDestroy{
       Object.keys(setting?.pointer).forEach(k=> this.pointerSetting[k] = setting?.pointer[k])
     }
     this.loader.load(setting.path ,(gltf : GLTF)=> {
-      new GLTFLoader().load(this.alertIconPath, (alertGltf : GLTF)=>{
-        this.gltf = gltf       
-        this.alertIcon = alertGltf.scene
-        new Object3DCommon(this.master).getMaterials(  this.alertIcon ).forEach(m=>m.color.set(0xFF0000))
-        this.alertIcon.rotateX(-NORMAL_ANGLE_ADJUSTMENT)
-        this.alertIcon.scale.set(this.alertIconSetting.size , this.alertIconSetting.size , this.alertIconSetting.size)
-        this.alertIcon.position.z = setting.toolTipPositionZ ? setting.toolTipPositionZ : this.alertIconSetting.positionZ
-        this.add(this.alertIcon)
+      this.gltf = gltf       
+      this.gltf.scene.scale.set(setting.scale, setting.scale, setting.scale)
+      this.gltf.scene.position.set(setting.position.x , setting.position.y , setting.position.z)
+      this.gltf.scene.rotateX(setting.rotate?.x? setting.rotate?.x : 0 )
+      this.gltf.scene.rotateY(setting.rotate?.y? setting.rotate?.y : 0 )
+      this.gltf.scene.rotateZ(setting.rotate?.z? setting.rotate?.z : 0 )
+      this.aabb.setFromObject(gltf.scene);
 
-        this.gltf.scene.scale.set(setting.scale, setting.scale, setting.scale)
-        this.gltf.scene.position.set(setting.position.x , setting.position.y , setting.position.z)
-        this.gltf.scene.rotateX(setting.rotate?.x? setting.rotate?.x : 0 )
-        this.gltf.scene.rotateY(setting.rotate?.y? setting.rotate?.y : 0 )
-        this.gltf.scene.rotateZ(setting.rotate?.z? setting.rotate?.z : 0 )
-        this.aabb.setFromObject(gltf.scene);
-        
-        // const helper = new THREE.Box3Helper(this.aabb);
-        // this.scene.add(helper);
-        // this.gltf.scene.add(this.outlineMesh);
- 
-        // let scale =  this.size * this.master.ROSmapScale * this.master.util.config.METER_TO_PIXEL_RATIO
-               
-        this.scene.add(this.gltf.scene)
-        this.initOutline(gltf)
-        // this.addSpotLight()
-        this.storeOriginalMaterialData()
-        this.addFrontFacePointer()
-        new THREE.TextureLoader().load(ASSETS_ROOT +'/offline_overlay.jpg',  (texture)=>{
-          if(this.robotCode){
-            this.offlineTexture = texture
-            this.offlineTexture.wrapS = THREE.RepeatWrapping;
-            this.offlineTexture.wrapT = THREE.RepeatWrapping;
-          }
-          this.changeMainColor(this.color)
-        })
-        this.changeMainColor(this.color)
-        let robotInfo = this.master.parent?.robotInfos?.filter(r=>r.robotCode == this.robotCode)[0]
-        this.offline = !this.robotCode ||robotInfo?.robotStatus == 'UNKNOWN'
-        this.alert = robotInfo?.alert!= null && robotInfo.alert.length > 0 
-        // if(ticket){
-        //   this.master.uiSrv.loadAsyncDone(ticket)
-        // }
-        if(this.destroyed){
-          this.destroy()
+      this.scene.add(this.gltf.scene)
+      this.initOutline(gltf)
+      // this.addSpotLight()
+      this.storeOriginalMaterialData()
+      this.addFrontFacePointer()
+      new THREE.TextureLoader().load(ASSETS_ROOT +'/offline_overlay.jpg',  (texture)=>{
+        if(this.robotCode){
+          this.offlineTexture = texture
+          this.offlineTexture.wrapS = THREE.RepeatWrapping;
+          this.offlineTexture.wrapT = THREE.RepeatWrapping;
         }
+        this.changeMainColor(this.color)
       })
+      this.changeMainColor(this.color)
+      let robotInfo = this.master.parent?.robotInfos?.filter(r=>r.robotCode == this.robotCode)[0]
+      this.offline = !this.robotCode ||robotInfo?.robotStatus == 'UNKNOWN'
+      this.alert = robotInfo?.alert!= null && robotInfo.alert.length > 0 
+
+      if(this.destroyed){
+        this.destroy()
+      }
     })
 
     // this.toolTip.position.set(0, 0 , 25 );
@@ -1783,9 +1792,24 @@ export class RobotObject3D extends Object3DCommon implements IDestroy{
         this.master.robotClicked.emit({id:this.robotCode , object : this})
       }
     })
+    this.refreshMiniLabel()
+  }
+
+  refreshMiniLabel(zoom : number = this.master.orbitCtrl.target.distanceTo(this.master.orbitCtrl.object.position)){
+    const scale = Math.max.apply(null ,  this.master.floorPlanDataset.mapList.map(m=>m.transformedScale)) 
+    if (zoom / scale > 1500 && this.robotIotCompRef.instance) {
+        if(!this.toolTipAlwaysOn){
+          this.toolTipAlwaysOn = true
+          this.robotIotCompRef.instance.mode =  this.robotIotCompRef.instance.mode == 'ALERT' ? 'ALERT' :'MINI'
+        }
+    }else if(zoom / scale < 1500 && this.robotIotCompRef.instance?.mode == 'MINI'){
+      this.toolTipAlwaysOn = false
+      this.robotIotCompRef.instance.mode = 'STANDARD'
+    }
   }
 
   initInfoToolTipEl() { 
+    this.toolTipSettings.style = {}
     this.robotIotCompRef = this.master.vcRef.createComponent(this.master.compResolver.resolveComponentFactory(ArcsRobotIotComponent))
     this.robotIotCompRef.instance.robotId = this.robotCode
     this.robotIotCompRef.instance.robotType = this.robotType

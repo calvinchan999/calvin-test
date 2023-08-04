@@ -7,9 +7,17 @@
     margin-top: 5px;    
 }
 
-:host .selected{
-    margin: -8px;
+:host .label-3js{
     padding: 8px;
+    border-radius: 5px;
+    line-height: 0px;
+    font-size: 10px;
+    background: rgba( 0, 0, 0, 0.45);
+    white-space: pre;
+}
+
+
+:host .selected{
     border-radius: 5px;
     border: 1px solid darkturquoise;
     background: rgba(0, 206, 209, 0.35);
@@ -126,3 +134,48 @@
           }
       }
   }
+
+  :host .mini-robot{
+    font-size: 14px;
+  }
+
+  :host .teardrop {
+    /* Center the content */
+    align-items: center;
+    display: flex;
+    justify-content: center;
+
+    /* Border */
+    background:rgba(0, 0, 0, 0.55);
+    border-radius: 0px 50% 50% 50%;
+
+    /* Angle at the top */
+    transform: translateY(-12px) rotate(225deg) ;
+
+    /* Size */
+    height: 24px;
+    width: 24px;
+
+    span , div{
+        transform: rotate(135deg);
+    }
+}
+
+:host .red-glow {
+    background: rgba(255, 65, 65 , 0.85);
+
+}
+
+:host .blink {
+    animation: blinker 1s cubic-bezier(.5, 0, 1, 1) infinite alternate;
+}
+
+@keyframes blinker {
+    from {
+        opacity: 1;
+    }
+
+    to {
+        opacity: 0.3;
+    }
+}

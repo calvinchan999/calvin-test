@@ -46,7 +46,7 @@ export class PixiMapGraphics extends PixiGraphics {
       if (this.dimensionType == '1D' && canDraw(this)) {
         this.draw(true)
       } else if (this.type == 'waypoint' || this.type == 'eventMarker') {
-        let max = this.autoScaleModule.scaleThreshold.max, min = this.autoScaleModule.scaleThreshold.min
+        let max = this.autoScaleModule.scaleThreshold.max , min = this.autoScaleModule.scaleThreshold.min
         let exceedsThreshold = this.viewport.settings.mapTransformedScale && this.viewport.scale.x < max / this.viewport.settings.mapTransformedScale
         let weight = this.selected || !exceedsThreshold ? 1 : Math.min(1, Math.sqrt((Math.min(max, this.viewport.scale.x) - min) / (max - min)))
         let scale = DRAWING_STYLE.markerScale * weight / this.viewport.scale.x * (this.autoScaleModule.counterScaleBinding())
@@ -585,7 +585,7 @@ export class PixiWayPoint extends PixiMapGraphics implements IDraw, IReColor {
   get iconUrl() {
     return this._iconUrl
   }
-  pixiText = new PIXI.Text("")
+  pixiText = new PIXI.Text("" , {stroke : 0xFFFFFF , strokeThickness : 5})
   rosX
   rosY
   get enabled(){
@@ -597,7 +597,7 @@ export class PixiWayPoint extends PixiMapGraphics implements IDraw, IReColor {
   }
   _enabled = true
   iconDimension
-  txtBg = new PIXI.Graphics()
+  // txtBg = new PIXI.Graphics()
 
 
   constructor(viewport: PixiMapViewport, text = null, style: PixiGraphicStyle = new PixiGraphicStyle, editable = false, iconUrl = null, iconType = 'NORMAL') {
@@ -605,7 +605,7 @@ export class PixiWayPoint extends PixiMapGraphics implements IDraw, IReColor {
     this.multiSelectable = true
     style.zIndex = -1
     style.fillColor = ConvertColorToDecimal(this.viewport.selectedStyle.marker.color) 
-    this.addChild(this.txtBg)
+    // this.addChild(this.txtBg)
     this.type = 'waypoint'
     this.readonly = !editable
     this.draggable = !this.readonly
@@ -643,7 +643,7 @@ export class PixiWayPoint extends PixiMapGraphics implements IDraw, IReColor {
         this.angleIndicator.show()
       }
       this.pixiText.visible = true
-      this.txtBg.visible = true
+      // this.txtBg.visible = true
 
     })
 
@@ -652,7 +652,7 @@ export class PixiWayPoint extends PixiMapGraphics implements IDraw, IReColor {
         this.angleIndicator.hide()
       }
       this.pixiText.visible = this.viewport.toggleModule.flags.showWaypointName
-      this.txtBg.visible = this.viewport.toggleModule.flags.showWaypointName
+      // this.txtBg.visible = this.viewport.toggleModule.flags.showWaypointName
     })
 
     this.events.added.subscribe(() => this.draw())
@@ -793,7 +793,7 @@ export class PixiWayPoint extends PixiMapGraphics implements IDraw, IReColor {
   }
 
   refreshPixiText() {
-    this.txtBg.zIndex = -1
+    // this.txtBg.zIndex = -1
     if (!this.children.includes(this.pixiText)) {
       this.pixiText.anchor.set(0.5)
       this.pixiText.position.set(this.pixiText.position.x, 35)
@@ -802,9 +802,10 @@ export class PixiWayPoint extends PixiMapGraphics implements IDraw, IReColor {
     this.pixiText.text = this.text?.length > 15 ? this.text?.substring(0, 15) + '...' : this.text
     //let color = this.selected ? this.tmpStyle.fillColor : (this.taskSeq?.length > 0 ? this.tmpStyle.fillColor == DRAWING_STYLE.mouseOverColor ? DRAWING_STYLE.mouseOverColor : this.seqMarkerColor : this.tmpStyle.fillColor)
     this.pixiText.style.fill = this.taskItemSeqLabel ? this.taskItemSeqLabel.tint : (this.needHighlight ? DRAWING_STYLE.highlightColor : this.tmpStyle.fillColor)
-    let bgColor = Math.abs(0xffffff - this.style.fillColor) < Math.abs(0x000000 - this.style.fillColor) ? 0x444444 : 0xffffff
-    this.txtBg.clear()
-    this.txtBg.lineStyle(0).beginFill(bgColor, 0.7).drawRect(-this.pixiText.width / 2 - 10, this.pixiText.height - 10, this.pixiText.width + 20, this.pixiText.height + 5).endFill()
+    this.pixiText.style.stroke =  Math.abs(0xffffff - this.style.fillColor) < Math.abs(0x000000 - this.style.fillColor) ? 0x444444 : 0xFFFFFF
+    // let bgColor = Math.abs(0xffffff - this.style.fillColor) < Math.abs(0x000000 - this.style.fillColor) ? 0x444444 : 0xffffff
+    // this.txtBg.clear()
+    // this.txtBg.lineStyle(0).beginFill(bgColor, 0.7).drawRect(-this.pixiText.width / 2 - 10, this.pixiText.height - 10, this.pixiText.width + 20, this.pixiText.height + 5).endFill()
   }
 
 

@@ -23,6 +23,7 @@ export class ArcsRobotIotComponent implements OnInit , OnDestroy {
   robotState : RobotState
   ARCS_STATUS_MAP = ARCS_STATUS_MAP
   threejsElRef : ThreejsViewportComponent
+  mode : 'MINI' | 'STANDARD' | 'ALERT' = 'STANDARD'
 
   unsubscriber = new Subject()
   constructor( public robotSrv : RobotService, public uiSrv: UiService , public mqSrv : MqService , public dataSrv : DataService , public util : GeneralUtil , public elRef : ElementRef) { 
