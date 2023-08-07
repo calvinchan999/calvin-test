@@ -146,8 +146,11 @@
     flex-grow: 1;
 }
 
-:host .selected{
-    color: darkturquoise;
+:host ::ng-deep .selected{
+    span.content {
+        color : white!important;
+        text-shadow:none !important
+    }
 }
 
 :host .justify-end{

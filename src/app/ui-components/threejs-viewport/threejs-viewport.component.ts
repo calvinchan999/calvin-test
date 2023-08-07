@@ -1153,20 +1153,21 @@ class ZoneMesh extends Mesh{
   }
 }
 
-const DEFAULT_TOOL_TIP_SETTING =  {
-  customEl: null,
-  staticComp : false,
-  position: new Vector3(0, 0, 0),
-  cssClass  : 'label-3js',
-  style: {
-    padding: '8px',
-    borderRadius: '5px',
-    lineHeight: '0px',
-    fontSize: '10px',
-    whiteSpace: 'pre',
-    background : 'rgba(0 , 0 , 0 , 0.45)'
-  }
-}
+// const DEFAULT_TOOL_TIP_SETTING =  {
+//   customEl: null,
+//   staticComp : false,
+//   position: new Vector3(0, 0, 0),
+//   cssClass  : 'label-3js',
+//   style: {
+//     padding: '8px',
+//     borderRadius: '5px',
+//     lineHeight: '0px',
+//     fontSize: '10px',
+//     whiteSpace: 'pre',
+//     // background : 'rgba(0 , 0 , 0 , 0.45)',
+//     textShadow:'3px 3px 0 #000, -1px -1px 0 #000,   1px -1px 0 #000, -1px 1px 0 #000, 1px 1px 0 #000'
+//   }
+// }
 export class Object3DCommon extends Object3D implements IDestroy{
   $destroyed = new Subject()
   scene : THREE.Scene = new THREE.Scene()
@@ -1193,7 +1194,7 @@ export class Object3DCommon extends Object3D implements IDestroy{
       lineHeight: '0px',
       fontSize: '10px',
       whiteSpace: 'pre',
-      background : 'rgba(0 , 0 , 0 , 0.45)'
+      background : 'rgba(0 , 0 , 0 , 0.45)'    
     }
   }
 
@@ -1258,7 +1259,7 @@ export class Object3DCommon extends Object3D implements IDestroy{
     return ret
   }
 
-  showToolTip(content : string | HTMLElement  = null , position : THREE.Vector3 = null , addonStyle : object = null){
+  showToolTip(content : string | HTMLElement  = null , position : THREE.Vector3 = null , addonStyle : any = {}){
     if(content && (typeof(content) === 'string' || content instanceof String)){
       this.toolTipText = <any>content 
     }else if(content instanceof HTMLElement){
@@ -1269,6 +1270,12 @@ export class Object3DCommon extends Object3D implements IDestroy{
       this.toolTip.element.innerText = null
       this.toolTip.element.appendChild(content)
     }
+    if(this instanceof WaypointMarkerObject3D){
+      addonStyle.background = this._toolTipAlwaysOn ? null : 'rgba(0 , 0 , 0 , 0.45)'
+      addonStyle.color = this._toolTipAlwaysOn  ?  '#5f259f' : '#ffffff' 
+      addonStyle.textShadow = this._toolTipAlwaysOn  ? '-1px -1px 0 rgba(230,230,230,0.4), 0   -1px 0 rgba(230,230,230,0.4),  1px -1px 0 rgba(230,230,230,0.4),1px  0   0 rgba(230,230,230,0.4),  1px  1px 0 rgba(230,230,230,0.4), 0    1px 0 rgba(230,230,230,0.4), -1px  1px 0 rgba(230,230,230,0.4), -1px  0   0 rgba(230,230,230,0.4)' :   null
+    }
+
 
     Object.keys(this.toolTipSettings.style).forEach(k=>{
       this.toolTip.element.style[k] = this.toolTipSettings.style[k]
@@ -1285,6 +1292,7 @@ export class Object3DCommon extends Object3D implements IDestroy{
     if(this instanceof RobotObject3D && this.robotIotCompRef?.instance){
       this.robotIotCompRef.instance.mode = 'STANDARD'
     }
+    this.toolTip.visible = true
     this.add(this.toolTip)
   }
 
@@ -1464,6 +1472,9 @@ export class WaypointMarkerObject3D extends Object3DCommon {
 
   constructor( master: ThreejsViewportComponent , private _name : string , private _pointType = 'NORMAL'){
     super(master)
+    this.toolTipSettings.style.background = null
+    this.toolTipSettings.style.color = '#5f259f'
+    this.toolTipSettings.style.textShadow = '-1px -1px 0 rgba(230,230,230,0.4), 0   -1px 0 rgba(230,230,230,0.4),  1px -1px 0 rgba(230,230,230,0.4),1px  0   0 rgba(230,230,230,0.4),  1px  1px 0 rgba(230,230,230,0.4), 0    1px 0 rgba(230,230,230,0.4), -1px  1px 0 rgba(230,230,230,0.4), -1px  0   0 rgba(230,230,230,0.4)'
     this.pointCode = _name
     this.pointType = _pointType
     this.loader = new GLTFLoader();
@@ -1500,6 +1511,7 @@ export class WaypointMarkerObject3D extends Object3DCommon {
   getToolTipPos(isMouseOver = false){
     return new Vector3(0, (isMouseOver ? 0.7 : -0.2) * (this.glbSettings.size * 20) * this.master.ROSmapScale, 0)
   }
+
 
   appendCustom2DObject(x= 0 , y = 0 , z = 0){
     this.custom2Dobj = new Css2DObject3D(this.master)
@@ -1714,8 +1726,11 @@ export class RobotObject3D extends Object3DCommon implements IDestroy{
   }
   set alert(v){
     this._alert = v
-    this.toolTipAlwaysOn = v ? true : this.toolTipAlwaysOn
-    this.robotIotCompRef.instance.mode = v ?  'ALERT' :  this.robotIotCompRef.instance.mode
+    if (!(this.robotIotCompRef.instance.mode == 'STANDARD' && this.toolTipAlwaysOn)) {
+      this.toolTipAlwaysOn = v
+      this.robotIotCompRef.instance.mode = v ? 'ALERT' : 'STANDARD'
+      this.refreshMiniLabel()
+    }
   }
   get alert(){
     return this._alert

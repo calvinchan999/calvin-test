@@ -459,8 +459,10 @@ export class MqService {
 
   constructor( public mapSrv : MapService, public robotSrv : RobotService, public util : GeneralUtil , public httpSrv : RvHttpService, public dataSrv : DataService ,private uiSrv : UiService,  public signalRSrv : SignalRService, private router : Router , public pubsubSrv : AzurePubsubService , private datePipe : DatePipe , public configSrv : ConfigService , public ngZone : NgZone) { 
     this.backgroundSubscribeTypes =  this.util.arcsApp? 
-    ['exception' , 'estop' , 'tilt' , 'obstacleDetection' , 'arcsSyncLog' , 'requestAssistance']: 
+    ['exception' , 'arcsSyncLog' , 'requestAssistance']:  
     ['estop' , 'tilt' , 'obstacleDetection' , 'exception', 'taskActive' , 'taskComplete' , 'destinationReached', 'moving']
+
+    // 'estop' , 'tilt' , 'obstacleDetection' ARCS
     if(this.util.$initDone.value == true){
       this.init()
     }else {

@@ -118,6 +118,7 @@ export class ArcsDashboardMapPanelComponent implements OnInit , OnDestroy {
     this.waypointState  = null
     this.robotState = null
     this.liftCode = null
+    this.selectedObj = null
   }
 
   setSelectedObjStyle(){
