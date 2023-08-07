@@ -1019,6 +1019,9 @@ export class Map2DViewportComponent implements OnInit , AfterViewInit , OnDestro
     if (refreshToggled) {
       this.module.ui.toggleDarkMode(this.module.ui.toggle.darkMode)
       this.module.ui.toggleRosMap(this.module.ui.toggle.showRosMap)
+      this.module.ui.toggleWaypoint(this.module.ui.toggle.showWaypoint)
+      this.module.ui.togglePath()
+      this.module.ui.toggleZone()
     }
 
     return ret
@@ -1110,8 +1113,6 @@ export class Map2DViewportComponent implements OnInit , AfterViewInit , OnDestro
       addPixiGraphic(zone)
     })
 
-    this.module.ui.toggleWaypoint(this.module.ui.toggle.showWaypoint)
-    this.module.ui.togglePath()
     return ret
   }
 
@@ -2790,6 +2791,9 @@ export class UiModule {
   }
 
   toggleZone(show = this.toggle.showZone){
+    if(this.master.showRobot){
+      this.updateLocalStorage()
+    }
     this.viewport.allPixiZones.forEach(z=>{
       z.visible = show
       z.text.visible = this.toggle.showZoneName

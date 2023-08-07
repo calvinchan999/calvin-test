@@ -20,7 +20,7 @@ import {  RenderPass  } from  'three/examples/jsm/postprocessing/RenderPass' ;
 import {  ShaderPass  } from  'three/examples/jsm/postprocessing/ShaderPass' ;
 import {  OutlinePass  } from  'three/examples/jsm/postprocessing/OutlinePass' ;
 import {  FXAAShader  } from  'three/examples/jsm/shaders/FXAAShader' ;
-import { getBorderVertices } from 'src/app/utils/math/functions';
+import { centroidOfPolygon, getBorderVertices, inside } from 'src/app/utils/math/functions';
 import { ArcsDashboardComponent } from 'src/app/arcs/arcs-dashboard/arcs-dashboard.component';
 import { Color } from '@progress/kendo-drawing';
 import { transform } from 'typescript';
@@ -42,6 +42,7 @@ import { ArcsRobotIotComponent } from 'src/app/arcs/arcs-iot/arcs-robot-iot/arcs
 import { CLICK_EVENTS } from 'src/app/utils/ng-pixi/ng-pixi-viewport/ng-pixi-constants';
 import { DRAWING_STYLE } from 'src/app/utils/ng-pixi/ng-pixi-viewport/ng-pixi-styling-util';
 import { Geometry } from 'pixi.js';
+import { ConvertColorToHexadecimal } from 'src/app/utils/graphics/style';
 
 const NORMAL_ANGLE_ADJUSTMENT =  - 90 / radRatio
 const ASSETS_ROOT = 'assets/3D'
@@ -117,7 +118,9 @@ export class ThreejsViewportComponent implements OnInit , OnDestroy{
     showFloorPlanImage?: boolean,
     to2D?: boolean,
     fullScreen?: boolean ,
-    alert? : boolean
+    alert? : boolean,
+    showZone?: boolean,
+    showZoneName?: boolean,
   } = {
       showWall: true,
       showWaypoint: true,
@@ -125,7 +128,9 @@ export class ThreejsViewportComponent implements OnInit , OnDestroy{
       showIot: false,
       to2D: false,
       fullScreen: false,
-      alert : true
+      alert : true ,
+      showZone: true,
+      showZoneName: true
     }
 
   @Input() locationTree : {
@@ -164,6 +169,9 @@ export class ThreejsViewportComponent implements OnInit , OnDestroy{
     return this._initDone.pipe(filter(v => v == true), take(1))
   }
 
+  get zoneMeshes(): ZoneMesh[]{
+    return this.floorplan?  <any>this.floorplan?.children.filter(c=>c instanceof ZoneMesh) :[]
+  }
 
   get waypointMeshes() : WaypointMarkerObject3D[]{
     return this.floorplan?  <any>this.floorplan?.children.filter(c=>c instanceof WaypointMarkerObject3D) :[]
@@ -275,16 +283,6 @@ export class ThreejsViewportComponent implements OnInit , OnDestroy{
       this.robotObjs.forEach(r=>r.toolTipAlwaysOn = this.uiToggles.showIot)
     } else if (key == 'showFloorPlanImage') {
       (<THREE.MeshPhongMaterial>this.floorplan.material).visible = this.uiToggles.showFloorPlanImage
-    // }else if(key == 'transformControl' && this.floorPlanModel ){
-    //   if(this.uiToggles.transformControl){
-    //     this.transformCtrl.addEventListener("dragging-changed",  (event)=> {
-    //       this.orbitCtrl.enabled = !event.value;
-    //       this.transformEnd.emit(this.transformCtrl.object)
-    //     });
-    //     this.transformCtrl.attach(this.floorPlanModel)
-    //   }else if(this.transformCtrl){       
-    //     this.transformCtrl.detach()
-    //   }
     }else if(key == 'alert'){
       this.eventMarkers.forEach(m=>{
         if(this.uiToggles.alert){
@@ -294,6 +292,11 @@ export class ThreejsViewportComponent implements OnInit , OnDestroy{
           m.hideToolTip()
         }
       })
+    }else if(key == 'zone'){
+      this.uiToggles.showZoneName = !this.uiToggles.showZone ? false : this.uiToggles.showZoneName
+      this.zoneMeshes.forEach(z=> z.visible = this.uiToggles.showZone) 
+    }else if(key == 'zoneName'){
+      this.zoneMeshes.forEach(m=>m.toolTipAlwaysOn = this.uiToggles.showZoneName)
     }
   }
 
@@ -408,12 +411,14 @@ export class ThreejsViewportComponent implements OnInit , OnDestroy{
 
   getZoneMesh(zoneName : string , coordinates:{x : number , y : number}[]){
     const shape = new THREE.Shape();
-    shape.moveTo(coordinates[0]?.x , coordinates[0]?.y)
-    coordinates.slice(1).forEach(c=>{
-      shape.lineTo(c.x , c.y)
+    shape.moveTo(coordinates[0]?.x, -coordinates[0]?.y)
+    coordinates.slice(1).forEach(c => {
+      shape.lineTo(c.x, -c.y)
     })
-    shape.lineTo(coordinates[0]?.x , coordinates[0]?.y)
-    return new ZoneMesh(zoneName , new ShapeGeometry(shape))
+    shape.lineTo(coordinates[0]?.x, - coordinates[0]?.y)
+    let pos = { x : centroidOfPolygon(coordinates).x, y : centroidOfPolygon(coordinates).y}
+    const position = inside(pos, coordinates) ? pos :  { x : (coordinates[0].x + coordinates[1].x) / 2, y : (coordinates[0].y + coordinates[1].y) / 2}
+    return new ZoneMesh(this , zoneName , new ShapeGeometry(shape), new Vector3(position.x , -position.y , 2))
   }
 
   ngOnDestroy(){
@@ -498,7 +503,7 @@ export class ThreejsViewportComponent implements OnInit , OnDestroy{
     this.parent?.refreshStats();
     
     // TBR
-    ['waypoint', 'waypointName', 'wall' , 'alert'].forEach(k => this.uiToggled(k))
+    ['waypoint', 'waypointName', 'wall' , 'alert' , 'zone' , 'zoneName'].forEach(k => this.uiToggled(k))
     await this.loadFloorPlanModelObject(floorplan.floorPlanCode , settings.floorPlan)    
     await this.initElevators( floorplan.floor , settings.lifts , subscribePoses)   
     if(this.parent?.rightMapPanel?.taskComp){
@@ -586,14 +591,11 @@ export class ThreejsViewportComponent implements OnInit , OnDestroy{
   }
 
   initZones(zoneList: JFloorPlanZone[]) {
-    // zoneList.forEach(z => {
-    //   const zone =  this.getZoneMesh( z.name , JSON.parse(z.polygon))
-    //   let box3 = new THREE.Box3().setFromObject( zone );
-    //   let size = new THREE.Vector3();
-    //   box3.getSize(size);
-    //   zone.position.set(- this.floorplan.width / 2 + size.x / 2, - this.floorplan.height / 2 + size.y / 2, 2)
-    //   this.floorPlanModel.add(zone)
-    // })
+    zoneList.forEach(z => {
+      const zone =  this.getZoneMesh( z.zoneCode , JSON.parse(z.polygon))
+      zone.position.set(- this.floorplan.width / 2 , this.floorplan.height / 2, 2)
+      this.floorplan.add(zone)
+    })
   }
 
   // async initElevators(floor : string , elevators : { liftId : string , position? : {x : number , y : number , z : number } , rotation? : number , width? : number , height? : number , depth? : number }[]){
@@ -1145,13 +1147,6 @@ class MapMesh extends Mesh {
   }
 }
 
-class ZoneMesh extends Mesh{
-  zoneName
-  constructor(zoneName : string , geometry : THREE.ShapeGeometry){
-    super(geometry ,new THREE.MeshBasicMaterial({ color: 0x00ff00 }))
-    this.zoneName = zoneName
-  }
-}
 
 // const DEFAULT_TOOL_TIP_SETTING =  {
 //   customEl: null,
@@ -1292,7 +1287,6 @@ export class Object3DCommon extends Object3D implements IDestroy{
     if(this instanceof RobotObject3D && this.robotIotCompRef?.instance){
       this.robotIotCompRef.instance.mode = 'STANDARD'
     }
-    this.toolTip.visible = true
     this.add(this.toolTip)
   }
 
@@ -1442,6 +1436,24 @@ export class Object3DCommon extends Object3D implements IDestroy{
     this.toolTip?.element?.remove()
     this.$destroyed.next()
    }
+}
+
+class ZoneMesh extends Object3DCommon{
+  zoneCode 
+  mesh : Mesh
+  constructor( viewport : ThreejsViewportComponent, zoneCode : string , geometry : THREE.ShapeGeometry , position : Vector3){
+    super(viewport)
+    this.mesh = new Mesh(geometry ,new THREE.MeshPhongMaterial({ color: 0xFFCC00 , transparent : true , opacity : 0.8 , side : THREE.FrontSide }));
+    (<any>this.mesh).defaultOpacity = 0.8
+    this.add(this.mesh)
+    this.zoneCode = zoneCode;
+    this.toolTipSettings.position = position
+    this.toolTipSettings.style.background =  null 
+    this.toolTipSettings.style.color = 'red ' 
+    this.toolTipSettings.style.textShadow =  '-1px -1px 0 rgba(230,230,230,0.4), 0   -1px 0 rgba(230,230,230,0.4),  1px -1px 0 rgba(230,230,230,0.4),1px  0   0 rgba(230,230,230,0.4),  1px  1px 0 rgba(230,230,230,0.4), 0    1px 0 rgba(230,230,230,0.4), -1px  1px 0 rgba(230,230,230,0.4), -1px  0   0 rgba(230,230,230,0.4)'
+    this.toolTipText =  this.zoneCode;
+    this.mesh.renderOrder = 2
+  }
 }
 
 export class WaypointMarkerObject3D extends Object3DCommon {
@@ -1903,6 +1915,7 @@ export class RobotObject3D extends Object3DCommon implements IDestroy{
   }
   
   changeMainColor(color: number) {
+    this.robotIotCompRef.instance.color = ConvertColorToHexadecimal(color)
     this.outlinePass?.visibleEdgeColor.set(this.offline ? this.offlineColor : color)
     this.outlinePass?.hiddenEdgeColor.set(this.offline ? this.offlineColor : color)
     if (this.offline && this.outlinePass && this.offlineTexture) {
@@ -1933,6 +1946,7 @@ export class RobotObject3D extends Object3DCommon implements IDestroy{
     const material = new THREE.MeshBasicMaterial({ color: 0xffff00, side: THREE.FrontSide , transparent : true , opacity : 0.4});
     this.frontFacePointer = new THREE.Mesh(geometry, material);
     let setting = this.pointerSetting
+    this.frontFacePointer.renderOrder  = 2
     this.frontFacePointer.position.set(setting.position.x , setting.position.y , setting.position.z)
     this.frontFacePointer.scale.set(setting.scale , setting.scale  , setting.scale )
     this.add(this.frontFacePointer)

@@ -40,3 +40,7 @@
 :host ::ng-deep uc-drawing-board  .buttons-container.t2{
     top: 0px;
 }
+
+:host ::ng-deep .k-tilelayout-item{
+    backdrop-filter: blur(10px);
+}

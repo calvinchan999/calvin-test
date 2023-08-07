@@ -57,6 +57,13 @@
     <span [class]="'mdi mdi-alert'"></span>
   </button>
 
+  <button  *ngIf="uiToggles.showZone !== undefined" kendoButton class="show-zone" [matTooltip]="((uiToggles.showZone && uiToggles.showZoneName) ? 'Hide Zone Name' : ((uiToggles.showZone && !uiToggles.showZoneName) ? 'Hide Zone' : 'Show Zone'))| label : uiSrv.langPack"  
+                 matTooltipPosition="right" 
+                (click)=" uiToggles.showZoneName = !(uiToggles.showZone && uiToggles.showZoneName); uiToggles.showZone = !(uiToggles.showZone && uiToggles.showZoneName) ; uiToggled('zone') ; uiToggled('zoneName') "  
+                [ngClass]="{'btn-intermediate': uiToggles.showZone && !uiToggles.showZoneName , 'btn-active': uiToggles.showZone && uiToggles.showZoneName }">
+          <span class="mdi mdi-texture-box"></span>
+  </button>
+
   <button *ngIf="uiToggles.fullScreen !== undefined"  kendoButton class="full-screen" [matTooltip]="'Full Screen' | label : uiSrv.langPack" (click)="toggleFullScreen()"  [ngClass]="{'btn-active':fullScreen}" >
     <span [class]="'mdi mdi-' + (fullScreen ? 'fullscreen-exit' : 'fullscreen')"></span>
   </button>
