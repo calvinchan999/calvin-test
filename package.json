@@ -9,6 +9,7 @@
     "lint": "ng lint",
     "e2e": "ng e2e",
     "set-prod-environment": "node ./replace.build.js",
+    "build-demo": "npm run set-prod-environment -- demo && node --max-old-space-size=10240 ./node_modules/@angular/cli/bin/ng build --prod --aot",
     "build-mtr": "npm run set-prod-environment -- mtr && node --max-old-space-size=10240 ./node_modules/@angular/cli/bin/ng build --prod --aot",
     "build-tlh": "npm run set-prod-environment -- tlh && node --max-old-space-size=10240 ./node_modules/@angular/cli/bin/ng build --prod --aot",
     "build-qmh": "npm run set-prod-environment -- qmh && node --max-old-space-size=10240 ./node_modules/@angular/cli/bin/ng build --prod --aot",
