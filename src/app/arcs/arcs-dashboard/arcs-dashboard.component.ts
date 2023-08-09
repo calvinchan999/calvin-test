@@ -110,7 +110,7 @@ export class ArcsDashboardComponent implements OnInit {
           { title: "Description", id: "name", width: 100 },
           { title: "Status", id: "state", width: 40 , dropdownOptions: TaskStateOptions},
         ].concat(
-          this.util.arcsApp? <any>[{ title: "Assigned To", id: "robotCode", width: 50 }] : []
+          this.util.arcsApp? <any>[{ title: "Assigned To", id: "robotCode", width: 50 , dropdownType : 'robots'}] : []
         ).concat(<any>[
           { title: "Completion Date", id: "endDateTime",  type: "date" , width: 50 },
           { title: "Created Date", id: "createdDateTime",  type: "date" , width: 50 },
@@ -164,7 +164,7 @@ export class ArcsDashboardComponent implements OnInit {
           { title: "Date", id: "detectionDateTime", width: 100 ,  type: "date"  },
           { title: "Floor Plan", id: "floorPlanCode", width: 100 , dropdownType : 'floorplans'},
           { title : "Event" , id : "detectionType" , width : 250 , dropdownOptions : Object.keys(FloorPlanAlertTypeDescMap).map(k=> { return {text : FloorPlanAlertTypeDescMap[k] , value : k}})},
-          { title: "Robot Code", id: "robotCode", width: 100 },
+          { title: "Robot", id: "robotCode", width: 100 , dropdownType : 'robots' },
         ],
       },
       broadcast: {
@@ -592,7 +592,7 @@ export class ArcsDashboardComponent implements OnInit {
           // STILL SHOW OFFLINE ROBOT , GET POSE FROM API 
           let pose: { x: number, y: number, angle: number } = await this.httpSrv.fmsRequest('GET', 'robotStatus/v1/robotTaskStatus/pose/' + d.robotCode, undefined, false)
           let mapCode = this.currentFloorPlan.mapList.map(m => m.mapCode)[0]
-          let robotInfo = (await this.dataSrv.getRobotList()).filter(r => r.robotCode == d.robotCode)[0]
+          let robotInfo = (await this.robotSrv.getRobotList()).filter(r => r.robotCode == d.robotCode)[0]
           let arcsPoseObj = this.mqSrv.data.arcsPoses.value ? JSON.parse(JSON.stringify(this.mqSrv.data.arcsPoses.value)) : {}
           arcsPoseObj[mapCode] = arcsPoseObj[mapCode] ? arcsPoseObj[mapCode] : {}
           arcsPoseObj[mapCode][d.robotCode] = {

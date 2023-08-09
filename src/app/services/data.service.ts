@@ -30,6 +30,8 @@ export type eventLog = {datetime? : string , type? : string , message : string  
 export class DataService {
   _defaultSite 
   _defaultBuilding
+  
+  dropListRobots = new BehaviorSubject<DropListRobot[]>(null)
   public mapSrvInitDone = new BehaviorSubject<boolean>(false)
   public unreadSyncMsgCount = new BehaviorSubject<number>(0)
   public codeRegex
@@ -209,6 +211,11 @@ export class DataService {
       data: resp.filter(itm => !apiMap[type]['filter'] || apiMap[type]['filter'](itm)),
       options: null
     }
+    
+    if(this.util.arcsApp && type == 'robots'){
+      this.dropListRobots.next(ret.data)
+    }
+
   
     // if(this.util.standaloneApp && type == 'actions'){ //TBR
     //   let robotInfo = await this.getRobotInfo()
@@ -231,13 +238,6 @@ export class DataService {
   }
 
 
-
-  public async getRobotList() : Promise<DropListRobot[]>{
-    if(!this.dataStore.arcsRobotList || this.dataStore.arcsRobotList?.length == 0){
-      this.dataStore.arcsRobotList = (await this.getDropList('robots')).data
-    }
-    return this.dataStore.arcsRobotList
-  }
 
   public async getPointIconList() : Promise<DropListPointIcon[]>{
     if(this.dataStore.pointTypeList?.length > 0){

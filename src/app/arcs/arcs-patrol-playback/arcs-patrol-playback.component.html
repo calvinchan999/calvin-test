@@ -11,7 +11,7 @@
 </div>
 
 
-<kendo-dialog *ngIf="selectedRow != null"  [title]="('Patrol Robot Playback : ' | label : uiSrv.langPack) + ' ' + selectedRow.robotCode + ' (' +  selectedRow.name  + ')'"
+<kendo-dialog *ngIf="selectedRow != null"  [title]="('Patrol Robot Playback : ' | label : uiSrv.langPack) + ' ' + robotSrv.ARCS.robotStore[selectedRow.robotCode]?.robotName + ' (' +  selectedRow.name  + ')'"
                (close)="selectedRow = null" [minWidth]="250" >
     <div class="video-container">
         <video controls [(currentTime)] = "currentTime" >

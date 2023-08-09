@@ -10,6 +10,7 @@ import { CSS2DObject } from 'three/examples/jsm/renderers/CSS2DRenderer';
 import { Css2DObject3D } from 'src/app/ui-components/threejs-viewport/threejs-viewport.component';
 import { PixiWayPoint } from 'src/app/utils/ng-pixi/ng-pixi-viewport/ng-pixi-map-graphics';
 import { Subject } from 'rxjs';
+import { RobotService } from 'src/app/services/robot.service';
 
 @Component({
   selector: 'app-arcs-dashboard-new-task',
@@ -31,7 +32,7 @@ export class ArcsDashboardNewTaskComponent implements OnInit , OnDestroy {
   showActionIndex
   selectedAction : {taskItem : TaskItem , actionIndex : number , taskItemIndex : number , actionParams? : ActionParameter[] , actionItem? :  {alias : string , properties : object}}
   $onDestroy = new Subject()
-  constructor(public uiSrv : UiService , public dataSrv : DataService) { 
+  constructor(public uiSrv : UiService , public dataSrv : DataService , public robotSrv : RobotService) { 
     this.taskName = this.uiSrv.translate("New Task")
   }
 

@@ -26,7 +26,7 @@
 <!-- ============================================================================================================================================================================================================================== -->
     
     <kendo-dialog-titlebar (close) = "dialogRef.close()" [class]="parent? '' : 'iot-title' ">
-        <div>{{robotId}}</div>
+        <div>{{robotSrv.ARCS.robotStore[robotId].robotName }}</div>
     </kendo-dialog-titlebar>
 
     <ng-container  *ngIf="parent">

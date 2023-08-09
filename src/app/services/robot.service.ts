@@ -1,10 +1,11 @@
 import { Injectable } from '@angular/core';
-import {DataService} from './data.service'
 import { BehaviorSubject } from 'rxjs';
 import { RvHttpService } from './rv-http.service';
 import { UiService } from './ui.service';
 import { GeneralUtil } from '../utils/general/general.util';
-import { RobotStatusARCS } from './data.models';
+import { DropListRobot, RobotStatusARCS } from './data.models';
+import { DataService } from './data.service';
+import { filter } from 'rxjs/operators';
 
 // @ts-ignore
 @Injectable({
@@ -15,10 +16,32 @@ export class RobotService {
     STANDALONE : StandaloneRobotServiceModule
     data : RobotState
 
-    constructor( public util : GeneralUtil,   public httpSrv : RvHttpService, public uiSrv : UiService) {
+    robotList: DropListRobot[]
+
+    constructor( public util : GeneralUtil,   public httpSrv : RvHttpService, public uiSrv : UiService , public dataSrv : DataService) {
         this.ARCS = new ArcsRobotServiceModule(  httpSrv , uiSrv , util )
         this.STANDALONE = new StandaloneRobotServiceModule(  httpSrv , uiSrv , util )
         this.data = this.STANDALONE.state
+        this.dataSrv.dropListRobots.pipe(filter(v=>v!=null)).subscribe(v=>{
+            this.robotList = v
+            this.setRobotStatesMasterDataByRobotList()
+        })
+    }
+
+    public async getRobotList() : Promise<DropListRobot[]>{
+        if(!this.robotList || this.robotList?.length == 0){
+          this.robotList = <any>((await this.dataSrv.getDropList('robots')).data)
+        }
+        this.setRobotStatesMasterDataByRobotList()
+        return this.robotList
+    }
+
+    setRobotStatesMasterDataByRobotList(){
+        this.robotList.forEach(r=>{
+            this.robotState(r.robotCode).robotName = r.name
+            this.robotState(r.robotCode).robotType = r.robotType
+            this.robotState(r.robotCode).robotSubType = r.robotSubType
+        })
     }
     
     robotState(robotCode : string = null) : RobotState{
@@ -90,7 +113,8 @@ export class RobotState {
 
     robotCode : string
     robotType? : string
-    // robotSubType : string
+    robotSubType? : string
+    robotName? : string
 
     execute: any = new BehaviorSubject<any>(null)//dummyKeyForMqService
 

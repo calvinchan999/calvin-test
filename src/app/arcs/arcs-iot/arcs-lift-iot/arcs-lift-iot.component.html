@@ -12,7 +12,7 @@
             </div>
             <div class="robot iot-row" *ngIf="mqSrv.data.arcsLift.value[liftCode].robotCode">
                 <i class="mdi mdi-robot"></i> 
-                <span>{{mqSrv.data.arcsLift.value[liftCode].robotCode}}</span>
+                <span>{{robotSrv.ARCS.robotStore[mqSrv.data.arcsLift.value[liftCode].robotCode]?.robotName}}</span>
             </div>
         </div>
     </div>

@@ -23,6 +23,7 @@ import { LegendItemClickEvent } from "@progress/kendo-angular-charts";
 import { type } from "os";
 import { PixiEventMarker, PixiWayPoint, PixiWayPointBubble } from "src/app/utils/ng-pixi/ng-pixi-viewport/ng-pixi-map-graphics";
 import * as PIXI from 'pixi.js';
+import { RobotService } from "src/app/services/robot.service";
 
 const Utilization_Status_Types = ['executing', 'idle', 'charging', 'hold', 'unknown']
 @Component({
@@ -246,7 +247,7 @@ export class ArcsChartsComponent implements OnInit, OnDestroy {
   hightlightedSeriesIndex = null
   $onDestroy = new Subject()
 
-  constructor(public datepipe: DatePipe ,  private util :GeneralUtil , public uiSrv : UiService , private dataSrv : DataService ) {
+  constructor(public datepipe: DatePipe ,  private util :GeneralUtil , public uiSrv : UiService , private dataSrv : DataService , public robotSrv : RobotService ) {
     this.uiSrv.lang.pipe( filter(v=>v!=null) ,takeUntil(this.$onDestroy)).subscribe(l=>{
       this.refreshTranslation()
     })
@@ -421,6 +422,8 @@ export class ArcsChartsComponent implements OnInit, OnDestroy {
       }else if(arg.sender == this.utilizationByRobotTypeChart){
         (<Text>mainText).content(this.uiSrv.translate(this.dataSrv.enumPipe.transform(arg.text)));
         (<Text>mainText).position([5 , (<Text>mainText).position().y])
+      }else if([this.usabilityByRobotChart , this.utilizationByRobotChart].includes(arg.sender) ){
+        (<Text>mainText).content(this.robotSrv.robotState(arg.value)?.robotName)
       }else {
         (<Text>mainText).content(arg.value)
       }

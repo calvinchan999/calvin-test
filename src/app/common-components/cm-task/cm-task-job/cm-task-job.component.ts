@@ -222,7 +222,7 @@ export class CmTaskJobComponent implements OnInit {
   getFlattenedData(data: JTask) : FlattenedTaskList{
     let ret = []
     data.taskItemList.forEach(t => {
-      if(t.actionList.length > 0){
+      if(t.actionList?.length > 0){
         t.actionList.forEach(a =>{
           let taskItem : FlattenedTaskItem = {
             floorPlanCode : t.movement.floorPlanCode,

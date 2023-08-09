@@ -1239,7 +1239,7 @@ export class PixiZonePolygon extends PixiEditablePolygon {
         map((r: DropListRobot) => {
           return {
             value: r.robotCode,
-            text: r.robotCode
+            text: r.name
           }
         })
     }
