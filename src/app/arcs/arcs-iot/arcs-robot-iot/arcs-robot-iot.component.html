@@ -56,13 +56,13 @@
 
 <div *ngIf="mode == 'MINI'" [class] = "'iot teardrop ' + ' mini-robot'" [style.border] = " color ? ('1px solid ' + color) : null" >
     <span [class]="uiSrv.robotTypeIconMap[robotType] ? uiSrv.robotTypeIconMap[robotType] : 'mdi mdi-robot-outline'" 
-          [matTooltip] = "robotId" matTooltipPosition = "right"> 
+          [matTooltip] = "robotState.robotName" matTooltipPosition = "right"> 
     </span>
 </div>
 
 <div *ngIf="mode == 'ALERT'" [class] = "'iot teardrop red-glow ' + ' mini-robot'"  [style.border] = " color ? ('1px solid ' + color) : null">
     <span [class]="uiSrv.robotTypeIconMap[robotType] ? uiSrv.robotTypeIconMap[robotType] : 'mdi mdi-robot-outline'" 
-          [matTooltip] = "robotId + ' : ' + ((robotState.estop?.value ? uiSrv.commonAlertMessages.estopped : (
+          [matTooltip] = "robotState.robotName + ' : ' + ((robotState.estop?.value ? uiSrv.commonAlertMessages.estopped : (
                                                  robotState.tiltActive?.value ?  uiSrv.commonAlertMessages.tiltDetected : uiSrv.commonAlertMessages.obstacleDetected
                                                 )
                                              ) | label : uiSrv.langPack)" 

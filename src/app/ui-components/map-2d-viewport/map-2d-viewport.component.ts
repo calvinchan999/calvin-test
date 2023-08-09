@@ -698,6 +698,7 @@ export class Map2DViewportComponent implements OnInit , AfterViewInit , OnDestro
   }
 
   setViewportCamera(x , y, zoom = this.viewport.scale.x , smooth = false , smoothMs = 500) {
+    this._ngPixi.onResize()
     this.viewport.scale.set(zoom, zoom)   
     this._ngPixi.flyTo(x, y, smooth ? smoothMs : 0)     
   }
@@ -1338,37 +1339,14 @@ export class Robot {
   private movingRef
   pose$ : Observable<any>
   public observed = new BehaviorSubject<boolean>(false)
-  // private _observed = false
-  // public get observed(){
-  //   return this._observed
-  // }
-  // public set observed(v){
-  //   this._observed = v  
-  //   if (v) {  
-  //     this.pixiGraphics.visible = true
-  //     this.viewport.ngZone.run(() => {
-  //       if (this.uiModule.loadingTicket) {
-  //         this.uiModule.uiSrv.loadAsyncDone(this.uiModule.loadingTicket)
-  //         this.uiModule.loadingTicket = null
-  //       }
-  //       this.uiModule.overlay.message = null
-  //       if(this.uiModule._popupScreen && !this.parent._remoteControl){
-  //         this.parent.removeSpawnMarker()                  
-  //         this.parent.module.localization?.pickingMap = false
-  //         this.parent.popupScreen = false
-  //         this.parent.changeMode(null)
-  //         this.parent.toggleRosMap(false)
-  //       }
-  //     })  
-  //   }
-  // }
+  robotName : string
 
   public get offline() {
     return this._offline
   }
   public set offline(v) {
     this._offline = v
-    this.pixiGraphics.toolTip.content = this.id + ` ${this.offline ? this.cm.uiSrv.translate(' (Offline)') : ""}`
+    this.pixiGraphics.toolTip.content = this.robotName + ` ${this.offline ? this.cm.uiSrv.translate(' (Offline)') : ""}`
     if(this._offline && this.pixiGraphics){
       this.pixiGraphics.alpha = 0.4
     }else if(this.pixiGraphics){
@@ -1390,11 +1368,12 @@ export class Robot {
     return this.viewport.mainContainer.toLocal(this.pixiGraphics.parent.toGlobal(new PIXI.Point(this.pixiGraphics.position.x ,this.pixiGraphics.position.y)))
   }
 
-  constructor(id, mapCode, robotBase , uiModule) {
+  constructor(id : string , mapCode : string , robotBase : string , uiModule : CommonModule , robotName : string) {
     this.id = id
     this.cm = uiModule
     this.viewport = this.cm.master.viewport
     this.robotBase = robotBase
+    this.robotName = robotName
     this.observed.pipe(filter(v => v == true)).subscribe((v) => {
       this.pixiGraphics.visible = true
       this.viewport.ngZone.run(() => {
@@ -1418,7 +1397,7 @@ export class Robot {
     this.mapCode = mapCode
     this.pixiGraphics =  new PixiRobotMarker( this.viewport, ConvertColorToDecimal(DRAWING_STYLE.mouseOverColor) , 0 , 0 , 0)
     this.pixiGraphics.zIndex = 1000
-    this.pixiGraphics.toolTip.content = this.id
+    this.pixiGraphics.toolTip.content = this.robotName
     this.pixiGraphics.toolTip.enabled = true
     // this.pixiGraphics.on("mouseover", (evt: PIXI.interaction.InteractionEvent) => this.pixiGraphics.showToolTip(this.id + ` ${this.offline ? this.parent.uiSrv.translate(' (Offline)') : ""}` ,evt))
     // this.pixiGraphics.on("mouseout", () => this.pixiGraphics.toolTip.hide())
@@ -1608,7 +1587,7 @@ export class RobotModule {
   }
 
   public addRobot(id, mapCode = null, robotBase = null) { //consider to add 'type' argument for ARCS
-    let ret = new Robot(id, mapCode, robotBase, this.cm);
+    let ret = new Robot(id, mapCode, robotBase, this.cm , this.cm.robotSrv.robotState(id).robotName);
     if (mapCode == null) {
       // console.log(ret.pixiGraphics)
       this.viewport.mainContainer.addChild(ret.pixiGraphics);

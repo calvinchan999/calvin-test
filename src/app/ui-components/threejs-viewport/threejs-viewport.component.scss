@@ -161,6 +161,11 @@
     height: 100%;
     display: flex;
 }
+
+:host ::ng-deep .title.arcs {
+    padding-top: 0px!important;
+    padding-bottom: 0px!important;
+  } 
 // :host ::ng-deep .tooltip {
 //     padding: '8px';
 //     border-radius: '5px';

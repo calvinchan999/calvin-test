@@ -1,7 +1,7 @@
 import { ChangeDetectorRef, Component, NgZone, OnInit, ViewChild } from '@angular/core';
 import { DialogRef, DialogService } from '@progress/kendo-angular-dialog';
 import { toODataString } from '@progress/kendo-data-query';
-import { filter, take } from 'rxjs/operators';
+import { filter, take, takeUntil } from 'rxjs/operators';
 import { CmMapDetailComponent } from 'src/app/common-components/cm-map/cm-map-detail/cm-map-detail.component';
 import { CmMapFloorplanComponent } from 'src/app/common-components/cm-map/cm-map-floorplan/cm-map-floorplan.component';
 import { DataService } from 'src/app/services/data.service';
@@ -13,6 +13,8 @@ import { CmUserGroupComponent } from './cm-user-group/cm-user-group.component';
 import { CmUserDetailComponent } from './cm-user-detail/cm-user-detail.component';
 import { AuthService } from 'src/app/services/auth.service';
 import { GeneralUtil } from 'src/app/utils/general/general.util';
+import { ActivatedRoute } from '@angular/router';
+import { Subject } from 'rxjs';
 
 
 @Component({
@@ -24,8 +26,8 @@ export class CmUserComponent implements OnInit {
 @ViewChild('table') ucTableRef : TableComponent
 @ViewChild('pixi') pixiElRef: Map2DViewportComponent
   constructor(public windowSrv: DialogService, public uiSrv : UiService , public http: RvHttpService , private changeDectector : ChangeDetectorRef,
-              private dataSrv : DataService , private ngZone : NgZone, public authSrv : AuthService , public util : GeneralUtil) { 
-              this.tabs = this.tabs.filter(t=>this.authSrv.hasRight(t.functionId.toUpperCase()) && (t.id!='passwordPolicy' || this.util.arcsApp))
+              private dataSrv : DataService , private ngZone : NgZone, public authSrv : AuthService , public util : GeneralUtil , public route : ActivatedRoute) { 
+              this.tabs = this.tabs.filter(t=> t.authorized == false || this.authSrv.hasRight(t.functionId.toUpperCase()) && (t.id!='passwordPolicy' || this.util.arcsApp))
               this.selectedTab = this.tabs[0].id
   }
   selectedTab = 'user'
@@ -50,7 +52,21 @@ export class CmUserComponent implements OnInit {
         { title: "User Group Code", id: "userGroupCode", width: 50 },
         { title: "User Group Name", id: "name", width: 150 }
       ],
-    }
+    },
+    synclog:{
+      functionId:"SYNC_LOG",
+      apiUrl:"api/sync/log/page/v1",
+      defaultState: {skip: 0 , take: 15 , sort:[{dir: 'desc' , field: 'startDateTime'}]},
+      columns: [
+        { title: "Operation", id: "dataSyncType", width: 100 , type:'pipe' , pipe :'enum' },
+        { title: "Record Type", id: "objectType", width: 100 , dropdownOptions:this.dataSrv.objectTypeDropDownOptions},
+        { title: "Robot Code", id: "robotCode", width: 150 },
+        { title: "Record Code", id: "objectCode", width: 200 },        
+        { title: "Start Time", id: "startDateTime", type: "date" , width: 200 },
+        { title: "End Time", id: "endDateTime", type: "date" , width: 200 },
+        { title: "Status", id: "dataSyncStatus", width: 150 , type:'pipe' , pipe :'enum' }
+      ]
+    },
   }
                 
   tabs = [
@@ -58,7 +74,9 @@ export class CmUserComponent implements OnInit {
     // {id: 'building' , label : 'Building'}, //testing ARCS
     {id: 'user' , label : 'User' , functionId : this.gridSettings.user.functionId},
     {id: 'usergroup' , label : 'User Group' , functionId : this.gridSettings.usergroup.functionId},
-    {id: 'passwordPolicy' , label : 'Password Policy' , functionId : 'PASSWORD_POLICY'}
+    {id: 'passwordPolicy' , label : 'Password Policy' , functionId : 'PASSWORD_POLICY'},
+    { id: 'synclog', label: 'Data Sync Log' , authorized : false},
+    { id: 'log', label: 'System Log' , authorized : false},
   ]
 
   columnDef = this.gridSettings.user.columns
@@ -80,9 +98,17 @@ export class CmUserComponent implements OnInit {
   get primaryKey(){
     return this.selectedTab == 'user' ? 'userCode' : (this.selectedTab == 'usergroup' ? 'userGroupCode' : null)
   }
-
+  $onDestroy = new Subject()
+  
   ngOnInit(){
-
+    this.route.params.pipe(takeUntil(this.$onDestroy)).subscribe((params)=>{
+      if(params?.selectedTab){
+        this.onTabChange(params?.selectedTab)
+        if(['synclog' , 'floorplan'].includes(params.selectedTab)){
+          this.ucTableRef?.retrieveData()
+        }
+      }
+    })
   }
 
   async ngAfterViewInit() {
@@ -96,7 +122,7 @@ export class CmUserComponent implements OnInit {
     //PENDING : bug fix - shapes missing when change from floorplan view to map view and back to floorplan view again 
         this.selectedTab = id
         this.data = []
-        if(this.selectedTab != 'passwordPolicy'){
+        if(!['passwordPolicy' , 'log'].includes(this.selectedTab)){
           this.columnDef = this.gridSettings[id]['columns']
         }
         this.changeDectector.detectChanges()

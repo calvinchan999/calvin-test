@@ -80,7 +80,7 @@ export class AppComponent implements OnInit, OnDestroy {
 
         this.setDrawerConfig();
         this.items = this.drawerItems();
-        this.uiSrv.refreshDrawerItems.pipe(skip(1)).subscribe(()=>{
+        this.uiSrv.refreshDrawerItems.pipe(skip(1)).subscribe((v)=>{
             this.items = this.drawerItems();            
         })
         // this.customMsgService.localeChange.subscribe(() => {
@@ -119,7 +119,7 @@ export class AppComponent implements OnInit, OnDestroy {
         return ret
     }
 
-    public drawerItems() {
+    public drawerItems(robotTyes : string[] | null = null) {
         let selected = (path : string)=> this.isDrawerItemSelected(path)
         if(environment.app.toUpperCase() == 'STANDALONE'){
             return [
@@ -133,7 +133,7 @@ export class AppComponent implements OnInit, OnDestroy {
         }else if(environment.app.toUpperCase() == 'ARCS'){
             return [
                 { text: this.uiSrv.translate('Dashboard'),       icon: 'mdi mdi-collage',                    path: '/home',          selected: selected('/home')  }
-            ].concat(this.getRobotTypePaths()).concat([
+            ].concat(this.getRobotTypePaths().filter(p=> Object.keys(this.uiSrv.robotTypeIconMap).map(t=>t.toLowerCase()).includes(p.path.replace('/','')))).concat([
                 { text: this.uiSrv.translate('Setup'),           icon: 'mdi mdi-cogs',                       path: '/setup',         selected: selected('/setup')  },
             ].filter(itm=>{
                 //let allowedRobotType = !this.util.config.ROBOT_TYPE || this.util.config.ROBOT_TYPE.map(t=>"/" + t.toUpperCase()).includes(itm.path.toUpperCase())

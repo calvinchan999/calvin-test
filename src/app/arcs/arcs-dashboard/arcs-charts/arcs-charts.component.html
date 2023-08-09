@@ -102,7 +102,7 @@
         <kendo-chart #usabilityByRobotChart  [seriesColors]="style.seriesColors"  (seriesClick) = "onSeriesClick($event)">
             <kendo-chart-area background="transparent"></kendo-chart-area>
             <kendo-chart-category-axis >
-              <kendo-chart-category-axis-item  [categories]="usability.robot.categories" [labels]="{visual : style.labelVisual}"
+              <kendo-chart-category-axis-item  [categories]="usability.robot.categories" [labels]="{visual : style.labelVisual}" 
                                                [majorGridLines]="{ visible : false}"  [color]="style.textColor">
               </kendo-chart-category-axis-item>         
             </kendo-chart-category-axis>   

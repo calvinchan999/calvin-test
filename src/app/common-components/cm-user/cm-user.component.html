@@ -14,7 +14,7 @@
         <span></span>
     </div>
 
-    <div class="table-container" *ngIf="!uiSrv.isTablet && selectedTab != 'passwordPolicy'">
+    <div class="table-container" *ngIf="!uiSrv.isTablet && selectedTab != 'passwordPolicy' && selectedTab != 'log' ">
         <uc-table #table [toolbarButtons]="{new : true , action: true}" [columnDefs]="gridSettings[selectedTab]['columns']" [(data)] = "data"  
             [functionId] = "gridSettings[selectedTab]['functionId']"  [serverSidePagination] = "true"
             [dataSourceApiEndpoint] = "gridSettings[selectedTab]['apiUrl']"
@@ -29,6 +29,9 @@
 
     <div *ngIf="!uiSrv.isTablet && selectedTab == 'passwordPolicy'" class="robot-container">
        <app-arcs-password-policy></app-arcs-password-policy>
+    </div>
+    <div *ngIf="selectedTab == 'log'" class="table-container">
+        <cm-event-log></cm-event-log>
     </div>
     <!-- * * *  ^ PC VERSION ^   * * * -->
 

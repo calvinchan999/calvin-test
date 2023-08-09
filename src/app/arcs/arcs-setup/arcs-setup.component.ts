@@ -50,15 +50,15 @@ export class ArcsSetupComponent implements OnInit {
   }
   
   tabs = [
-    { id: 'robot', label: 'Robot' },
+    { id: 'robot', label: 'Robot' , authorized : true},
     { id: 'site', label: 'Site'},
     { id: 'building', label: 'Building'},
     { id: 'floorplan', label: 'Floor Plan' },
     { id: 'map', label: 'Map' },
     // { id: 'robotCoop' , label : 'Robot Collaboration'},
     { id: 'pointType', label: 'Waypoint Type'},
-    { id: 'synclog', label: 'Data Sync Log' },
-    { id: 'log', label: 'System Log' , authorized : false},
+    // { id: 'synclog', label: 'Data Sync Log' },
+    // { id: 'log', label: 'System Log' , authorized : false},
   ]
   selectedTab = 'floorplan' 
   tableCustomButtons = {
@@ -138,20 +138,20 @@ export class ArcsSetupComponent implements OnInit {
         { title: "Floor Plan", id: "floorPlanName", width: 150 },
       ]
     },
-    synclog:{
-      functionId:"SYNC_LOG",
-      apiUrl:"api/sync/log/page/v1",
-      defaultState: {skip: 0 , take: 15 , sort:[{dir: 'desc' , field: 'startDateTime'}]},
-      columns: [
-        { title: "Operation", id: "dataSyncType", width: 100 , type:'pipe' , pipe :'enum' },
-        { title: "Record Type", id: "objectType", width: 100 , dropdownOptions:this.dataSrv.objectTypeDropDownOptions},
-        { title: "Robot Code", id: "robotCode", width: 150 },
-        { title: "Record Code", id: "objectCode", width: 200 },        
-        { title: "Start Time", id: "startDateTime", type: "date" , width: 200 },
-        { title: "End Time", id: "endDateTime", type: "date" , width: 200 },
-        { title: "Status", id: "dataSyncStatus", width: 150 , type:'pipe' , pipe :'enum' }
-      ]
-    },
+    // synclog:{
+    //   functionId:"SYNC_LOG",
+    //   apiUrl:"api/sync/log/page/v1",
+    //   defaultState: {skip: 0 , take: 15 , sort:[{dir: 'desc' , field: 'startDateTime'}]},
+    //   columns: [
+    //     { title: "Operation", id: "dataSyncType", width: 100 , type:'pipe' , pipe :'enum' },
+    //     { title: "Record Type", id: "objectType", width: 100 , dropdownOptions:this.dataSrv.objectTypeDropDownOptions},
+    //     { title: "Robot Code", id: "robotCode", width: 150 },
+    //     { title: "Record Code", id: "objectCode", width: 200 },        
+    //     { title: "Start Time", id: "startDateTime", type: "date" , width: 200 },
+    //     { title: "End Time", id: "endDateTime", type: "date" , width: 200 },
+    //     { title: "Status", id: "dataSyncStatus", width: 150 , type:'pipe' , pipe :'enum' }
+    //   ]
+    // },
     robotCoop: {
       functionId:"ROBOT",
       apiUrl: null,

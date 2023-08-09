@@ -33,6 +33,10 @@ export class RobotService {
           this.robotList = <any>((await this.dataSrv.getDropList('robots')).data)
         }
         this.setRobotStatesMasterDataByRobotList()
+        let tmpMap = JSON.parse(JSON.stringify(this.uiSrv.robotTypeIconMapAll))
+        Object.keys(this.uiSrv.robotTypeIconMapAll).filter(k=> !this.robotList.map(r=>r.robotType.toUpperCase()).includes(k)).forEach(k=> delete tmpMap[k])
+        this.uiSrv.robotTypeIconMap = JSON.parse(JSON.stringify(tmpMap))
+        this.uiSrv.refreshDrawerItems.next(true);
         return this.robotList
     }
 

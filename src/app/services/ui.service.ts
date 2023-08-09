@@ -20,9 +20,10 @@ export const  dataNotFoundMessage = `[DATA NOT FOUND]`
 export class UiService {
   public withDashboard = false
   public taskOverlay = false
-  refreshDrawerItems = new BehaviorSubject<any>(null)
+  refreshDrawerItems = new BehaviorSubject<any>(null) // true : no filter , robotTypes: include specified robotType only
   loadingTickets = []
   robotTypeIconMap = {}
+  robotTypeIconMapAll = {}
   loaderStyle = {
     type: "infinite-spinner",
     themeColor: "secondary",
@@ -58,8 +59,9 @@ export class UiService {
   initRobotTypeIconMap(){
     const routes = environment.routes
     routes.forEach(r=>{
-      this.robotTypeIconMap[r.path.replace('/' , '')?.toUpperCase()] = r.icon
+      this.robotTypeIconMapAll[r.path.replace('/' , '')?.toUpperCase()] = r.icon
     })
+    this.robotTypeIconMap = JSON.parse(JSON.stringify(this.robotTypeIconMapAll))
   }
   
   initNotification(){

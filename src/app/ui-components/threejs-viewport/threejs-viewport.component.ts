@@ -520,6 +520,7 @@ export class ThreejsViewportComponent implements OnInit , OnDestroy{
   }
 
   onObjProgress = ( xhr )=>{
+    console.log(xhr)
     if ( xhr.lengthComputable ) {
      this.loadingPercent = Math.round(xhr.loaded / xhr.total * 100)
     }
