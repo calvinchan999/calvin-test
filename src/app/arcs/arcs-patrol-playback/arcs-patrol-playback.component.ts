@@ -1,5 +1,6 @@
 import { Component, OnInit, ViewChild } from '@angular/core';
 import { DataService } from 'src/app/services/data.service';
+import { RobotService } from 'src/app/services/robot.service';
 import { UiService } from 'src/app/services/ui.service';
 import { TableComponent } from 'src/app/ui-components/table/table.component';
 
@@ -10,14 +11,14 @@ import { TableComponent } from 'src/app/ui-components/table/table.component';
 })
 export class ArcsPatrolPlaybackComponent implements OnInit {
   @ViewChild('table') tableRef : TableComponent
-  constructor(public uiSrv: UiService, public dataSrv: DataService) { }
+  constructor(public uiSrv: UiService, public dataSrv: DataService , public robotSrv : RobotService) { }
   currentTime = 0  
   selectedRow
   tableDisabledButtons = {new : true , action : true}
   tableButtons = { new: false, action: true }
   gridColumns = [
     { title: "", type: "checkbox", id: "select", width: 30 ,fixed : true },
-    { title: "Robot Code", id: "robotCode", width: 30 },
+    { title: "Robot Code", id: "robotCode", width: 30 , dropdownType : 'robots'},
     { title: "Channel", id: "channel", width: 20 },
     { title: "Reference Date", id: "name", width: 150 },
     { title: "", type: "button", id: "play", width: 30 , icon: 'add-button k-icon k-i-play iconButton' , fixed : true  },

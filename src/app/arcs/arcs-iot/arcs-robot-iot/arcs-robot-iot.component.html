@@ -1,7 +1,7 @@
 <div *ngIf="mode == 'STANDARD'" [class] = "'iot label-3js '  + (threejsElRef?.parent?.btmMapPanel?.robotState?.robotCode == robotId? 'selected' : '') " >
     <span  class = "iot-id">
        <i class="mdi mdi-robot"></i>
-       <span> {{robotId}} </span>
+       <span> {{robotState.robotName}} </span>
     </span>
     <div *ngIf="robotState" class="iot-content">
         <div class="iot-row">

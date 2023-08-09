@@ -141,10 +141,10 @@ export class NgPixiViewportComponent implements OnInit, AfterViewInit, OnDestroy
 
     ngAfterViewInit(): void {
         // this.viewport.viewport.moveCenter(0, 0);
-        setTimeout(() => {
-            // this.resizeViewport(window.innerWidth, window.innerHeight);
-            this.onResize(null);
-        }, 200);
+        // setTimeout(() => {
+        //     // this.resizeViewport(window.innerWidth, window.innerHeight);
+        //     this.onResize(null);
+        // }, 200);
         this.viewport.drag(<any>{ clampWheel: true });
         this.viewport.pinch();
         this.viewport.decelerate();

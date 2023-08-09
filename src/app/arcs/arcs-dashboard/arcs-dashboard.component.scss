@@ -80,3 +80,13 @@
     position: fixed !important;
     z-index: 9999999 !important;
 }
+
+
+:host ::ng-deep .title.arcs{
+    .floorplan{
+      margin-bottom: 3px;
+    }
+    .location-tree{
+      line-height: 35px;
+    }
+  }

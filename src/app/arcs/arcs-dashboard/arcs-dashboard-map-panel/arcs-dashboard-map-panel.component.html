@@ -33,7 +33,7 @@
 
     <div class="robot-state-container" *ngIf="robotState && parent.rightMapPanel?.panelMode != 'CREATE-TASK'">
         <div class="header">
-            <span class="mdi mdi-robot" [matTooltip] = "'Robot' | label: uiSrv.langPack" matTooltipPosition = "above">  {{robotState.robotCode}} </span>
+            <span class="mdi mdi-robot" [matTooltip] = "'Robot' | label: uiSrv.langPack" matTooltipPosition = "above">  {{robotState.robotName}} </span>
             <a class="close mdi mdi-close-circle" (click)="selectedMapObjChange(null)"></a>
         </div>
 
@@ -74,7 +74,7 @@
                 </ng-container>
                 <ng-container  *ngIf="mqSrv.data.arcsLift.value[liftCode]?.robotCode">
                     <span>{{'Robot loaded' | label : uiSrv.langPack}} : </span>
-                    <span>{{mqSrv.data.arcsLift.value[liftCode].robotCode}}</span>
+                    <span>{{ robotSrv.ARCS.robotStore[mqSrv.data.arcsLift.value[liftCode].robotCode]?.robotName }}</span>
                 </ng-container>
             </div>
 

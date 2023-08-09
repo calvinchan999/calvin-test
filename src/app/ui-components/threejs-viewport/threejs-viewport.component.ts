@@ -673,7 +673,7 @@ export class ThreejsViewportComponent implements OnInit , OnDestroy{
 
   async getRobotList(){
     let ticket = this.uiSrv.loadAsyncBegin()
-    this.robotLists = await this.dataSrv.getRobotList();
+    this.robotLists = await this.robotSrv.getRobotList();
     this.uiSrv.loadAsyncDone(ticket);
   }
 
@@ -1756,7 +1756,7 @@ export class RobotObject3D extends Object3DCommon implements IDestroy{
   //readonly alertIconPath = ASSETS_ROOT + '/exclamation.glb' //This work is based on "Exclamation Mark 3D icon" (https://sketchfab.com/3d-models/exclamation-mark-3d-icon-35fcb8285f134554989f822ab90ee974) by summer57 (https://sketchfab.com/summer5717) licensed under CC-BY-4.0 (http://creativecommons.org/licenses/by/4.0/)
   constructor( master: ThreejsViewportComponent , _robotCode : string , _robotBase : string , _robotType : string , _robotSubType : string ){
     super(master)
-
+    this.renderOrder = 3
     this.master.events.zoomed.subscribe((zoom)=>{
       this.refreshMiniLabel(zoom)
     })
@@ -1824,7 +1824,7 @@ export class RobotObject3D extends Object3DCommon implements IDestroy{
 
   refreshMiniLabel(zoom : number = this.master.orbitCtrl.target.distanceTo(this.master.orbitCtrl.object.position)){
     const scale = Math.max.apply(null ,  this.master.floorPlanDataset.mapList.map(m=>m.transformedScale)) 
-    if (zoom / scale > 1500 && this.robotIotCompRef.instance) {
+    if (zoom / scale > 1500 && this.robotIotCompRef.instance && !this.offline) {
         if(!this.toolTipAlwaysOn){
           this.toolTipAlwaysOn = true
           this.robotIotCompRef.instance.mode =  this.robotIotCompRef.instance.mode == 'ALERT' ? 'ALERT' :'MINI'
@@ -2118,7 +2118,7 @@ export class ElevatorObject3D extends Object3DCommon{
   async setRobotCode(v){
     this._robotCode = v;
     (<any>this.planeMesh.material).color.set(this.robotCode ? 0xADFF2F : this.planeColor)
-    this.displayRobotData = this.robotCode ? (await this.master.dataSrv.getRobotList()).filter(r=>r.robotCode == this.robotCode)[0] : null
+    this.displayRobotData = this.robotCode ? (await this.master.robotSrv.getRobotList()).filter(r=>r.robotCode == this.robotCode)[0] : null
   }
   
   _displayRobotData : DropListRobot

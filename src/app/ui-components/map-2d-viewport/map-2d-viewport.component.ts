@@ -534,7 +534,7 @@ export class Map2DViewportComponent implements OnInit , AfterViewInit , OnDestro
     }
   }
 
-  async ngAfterViewInit() {
+  async ngAfterViewInit() {    
     // await this.getDropList()
     this.init()
     // if (this.showDropdown) {
@@ -547,6 +547,11 @@ export class Map2DViewportComponent implements OnInit , AfterViewInit , OnDestro
   }
 
   async init() {
+    if (!this.width || !this.height) {
+      this.width = this.elRef.nativeElement.parentElement.offsetWidth
+      this.height = this.elRef.nativeElement.parentElement.offsetHeight
+    }
+    this._ngPixi.size = { width: this.width, height: this.height }
     await this.commonModule.data.initDropDown()
     this.defaultPointType = (<DropListPointIcon[]>this.commonModule.data.dropdownData.iconTypes).filter(t=> !t.base64Image || t.base64Image.length == 0)[0]?.code//TBR
     this.defaultPointType =  this.defaultPointType ?  this.defaultPointType  : 'NORMAL'
@@ -568,11 +573,6 @@ export class Map2DViewportComponent implements OnInit , AfterViewInit , OnDestro
         
         // this.module.ui.toggle = JSON.parse(this.dataSrv.getlocalStorage('module.ui.toggle'))
       }
-      if (!this.width || !this.height) {
-        this.width = this.elRef.nativeElement.parentElement.offsetWidth
-        this.height = this.elRef.nativeElement.parentElement.offsetHeight
-      }
-      this._ngPixi.size = { width: this.width, height: this.height }
       // this.viewport['Map2DViewportComponent'] = this
       this.reset()
 
@@ -1126,6 +1126,7 @@ export class Map2DViewportComponent implements OnInit , AfterViewInit , OnDestro
     }
 
     let hasMap = this.mainContainer.children.filter(c => c instanceof PixiEditableMapImage).length > 0
+    console.log(this.util.standaloneApp)
     let getJPoints = (robotBase : string = null)=> this.viewport.allPixiWayPoints.filter(p=> this.util.standaloneApp || robotBase == null || p.robotBases.includes(robotBase)).map((point: PixiWayPoint) => {
       let pt : JPoint = copyOriginalData(<PixiMapGraphics>point , new JPoint())
       pt.floorPlanCode = floorPlanCode
@@ -1205,6 +1206,8 @@ export class Map2DViewportComponent implements OnInit , AfterViewInit , OnDestro
       m.transformedPositionY = this.util.trimNum(map.position.y - map.initialOffset?.y)
       m.imageHeight = this.util.trimNum(map.initialHeight, 0)
       m.imageWidth =this.util.trimNum(map.initialWidth , 0)
+
+      console.log(this.viewport.allPixiWayPoints)
 
       m.pointList = getJPoints(m.robotBase).map(pt=> {
         let p = new JPoint()
@@ -2588,7 +2591,7 @@ export class DataModule{
       return
     }
     if (this.master.util.arcsApp) {
-      this.dropdownData.robots = await this.dataSrv.getRobotList();
+      this.dropdownData.robots = await this.master.robotSrv.getRobotList();
       this.dropdownOptions.robots = await this.dataSrv.getDropListOptions( 'robots' , this.dropdownData.robots )
     }
     this.dropdownData.iconTypes = await this.dataSrv.getPointIconList()
