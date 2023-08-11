@@ -59,6 +59,7 @@ export class PixiToolTip extends PIXI.Graphics implements IDraw{
     return this._delay
   }
   // hidden = true
+  hidden = false
   _content: string
   contentBinding : Function
   positionBinding : Function
@@ -80,8 +81,13 @@ export class PixiToolTip extends PIXI.Graphics implements IDraw{
     this.parentGraphics = _parent
     this.addChild(this.pixiText)
     this.visible = false
+    this.parentGraphics.events.added.subscribe(()=>this.hidden = false)
     this.parentGraphics.events.selected.subscribe(()=> this.hide())
-    this.parentGraphics.events.removedOrDestroyed.subscribe(()=>this.parent?.removeChild(this))
+    this.parentGraphics.events.removedOrDestroyed.subscribe(()=>{
+      this.hidden = true
+      this.hide()
+      this.parent?.removeChild(this)
+    })
   }
 
 
@@ -111,7 +117,7 @@ export class PixiToolTip extends PIXI.Graphics implements IDraw{
       this.position = this.positionBinding ? this.positionBinding() : (position? this.stage.toLocal(position) : mouseEvt?.data?.getLocalPosition(this.stage))
       this.position.y += this.position.y < 40 ? 40 : (-40)
     }
-    this.visible = true
+    this.visible = !this.hidden
   } 
 
   hide(){

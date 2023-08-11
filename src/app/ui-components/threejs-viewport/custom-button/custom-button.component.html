@@ -1,4 +1,5 @@
 <a [class] = "cssClass" 
+   #tooltip="matTooltip"
    [matTooltip] = "toolTipMsgBinding? toolTipMsgBinding() : (toolTipMsg ? (toolTipMsg | label : uiSrv.langPack ) : undefined )"  
    (click) = "clicked.emit(data)"
    matTooltipPosition = "above"

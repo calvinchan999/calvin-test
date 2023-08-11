@@ -1546,6 +1546,9 @@ export class PixiEventMarker extends PixiMapGraphics implements IReColor{
   async init(){
     try {
       if(this.markerType == 'alert'){
+        this.events.click.pipe(takeUntil(this.events.destroyed)).subscribe(()=>{
+          setTimeout(()=>this.toolTip.hide())
+        })
         this.icon = new PIXI.Sprite(PIXI.Texture.from(this.svgUrl))
         const dim = await GetImageDimensions(this.svgUrl)
         this.reColor(this.style.fillColor)

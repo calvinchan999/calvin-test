@@ -453,6 +453,7 @@ export class DateRangeFilterComponent implements OnInit, OnDestroy {
   @Input() public filter: CompositeFilterDescriptor;
   @Input() public filterService: FilterService;
   @Input() public field: string;
+  @Input() public type : string
 
   public start: Date ;
   public end: Date ;
@@ -519,14 +520,14 @@ export class DateRangeFilterComponent implements OnInit, OnDestroy {
     return filter ? (filter as FilterDescriptor).value : null;
   }
 
-  private filterRange(start, end) {
+  private filterRange(start : Date , end : Date) {
     const filters = [];
 
     if (start && (!end || start < end)) {
       filters.push({
         field: this.field,
         operator: "gte",
-        value: start,
+        value: this.type == 'timestamp' ? start.getTime() : start,
       });
       this.start = start;
     }
@@ -535,11 +536,10 @@ export class DateRangeFilterComponent implements OnInit, OnDestroy {
       filters.push({
         field: this.field,
         operator: "lte",
-        value: end,
+        value:  this.type == 'timestamp' ? end.getTime() : end,
       });
-      this.end = end;
+      this.end =  end;
     }
-
     this.filterService.filter({
       logic: "and",
       filters: filters,

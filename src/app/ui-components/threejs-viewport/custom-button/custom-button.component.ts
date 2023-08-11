@@ -1,4 +1,4 @@
-import { Component, ElementRef, EventEmitter, OnInit } from '@angular/core';
+import { Component, ElementRef, EventEmitter, OnInit, ViewChild } from '@angular/core';
 import { DataService } from 'src/app/services/data.service';
 import { MqService } from 'src/app/services/mq.service';
 import { UiService } from 'src/app/services/ui.service';
@@ -10,6 +10,7 @@ import { GeneralUtil } from 'src/app/utils/general/general.util';
   styleUrls: ['./custom-button.component.scss']
 })
 export class CustomButtonComponent implements OnInit {
+  @ViewChild('tooltip') tooltip;
   cssClass
   data 
   content

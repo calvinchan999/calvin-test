@@ -55,7 +55,7 @@ export class ThreejsViewportComponent implements OnInit , OnDestroy{
   public selected = false;
   public loadingTicket = null
   subcribedIotSignalRTypes : MQType [] = []
-
+  loadingManager = new THREE.LoadingManager();
   scene : THREE.Scene
   camera : THREE.PerspectiveCamera
   ambientLight : THREE.AmbientLight
@@ -151,11 +151,13 @@ export class ThreejsViewportComponent implements OnInit , OnDestroy{
   subscribedPoseMapCode = null
   use2DFloorPlanModel = false
   robotLists : DropListRobot[]
+  loadingCount = 0
   constructor( public mapSrv : MapService , public  robotSrv : RobotService ,  public uiSrv: UiService , public ngZone : NgZone , public util : GeneralUtil , public dataSrv : DataService ,  public ngRenderer:Renderer2 ,
               public elRef : ElementRef , public vcRef: ViewContainerRef , public compResolver: ComponentFactoryResolver , public mqSrv : MqService) {
     // this.loadingTicket = this.uiSrv.loadAsyncBegin()
     // this.loadLocalStorageToggleSettings()
     this.isMobile = this.uiSrv.detectMob()
+    this.initLoadingManager()
   }
 
   mouse = new THREE.Vector2();
@@ -240,6 +242,23 @@ export class ThreejsViewportComponent implements OnInit , OnDestroy{
     this.onResize()
   }
 
+  initLoadingManager(){
+    this.loadingManager.onStart = ()=>{
+      this.loadingPercent = 0
+    }
+    this.loadingManager.onProgress  = (url , loaded , total) => {
+      this.loadingPercent = Math.round(loaded / total * 100)      
+    }
+    this.loadingManager.onLoad  = ()=>{
+      this.loadingCount -= 1
+      this.loadingPercent = this.loadingCount <= 0 ? null : this.loadingPercent
+    }
+    this.loadingManager.onError  = ()=>{
+      this.loadingCount -= 1
+      this.loadingPercent = this.loadingCount <= 0 ? null : this.loadingPercent
+    }
+  }
+
   animate() {
     this.animationRequestId = requestAnimationFrame(this.animate.bind(this))
     TWEEN.update();
@@ -261,6 +280,7 @@ export class ThreejsViewportComponent implements OnInit , OnDestroy{
       return null
     }
   }
+  
 
   // loadLocalStorageToggleSettings(){
   //   let storedToggle = this.dataSrv.getLocalStorage('uitoggle') ?  JSON.parse(this.dataSrv.getLocalStorage('uitoggle')) : {};
@@ -514,34 +534,37 @@ export class ThreejsViewportComponent implements OnInit , OnDestroy{
 
   loadFloorPlanModelFrom2DImage(){
     this.use2DFloorPlanModel = true
-    this.floorPlanModel = <any> new Mesh(new THREE.PlaneGeometry(this.floorplan.width, this.floorplan.height), new THREE.MeshPhongMaterial({ map: THREE.ImageUtils.loadTexture(this.floorplan.base64Image), side : DoubleSide , transparent : true }));
+    this.floorPlanModel = <any> new Mesh(
+      new THREE.PlaneGeometry(this.floorplan.width, this.floorplan.height), 
+      new THREE.MeshPhongMaterial({ map: 
+        new THREE.TextureLoader(this.loadingManager).load(this.floorplan.base64Image), side : DoubleSide , transparent : true 
+      }));
     (<any>this.floorPlanModel ).material.side = THREE.DoubleSide;
     this.floorplan.add(this.floorPlanModel)
   }
 
-  onObjProgress = ( xhr )=>{
-    console.log(xhr)
-    if ( xhr.lengthComputable ) {
-     this.loadingPercent = Math.round(xhr.loaded / xhr.total * 100)
-    }
-  };
+  // onObjProgress = ( xhr )=>{
+  //   if ( xhr.lengthComputable ) {
+  //    this.loadingPercent = Math.round(xhr.loaded / xhr.total * 100)
+  //   }
+  // };
 
   async loadFloorPlanModelFromBlob(glbFile){
     var awaiter = new Subject()
-    let ticket = this.uiSrv.loadAsyncBegin()
-    const loader = new GLTFLoader();
+    // let ticket = this.uiSrv.loadAsyncBegin()
+    const loader = new GLTFLoader(this.loadingManager);
     loader.parse(await new Response(glbFile).arrayBuffer(), '', (gltf: GLTF) => {
       this.loadingPercent = null
       this.floorPlanModel = gltf.scene
       // transform(obj)
       this.floorplan.add(this.floorPlanModel)
-      this.uiSrv.loadAsyncDone(ticket)
+      // this.uiSrv.loadAsyncDone(ticket)
       awaiter.next();
       // this.transformCtrl.object = null
       // this.transformCtrl.attach(this.floorPlanModel)
       // this.scene.remove(this.transformCtrl)
       // this.scene.add(this.transformCtrl)  
-    }, this.onObjProgress);
+    });
     await awaiter.pipe(take(1)).toPromise()
   }
 
@@ -1292,6 +1315,7 @@ export class Object3DCommon extends Object3D implements IDestroy{
   }
 
   hideToolTip(){ 
+    console.log('hide')
     if(this.children.includes(this.toolTip)){
       this.remove(this.toolTip)
     }
@@ -1739,7 +1763,7 @@ export class RobotObject3D extends Object3DCommon implements IDestroy{
   }
   set alert(v){
     this._alert = v
-    if (!(this.robotIotCompRef.instance.mode == 'STANDARD' && this.toolTipAlwaysOn)) {
+    if (!(this.robotIotCompRef.instance.mode == 'STANDARD' && this.toolTipAlwaysOn) && !(this.offline && v)) {
       this.toolTipAlwaysOn = v
       this.robotIotCompRef.instance.mode = v ? 'ALERT' : 'STANDARD'
       this.refreshMiniLabel()
@@ -2250,6 +2274,7 @@ class EventMarkerObject3D extends Object3DCommon{
     this.toolTipCompRef = this.master.vcRef.createComponent(this.master.compResolver.resolveComponentFactory(CustomButtonComponent))
     this.toolTipSettings.customEl = this.toolTipCompRef.instance.elRef.nativeElement 
     this.toolTipAlwaysOn = true
+    this.toolTipCompRef.instance.clicked.subscribe(()=>this.toolTipCompRef.instance.tooltip.hide())
   } 
 }
 

@@ -54,15 +54,15 @@
                 </span>
             </ng-template>
 
-            <ng-container *ngIf="colDef.dropdownOptions || colDef.type == 'date'">
+            <ng-container *ngIf="colDef.dropdownOptions || colDef.type == 'date' || colDef.type == 'timestamp'">
                 <ng-template kendoGridFilterMenuTemplate let-column="colDef" let-filter="filter" let-filterService="filterService">
                     <ng-container *ngIf="colDef.dropdownOptions">
                         <multicheck-filter  [field]="colDef.id" [filterService]="filterService" [currentFilter]="filter" 
                                             textField="text" valueField="value"  [data]="colDef.dropdownOptions">
                         </multicheck-filter>
                     </ng-container>
-                    <ng-container *ngIf=" colDef.type == 'date'">               
-                        <date-range-filter   [field]="colDef.id" [filter]="filter" [filterService]="filterService"> </date-range-filter>
+                    <ng-container *ngIf=" colDef.type == 'date' || colDef.type == 'timestamp'">               
+                        <date-range-filter  [type] = "colDef.type"  [field]="colDef.id" [filter]="filter" [filterService]="filterService"> </date-range-filter>
                     </ng-container>
                 </ng-template>
             </ng-container>
@@ -77,7 +77,7 @@
                             dataItem[colDef.id] 
                         }}
                     </span>
-                    <span *ngIf="colDef.type == 'date' && !colDef.pipe">
+                    <span *ngIf="(colDef.type == 'date' || colDef.type == 'timestamp') && !colDef.pipe">
                         {{(dataItem[colDef.id] | dateString) ? ((dataItem[colDef.id] | dateString) | date : colDef.pipeArg ? colDef.pipeArg : 'dd/MM/yyyy hh:mm:ss aa') : '' }}
                     </span>
                     <input *ngIf="colDef.type == 'checkbox' && !colDef.pipe" type="checkbox" [(ngModel)]="dataItem[colDef.id]" 
