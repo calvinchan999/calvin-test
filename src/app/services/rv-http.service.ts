@@ -46,8 +46,10 @@ export class RvHttpService {
       if (throwErr) {
         throw err;
       } else {
-        //PENDING : Confirm with RV error message param replace logic
-        this.uiSrv.showNotificationBar(`API HTTP [${method.toUpperCase()  + ' ' +  rvEndpoint}] ERROR ` +  (err.error?.message? ' : ': '') +  this.uiSrv.translate(err.error?.message ) ,'error') //TBD : arguments
+        //PENDING : Confirm with RV error message param replace logi
+        if(err?.status!=0){
+          this.uiSrv.showNotificationBar(`API HTTP [${method.toUpperCase()  + ' ' +  rvEndpoint}] ERROR ` +  (err.error?.message? ' : ': '') +  this.uiSrv.translate(err.error?.message ) ,'error') //TBD : arguments        
+        }  
         return err?.error
       }
     }
@@ -64,7 +66,9 @@ export class RvHttpService {
       if (throwErr) {
         throw err;
       } else {
-        this.uiSrv.showNotificationBar('API HTTP [' + method.toUpperCase() + '] ERROR : ' +  endpoint ,'error')
+        if(err?.status!=0){
+          this.uiSrv.showNotificationBar('API HTTP [' + method.toUpperCase() + '] ERROR : ' +  endpoint ,'error')
+        }
         return err?.error
       }
     }
@@ -97,7 +101,7 @@ export class RvHttpService {
       let returnRawEndpoints = [] 
       return (!returnRawEndpoints.includes(endpoint) && returnDataPartOnly) ? resp?.['data'] : resp
     } catch (err) {
-      if(!suppressErrorNoti){
+      if(!suppressErrorNoti && err?.status != 0){
         this.uiSrv.showNotificationBar('API HTTP [GET] ERROR : ' +  endpoint ,'error')
         console.log(err)
       }
@@ -131,7 +135,9 @@ export class RvHttpService {
       let resp = await this.http.post<any>(apiUrl + '/' + endpoint + (queryParm ? this.generalUtil.convertToFormStr(queryParm) : ''), body , {headers:header}).toPromise() 
       return (returnDatapartOnly? resp?.['data'] : resp)
     } catch (err) {
-      this.uiSrv.showNotificationBar('API HTTP [POST] ERROR : ' +  endpoint ,'error')
+      if( err?.status != 0){
+        this.uiSrv.showNotificationBar('API HTTP [POST] ERROR : ' +  endpoint ,'error')
+      }
       if (throwErr) {
         throw err;
       } else {
@@ -153,7 +159,9 @@ export class RvHttpService {
       let resp = await this.http.put<any>(apiUrl + '/' + endpoint + (queryParm ? this.generalUtil.convertToFormStr(queryParm) : ''), body , {headers:header}).toPromise() 
       return (returnDatapartOnly? resp?.['data'] : resp)
     } catch (err) {
-      this.uiSrv.showNotificationBar('API HTTP [POST] ERROR : ' +  endpoint ,'error')
+      if (err?.status != 0) {
+        this.uiSrv.showNotificationBar('API HTTP [PUT] ERROR : ' + endpoint, 'error')
+      }
       if (throwErr) {
         throw err;
       } else {
@@ -172,7 +180,9 @@ export class RvHttpService {
     try {
       return (await this.http.request('delete', apiUrl + '/' + endpoint + (queryParm ? this.generalUtil.convertToFormStr(queryParm) : ''), { headers:header, body: body}).toPromise())['data']
     } catch (err) {
-      this.uiSrv.showNotificationBar('API HTTP [DELETE] ERROR : ' +  endpoint ,'error')
+      if(err?.status!=0){
+        this.uiSrv.showNotificationBar('API HTTP [DELETE] ERROR : ' +  endpoint ,'error')
+      }
       if (throwErr) {
         throw err;
       } else {

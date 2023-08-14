@@ -40,7 +40,7 @@
             <app-cm-reset-pw *ngIf="currentRoute == '/resetPassword'"></app-cm-reset-pw>    
         </ng-container>
         
-        <div *ngIf="uiSrv.disconnected" class="disconnected">
+        <div *ngIf="uiSrv.disconnected?.value == true" class="disconnected">
            <span class="mdi mdi-alert-circle-outline"></span>
            <span> {{'Connection lost. Please check your network.' | label : uiSrv.langPack }}</span>
         </div>

@@ -29,7 +29,7 @@ export class UiService {
     themeColor: "secondary",
     size: "large",
   }
-  disconnected = false
+  disconnected = new BehaviorSubject(false)
   constructor(public dialogSrv: DialogService, public windowSrv : WindowService, private http: HttpClient ,public ngZone: NgZone,private notificationService: NotificationService , private titleSrv: Title , public datePipe : DatePipe) { 
     this.isTablet = this.detectMob() && environment.app.toUpperCase() == 'STANDALONE'
     this.titleSrv.setTitle(this.translate(environment.app.toUpperCase() == 'STANDALONE' ? "RV Robotic System" : "ARCS"))

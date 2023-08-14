@@ -420,6 +420,7 @@ export class RobotProfileResp {
     enabled ? : boolean
     liftCode? : string    
     doorCode? : string
+    robotBaseList ? : string[]
   }
   
   export class JChildPoint{

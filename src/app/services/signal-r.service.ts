@@ -89,7 +89,7 @@ export class SignalRService {
          this.uiSrv.loadAsyncDone( this.reconnectLoadingTicket)
          this.reconnectLoadingTicket = null
         }
-        this.uiSrv.disconnected = false
+        this.uiSrv.disconnected.next(false)
         console.log('Connected To SignalR Successfully')
 
       }).catch(async(err) => {
@@ -108,7 +108,7 @@ export class SignalRService {
         //   this.reconnectLoadingTicket = this.uiSrv.loadAsyncBegin()
         // }
         // this.uiSrv.showNotificationBar('Network Error : Disconnected','error')
-        this.uiSrv.disconnected = true
+        this.uiSrv.disconnected.next(true)
         if(autoReconnect && this.generalUtil.getUserAccessToken()){
           if(!document.hidden){
             console.log('SignalR will retry to connect in ' + reconnectDelayMs + ' ms ...')

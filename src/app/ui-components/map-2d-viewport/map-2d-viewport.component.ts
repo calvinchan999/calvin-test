@@ -907,7 +907,6 @@ export class Map2DViewportComponent implements OnInit , AfterViewInit , OnDestro
       orgWidth = dim[0]
       orgHeight = dim[1]
     }
- 
 
     let sprite = imgSrc ?  await GetSpriteFromUrl(imgSrc , this.uiSrv.isTablet) : new PIXI.Sprite(PIXI.Texture.WHITE);
     sprite.width = imgSrc ? sprite.width : orgWidth
@@ -934,7 +933,7 @@ export class Map2DViewportComponent implements OnInit , AfterViewInit , OnDestro
     return ret
   }
 
-  async convertJMapToUniversalResolution(mapData: JMap) {
+  async convertJMapToUniversalResolution(mapData: JMap) { //PENDING HANDLE LARGE MAPS
     let stdRatio = 1 / this.util.config.METER_TO_PIXEL_RATIO
     if (mapData.resolution && mapData.resolution != stdRatio) {
       mapData.imageWidth = Math.ceil(mapData.imageWidth * (mapData.resolution / stdRatio))
@@ -971,7 +970,6 @@ export class Map2DViewportComponent implements OnInit , AfterViewInit , OnDestro
   async loadDataset(dataset: JFloorPlan, readonly = false, locationOnly = null, showFloorPlanName = true, setCamera = true , refreshToggled = true) {
     let ret = new Subject()
     let ticket
-
     this.ngZone.runOutsideAngular(async () => {
       ticket = this.uiSrv.loadAsyncBegin()
       this.reset()
@@ -1038,7 +1036,7 @@ export class Map2DViewportComponent implements OnInit , AfterViewInit , OnDestro
 
     dataset.pointList.forEach((data: JPoint) => {
       let pixiPoint : PixiWayPoint = this.getPixiWayPoint(undefined , data.pointCode , 'waypoint' , this.commonModule.data.getIconBase64(data.userDefinedPointType) , data.userDefinedPointType);
-      pixiPoint.robotBases = dataset.mapList.filter(m=>m.pointList.map(p=>p.pointCode).includes(data.pointCode)).map(m=>m.robotBase)
+      pixiPoint.robotBases = data.robotBaseList ? data.robotBaseList  : dataset.mapList.filter(m=>m.pointList.map(p=>p.pointCode).includes(data.pointCode)).map(m=>m.robotBase)
       pixiPoint.waypointName =  data.pointCode; //TBDelete
       pixiPoint.readonly = readonly;
       pixiPoint.orientationAngle = data.guiAngle
@@ -1127,7 +1125,6 @@ export class Map2DViewportComponent implements OnInit , AfterViewInit , OnDestro
     }
 
     let hasMap = this.mainContainer.children.filter(c => c instanceof PixiEditableMapImage).length > 0
-    console.log(this.util.standaloneApp)
     let getJPoints = (robotBase : string = null)=> this.viewport.allPixiWayPoints.filter(p=> this.util.standaloneApp || robotBase == null || p.robotBases.includes(robotBase)).map((point: PixiWayPoint) => {
       let pt : JPoint = copyOriginalData(<PixiMapGraphics>point , new JPoint())
       pt.floorPlanCode = floorPlanCode
@@ -1140,6 +1137,7 @@ export class Map2DViewportComponent implements OnInit , AfterViewInit , OnDestro
       pt.enabled = point.enabled
       pt.groupProperties = hasMap && point.hasPointGroup ? JSON.stringify(point.pixiPointGroup.settings) : ""
       pt.liftCode = point.pointType == 'LIFT' ?  point.liftCode : null
+      pt.robotBaseList = point.robotBases
       // pt.doorCode = point.doorCode
 
       if(hasMap && point.hasPointGroup){
@@ -1206,45 +1204,48 @@ export class Map2DViewportComponent implements OnInit , AfterViewInit , OnDestro
       m.transformedPositionX = this.util.trimNum(map.position.x - map.initialOffset?.x)
       m.transformedPositionY = this.util.trimNum(map.position.y - map.initialOffset?.y)
       m.imageHeight = this.util.trimNum(map.initialHeight, 0)
-      m.imageWidth =this.util.trimNum(map.initialWidth , 0)
+      m.imageWidth = this.util.trimNum(map.initialWidth , 0)
 
-      console.log(this.viewport.allPixiWayPoints)
-
-      m.pointList = getJPoints(m.robotBase).map(pt=> {
-        let p = new JPoint()
-        let pos : PIXI.Point = map.toLocal(this.mainContainer.toGlobal(new PIXI.Point(pt.guiX, pt.guiY)))
-        p.mapCode = m.mapCode
-        p.robotBase = m.robotBase
-        p.floorPlanCode = floorPlanCode
-        p.pointCode = pt.pointCode
-        p.guiAngle = this.util.trimNum(trimAngle(pt.guiAngle - map.angle))
-        p.guiX = pos.x , 0
-        p.guiY = pos.y , 0
-        p.positionX = map.calculateRosPosition(pos).x
-        p.positionY = map.calculateRosPosition(pos).y
-        p.angle = (90 - p.guiAngle) / radRatio
-        return p
-      }).filter(p=> p.guiY > 0 && p.guiY  <= map.height / map.scale.y &&  p.guiX  > 0 && p.guiX <= map.width / map.scale.x).concat(
-        Array.prototype.concat.apply([] , getJPoints(m.robotBase).filter(pt=>pt.groupMemberPointList.length > 0).map(pt => pt.groupMemberPointList.map(c=> {
-          let mapChildPt = new JPoint()
-          let pos = map.calculateRosPosition(map.toLocal(new PIXI.Point(c.positionX , c.positionY)))
-          mapChildPt.mapCode = m.mapCode
-          mapChildPt.robotBase = m.robotBase
-          mapChildPt.floorPlanCode = floorPlanCode
-          mapChildPt.pointCode = c.pointCode 
-          mapChildPt.guiX = c.guiX
-          mapChildPt.guiY = c.guiY
-          mapChildPt.positionX = pos.x
-          mapChildPt.positionY = pos.y
-          mapChildPt.angle = (90 - c.guiAngle) / radRatio
-          return mapChildPt
-        })))
-      )
+      if(this.util.standaloneApp){
+        m.pointList = getJPoints(m.robotBase).map(pt=> {
+          let p = new JPoint()
+          let pos : PIXI.Point = map.toLocal(this.mainContainer.toGlobal(new PIXI.Point(pt.guiX, pt.guiY)))
+          p.mapCode = m.mapCode
+          p.robotBase = m.robotBase
+          p.floorPlanCode = floorPlanCode
+          p.pointCode = pt.pointCode
+          p.guiAngle = this.util.trimNum(trimAngle(pt.guiAngle - map.angle))
+          p.guiX = pos.x , 0
+          p.guiY = pos.y , 0
+          p.positionX = map.calculateRosPosition(pos).x
+          p.positionY = map.calculateRosPosition(pos).y
+          p.angle = (90 - p.guiAngle) / radRatio
+          return p
+        }).filter(p=> p.guiY > 0 && p.guiY  <= map.height / map.scale.y &&  p.guiX  > 0 && p.guiX <= map.width / map.scale.x).concat(
+          Array.prototype.concat.apply([] , getJPoints(m.robotBase).filter(pt=>pt.groupMemberPointList.length > 0).map(pt => pt.groupMemberPointList.map(c=> {
+            let mapChildPt = new JPoint()
+            let pos = map.calculateRosPosition(map.toLocal(new PIXI.Point(c.positionX , c.positionY)))
+            mapChildPt.mapCode = m.mapCode
+            mapChildPt.robotBase = m.robotBase
+            mapChildPt.floorPlanCode = floorPlanCode
+            mapChildPt.pointCode = c.pointCode 
+            mapChildPt.guiX = c.guiX
+            mapChildPt.guiY = c.guiY
+            mapChildPt.positionX = pos.x
+            mapChildPt.positionY = pos.y
+            mapChildPt.angle = (90 - c.guiAngle) / radRatio
+            return mapChildPt
+          })))
+        )
+      }else{
+        m.pointList = []
+      }
       m.pathList = JSON.parse(JSON.stringify(getPaths(map))).filter((p: JPath) => m.pointList.map(p => p.pointCode).includes(p.sourcePointCode) && m.pointList.map(p => p.pointCode).includes(p.destinationPointCode))
       m.pathList.forEach(p => {
         p.mapCode = m.mapCode
         p.robotBase = m.robotBase
       })
+
       return m
     })
 
@@ -2630,6 +2631,7 @@ export class DataModule{
             content.robotCode = alertMarker.robotCode
             content.timestamp = alertMarker.eventId
             content.data = {floorPlanCode : a.floorPlanCode , mapCode : a.mapCode , rosX : a.rosX , rosY : a.rosY}
+            alertMarker.toolTip.hidden = true
             setTimeout(()=>{
               alertMarker.toolTip.hide()
               alertMarker?.parent?.removeChild(alertMarker)

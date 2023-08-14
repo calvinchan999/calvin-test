@@ -121,6 +121,7 @@ if (standaloneApp) {
         { path: 'task', component: SaTaskComponent ,   canActivate: [AuthGuard]},
         { path: 'taskProgress', component: SaPagesTaskProgressComponent ,  canActivate: [AuthGuard]},
         { path: 'user', component: CmUserComponent ,  canActivate: [AuthGuard]},
+        { path: 'error',  component: CmErrorPageComponent},
         // { path: 'arcs/home' , component: ArcsDashboardComponent}, //testing
         // { path: 'arcs/setup' , component: ArcsSetupComponent}, //testing
         // { path: 'arcs/powerbi' , component: PowerBiComponent}, //testing
@@ -135,6 +136,7 @@ if (standaloneApp) {
         { path: 'home' , component: ArcsDashboardComponent,  canActivate: [AuthGuard]},
         { path: 'setup' , component: ArcsSetupComponent,  canActivate: [AuthGuard]},
         { path: 'waypoint',  component: ArcsTabletWaypointHomeComponent},
+        { path: 'error',  component: CmErrorPageComponent},
         // { path: 'patrol',  component: ArcsDashboardComponent,  canActivate: [AuthGuard]},
         // { path: 'disinfection', component: ArcsDashboardComponent,  canActivate: [AuthGuard]},
         // { path: 'mobile_chair',  component: ArcsDashboardComponent,  canActivate: [AuthGuard]},
@@ -245,6 +247,7 @@ import { ArcsTabletWaypointHomeComponent } from './arcs-tablet/waypoint/arcs-tab
 import { ArcsTabletWaypointMapComponent } from './arcs-tablet/waypoint/arcs-tablet-waypoint-map/arcs-tablet-waypoint-map.component';
 import { ArcsTabletWaypointTaskComponent } from './arcs-tablet/waypoint/arcs-tablet-waypoint-task/arcs-tablet-waypoint-task.component';
 import { ArcsTabletWaypointSettingsComponent } from './arcs-tablet/waypoint/arcs-tablet-waypoint-settings/arcs-tablet-waypoint-settings.component';
+import { CmErrorPageComponent } from './common-components/cm-error-page/cm-error-page.component';
 // import { WorkflowComponent } from './ui-components/workflow/workflow.component';
 // import { SequentialWorkflowDesignerModule } from 'sequential-workflow-designer-angular';
 
@@ -359,6 +362,7 @@ import { ArcsTabletWaypointSettingsComponent } from './arcs-tablet/waypoint/arcs
         ArcsTabletWaypointMapComponent,
         ArcsTabletWaypointTaskComponent,
         ArcsTabletWaypointSettingsComponent,
+        CmErrorPageComponent,
         // WorkflowComponent        
     ],
     imports: [

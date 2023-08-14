@@ -82,6 +82,11 @@ export class ArcsDashboardNewTaskComponent implements OnInit , OnDestroy {
     this.uiSrv.loadAsyncDone(ticket)
   }
 
+  // refreshRobotDropdown(){
+  //   let robotBases = (<DropListLocation[]>this.dropdownData.locations).filter(l=>l.floorPlanCode == this.dashboardCompRef.selectedFloorPlanCode && l.pointCode == this.singleMovementPointCode)[0]?.
+  //   this.dropdownOptions.robots = this.dataSrv.getDropListOptions( 'robots' , this.dropdownData.robots , {robotBase :})
+  // }
+
   async createSinglePointTask(){
     const robotInfo =  this.dashboardCompRef.robotInfos.filter(r=>r.robotCode == this.selectedRobotCode)[0]
     if(!robotInfo){

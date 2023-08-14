@@ -12,6 +12,8 @@ import { ForgetPasswordComponent } from './forget-password/forget-password.compo
 import { ReCaptchaV3Service } from 'ng-recaptcha';
 import { RECAPTCHA_V3_SITE_KEY, RecaptchaV3Module } from "ng-recaptcha";
 import { environment } from 'src/environments/environment';
+import { catchError } from 'rxjs/operators';
+import { of } from 'rxjs';
 
 @Component({
   selector: 'app-cm-login',
@@ -29,7 +31,7 @@ export class CmLoginComponent implements OnInit {
   changePwMsg
   me
   auth2FASegment
-  recaptchaV3Service
+  recaptchaV3Service : ReCaptchaV3Service
   temporaryBearerToken
   arcsTabletMode = {
     waypoint : null,
@@ -94,8 +96,8 @@ export class CmLoginComponent implements OnInit {
   }
 
   async login() {
+    let ticket 
     let sendRequest = async (token) => {
-      let ticket = this.uiSrv.loadAsyncBegin(1000)
       let resp : loginResponse
       try {
         resp = await (this.authSrv.login(this.frmGrp.controls['username'].value,
@@ -155,8 +157,14 @@ export class CmLoginComponent implements OnInit {
 
     }
     if (this.util.standaloneApp || this.util.config.DISABLE_RECAPTCHA) {
+      ticket =  this.uiSrv.loadAsyncBegin(1000)
       sendRequest(null)
     } else {
+      ticket =  this.uiSrv.loadAsyncBegin(1000)
+      this.recaptchaV3Service.onExecuteError.subscribe((err)=>{
+        console.log(err)
+        this.uiSrv.loadAsyncDone(ticket)
+      })
       this.recaptchaV3Service.execute('login').subscribe((token) => sendRequest(token))
     }
   }

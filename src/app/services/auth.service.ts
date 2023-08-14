@@ -17,7 +17,7 @@ import { MapService } from './map.service';
 
 @Injectable()
 export class AuthService {
-	public username
+	public username //!= null if logined
 	public tenantId
 	public userAccessList = []
 	public isGuestMode = false
