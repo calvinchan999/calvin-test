@@ -27,6 +27,7 @@ import { ArcsSetupTypeComponent } from './arcs-setup-type/arcs-setup-type.compon
 import { ArcsSetupFloorplan3dComponent } from './arcs-setup-floorplan3d/arcs-setup-floorplan3d.component';
 import { MqService } from 'src/app/services/mq.service';
 import { MapService } from 'src/app/services/map.service';
+import { RouteService } from 'src/app/services/route.service';
 
 @Component({
   selector: 'app-arcs-setup',
@@ -36,10 +37,11 @@ import { MapService } from 'src/app/services/map.service';
 export class ArcsSetupComponent implements OnInit {
   @ViewChild('table') tableElRef: TableComponent
   @ViewChild('pixi') pixiElRef: Map2DViewportComponent
-  constructor(public mapSrv : MapService, public mqSrv : MqService, public windowSrv: DialogService, public dataSrv : DataService, public uiSrv: UiService, public http: RvHttpService, private location : Location, private router : Router,
+  constructor( public routeSrv : RouteService , public mapSrv : MapService, public mqSrv : MqService, public windowSrv: DialogService, public dataSrv : DataService, public uiSrv: UiService, public http: RvHttpService, private location : Location, private router : Router,
               private changeDectector: ChangeDetectorRef, private route : ActivatedRoute, private util: GeneralUtil, private ngZone: NgZone , private authSrv : AuthService) { 
       this.tabs = this.tabs.filter(t=> t.authorized === false || this.authSrv.hasRight(this.gridSettings[t.id].functionId?.toUpperCase()))
-      this.selectedTab = this.route.snapshot.paramMap.get('selectedTab') ? this.route.snapshot.paramMap.get('selectedTab') : this.tabs[0].id
+      // this.selectedTab = this.route.snapshot.paramMap.get('selectedTab') ? this.route.snapshot.paramMap.get('selectedTab') : this.tabs[0].id
+      
       Object.keys(this.tableCustomButtons).forEach(k=> {
         this.tableCustomButtons[k].forEach(btn=>{
           if(!this.authSrv.hasRight(btn?.functionId)){
@@ -60,7 +62,15 @@ export class ArcsSetupComponent implements OnInit {
     // { id: 'synclog', label: 'Data Sync Log' },
     // { id: 'log', label: 'System Log' , authorized : false},
   ]
-  selectedTab = 'floorplan' 
+  set selectedTab (tab : string){
+    this._selectedTab = tab
+    this.routeSrv.refreshQueryParam( { selectedTab: this.selectedTab })
+  }
+  _selectedTab 
+  get selectedTab(){
+    return this._selectedTab
+  }
+
   tableCustomButtons = {
     map:[{id : 'importMap' , label : 'Import' , icon : 'import' , disabled : false  ,  functionId : 'MAP_IMPORT' }  , {id : 'exportMap' , label : 'Export' , icon : 'export' , disabled : false ,  functionId : 'MAP_EXPORT' }],
     floorplan:[{id : 'importFloorplan' , label : 'Import' , icon : 'import' , disabled : false  ,  functionId : 'FLOORPLAN_IMPORT' } ,  {id : 'exportFloorplan' , label : 'Export' , icon : 'export' , disabled : false ,  functionId : 'FLOORPLAN_EXPORT'}]
@@ -187,14 +197,26 @@ export class ArcsSetupComponent implements OnInit {
   }
   
   async ngOnInit() {
-    this.route.params.pipe(takeUntil(this.$onDestroy)).subscribe((params)=>{
-      if(params?.selectedTab){
-        this.onTabChange(params?.selectedTab)
-        if(['synclog' , 'floorplan'].includes(params.selectedTab)){
-          this.tableElRef?.retrieveData()
-        }
-      }
-    })
+      this.selectedTab = this.routeSrv.queryParams.value && this.tabs.map(t=>t.id).includes(this.routeSrv.queryParams.value?.selectedTab) ? 
+                            this.routeSrv.queryParams.value?.selectedTab : 
+                            this.tabs[0]?.id
+      this.tableElRef?.retrieveData()
+    
+    // if(this.routeSrv.queryParams.value?.selectedTab && this.tabs.map(t=>t.id).includes(this.routeSrv.queryParams.value?.selectedTab)){
+    //   if(['floorplan'].includes(this.routeSrv.queryParams.value.selectedTab)){
+    //     t
+    //     this.onTabChange(this.routeSrv.queryParams.value?.selectedTab)
+    //     this.tableElRef?.retrieveData()
+    //   }
+    // }
+    // this.route.queryParams.pipe(takeUntil(this.$onDestroy)).subscribe((params)=>{
+    //   if(this.routeSrv.queryParams.value?.selectedTab && this.tabs.map(t=>t.id).includes(this.routeSrv.queryParams.value?.selectedTab)){
+    //     if(['floorplan'].includes(params.selectedTab)){
+    //       this.onTabChange(params?.selectedTab)
+    //       this.tableElRef?.retrieveData()
+    //     }
+    //   }
+    // })
     let ddl = await this.dataSrv.getDropLists(['types' , 'subTypes'])
     this.dropdownData.types = ddl.data['types'];
     this.dropdownData.subTypes = ddl.data['subTypes'];
@@ -206,21 +228,21 @@ export class ArcsSetupComponent implements OnInit {
 
 
   async ngAfterViewInit() {
-    this.onTabChange(this.selectedTab)
+    // this.onTabChange(this.selectedTab)
   }
 
-  onTabChange(id) {
-    this.selectedTab = id
-    // this.columnDef = this.gridSettings[id].columns`
-    this.data = []
-    this.changeDectector.detectChanges()
-    this.router.navigate([this.router.url.split(";")[0]])
-    // if(id == 'robotCoop'){
-    //   this.TEST_RobotCollaboration()
-    // }
-    // window.location.href = this.router.url.split(";")[0]
-    // this.loadData()
-  }
+  // onTabChange(id) {
+  //   this.selectedTab = id
+  //   // this.columnDef = this.gridSettings[id].columns`
+  //   this.data = []
+  //   this.changeDectector.detectChanges()
+  //   // this.router.navigate([this.router.url.split(";")[0]])
+  //   // if(id == 'robotCoop'){
+  //   //   this.TEST_RobotCollaboration()
+  //   // }
+  //   // window.location.href = this.router.url.split(";")[0]
+  //   // this.loadData()
+  // }
 
   async loadData(evt = null) {
     await this.tableElRef?.retrieveData()

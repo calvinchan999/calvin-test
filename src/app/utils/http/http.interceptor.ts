@@ -39,9 +39,10 @@ export class CustomHttpInterceptor implements HttpInterceptor {
           console.log(error)
           console.trace()
           if (error instanceof HttpErrorResponse && error.status == 0 && this.authService.username) {
-            if(!this.router.url?.startsWith('/error')){
-              this.router.navigate(['/error'],{queryParams:{type : 'offline' , prevRoute : this.router.url}})
-            }
+            this.uiSrv.navigateToErrorPage('offline')
+            // if(!this.router.url?.startsWith('/error')){
+            //   this.router.navigate(['/error'],{queryParams:{type : 'offline' , prevRoute : this.router.url}})
+            // }
             return next.handle(req);
           }  else if (error instanceof HttpErrorResponse && error.status == 401 && !authReq.url.endsWith('/api/Auth/refreshtoken') && !authReq.url.startsWith('assets/')) {
             return this.handle401Error(authReq, next);

@@ -248,6 +248,7 @@ import { ArcsTabletWaypointMapComponent } from './arcs-tablet/waypoint/arcs-tabl
 import { ArcsTabletWaypointTaskComponent } from './arcs-tablet/waypoint/arcs-tablet-waypoint-task/arcs-tablet-waypoint-task.component';
 import { ArcsTabletWaypointSettingsComponent } from './arcs-tablet/waypoint/arcs-tablet-waypoint-settings/arcs-tablet-waypoint-settings.component';
 import { CmErrorPageComponent } from './common-components/cm-error-page/cm-error-page.component';
+import { ArcsReportExportComponent } from './arcs/arcs-report-export/arcs-report-export.component';
 // import { WorkflowComponent } from './ui-components/workflow/workflow.component';
 // import { SequentialWorkflowDesignerModule } from 'sequential-workflow-designer-angular';
 
@@ -363,6 +364,7 @@ import { CmErrorPageComponent } from './common-components/cm-error-page/cm-error
         ArcsTabletWaypointTaskComponent,
         ArcsTabletWaypointSettingsComponent,
         CmErrorPageComponent,
+        ArcsReportExportComponent,
         // WorkflowComponent        
     ],
     imports: [

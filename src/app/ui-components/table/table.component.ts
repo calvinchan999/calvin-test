@@ -218,9 +218,10 @@ export class TableComponent implements OnInit {
     this.selectedDataChange.emit(this.selectedData)
   }
 
-  async retrieveData(evt = this.state){
+  async retrieveData(evt = this.state){  
     let orgEndpoint = this.dataSourceApiEndpoint
     if(this.dataSourceApiEndpoint){
+      this.data = []
       this.isLoading = true
       let resp = await this.httpSrv.getWithTotalCount(this.dataSourceApiEndpoint + this.dataSrv.getUrlQueryParam(evt))
       this.isLoading = false

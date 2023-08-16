@@ -3,7 +3,7 @@ import { DialogRef } from '@progress/kendo-angular-dialog';
 import { ArcsDashboardComponent } from '../arcs-dashboard.component';
 import { UiService } from 'src/app/services/ui.service';
 import { DataService } from 'src/app/services/data.service';
-import { AUTONOMY, ActionParameter, DropListAction, DropListLocation, DropListRobot, TaskItem } from 'src/app/services/data.models';
+import { AUTONOMY, ActionParameter, DropListAction, DropListLocation, DropListRobot, JFloorPlan, TaskItem } from 'src/app/services/data.models';
 import { CdkDragDrop, moveItemInArray } from '@angular/cdk/drag-drop';
 import { CustomButtonComponent } from 'src/app/ui-components/threejs-viewport/custom-button/custom-button.component';
 import { CSS2DObject } from 'three/examples/jsm/renderers/CSS2DRenderer';
@@ -11,6 +11,7 @@ import { Css2DObject3D } from 'src/app/ui-components/threejs-viewport/threejs-vi
 import { PixiWayPoint } from 'src/app/utils/ng-pixi/ng-pixi-viewport/ng-pixi-map-graphics';
 import { Subject } from 'rxjs';
 import { RobotService } from 'src/app/services/robot.service';
+import { MapService } from 'src/app/services/map.service';
 
 @Component({
   selector: 'app-arcs-dashboard-new-task',
@@ -32,11 +33,12 @@ export class ArcsDashboardNewTaskComponent implements OnInit , OnDestroy {
   showActionIndex
   selectedAction : {taskItem : TaskItem , actionIndex : number , taskItemIndex : number , actionParams? : ActionParameter[] , actionItem? :  {alias : string , properties : object}}
   $onDestroy = new Subject()
-  constructor(public uiSrv : UiService , public dataSrv : DataService , public robotSrv : RobotService) { 
+  constructor(public uiSrv : UiService , public dataSrv : DataService , public robotSrv : RobotService , public mapSrv : MapService) { 
     this.taskName = this.uiSrv.translate("New Task")
   }
 
-  ngOnInit(): void {
+  async ngOnInit(){
+    await this.initDropDown()
     if(this.singleMovementPointCode){
       this.refreshDropDown()
     }else{
@@ -48,7 +50,6 @@ export class ArcsDashboardNewTaskComponent implements OnInit , OnDestroy {
         this.dashboardCompRef.pixiElRef.module.ui.toggle.showWaypoint = true
         this.dashboardCompRef.pixiElRef.module.ui.toggleWaypoint()
       }
-      this.initDropDown()
     }
   } 
 
@@ -57,9 +58,17 @@ export class ArcsDashboardNewTaskComponent implements OnInit , OnDestroy {
   }
 
   refreshDropDown() {
-    this.dropdownOptions.robots = this.dashboardCompRef.robotInfos.filter(r => r.robotStatus == 'IDLE').map(r => { return { text: r.robotCode, value: r.robotCode } })
-    if (this.singleMovementPointCode && this.dropdownOptions.robots.length == 0) {
+    let idleRobots = this.dashboardCompRef.robotInfos.filter(r=> r.robotStatus == 'IDLE').map(r=>r.robotCode)
+    let robotBases = this.dashboardCompRef.currentFloorPlan.pointList.filter(p=>p.pointCode == this.singleMovementPointCode)[0]?.robotBaseList
+    robotBases = robotBases ? robotBases : this.dashboardCompRef.currentFloorPlan.mapList.filter(m=>m.pointList.map(p=>p.pointCode).includes(this.singleMovementPointCode)).map(m=>m.robotBase)
+    this.dropdownOptions.robots =  this.dataSrv.getDropListOptions( 'robots' , (<DropListRobot[]>this.dropdownData.robots).filter(r=> robotBases.includes(r.robotBase) && idleRobots.includes(r.robotCode)) )
+    //this.dashboardCompRef.robotInfos.filter(r => robotBases.includes() && r.robotStatus == 'IDLE').map(r => { return { text: r.robotCode, value: r.robotCode } })
+    if (this.singleMovementPointCode && idleRobots.length == 0) {
       this.uiSrv.showNotificationBar("No idle robot available on this floor plan", 'warning')
+      this.close.emit(true)
+    }else if(this.singleMovementPointCode  && this.dropdownOptions.robots.length == 0 ){
+      let idleRobotNames = (<DropListRobot[]>this.dropdownData.robots).filter(r=>idleRobots.includes(r.robotCode)).map(r=>r.name).join(' ,')
+      this.uiSrv.showNotificationBar(this.uiSrv.translate("Idle robot(s) (") + idleRobotNames  + this.uiSrv.translate(") does not support this waypoint ") , 'warning')
       this.close.emit(true)
     }else if(this.singleMovementPointCode){
       this.selectedRobotCode = this.dropdownOptions.robots[0]?.value
@@ -81,11 +90,6 @@ export class ArcsDashboardNewTaskComponent implements OnInit , OnDestroy {
     this.dropdownOptions = <any>dropData.option
     this.uiSrv.loadAsyncDone(ticket)
   }
-
-  // refreshRobotDropdown(){
-  //   let robotBases = (<DropListLocation[]>this.dropdownData.locations).filter(l=>l.floorPlanCode == this.dashboardCompRef.selectedFloorPlanCode && l.pointCode == this.singleMovementPointCode)[0]?.
-  //   this.dropdownOptions.robots = this.dataSrv.getDropListOptions( 'robots' , this.dropdownData.robots , {robotBase :})
-  // }
 
   async createSinglePointTask(){
     const robotInfo =  this.dashboardCompRef.robotInfos.filter(r=>r.robotCode == this.selectedRobotCode)[0]

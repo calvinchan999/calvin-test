@@ -40,7 +40,7 @@ import { style } from '@angular/animations';
 import {calculateMapOrigin, calculateMapX, calculateMapY} from './pixi-ros-conversion'
 import {  PixiContainer} from 'src/app/utils/ng-pixi/ng-pixi-viewport/ng-pixi-base-container';
 import { PixiPath, PixiChildPoint, PixiWayPoint, PixiMap, PixiMapContainer, PixiEditableMapImage, PixiPointGroup, PixiBuildingPolygon, PixiRobotCountTag, PixiRobotMarker, PixiRosMapOriginMarker, PixiTaskPath, PixiMapGraphics, PixiEventMarker, PixiZonePolygon } from '../../utils/ng-pixi/ng-pixi-viewport/ng-pixi-map-graphics'
-import { GetResizedBase64, GetResizedCanvas, GetSpriteFromUrl } from 'src/app/utils/ng-pixi/ng-pixi-viewport/ng-pixi-functions';
+import { GetResizedBase64, GetResizedCanvas, GetSpriteFromUrl, IsWebGLSupported } from 'src/app/utils/ng-pixi/ng-pixi-viewport/ng-pixi-functions';
 import { MqService } from 'src/app/services/mq.service';
 import { RobotService, RobotState } from 'src/app/services/robot.service';
 import { FloorPlanState, MapService } from 'src/app/services/map.service';
@@ -495,7 +495,7 @@ export class Map2DViewportComponent implements OnInit , AfterViewInit , OnDestro
     }
     this.arrowKeyStep = 1
   }
-
+  isWebGLSupported = true
   constructor( public mapSrv : MapService, public robotSrv : RobotService, public util: GeneralUtil, public changeDetector: ChangeDetectorRef,private renderer: Renderer2 , public dataSrv : DataService, public configSrv : ConfigService,
               public uiSrv : UiService,  public httpSrv : RvHttpService, public elRef : ElementRef, public ngZone : NgZone , public authSrv : AuthService , public mqSrv : MqService) {
       this.commonModule = new CommonModule(this)
@@ -526,8 +526,12 @@ export class Map2DViewportComponent implements OnInit , AfterViewInit , OnDestro
   }
 
   
-  async ngOnInit(){
+  async ngOnInit(){    
     this.overlayMsg = this.showRobot && this.util.standaloneApp ? this.uiSrv.translate("Initializing ...") : this.overlayMsg 
+    this.isWebGLSupported = await IsWebGLSupported()
+    if(!await IsWebGLSupported()){
+      this.uiSrv.navigateToErrorPage('webgl')
+    }
     // console.log(`window height : ${window.innerHeight} , window width : ${window.innerWidth}  `)
     if(!this.uiSrv.Map2DViewportComponents.includes(this)){
       this.uiSrv.Map2DViewportComponents.push(this)

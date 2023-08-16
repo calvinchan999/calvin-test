@@ -37,8 +37,10 @@ export async function GetResizedCanvas(image: any, newWidth: number, newHeight: 
 export async function GetResizedBase64(url: string, newWidth: number, newHeight: number) {
     url = url.startsWith('data:image') ? url : ('data:image/png;base64,' + url)
     let image: any = await GetImage(url)
-    console.log(newWidth)
-    console.log( newHeight)
     let canvas = await GetResizedCanvas(image, newWidth, newHeight)
     return canvas.toDataURL().replace('data:image/png;base64,', '')
+}
+
+export async function IsWebGLSupported(){
+    return await PIXI.utils.isWebGLSupported()
 }

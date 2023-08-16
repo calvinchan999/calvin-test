@@ -168,6 +168,11 @@
 </ng-container>
 
 
+<kendo-dialog *ngIf="btmMapPanel?.showNewTaskDialog" class="new-task-dialog" [title]="('Send Robot To ' | label: uiSrv.langPack) + btmMapPanel.waypointState.pointCode" (close)="btmMapPanel.showNewTaskDialog = false" [minWidth]="250" [width]="450">
+    <app-arcs-dashboard-new-task [dashboardCompRef] = "this" [singleMovementPointCode]="btmMapPanel.waypointState.pointCode" (close) = "btmMapPanel.showNewTaskDialog = false"></app-arcs-dashboard-new-task >
+</kendo-dialog>
+
+
 
 
 <!-- <kendo-dialog *ngIf="robotDetailId!=null" [title]="robotDetailId" (close)="robotDetailId = null" >

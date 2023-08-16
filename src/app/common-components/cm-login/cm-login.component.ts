@@ -14,6 +14,7 @@ import { RECAPTCHA_V3_SITE_KEY, RecaptchaV3Module } from "ng-recaptcha";
 import { environment } from 'src/environments/environment';
 import { catchError } from 'rxjs/operators';
 import { of } from 'rxjs';
+import { RouteService } from 'src/app/services/route.service';
 
 @Component({
   selector: 'app-cm-login',
@@ -56,7 +57,7 @@ export class CmLoginComponent implements OnInit {
     return this._showChangePasswordDialog 
   }
   _showChangePasswordDialog = false
-  constructor(private injector: Injector , public dataSrv : DataService ,public uiSrv: UiService , public authSrv : AuthService, public router : Router, public util : GeneralUtil ,  private route: ActivatedRoute) { 
+  constructor(public routeSrv : RouteService, private injector: Injector , public dataSrv : DataService ,public uiSrv: UiService , public authSrv : AuthService, public router : Router, public util : GeneralUtil ,  private route: ActivatedRoute) { 
     // this.authSrv.logout()
     this.me = this
     this.authSrv.username = this.util.getCurrentUser()
@@ -80,15 +81,22 @@ export class CmLoginComponent implements OnInit {
   errMsg = null
   dialogRef
   ngOnInit(): void {
-    this.route.queryParamMap.subscribe((v:any)=>{
-      const params = v?.params
-      this.clientId = params?.clientId
-      console.log( 'CLIENT ID : ' + this.clientId)
-      if(params?.floorplan && params?.waypoint){
-        this.uiSrv.arcsTabletMode = 'WAYPOINT'
-        this.params = params 
-      }
-    })
+    this.clientId = this.routeSrv.queryParams?.value?.clientId
+    console.log( 'CLIENT ID : ' + this.clientId)
+    if(this.routeSrv.queryParams?.value?.floorplan && this.routeSrv.queryParams?.value?.waypoint){
+      this.uiSrv.arcsTabletMode = 'WAYPOINT'
+      this.params = this.routeSrv.queryParams?.value 
+    }
+
+    // this.route.queryParamMap.subscribe((v:any)=>{
+    //   const params = v?.params
+    //   this.clientId = params?.clientId
+    //   console.log( 'CLIENT ID : ' + this.clientId)
+    //   if(params?.floorplan && params?.waypoint){
+    //     this.uiSrv.arcsTabletMode = 'WAYPOINT'
+    //     this.params = params 
+    //   }
+    // })
   }
 
   ngOnDestroy(){

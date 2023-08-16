@@ -8,7 +8,7 @@
         </div>
 
         <div class="alert topnav" *ngIf="mqSrv.data.unreadMsgCnt.value > 0" [matTooltip]="('You have' | label : uiSrv.langPack  ) + ' ' + mqSrv.data.unreadMsgCnt.value + ' ' + ('unread notification' | label : uiSrv.langPack )">
-            <a class="k-icon mdi mdi-alert"  (click)="router.navigate([ util.standaloneApp ? '/control' : '/user', {selectedTab : 'log'}] , {skipLocationChange: false})">
+            <a class="k-icon mdi mdi-alert"  (click)="router.navigate([ util.standaloneApp ? '/control' : '/user'] , {queryParams : {selectedTab : 'log'}})">
                 <kendo-badge rounded="medium" themeColor="warning" position="edge" [align] = "{ vertical: 'bottom', horizontal: 'end' }">{{mqSrv.data.unreadMsgCnt.value}}</kendo-badge>
             </a>
         </div>
@@ -24,14 +24,14 @@
                             {{dataSrv.unreadSyncMsgCount.value + mapSrv.outSyncFloorPlans.length }}
                         </kendo-badge>
                     </a>
-                    <button kendoButton *ngIf="item.dataSyncId != null" (click)="router.navigate(['/user', {selectedTab : 'synclog'}])" class="sync"> 
+                    <button kendoButton *ngIf="item.dataSyncId != null" (click)="router.navigate(['/user'] , {queryParams :  {selectedTab : 'synclog'}})" class="sync"> 
                         <span [class]="item.dataSyncType == 'EXPORT' ? 'k-icon mdi mdi-cloud-download sync' : ( item.dataSyncType == 'IMPORT' ? 'k-icon mdi mdi-cloud-upload' : '')"></span>
                         <span class="object-type">{{item.objectType | enum : true }}</span>
                         <span class="object-code">{{item.objectCode}}</span>
                         <span class="robot-code">{{item.robotCode}}</span>
                         <span [class]="'status ' + (item.dataSyncStatus | cssClassName )">{{item.dataSyncStatus}}</span>
                     </button>
-                    <button kendoButton *ngIf="item.type == 'SyncAlert'" (click)="router.navigate(['/setup', {selectedTab : 'floorplan'}])" class="alert">  
+                    <button kendoButton *ngIf="item.type == 'SyncAlert'" (click)="router.navigate(['/setup'] , {queryParams :  {selectedTab : 'floorplan'}})" class="alert">  
                         <span class="mdi mdi-exclamation-thick alert"></span>
                         <span class="text">{{ 'Floor Plan [' + item.floorPlanCode + '] need to be updated' | label : uiSrv.langPack}}</span>
                     </button>

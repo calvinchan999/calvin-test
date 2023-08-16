@@ -1,5 +1,5 @@
 import { ChangeDetectorRef, Component, OnDestroy, OnInit } from '@angular/core';
-import { NavigationStart, Router } from '@angular/router';
+import { ActivatedRoute, NavigationStart, Router } from '@angular/router';
 import { HttpClient } from '@angular/common/http'; 
 import { Observable } from 'rxjs';
 import { DrawerComponent, DrawerMode, DrawerSelectEvent } from '@progress/kendo-angular-layout';
@@ -9,6 +9,7 @@ import { DrawerComponent, DrawerMode, DrawerSelectEvent } from '@progress/kendo-
 import { GeneralUtil } from './utils/general/general.util';
 import { environment } from 'src/environments/environment';
 import { UiService } from './services/ui.service';
+import { RouteService } from './services/route.service';
 import { AuthService } from './services/auth.service';
 import { skip } from 'rxjs/operators';
 
@@ -28,7 +29,9 @@ export class AppComponent implements OnInit, OnDestroy {
                 private http: HttpClient , 
                 public util : GeneralUtil,
                 public uiSrv : UiService,
-                public authSrv : AuthService
+                public authSrv : AuthService,
+                public route : ActivatedRoute,
+                public routeSrv : RouteService
             ) {
         // this.customMsgService = this.msgService as CustomMessagesService;
         
@@ -59,10 +62,10 @@ export class AppComponent implements OnInit, OnDestroy {
 
     ngOnInit() {
         // Update Drawer selected state when change router path
-        this.router.events.subscribe((route: NavigationStart) => {
+        this.router.events.subscribe((route: NavigationStart) => { 
             if (route instanceof NavigationStart) {
                 this.items = this.drawerItems().map((item) => {
-                    if (item.path && item.path === route.url) {
+                    if (item.path && item.path === route.url.split("?")[0]) {
                         item.selected = true;
                         return item;
                     } else{
@@ -152,7 +155,7 @@ export class AppComponent implements OnInit, OnDestroy {
     }
 
     public onSelect(ev: DrawerSelectEvent): void {
-        this.router.navigate([ev.item.path]);
+        this.router.navigate([ev.item.path] , this.routeSrv.queryParams?.value?.selectedTab ? {queryParams:{selectedTab : this.routeSrv.queryParams?.value?.selectedTab  }} : undefined);
         this.selected = ev.item.text;
     }
 }

@@ -15,6 +15,7 @@ import { AuthService } from 'src/app/services/auth.service';
 import { GeneralUtil } from 'src/app/utils/general/general.util';
 import { ActivatedRoute } from '@angular/router';
 import { Subject } from 'rxjs';
+import { RouteService } from 'src/app/services/route.service';
 
 
 @Component({
@@ -25,12 +26,20 @@ import { Subject } from 'rxjs';
 export class CmUserComponent implements OnInit {
 @ViewChild('table') ucTableRef : TableComponent
 @ViewChild('pixi') pixiElRef: Map2DViewportComponent
-  constructor(public windowSrv: DialogService, public uiSrv : UiService , public http: RvHttpService , private changeDectector : ChangeDetectorRef,
+  constructor( public routeSrv : RouteService , public windowSrv: DialogService, public uiSrv : UiService , public http: RvHttpService , private changeDectector : ChangeDetectorRef,
               private dataSrv : DataService , private ngZone : NgZone, public authSrv : AuthService , public util : GeneralUtil , public route : ActivatedRoute) { 
               this.tabs = this.tabs.filter(t=> t.authorized == false || this.authSrv.hasRight(t.functionId.toUpperCase()) && (t.id!='passwordPolicy' || this.util.arcsApp))
-              this.selectedTab = this.tabs[0].id
+              // this.selectedTab = this.tabs[0].id
   }
-  selectedTab = 'user'
+  set selectedTab (tab : string){
+    this._selectedTab = tab
+    this.routeSrv.refreshQueryParam( { selectedTab: this.selectedTab })
+  }
+  _selectedTab = 'user'
+  get selectedTab(){
+    return this._selectedTab
+  }
+
   gridSettings = { //consider to move them into a json file
     user : {
       functionId:"USER",
@@ -101,33 +110,40 @@ export class CmUserComponent implements OnInit {
   $onDestroy = new Subject()
   
   ngOnInit(){
-    this.route.params.pipe(takeUntil(this.$onDestroy)).subscribe((params)=>{
-      if(params?.selectedTab){
-        this.onTabChange(params?.selectedTab)
-        if(['synclog' , 'floorplan'].includes(params.selectedTab)){
-          this.ucTableRef?.retrieveData()
-        }
-      }
-    })
+    console.log(this.routeSrv.queryParams.value)
+    this.selectedTab = this.routeSrv.queryParams.value && this.tabs.map(t=>t.id).includes(this.routeSrv.queryParams.value?.selectedTab) ? 
+                        this.routeSrv.queryParams.value?.selectedTab : 
+                        this.tabs[0]?.id
+    this.ucTableRef?.retrieveData() 
+    // if(this.routeSrv.queryParams?.value?.selectedTab && ['synclog'].includes(this.routeSrv.queryParams?.value.selectedTab)){
+    //   this.onTabChange(this.routeSrv.queryParams?.value?.selectedTab)
+    //   this.ucTableRef?.retrieveData() 
   }
+    // this.route.queryParams.pipe(takeUntil(this.$onDestroy)).subscribe((params)=>{
+    //   if(this.routeSrv.queryParams?.value?.selectedTab && ['synclog'].includes(this.routeSrv.queryParams?.value.selectedTab)){
+    //       this.onTabChange(this.routeSrv.queryParams?.value?.selectedTab)
+    //       this.ucTableRef?.retrieveData() 
+    //   }
+    // })
+  
 
   async ngAfterViewInit() {
-      this.onTabChange(this.selectedTab)
+      // this.onTabChange(this.selectedTab)
       // this.selectedTab = 'user'
       //this.columnDef = this.columnsDefsMap[this.selectedTab]
       // this.loadData()
   }
 
-  onTabChange(id) {
-    //PENDING : bug fix - shapes missing when change from floorplan view to map view and back to floorplan view again 
-        this.selectedTab = id
-        this.data = []
-        if(!['passwordPolicy' , 'log'].includes(this.selectedTab)){
-          this.columnDef = this.gridSettings[id]['columns']
-        }
-        this.changeDectector.detectChanges()
-      // this.loadData()
-  }
+  // onTabChange(id) {
+  //   //PENDING : bug fix - shapes missing when change from floorplan view to map view and back to floorplan view again 
+  //       this.selectedTab = id
+  //       this.data = []
+  //       if(!['passwordPolicy' , 'log'].includes(this.selectedTab)){
+  //         this.columnDef = this.gridSettings[id]['columns']
+  //       }
+  //       this.changeDectector.detectChanges()
+  //     // this.loadData()
+  // }
 
   
   async loadData(criteria = undefined){

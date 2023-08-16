@@ -11,6 +11,8 @@ import { DatePipe } from '@angular/common'
 import { environment } from 'src/environments/environment';
 import { Title } from '@angular/platform-browser';
 import { DataService } from '@progress/kendo-angular-dropdowns';
+import { ActivatedRoute, Router } from '@angular/router';
+import { pid } from 'process';
 
 export const  dataNotFoundMessage = `[DATA NOT FOUND]`
 
@@ -20,6 +22,7 @@ export const  dataNotFoundMessage = `[DATA NOT FOUND]`
 export class UiService {
   public withDashboard = false
   public taskOverlay = false
+  private dialogRefs : DialogRef[] = []
   refreshDrawerItems = new BehaviorSubject<any>(null) // true : no filter , robotTypes: include specified robotType only
   loadingTickets = []
   robotTypeIconMap = {}
@@ -30,7 +33,7 @@ export class UiService {
     size: "large",
   }
   disconnected = new BehaviorSubject(false)
-  constructor(public dialogSrv: DialogService, public windowSrv : WindowService, private http: HttpClient ,public ngZone: NgZone,private notificationService: NotificationService , private titleSrv: Title , public datePipe : DatePipe) { 
+  constructor(  public dialogSrv: DialogService, public windowSrv : WindowService, private http: HttpClient ,public ngZone: NgZone,private notificationService: NotificationService , private titleSrv: Title , public datePipe : DatePipe , public router : Router,) { 
     this.isTablet = this.detectMob() && environment.app.toUpperCase() == 'STANDALONE'
     this.titleSrv.setTitle(this.translate(environment.app.toUpperCase() == 'STANDALONE' ? "RV Robotic System" : "ARCS"))
     this.initRobotTypeIconMap()
@@ -208,7 +211,16 @@ export class UiService {
         }
       })
     })
+    
+    this.dialogRefs.push(dialog)
+    dialog.dialog.instance.close.pipe((take(1))).subscribe(()=>this.dialogRefs = this.dialogRefs.filter(d=>d!=dialog))
     return dialog
+  }
+
+  closeAllDialogs(){
+    console.log( this.dialogRefs)
+    this.dialogRefs.forEach(d=>d.close())
+    this.dialogRefs = []
   }
 
   suspendBackgroundPixis() {
@@ -265,6 +277,13 @@ export class UiService {
     audio.load();
     audio.play();
   }
+
+  navigateToErrorPage(type){
+    if(!this.router.url?.startsWith('/error')){
+      this.router.navigate(['/error'],{queryParams:{type : type , prevRoute : this.router.url}})
+    }
+  }
+  
 
   // public fullScreen() {
   //   try{

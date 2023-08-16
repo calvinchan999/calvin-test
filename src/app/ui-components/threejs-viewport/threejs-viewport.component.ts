@@ -43,6 +43,7 @@ import { CLICK_EVENTS } from 'src/app/utils/ng-pixi/ng-pixi-viewport/ng-pixi-con
 import { DRAWING_STYLE } from 'src/app/utils/ng-pixi/ng-pixi-viewport/ng-pixi-styling-util';
 import { Geometry } from 'pixi.js';
 import { ConvertColorToHexadecimal } from 'src/app/utils/graphics/style';
+import { IsWebGLSupported } from 'src/app/utils/ng-pixi/ng-pixi-viewport/ng-pixi-functions';
 
 const NORMAL_ANGLE_ADJUSTMENT =  - 90 / radRatio
 const ASSETS_ROOT = 'assets/3D'
@@ -152,6 +153,7 @@ export class ThreejsViewportComponent implements OnInit , OnDestroy{
   use2DFloorPlanModel = false
   robotLists : DropListRobot[]
   loadingCount = 0
+  isWebGLSupported = true
   constructor( public mapSrv : MapService , public  robotSrv : RobotService ,  public uiSrv: UiService , public ngZone : NgZone , public util : GeneralUtil , public dataSrv : DataService ,  public ngRenderer:Renderer2 ,
               public elRef : ElementRef , public vcRef: ViewContainerRef , public compResolver: ComponentFactoryResolver , public mqSrv : MqService) {
     // this.loadingTicket = this.uiSrv.loadAsyncBegin()
@@ -413,6 +415,9 @@ export class ThreejsViewportComponent implements OnInit , OnDestroy{
 
   async ngOnInit() {
     console.log('THREE JS VERSION : ' + THREE.REVISION )
+    if(!await IsWebGLSupported()){
+      this.uiSrv.navigateToErrorPage('webgl')
+    }
     let storedToggle =  JSON.parse(this.dataSrv.getLocalStorage('uitoggle')) //SHARED by 2D & 3D viewport
     Object.keys(storedToggle).forEach(k=> {
       if(Object.keys(this.uiToggles).includes(k)){
@@ -1315,7 +1320,6 @@ export class Object3DCommon extends Object3D implements IDestroy{
   }
 
   hideToolTip(){ 
-    console.log('hide')
     if(this.children.includes(this.toolTip)){
       this.remove(this.toolTip)
     }
@@ -1498,7 +1502,7 @@ export class WaypointMarkerObject3D extends Object3DCommon {
   private customGlb = {
     CHARGING_STATION : {
       path :  ASSETS_ROOT + '/battery.glb',
-      size : 0.75,
+      size : 0.5,
       position : new Vector3( 0 , 0 , 0.4),
       recolorMaterials : [],
       replaceMaterial:{

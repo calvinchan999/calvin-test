@@ -14,7 +14,7 @@ export const environment = {
     { text: 'Floor Scrub', icon: 'mdi mdi-broom', path: '/floor_scrub', },
     { text: "Mobility Chair", icon: "mdi mdi-wheelchair-accessibility", path: "/mobile_chair" },
     { text: 'Disinfection', icon: 'mdi mdi-spray', path: '/disinfection', },
-    { text: 'Concierge', icon: 'mdi mdi-robot', path: '/concierge', },
+    { text: 'Concierge', icon: 'mdi mdi-account-tie', path: '/concierge', },
     { text: 'Forklift', icon: 'mdi mdi-forklift', path: '/forklift', },
     { text: 'Stocktake', icon: 'mdi mdi-package-variant-closed', path: '/stocktaking', }, 
   ]

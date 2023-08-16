@@ -43,7 +43,8 @@
     margin-right: 3px;
 }
 
-:host ::ng-deep .iot-row i.status.idle , i.iot-row .status.reserved {
+
+:host ::ng-deep .iot-row i.status.idle , .iot-row i.status.reserved {
     color: Darkturquoise;
 }
 

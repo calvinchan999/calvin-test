@@ -6,7 +6,7 @@ import { Map2DViewportComponent, Robot } from 'src/app/ui-components/map-2d-view
 import { GeneralUtil } from 'src/app/utils/general/general.util';
 import { DataService } from 'src/app/services/data.service';
 import {ARCS_STATUS_MAP, DropListBuilding, DropListFloorplan, DropListType, FloorPlanAlertTypeDescMap, FloorPlanDataset, JFloorPlan, JSite, RobotStatusARCS as RobotStatus, RobotStatusARCS, ShapeJData, TaskStateOptions} from 'src/app/services/data.models';
-import { Router } from '@angular/router';
+import { ActivatedRoute, Params, Router } from '@angular/router';
 import { DialogRef } from '@progress/kendo-angular-dialog';
 import { CmTaskJobComponent } from 'src/app/common-components/cm-task/cm-task-job/cm-task-job.component';
 import { TableComponent } from 'src/app/ui-components/table/table.component';
@@ -28,6 +28,7 @@ import { MapService } from 'src/app/services/map.service';
 import { ArcsEventDetectionDetailComponent } from '../arcs-event-detection-detail/arcs-event-detection-detail.component';
 import { ArcsDashboardMapPanelComponent } from './arcs-dashboard-map-panel/arcs-dashboard-map-panel.component';
 import { ArcsBroadcastComponent } from '../arcs-broadcast/arcs-broadcast.component';
+import { RouteService } from 'src/app/services/route.service';
 
 type robotTypeInfo = { //A group can be an individual robot (when filtered by robot type) OR robot type (no filter applied) 
   robotType: string
@@ -82,7 +83,15 @@ export class ArcsDashboardComponent implements OnInit {
   scrollToBottom = ()=> this.mainContainer.nativeElement.scrollTop = this.mainContainer.nativeElement.scrollHeight
   tableDisabledButtons = { new: false, action: true }
   tableButtons = { new: true, action: true }
-  selectedTab = 'dashboard'
+  set selectedTab (tab : string){
+    this._selectedTab = tab
+    this.routeSrv.refreshQueryParam( { selectedTab: this.selectedTab })
+  }
+  _selectedTab = 'dashboard'
+  get selectedTab(){
+    return this._selectedTab
+  }
+
   robotTypeFilter = null
   year
   location
@@ -208,7 +217,8 @@ export class ArcsDashboardComponent implements OnInit {
       { id: 'utilization', label: 'Utilization', authorized: false },      
       { id: 'robot_detection' , label : 'Event History' , authorized : false },
       // { id: 'detection', label: 'Event Analysis', authorized: false },
-      { id: 'group', label: 'Group' , functionId :  this.gridSettings.group.functionId},
+      { id: 'group', label: 'Robot Group' , functionId :  this.gridSettings.group.functionId},
+      { id: 'report_export', label: 'Report' , functionId : 'REPORT'},
     ]).
     filter(t=> t.authorized === false || this.authSrv.userAccessList.includes(t.functionId.toUpperCase()))
   }
@@ -254,14 +264,14 @@ export class ArcsDashboardComponent implements OnInit {
   }
   me
   iconMap = {}
-  constructor(public mapSrv : MapService, public robotSrv : RobotService, public mqSrv : MqService,  private util :GeneralUtil , private authSrv : AuthService , private httpSrv : RvHttpService, public uiSrv : UiService , private dataSrv : DataService, private router : Router , private ngZone : NgZone ) {
+  constructor( public routeSrv : RouteService, public mapSrv : MapService, public robotSrv : RobotService, public mqSrv : MqService,  private util :GeneralUtil , private authSrv : AuthService , private httpSrv : RvHttpService, public uiSrv : UiService , private dataSrv : DataService, private router : Router , private ngZone : NgZone , private route : ActivatedRoute) {
     // this.chartTesting()
     environment.routes.forEach(r=>{
       this.iconMap [r.path.replace('/','').toUpperCase()] = r.icon
     })
     this.me = this
     this.tabs = this.tabs.filter(t=> t.authorized === false || this.authSrv.userAccessList.includes(t.functionId))
-    this.selectedTab = 'dashboard'
+    // this.selectedTab = 'dashboard'
     // this.mqSrv.subscribeMQTTs([ 'obstacleDetection' , 'tilt' , 'estop'])
 
     this.mqSrv.data.arcsRobotStatusChange.pipe(skip(1), filter(v => v != null), takeUntil(this.$onDestroy)).subscribe((c) => {
@@ -288,9 +298,17 @@ export class ArcsDashboardComponent implements OnInit {
   }
   
   async ngOnInit(){
-    this.robotTypeFilter = this.router.url == '/home' ? null : this.router.url.replace('/', '')
+    this.robotTypeFilter = this.router.url.startsWith('/home') ? null : this.router.url.split('?')[0].replace('/', '')
     this.tabs = this.getTabs()
     this.gridSettings = this.getGridSettings()
+    this.selectedTab = this.routeSrv.queryParams.value && this.tabs.map(t=>t.id).includes(this.routeSrv.queryParams.value?.selectedTab) ? 
+                         this.routeSrv.queryParams.value?.selectedTab : 
+                         this.tabs[0]?.id
+    // this.route.queryParams.pipe(takeUntil(this.$onDestroy)).subscribe((params)=>{
+    //   if(this.routeSrv.queryParams.value && this.tabs.map(t=>t.id).includes(this.routeSrv.queryParams.value?.selectedTab)){
+    //     this.selectedTab = params?.selectedTab
+    //   }
+    // })
   }
 
   async ngAfterViewInit() {
@@ -299,16 +317,19 @@ export class ArcsDashboardComponent implements OnInit {
     let ddl = await this.dataSrv.getDropList('types')
     this.dropdownData.types = ddl.data;
     this.locationTree = this.dataSrv.getSessionStorage('arcsLocationTree') ? JSON.parse(this.dataSrv.getSessionStorage('arcsLocationTree')) : this.locationTree 
-    if(this.dataSrv.getLocalStorage('dashboardMapType') != '3D' || this.locationTree?.currentLevel != 'floorplan'){
-      await this.initPixi()
-    }else{
-      this.use3DMap = true
-      this.currentFloorPlan = null
-      await this.refreshFloorPlanOptions()
-      await this.loadFloorPlan()
+    if(this.selectedTab == 'dashboard'){
+      if(this.dataSrv.getLocalStorage('dashboardMapType') != '3D' || this.locationTree?.currentLevel != 'floorplan'){
+        await this.initPixi()
+      }else{
+        this.use3DMap = true
+        this.currentFloorPlan = null
+        await this.refreshFloorPlanOptions()
+        await this.loadFloorPlan()
+      }
     }
     this.uiSrv.loadAsyncDone(ticket)
   }
+  
   
 
   async refreshFloorPlanOptions(){

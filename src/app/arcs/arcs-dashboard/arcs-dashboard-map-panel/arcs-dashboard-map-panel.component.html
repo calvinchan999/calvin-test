@@ -93,9 +93,9 @@
 </div>
 
 
-<kendo-dialog *ngIf="showNewTaskDialog" class="new-task-dialog" [title]="('Send Robot To ' | label: uiSrv.langPack) + waypointState.pointCode" (close)="showNewTaskDialog = false" [minWidth]="250" [width]="450">
+<!-- <kendo-dialog *ngIf="showNewTaskDialog" class="new-task-dialog" [title]="('Send Robot To ' | label: uiSrv.langPack) + waypointState.pointCode" (close)="showNewTaskDialog = false" [minWidth]="250" [width]="450">
     <app-arcs-dashboard-new-task [dashboardCompRef] = "parent" [singleMovementPointCode]="waypointState.pointCode" (close) = "showNewTaskDialog = false"></app-arcs-dashboard-new-task >
-</kendo-dialog>
+</kendo-dialog> -->
 
 
 <div *ngIf="rightPanel" [class]="'right-panel ' + (panelMode | cssClassName)">
