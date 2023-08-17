@@ -30,7 +30,7 @@ import { ArcsLiftIotComponent } from 'src/app/arcs/arcs-iot/arcs-lift-iot/arcs-l
 import { ArcsTurnstileIotComponent } from 'src/app/arcs/arcs-iot/arcs-turnstile-iot/arcs-turnstile-iot.component';
 import {GetImageDimensions} from 'src/app/utils/graphics/image'
 import { TransformControls } from 'three/examples/jsm/controls/TransformControls.js';
-import { DropListRobot, FloorPlanAlertTypeDescMap, JFloorPlan, JFloorPlan3DModel, JFloorPlanZone, JLift3DModel, JMap, JPoint } from 'src/app/services/data.models';
+import { DropListRobot, JFloorPlan, JFloorPlan3DModel, JFloorPlanZone, JLift3DModel, JMap, JPoint } from 'src/app/services/data.models';
 import { MqService , MQType} from 'src/app/services/mq.service';
 import { RobotService } from 'src/app/services/robot.service';
 import { FloorPlanState, MapService } from 'src/app/services/map.service';
@@ -859,6 +859,7 @@ export class ThreejsViewportComponent implements OnInit , OnDestroy{
 
   async updateFloorPlanEventMarkers() {
     const state = await this.mapSrv.floorPlanState(this.floorPlanDataset?.floorPlanCode)
+    const eventTypesDDL = await this.dataSrv.getDropList('robotEventTypes')
     if(!state){
       return 
     }
@@ -866,15 +867,16 @@ export class ThreejsViewportComponent implements OnInit , OnDestroy{
       let robotData : DropListRobot = this.robotLists.filter(r=>r.robotCode == a.robotId)[0]
       const mapMesh = this.mapMeshes.filter(m => m.mapCode == a.mapCode && m.robotBase == robotData.robotBase)[0]
       if(mapMesh){
-        const newMarker = new EventMarkerObject3D(this , a.robotId , a.timestamp)
+        const newMarker = new EventMarkerObject3D(this , a.robotId , a.timestamp , a.alertType)
         const instance : CustomButtonComponent = newMarker.toolTipCompRef.instance
+        const eventTypeDesc = eventTypesDDL.options.filter(o=>o.value == a.alertType)[0]?.text
         instance.cssClass = 'mdi mdi-alert alert-3d'
         instance.toolTipMsgBinding = ()=> {
           let datetime = new Date(a.timestamp )
           let timeStr = `${datetime.getHours().toString().padStart(2, '0')}:${datetime.getMinutes().toString().padStart(2, '0')}` 
           const dateStr = this.uiSrv.datePipe.transform(datetime , (datetime?.getFullYear() == new Date().getFullYear() ? 'd MMM' : 'd MMM yyyy'))
           const dateTimeStr =`${ datetime.toDateString() != new Date().toDateString() ?  (dateStr + ' ') : '' }${timeStr}`
-          return `- ${ this.uiSrv.translate(FloorPlanAlertTypeDescMap[a.alertType])}\n [${dateTimeStr}] ${a.robotId}` 
+          return `- ${ this.uiSrv.translate(eventTypeDesc)}\n [${dateTimeStr}] ${a.robotId}` 
         }
 
         if(!this.uiToggles.alert){
@@ -882,7 +884,7 @@ export class ThreejsViewportComponent implements OnInit , OnDestroy{
         }
 
         instance.clicked.pipe(takeUntil(this.$mapCodeChanged)).subscribe(() => {
-          state.markAlertAsNoted(a.robotId, a.timestamp)
+          state.markAlertAsNoted(a.robotId, a.timestamp, a.alertType)
           newMarker.hideToolTip()
           newMarker.parent?.remove(newMarker)
           this.ngZone.run(()=>{
@@ -890,6 +892,7 @@ export class ThreejsViewportComponent implements OnInit , OnDestroy{
             const content : ArcsEventDetectionDetailComponent = dialog.content.instance;
             content.robotCode = newMarker.robotId
             content.timestamp = newMarker.eventId
+            content.eventType = newMarker.eventType
             content.data = {floorPlanCode : a.floorPlanCode , mapCode : a.mapCode , rosX : a.rosX , rosY : a.rosY}
           })
         })
@@ -2263,12 +2266,14 @@ class EventMarkerObject3D extends Object3DCommon{
   toolTipCompRef : ComponentRef<CustomButtonComponent>
   robotId : string
   eventId : any
+  eventType
   readonly type = 'MARKER'
 
-  constructor(public master : ThreejsViewportComponent , robotId : string , eventId : any){    
+  constructor(public master : ThreejsViewportComponent , robotId : string , eventId : any , eventType : string){    
     super(master)
     this.robotId = robotId
     this.eventId = eventId
+    this.eventType = eventType
     this.initInfoToolTipEl()
   }
 

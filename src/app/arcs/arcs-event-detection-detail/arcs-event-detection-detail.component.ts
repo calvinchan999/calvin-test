@@ -1,7 +1,8 @@
 import { DatePipe } from '@angular/common';
+import { HttpParams } from '@angular/common/http';
 import { Component, OnInit, ViewChild } from '@angular/core';
 import { DialogRef } from '@progress/kendo-angular-dialog';
-import { DropListFloorplan, FloorPlanAlertTypeDescMap } from 'src/app/services/data.models';
+import { DropListFloorplan } from 'src/app/services/data.models';
 import { DataService } from 'src/app/services/data.service';
 import { MapService } from 'src/app/services/map.service';
 import { UiService } from 'src/app/services/ui.service';
@@ -16,10 +17,11 @@ import { PixiEventMarker } from 'src/app/utils/ng-pixi/ng-pixi-viewport/ng-pixi-
 export class ArcsEventDetectionDetailComponent implements OnInit {
   robotCode : string
   timestamp : any
+  eventType : string
   dialogRef : DialogRef
   data : {
     // detectionDateTime? : Date,
-    detectionType? : string,
+    eventType? : string,
     floorPlanCode? : string,
     base64Image? : string,
     rosX? : number, 
@@ -30,7 +32,7 @@ export class ArcsEventDetectionDetailComponent implements OnInit {
     confidence? : number
 
   } = {
-    detectionType : null,
+    eventType : null,
     floorPlanCode : null,
     base64Image : null,
     rosX : null, 
@@ -42,7 +44,8 @@ export class ArcsEventDetectionDetailComponent implements OnInit {
   }
   title
   message
-  parentRow : {robotCode : string ,  timestamp : string}
+  parentRow : {robotCode : string ,  timestamp : string , eventType : string}
+  eventTypesDDL 
   @ViewChild('pixi') pixiElRef : Map2DViewportComponent
   constructor(public dataSrv : DataService, public uiSrv : UiService , public mapSrv : MapService , public datePipe : DatePipe) { 
     
@@ -50,15 +53,17 @@ export class ArcsEventDetectionDetailComponent implements OnInit {
 
   async ngOnInit() {
     let ticket = this.uiSrv.loadAsyncBegin()
+    this.eventTypesDDL = await this.dataSrv.getDropList('robotEventTypes')
     if(this.parentRow){
       this.robotCode = this.parentRow.robotCode
       this.timestamp = this.parentRow.timestamp
+      this.eventType = this.parentRow.eventType
     }
     //db may not finish record insert if user open this page immediately, so use cached data
     if(this.robotCode && this.timestamp && this.mapSrv.alertImageCache?.robotId == this.robotCode && this.mapSrv.alertImageCache?.timestamp == this.timestamp){
       this.data = this.data ? this.data : {}
       this.data.base64Image =  this.mapSrv.alertImageCache.base64Image
-      this.data.detectionType =  this.mapSrv.alertImageCache.detectionType
+      this.data.eventType =  this.mapSrv.alertImageCache.detectionType
       this.data.metadata =  this.mapSrv.alertImageCache.metadata
       this.data.count =  this.mapSrv.alertImageCache.count
       this.data.confidence =this.mapSrv.alertImageCache.confidence
@@ -75,11 +80,11 @@ export class ArcsEventDetectionDetailComponent implements OnInit {
   }
 
   setTitle(){
-    this.title = FloorPlanAlertTypeDescMap[this.data?.detectionType]
+    this.title =  this.eventTypesDDL.options.filter(o=>o.value == this.eventType)[0]?.text
   }
 
   async setMessage(){
-    const showCount = ['PEOPLE_PPC'].includes(this.data.detectionType) && this.data.count != null
+    const showCount = ['PEOPLE_PPC'].includes(this.data.eventType) && this.data.count != null
     const robotConcatWords = this.uiSrv.translate(` - Reported By `)
     const floorPlanConcatWords = this.uiSrv.translate( ` at `)
     const floorPlanName = this.data?.floorPlanCode ? (<DropListFloorplan> (await this.dataSrv.getDropListData( 'floorplans', this.data?.floorPlanCode))[0])?.name :null
@@ -89,10 +94,10 @@ export class ArcsEventDetectionDetailComponent implements OnInit {
   }
 
   async loadData(){
-    const resp = await this.dataSrv.httpSrv.fmsRequest("GET", `robotDetection/v1?robotCode=${this.robotCode}&detectionDateTime=${this.timestamp}`, undefined, false)
+    const resp = await this.dataSrv.httpSrv.fmsRequest("GET", `robotEvent/v1?${new HttpParams().set("robotCode" , this.robotCode).set("eventDateTime",this.timestamp).set("eventType" , this.eventType ).toString()}`, undefined, false)
     if (resp) {
       this.data.base64Image = resp.base64Image
-      this.data.detectionType = resp.detectionType
+      this.data.eventType = resp.eventType
       this.data.floorPlanCode = resp.floorPlanCode
       this.data.rosX = resp.positionX
       this.data.rosY = resp.positionY
@@ -129,8 +134,10 @@ export class ArcsEventDetectionDetailComponent implements OnInit {
                 rosX: this.data.rosX,
                 rosY: this.data.rosY,
                 mapCode: this.data.mapCode,
-                alertType: this.data.detectionType
-              }
+                alertType: this.data.eventType,
+              },
+              undefined,
+              this.message
             )
             if(marker){
               marker.visible = true

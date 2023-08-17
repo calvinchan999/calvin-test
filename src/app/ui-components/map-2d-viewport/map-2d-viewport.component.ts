@@ -22,7 +22,7 @@ import {OutlineFilter} from '@pixi/filter-outline';
 import {ColorOverlayFilter} from '@pixi/filter-color-overlay';
 import {DropShadowFilter} from '@pixi/filter-drop-shadow';
 import {DataService} from 'src/app/services/data.service';
-import { ShapeJData , MapJData, FloorPlanDataset, MapDataset, robotPose, DropListFloorplan, DropListLocation, DropListMap, DropListAction, DropListBuilding, JMap, JPoint, JPath, JFloorPlan, DropListRobot, DropListPointIcon, RobotStatusARCS, JChildPoint, FloorPlanAlertTypeDescMap, JFloorPlanZone, AUTONOMY } from 'src/app/services/data.models';
+import { ShapeJData , MapJData, FloorPlanDataset, MapDataset, robotPose, DropListFloorplan, DropListLocation, DropListMap, DropListAction, DropListBuilding, JMap, JPoint, JPath, JFloorPlan, DropListRobot, DropListPointIcon, RobotStatusARCS, JChildPoint, JFloorPlanZone, AUTONOMY } from 'src/app/services/data.models';
 import { AuthService } from 'src/app/services/auth.service';
 import * as roundSlider from "@maslick/radiaslider/src/slider-circular";
 import {GraphBuilder, DijkstraStrategy} from "js-shortest-path"
@@ -2624,16 +2624,24 @@ export class DataModule{
   async showAlertsOnFloorPlan(){ //TO BE MOVED TO OTHER MODULES
     const floorPlanState  =  await this.master.mapSrv.floorPlanState(this.activeFloorPlanCode)
     const unreadAlerts = floorPlanState.alerts.filter(a=>a.noted == false)
+    const eventTypesDDL = await this.dataSrv.getDropList('robotEventTypes')
     unreadAlerts.filter(a=> !this.master.viewport.allPixiEventMarkers.some(m=>m.robotCode == a.robotId && m.eventId == a.timestamp)).forEach(a=>{
-      const alertMarker = this.setPixiEventMarker(a)
+      const eventTypeDesc = eventTypesDDL.options.filter(o=>o.value == a.alertType)[0]?.text
+      let datetime = new Date(a.timestamp )
+      let timeStr = `${datetime.getHours().toString().padStart(2, '0')}:${datetime.getMinutes().toString().padStart(2, '0')}` 
+      const dateStr = this.master.uiSrv.datePipe.transform(datetime , (datetime?.getFullYear() == new Date().getFullYear() ? 'd MMM' : 'd MMM yyyy'))
+      const dateTimeStr =`${ datetime.toDateString() != new Date().toDateString() ?  (dateStr + ' ') : '' }${timeStr}`
+      const tooltipMsg =  `- ${ this.master.uiSrv.translate(eventTypeDesc)}\n [${dateTimeStr}] ${a.robotId}` 
+      const alertMarker = this.setPixiEventMarker(a , undefined , tooltipMsg)
       if(alertMarker){        
         alertMarker.events.click.pipe(takeUntil(this.activeFloorPlanCodeChange)).subscribe((evt)=>{
           this.master.ngZone.run(()=>{
-            floorPlanState.markAlertAsNoted(a.robotId , a.timestamp)
+            floorPlanState.markAlertAsNoted(a.robotId , a.timestamp , a.alertType)
             let dialog : DialogRef = this.master.uiSrv.openKendoDialog({content: ArcsEventDetectionDetailComponent , preventAction:()=>true});
             const content : ArcsEventDetectionDetailComponent = dialog.content.instance;
             content.robotCode = alertMarker.robotCode
             content.timestamp = alertMarker.eventId
+            content.eventType = a.alertType
             content.data = {floorPlanCode : a.floorPlanCode , mapCode : a.mapCode , rosX : a.rosX , rosY : a.rosY}
             alertMarker.toolTip.hidden = true
             setTimeout(()=>{
@@ -2657,24 +2665,16 @@ export class DataModule{
 
   }
 
-  setPixiEventMarker(a : { robotId : string , timestamp : any , rosX : any , rosY : any , mapCode : string , alertType :string } , markerType = 'alert'){
+  setPixiEventMarker(a : { robotId : string , timestamp : any , rosX : any , rosY : any , mapCode : string , alertType :string } , markerType = 'alert', eventDesc = null){
     const robotBase = (<DropListRobot[]>this.dropdownData.robots)?.filter(r=>r.robotCode == a.robotId)[0]?.robotBase
     const pixiMap = this.master.viewport.mapContainerStore[`${a.mapCode}${this.master.util.arcsApp ? ('@' + robotBase) : ''}`]
     let pixiEventMarker : PixiEventMarker
+
     if(pixiMap){
       const pos = this.master.viewport.mainContainer.toLocal(pixiMap.toGlobal(new PIXI.Point(pixiMap.calculateMapX(a.rosX) , pixiMap.calculateMapY(a.rosY)))) 
-      pixiEventMarker = new PixiEventMarker(this.master.viewport , undefined , a.robotId ,  a.timestamp , markerType )
-      pixiEventMarker.toolTip.contentBinding = ()=> {
-        let datetime = new Date(a.timestamp )
-        let timeStr = `${datetime.getHours().toString().padStart(2, '0')}:${datetime.getMinutes().toString().padStart(2, '0')}` 
-        const dateStr = this.master.uiSrv.datePipe.transform(datetime , (datetime?.getFullYear() == new Date().getFullYear() ? 'd MMM' : 'd MMM yyyy'))
-        const dateTimeStr =`${ datetime.toDateString() != new Date().toDateString() ?  (dateStr + ' ') : '' }${timeStr}`
-        return `- ${ this.master.uiSrv.translate(FloorPlanAlertTypeDescMap[a.alertType])}\n [${dateTimeStr}] ${a.robotId}` 
-      }
-      pixiEventMarker.toolTip.enabled = true
-      pixiEventMarker.zIndex = 5
-      pixiEventMarker.visible = this.master.module.ui.toggle.alert
+      pixiEventMarker = new PixiEventMarker(this.master.viewport , undefined , a.robotId ,  a.timestamp , markerType , eventDesc)
       pixiEventMarker.position.set(pos.x, pos.y)
+      pixiEventMarker.visible = this.master.module.ui.toggle.alert
       this.master.viewport.mainContainer.addChild(pixiEventMarker)
     }
     return pixiEventMarker

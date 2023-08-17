@@ -1526,8 +1526,9 @@ export class PixiEventMarker extends PixiMapGraphics implements IReColor{
   eventId = null
   robotCode = null
   waypoint: PixiWayPoint
+  eventDesc : string 
 
-  constructor(viewport: PixiMapViewport,  style: PixiGraphicStyle = new PixiGraphicStyle().set('fillColor' , 0xFFC000), robotId = null , eventId = null , markerType = 'alert') {
+  constructor(viewport: PixiMapViewport,  style: PixiGraphicStyle = new PixiGraphicStyle().set('fillColor' , 0xFFC000), robotId = null , eventId = null , markerType = 'alert' , eventDesc : string = null) {
     super(viewport)
     this.robotCode = robotId
     this.eventId = eventId
@@ -1535,6 +1536,7 @@ export class PixiEventMarker extends PixiMapGraphics implements IReColor{
     this.interactive = true
     this.buttonMode = true
     this.markerType = markerType
+    this.eventDesc = eventDesc
     this.init()
   }
 
@@ -1569,6 +1571,9 @@ export class PixiEventMarker extends PixiMapGraphics implements IReColor{
     this.mouseOverColor = DRAWING_STYLE.highlightColor
     this.mouseOverEffectEnabled = true
     this.addChild(this.icon)
+    this.toolTip.content = this.eventDesc
+    this.toolTip.enabled = true
+    this.zIndex = 5
   }
 }
 

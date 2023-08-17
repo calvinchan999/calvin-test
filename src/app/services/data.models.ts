@@ -183,8 +183,8 @@ export class RobotProfileResp {
     maps?: DropListMap[]
     locations?:DropListLocation[]
     sites?: DropListSite[]
-    types?: DropListType[]
-    subTypes?:DropListSubType[]
+    types?: DropListRobotType[]
+    subTypes?:DropListRobotSubType[]
     robots? : DropListRobot[]
   }
   
@@ -254,7 +254,7 @@ export class RobotProfileResp {
     defaultPerBuilding?
   }
   
-  export class DropListType{
+  export class DropListRobotType{
     enumName
     description
     // typeId
@@ -264,7 +264,7 @@ export class RobotProfileResp {
     // subTypeName
   }
   
-  export class DropListSubType{
+  export class DropListRobotSubType{
     enumName
     description
     // typeId
@@ -303,6 +303,10 @@ export class RobotProfileResp {
     floors : string[]
   }
   
+  export class DropListRobotEventType {
+    enumName : string 
+    description : string
+  }
   
   
   // =========================================================================================================
@@ -575,14 +579,20 @@ export class RobotProfileResp {
     pointType? : string
   }
 
-  export const FloorPlanAlertTypeDescMap = {
-    SMOKE: "Smoke Detected",
-    FIRE: "Fire Detected",
-    FALL: "Falling Motion Detected",
-    ABNORMAL_OBJECT: "Abnormal Object Detected",
-    EMERGENCY_DOOR_OPEN: "Emergency Door Opened",
-    HIGH_BODY_TEMPERATURE: "High Body Temp. Detected",
-    LOW_BODY_TEMPERATURE: "Low Body Temp. Detected",
-    COVERING_UP_CAMERA: "Camera being covered up",
-    PEOPLE_PPC: "People PPC"
-  }
+  
+
+// export const FloorPlanAlertTypeDescMap = {
+//   SMOKE: "Smoke Detected",
+//   FIRE: "Fire Detected",
+//   FALL: "Falling Motion Detected",
+//   ABNORMAL_OBJECT: "Abnormal Object Detected",
+//   EMERGENCY_DOOR_OPEN: "Emergency Door Opened",
+//   HIGH_BODY_TEMPERATURE: "High Body Temp. Detected",
+//   LOW_BODY_TEMPERATURE: "Low Body Temp. Detected",
+//   COVERING_UP_CAMERA: "Camera being covered up",
+//   PEOPLE_PPC: "People PPC",
+//   ESTOP: "Emergency stop switched on",
+//   OBSTACLE: "Obstacle detected",
+//   TILT: "Excess Tilt Detected",
+//   SOS: "Requested for assistance",
+// }

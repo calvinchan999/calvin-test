@@ -85,7 +85,7 @@ export class CmUserComponent implements OnInit {
     {id: 'usergroup' , label : 'User Group' , functionId : this.gridSettings.usergroup.functionId},
     {id: 'passwordPolicy' , label : 'Password Policy' , functionId : 'PASSWORD_POLICY'},
     { id: 'synclog', label: 'Data Sync Log' , authorized : false},
-    { id: 'log', label: 'System Log' , authorized : false},
+    // { id: 'log', label: 'System Log' , authorized : false},
   ]
 
   columnDef = this.gridSettings.user.columns

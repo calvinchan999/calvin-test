@@ -147,7 +147,7 @@
 </kendo-tilelayout>
 
 
-<div class="table-container"  *ngIf="selectedTab == 'schedule'  || selectedTab == 'task' || selectedTab == 'template' || selectedTab == 'group' || selectedTab == 'robot_detection' || selectedTab == 'broadcast'">
+<div class="table-container"  *ngIf="selectedTab == 'schedule'  || selectedTab == 'task' || selectedTab == 'template' || selectedTab == 'group' || selectedTab == 'robot_event' || selectedTab == 'broadcast'">
     <uc-table #table  [toolbarButtons] ="gridSettings[selectedTab]['buttons'] ? gridSettings[selectedTab]['buttons']  : tableButtons" [columnDefs] = "gridSettings[selectedTab]['columns']" [(data)]="data"    
                       [functionId] = "gridSettings[selectedTab]['functionId']"
                       [dataSourceApiEndpoint] = "gridSettings[selectedTab]['apiUrl']"
@@ -172,6 +172,7 @@
     <app-arcs-dashboard-new-task [dashboardCompRef] = "this" [singleMovementPointCode]="btmMapPanel.waypointState.pointCode" (close) = "btmMapPanel.showNewTaskDialog = false"></app-arcs-dashboard-new-task >
 </kendo-dialog>
 
+<app-arcs-report-export  *ngIf="selectedTab == 'report_export'"></app-arcs-report-export>
 
 
 

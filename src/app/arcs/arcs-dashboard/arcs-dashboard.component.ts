@@ -5,7 +5,7 @@ import { MqService } from 'src/app/services/mq.service';
 import { Map2DViewportComponent, Robot } from 'src/app/ui-components/map-2d-viewport/map-2d-viewport.component';
 import { GeneralUtil } from 'src/app/utils/general/general.util';
 import { DataService } from 'src/app/services/data.service';
-import {ARCS_STATUS_MAP, DropListBuilding, DropListFloorplan, DropListType, FloorPlanAlertTypeDescMap, FloorPlanDataset, JFloorPlan, JSite, RobotStatusARCS as RobotStatus, RobotStatusARCS, ShapeJData, TaskStateOptions} from 'src/app/services/data.models';
+import {ARCS_STATUS_MAP, DropListBuilding, DropListFloorplan, DropListRobotType, FloorPlanDataset, JFloorPlan, JSite, RobotStatusARCS as RobotStatus, RobotStatusARCS, ShapeJData, TaskStateOptions} from 'src/app/services/data.models';
 import { ActivatedRoute, Params, Router } from '@angular/router';
 import { DialogRef } from '@progress/kendo-angular-dialog';
 import { CmTaskJobComponent } from 'src/app/common-components/cm-task/cm-task-job/cm-task-job.component';
@@ -83,9 +83,17 @@ export class ArcsDashboardComponent implements OnInit {
   scrollToBottom = ()=> this.mainContainer.nativeElement.scrollTop = this.mainContainer.nativeElement.scrollHeight
   tableDisabledButtons = { new: false, action: true }
   tableButtons = { new: true, action: true }
+  $onTabChange = new Subject()
   set selectedTab (tab : string){
+    if(this.selectedTab != tab){
+      this.$onTabChange.next()
+    }
+    if(this.selectedTab != 'robot_event' && tab == 'robot_event'){
+      this.mqSrv.data.unreadMsgCnt.pipe(takeUntil(this.$onTabChange) , filter(v=>v > 0)).subscribe(v=> this.mqSrv.data.unreadMsgCnt.next(0))
+    }
     this._selectedTab = tab
     this.routeSrv.refreshQueryParam( { selectedTab: this.selectedTab })
+  
   }
   _selectedTab = 'dashboard'
   get selectedTab(){
@@ -163,16 +171,16 @@ export class ArcsDashboardComponent implements OnInit {
           { title: "Robots", id: "robotCodes", width: 150 },
         ],
       },
-      robot_detection: {
-        functionId: "PATROL_PLAYBACK",
-        apiUrl: "api/analytics/robotDetection/page/v1",
-        defaultState: {skip: 0 , take: 15 , sort:[{dir: 'desc' , field: 'detectionDateTime'}]},
+      robot_event: {
+        functionId: "ROBOT_EVENT",
+        apiUrl: "api/analytics/robotEvent/page/v1",
+        defaultState: {skip: 0 , take: 15 , sort:[{dir: 'desc' , field: 'eventDateTime'}]},
         buttons : {new: false, action: false },
         columns: [
           { title: "#", type: "button", id: "edit", width: 30, icon: 'k-icon mdi mdi-text-box-search-outline' , fixed: true },          
-          { title: "Date", id: "detectionDateTime", width: 100 ,  type: "date"  },
+          { title: "Date", id: "eventDateTime", width: 100 ,  type: "date"  },
           { title: "Floor Plan", id: "floorPlanCode", width: 100 , dropdownType : 'floorplans'},
-          { title : "Event" , id : "detectionType" , width : 250 , dropdownOptions : Object.keys(FloorPlanAlertTypeDescMap).map(k=> { return {text : FloorPlanAlertTypeDescMap[k] , value : k}})},
+          { title : "Event" , id : "eventType" , width : 250 , dropdownType : 'robotEventTypes'},
           { title: "Robot", id: "robotCode", width: 100 , dropdownType : 'robots' },
         ],
       },
@@ -215,7 +223,7 @@ export class ArcsDashboardComponent implements OnInit {
       { id: 'dashboard', label: 'Dashboard', authorized: false } , 
       { id: 'usability', label: 'Usability', authorized: false },
       { id: 'utilization', label: 'Utilization', authorized: false },      
-      { id: 'robot_detection' , label : 'Event History' , authorized : false },
+      { id: 'robot_event' , label : 'Event History' , authorized : false },
       // { id: 'detection', label: 'Event Analysis', authorized: false },
       { id: 'group', label: 'Robot Group' , functionId :  this.gridSettings.group.functionId},
       { id: 'report_export', label: 'Report' , functionId : 'REPORT'},
@@ -286,6 +294,11 @@ export class ArcsDashboardComponent implements OnInit {
       }
     })
 
+    this.routeSrv.queryParams.pipe(takeUntil(this.$onDestroy) , filter(v=>v.selectedTab && this.selectedTab != v.selectedTab && this.tabs.map(t=>t.id).includes(this.routeSrv.queryParams.value?.selectedTab)) ).subscribe(v=>{
+      this.selectedTab = v.selectedTab
+      console.log(this.selectedTab)  
+    })
+
   }
 
   ngOnDestroy(){
@@ -293,6 +306,7 @@ export class ArcsDashboardComponent implements OnInit {
     //   // this.mqSrv.unsubscribeMQTT('arcsTaskInfoChange', false , this.currentFloorPlan.floorPlanCode)
     //   this.mqSrv.unsubscribeMQTT('arcsRobotStatusChange', false , this.currentFloorPlan.floorPlanCode)
     // }
+    this.$onTabChange.next()
     this.stopSubscribeRobotStatus.next()
     this.$onDestroy.next()    
   }
@@ -540,7 +554,7 @@ export class ArcsDashboardComponent implements OnInit {
                       }))
     this.robotTypeInfos = this.robotTypeInfos.filter(i=> data.map(d => d.robotType).includes(i.robotType)).
                           concat([... new Set(data.filter(d=> !this.robotTypeInfos.map(i=>i.robotType).includes(d.robotType)).map(i=>i.robotType))].map(t=> 
-                            {return {robotType : t , name : this.dropdownData.types.filter((d:DropListType)=> d.enumName == t)[0]?.description , executingTaskCount: 0, completedTaskCount: 0, processCount: 0, chargingCount : 0,idleCount : 0, offlineCount : 0 , alertCount : 0}})
+                            {return {robotType : t , name : this.dropdownData.types.filter((d:DropListRobotType)=> d.enumName == t)[0]?.description , executingTaskCount: 0, completedTaskCount: 0, processCount: 0, chargingCount : 0,idleCount : 0, offlineCount : 0 , alertCount : 0}})
                           )
     this.refreshRobotIconColorMap()
   }
@@ -659,7 +673,7 @@ export class ArcsDashboardComponent implements OnInit {
         task : CmTaskJobComponent,
         template : CmTaskJobComponent,
         group : ArcsRobotGroupComponent,
-        robot_detection : ArcsEventDetectionDetailComponent,
+        robot_event : ArcsEventDetectionDetailComponent,
         broadcast : ArcsBroadcastComponent
       }
       let dialog : DialogRef = this.uiSrv.openKendoDialog({content: compMap[this.selectedTab] , preventAction:()=>true});

@@ -14,7 +14,7 @@ import { DatePipe } from '@angular/common'
 import { ConfigService } from './config.service';
 import { HttpEventType, HttpHeaders } from '@angular/common/http';
 
-import { RobotStateTypes, DropListMap, JTask, RobotStatusARCS, TaskItem, FloorPlanAlertTypeDescMap } from './data.models';
+import { RobotStateTypes, DropListMap, JTask, RobotStatusARCS, TaskItem } from './data.models';
 import { DataService } from './data.service';
 import {RobotService, RobotState} from './robot.service'
 import {MapService} from './map.service'
@@ -120,7 +120,7 @@ export class MqService {
     estop: { topic: "rvautotech/fobo/estop", 
              robotState: { estop: (d : { robotId : string , stopped : any})=>{
                                                                       if(d.stopped ){
-                                                                        this.onLoggedNotificationReceived('Emergency Stop Switched On', d['robotId'] , 'warning' , this.util.arcsApp)
+                                                                        this.onImportantNotificationReceived('Emergency Stop Switched On', d['robotId'] , 'warning' , this.util.arcsApp)
                                                                       }; 
                                                                       // this.updateArcsRobotDataMap(d.robotId , 'estop' , d.stopped)
                                                                       return d.stopped
@@ -142,7 +142,7 @@ export class MqService {
             robotState : {
               tiltActive: (d : {robotId : any , detected : any})=> {  
                 if(d.detected ){
-                   this.onLoggedNotificationReceived('Excess tilt detected', d.robotId , 'warning' ,  this.util.arcsApp)                                                                             
+                   this.onImportantNotificationReceived('Excess tilt detected', d.robotId , 'warning' ,  this.util.arcsApp)                                                                             
                 }; 
                 return d.detected;
               },
@@ -151,7 +151,7 @@ export class MqService {
     obstacleDetection: { topic: "rvautotech/fobo/obstacle/detection", 
                          robotState: { obstacleDetected: (d : {robotId : string , detected : any})=> {
                                       if(d.detected ){
-                                        this.onLoggedNotificationReceived( 'Obstacle detected' , d['robotId'] , 'warning' , this.util.arcsApp)
+                                        this.onImportantNotificationReceived( 'Obstacle detected' , d['robotId'] , 'warning' , this.util.arcsApp)
                                       } 
                                       // this.updateArcsRobotDataMap(d.robotId , 'obstacleDetected' , d.detected)
                                       return d.detected;
@@ -165,7 +165,7 @@ export class MqService {
                         },
     exception: { topic: "rvautotech/fobo/exception", mapping: { exception: (d)=>{ let msg = `FOBO Error : ${d['message']}`;
                                                                                   // this.uiSrv.showNotificationBar(msg ,'error') ; 
-                                                                                  this.onLoggedNotificationReceived(msg , d['robotId'] , 'error' , false); 
+                                                                                  this.onImportantNotificationReceived(msg , d['robotId'] , 'error' , false); 
                                                                                   console.log(d) ;
                                                                                   return d
                                                                                 } 
@@ -229,7 +229,7 @@ export class MqService {
                                                             this.uiSrv.translate('Task terminated with error : ') +  `${d['exception']['message']}` :  
                                                            (d['cancelled']? 'Task Cancelled' : (d['completed']? 'Task Completed' : 'Task ended with unknown status'))
                                                if(!this.util.arcsApp){
-                                                this.onLoggedNotificationReceived(msg , d['robotId']  , <any>msgType);
+                                                this.onImportantNotificationReceived(msg , d['robotId']  , <any>msgType);
                                                }
                                                if (this.uiSrv.isTablet) {                                        
                                                  this.router.navigate(['login'])
@@ -243,7 +243,7 @@ export class MqService {
                         robotState: { destinationReached:(d)=>{ let ok = d['goalStatus']?.['status'] == 'SUCCEEDED';
                                                              let msg = ok? 'Destination Reached' : 'Navigation Failed'
                                                              if(!this.util.arcsApp){
-                                                              this.onLoggedNotificationReceived(msg , d['robotId']  , (ok ? 'success' : 'error'));
+                                                              this.onImportantNotificationReceived(msg , d['robotId']  , (ok ? 'success' : 'error'));
                                                              }
                                                              return d['goalStatus']?.['status'] 
                                                            }
@@ -421,8 +421,9 @@ export class MqService {
       mapping : {
         execute: async(d : {robotId : string , pose  : {mapName : string} , detectionType : string , metadata? : string , count? : number})=>{
           const floorPlanState = await this.mapSrv.getFloorPlanStateByMapCode(d.pose?.mapName)
-          const msg = this.uiSrv.translate(`${FloorPlanAlertTypeDescMap[d.detectionType]}`) + `${floorPlanState ? (this.uiSrv.translate(' at ') + floorPlanState?.dataWithoutImage.name) : ''}`
-          this.onLoggedNotificationReceived( msg , d.robotId , "info")
+          const eventTypeDesc = (await this.dataSrv.getDropList('robotEventTypes')).options.filter(o=>o.value == d.detectionType)[0]?.text
+          const msg = this.uiSrv.translate(`${eventTypeDesc}`) + `${floorPlanState ? (this.uiSrv.translate(' at ') + floorPlanState?.dataWithoutImage.name) : ''}`
+          this.onImportantNotificationReceived( msg , d.robotId , "info")
           this.uiSrv.playAudio()
           //TBD Play sound 'DING'
           if(floorPlanState){
@@ -443,7 +444,7 @@ export class MqService {
       mapping : {
         execute: (d : {robotCode : string , floorPlanCode : string , alertZoneCodes : string[]})=>{
           let msg = this.uiSrv.translate('Trespassed on restricted zone(s) ') + d.alertZoneCodes?.join(', ')
-          this.onLoggedNotificationReceived(msg , d.robotCode , 'warning')
+          this.onImportantNotificationReceived(msg , d.robotCode , 'warning')
         }
       }
     },
@@ -717,24 +718,24 @@ export class MqService {
   }
 
 
-  onLoggedNotificationReceived(msg : string , robotCode : string | undefined = undefined , msgType : 'success' | 'none' | 'warning' | 'info' | 'error' = 'info' , showNotification = true ){
+  onImportantNotificationReceived(msg : string , robotCode : string | undefined = undefined , msgType : 'success' | 'none' | 'warning' | 'info' | 'error' = 'info' , showNotification = true ){
     this.data.unreadMsgCnt.next( this.data.unreadMsgCnt.value + 1)
     if(showNotification){
       this.uiSrv.showNotificationBar( robotCode? `[${robotCode}] ${msg}` : msg  , msgType)
     }
-    this.addEventLogToLocalStorage(msg, robotCode, msgType) //TBR
+    //this.addEventLogToLocalStorage(msg, robotCode, msgType) //TBR
     this.uiSrv.showBrowserPopupNotification(robotCode ? `[${robotCode}] ${msg}` : msg)
   }
 
-  addEventLogToLocalStorage(message : string , robotCode : string | undefined  = undefined , type : 'success' | 'none' | 'warning' | 'info' | 'error' = 'info' ){
-    //TBR : EVENT LOG TO BE RETRIEVED FROM DB INSTEAD OF LOCALSTORAGE
-    let data =  this.dataSrv.getLocalStorage('eventLog') ? JSON.parse(this.dataSrv.getLocalStorage('eventLog')) : []
-    let evtlog : eventLog = {message : message  , robotCode: robotCode, type : `${type.toUpperCase()} MESSAGE` , datetime : this.datePipe.transform(new Date() , 'dd/MM/yyyy hh:mm:ss aa')}
-    data = [evtlog].concat(data)
-    this.loghouseKeep(data)
-    this.dataSrv.eventLog.next(data)
-    this.dataSrv.setLocalStorage('eventLog', JSON.stringify(data))
-  }
+  // addEventLogToLocalStorage(message : string , robotCode : string | undefined  = undefined , type : 'success' | 'none' | 'warning' | 'info' | 'error' = 'info' ){
+  //   //TBR : EVENT LOG TO BE RETRIEVED FROM DB INSTEAD OF LOCALSTORAGE
+  //   let data =  this.dataSrv.getLocalStorage('eventLog') ? JSON.parse(this.dataSrv.getLocalStorage('eventLog')) : []
+  //   let evtlog : eventLog = {message : message  , robotCode: robotCode, type : `${type.toUpperCase()} MESSAGE` , datetime : this.datePipe.transform(new Date() , 'dd/MM/yyyy hh:mm:ss aa')}
+  //   data = [evtlog].concat(data)
+  //   this.loghouseKeep(data)
+  //   this.dataSrv.eventLog.next(data)
+  //   this.dataSrv.setLocalStorage('eventLog', JSON.stringify(data))
+  // }
 
   async refreshIotStatus(floorPlanCode : string){
     const iotStatus : {
@@ -751,6 +752,7 @@ export class MqService {
       this.updateMqBehaviorSubject( 'arcsLift' , l)
     })
   }
+  
 }
 
 

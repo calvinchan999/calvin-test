@@ -13,13 +13,13 @@ import { Router } from '@angular/router';
 import { AzurePubsubService } from './azure-pubsub.service';
 import { DatePipe } from '@angular/common'
 import { ConfigService } from './config.service';
-import { HttpEventType, HttpHeaders } from '@angular/common/http';
+import { HttpEventType, HttpHeaders, HttpParams } from '@angular/common/http';
 import { RobotStateTypes, DropListBuilding, DropListFloorplan, DropListMap, DropListPointIcon, DropListRobot, JFloorPlan, JTask, RobotProfile as RobotProfile, RobotStatusARCS, SaveRecordResp, TaskItem, JFloorPlan3DSettings, RobotProfileResp } from './data.models';
 
 export const ObjectTypes = ['ROBOT','FLOOR_PLAN' , 'FLOOR_PLAN_POINT' , 'MAP' , 'MAP_POINT' , 'TASK' , 'OPERATION' , 'MISSION']
 export type syncStatus = 'TRANSFERRED' | 'TRANSFERRING' | 'MALFUNCTION'
 export type syncLog =  {dataSyncId? : string , dataSyncType? : string , objectType? : string , dataSyncStatus?: syncStatus , objectCode?: string , robotCode?: string , progress? : any , startDateTime? : Date , endDateTime : Date  }
-export type dropListType =  'floorplans' | 'buildings' | 'sites' | 'maps' | 'actions' | 'types' | 'locations' | 'userGroups' | 'subTypes' | 'robots' | 'missions' | 'taskFailReason' | 'taskCancelReason' | 'lifts' | 'users'
+export type dropListType =  'floorplans' | 'buildings' | 'sites' | 'maps' | 'actions' | 'types' | 'locations' | 'userGroups' | 'subTypes' | 'robots' | 'missions' | 'taskFailReason' | 'taskCancelReason' | 'lifts' | 'users' | 'robotEventTypes'
 export type localStorageKey = 'floorPlanAlerts'| 'lang' | 'uitoggle' | 'lastLoadedFloorplanCode' | 'eventLog' | 'unreadMsgCnt' | 'unreadSyncMsgCount' | 'syncDoneLog' | 'dashboardMapType' | 'pwaFloorPlanCode' | 'pwaWaypointCode' | 'pwaBookmarkedMissionId'
 export type sessionStorageKey = 'arcsLocationTree' | 'dashboardFloorPlanCode'| 'isGuestMode' | 'userAccess' | 'arcsDefaultBuilding' | 'userId' | 'currentUser' 
 export type eventLog = {datetime? : string , type? : string , message : string  , robotCode?: string }
@@ -52,23 +52,23 @@ export class DataService {
     return this._withDashboard
   }
   public robotProfile : RobotProfile
-  private allDropListTypes = ['floorplans' , 'buildings' , 'sites' , 'maps' , 'actions', 'types' , 'subTypes' , 'userGroups' , 'missions']
-  private dropListApiMap = {
-    taskCancelReason: { url: 'task/v1/userCancelReason', valFld: 'enumName', descFld: 'enumName', fromRV: true , enumPipe : true},
-    taskFailReason: { url: 'task/v1/failedReason', valFld: 'enumName', descFld: 'enumName', fromRV: true , enumPipe : true},
+  private dropListApiMap : {  [key: string]: {url : string , valFld : string , descFld : string , fromRV ? : boolean , enumPipe ? : boolean , cache ? : boolean}} = {
+    taskCancelReason: { url: 'task/v1/userCancelReason', valFld: 'enumName', descFld: 'enumName', fromRV: true , enumPipe : true , cache : true},
+    taskFailReason: { url: 'task/v1/failedReason', valFld: 'enumName', descFld: 'enumName', fromRV: true , enumPipe : true , cache : true},
     locations: { url: 'api/map/plan/point/droplist/v1', valFld: 'pointCode', descFld: 'pointCode' , fromRV : false },
-    subTypes:{ url: 'robot/v1/robotSubTypeList', descFld: 'description', valFld: 'enumName', fromRV : true },
-    types: { url: 'robot/v1/robotTypeList', descFld: 'description', valFld: 'enumName' , fromRV : true},
+    subTypes:{ url: 'robot/v1/robotSubTypeList', descFld: 'description', valFld: 'enumName', fromRV : true  , cache : true },
+    types: { url: 'robot/v1/robotTypeList', descFld: 'description', valFld: 'enumName' , fromRV : true , cache : true },
     floorplans: { url: 'api/map/plan/droplist/v1', descFld: 'name' , valFld:'floorPlanCode'  , fromRV : false },
     buildings: { url: 'api/building/droplist/v1', valFld : 'buildingCode', descFld: 'name'  , fromRV : false },
     sites: { url: 'api/site/v1/droplist',valFld: 'siteId', descFld: 'siteName'  , fromRV : false },
     maps: { url: 'api/map/droplist/v1' , valFld : 'mapCode', descFld: 'name'  , fromRV : false },
-    actions: { url: this.util.arcsApp ? 'operation/v1' : 'action/v1',  descFld: 'name', valFld: 'alias' ,  fromRV : true },
+    actions: { url: this.util.arcsApp ? 'operation/v1' : 'action/v1',  descFld: 'name', valFld: 'alias' ,  fromRV : true , cache : true },
     userGroups : { url: 'api/user/userGroup/dropList/v1',  descFld: 'name', valFld: 'userGroupCode' , fromRV : false },
     robots : { url: 'robot/v1',  descFld: 'name', valFld: 'robotCode' , fromRV : true },
     missions : {url : 'api/task/mission/droplist/v1' , descFld : 'name' , valFld: 'missionId' , fromRV : false },
-    lifts : {url : 'iot/v1/lift' , descFld : 'liftCode' , valFld : 'liftCode' , fromRV : true},
+    lifts : {url : 'iot/v1/lift' , descFld : 'liftCode' , valFld : 'liftCode' , fromRV : true , cache : true},
     users: {url : 'api/user/dropList/v1', descFld : 'name' , valFld: 'userCode' , fromRV : false },
+    robotEventTypes : {url : 'robotEvent/v1/eventTypeList' , descFld : 'description' , valFld : 'enumName' , fromRV : true , cache : true},
   }
 
   public dataStore = {//persist until dataService is destroyed
@@ -76,7 +76,16 @@ export class DataService {
     map: {},
     floorPlan: {},
     action:null,
-    pointTypeList : []
+    pointTypeList : [],
+    dropDownData : {
+      robotEventTypes : null,
+      lifts : null,
+      actions : null,
+      types : null,
+      subTypes : null ,
+      taskFailReason : null , 
+      taskCancelReason :null
+    }
   }
 
   //WIP : Call rest API to get cuurent status (& subj.next(message)) on Connected
@@ -164,12 +173,20 @@ export class DataService {
    }
 
   public async getDropListData(type: dropListType, filterBy: string = null) {
+    const cfg = this.dropListApiMap[type]
+    if(cfg.cache == true && this.dataStore.dropDownData[type]!=null){
+      return this.dataStore.dropDownData[type]
+    }
     let data = (await this.getDropList(type)).data
-    return data.filter(d => filterBy == null || d[this.dropListApiMap[type].valFld ? this.dropListApiMap[type].valFld : 'id'] == filterBy)
+    let ret = data.filter(d => filterBy == null || d[cfg.valFld ? cfg.valFld : 'id'] == filterBy)
+    if(cfg.cache == true){
+      this.dataStore.dropDownData[type] = JSON.parse(JSON.stringify(ret))
+    }
+    return ret
   }
 
 
-  public getDropListOptions(type: dropListType, dropListData: any[], filterBy: object = null) {
+  public getDropListOptions(type: dropListType, dropListData: any[], filterBy: object = null) : {value : string , text : string}[] {
     let apiMap = this.dropListApiMap
     return dropListData.filter(r => filterBy == null || Object.keys(filterBy).every(k => r[k] == filterBy[k])).map(d => {
       let value =  d[apiMap[type].valFld ? apiMap[type].valFld : 'id']
@@ -189,7 +206,7 @@ export class DataService {
     }
   }
 
-  public async getDropList(type : dropListType) : Promise<{data:object[] , options:object[]}>{
+  public async getDropList(type : dropListType) : Promise<{data:object[] , options:{value : string , text : string}[]}>{
     let ret = {data: null ,options: null}
     let apiMap = this.dropListApiMap
     var resp = apiMap[type].fromRV? await this.httpSrv.fmsRequest("GET", apiMap[type].url , undefined, false) :  await this.httpSrv.get(apiMap[type].url)
@@ -390,6 +407,32 @@ export class DataService {
       this.uiSrv.showNotificationBar('Sent Failed ' + resp?.msg ? ` - ${resp?.msg}`: '' , 'error')
     }
     return resp?.result
+  }
+
+  generatingReport = false
+  async exportReport(reportType : string  , queryParams : object){
+    const urlMap = {
+      task : 'export/v1/completed_task',
+      robot_event : 'export/v1/robot_event',
+      utilization : 'export/v1/utilization'
+    }
+    //long polling
+    if(!urlMap[reportType]){
+      console.log('UNKNOWN REPORT TYPE ' + reportType)
+      return
+    }
+
+    let url = urlMap[reportType]
+    if(Object.values(queryParams).filter(v=>v!=null).length > 0){
+      let param = new HttpParams()
+      Object.keys(queryParams).filter(k=>queryParams[k]!=null).forEach(k=> {
+        param.set(k , queryParams[k])
+      })
+      url = `${url}?${param.toString()}`
+    }
+    let result = await this.httpSrv.http.get(`${this.util.getAPIUrl()}/rv/report?endpoint=` + encodeURIComponent( '/' + url)).toPromise()
+    this.generatingReport = true
+    console.log(result)
   }
 
 

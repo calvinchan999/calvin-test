@@ -6,7 +6,7 @@ import { UiService } from 'src/app/services/ui.service';
 import { Map2DViewportComponent } from 'src/app/ui-components/map-2d-viewport/map-2d-viewport.component';
 import { GeneralUtil } from 'src/app/utils/general/general.util';
 import { DataService } from 'src/app/services/data.service';
-import { ARCS_STATUS_MAP, DropListBuilding, DropListFloorplan, DropListRobot, DropListType, FloorPlanDataset, JFloorPlan, RobotStatusARCS as RobotStatus, ShapeJData } from 'src/app/services/data.models';
+import { ARCS_STATUS_MAP, DropListBuilding, DropListFloorplan, DropListRobot, DropListRobotType, FloorPlanDataset, JFloorPlan, RobotStatusARCS as RobotStatus, ShapeJData } from 'src/app/services/data.models';
 import { Router } from '@angular/router';
 import { DialogRef } from '@progress/kendo-angular-dialog';
 import { CmTaskJobComponent } from 'src/app/common-components/cm-task/cm-task-job/cm-task-job.component';

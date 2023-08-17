@@ -311,7 +311,7 @@ export class FloorPlanState {
     this.alertslocalStorageHouseKeep()
     let alerts = this.mapSrv.dataSrv.getLocalStorage('floorPlanAlerts')? JSON.parse(this.mapSrv.dataSrv.getLocalStorage('floorPlanAlerts')) : []
     alerts = alerts.filter((a : {floorPlanCode : string}) => a.floorPlanCode == this.floorPlanCode)
-    this.alerts = this.alerts.concat(alerts.filter((a : {robotId : string , timestamp : any})=>!this.alerts.some(a2=>a2.robotId == a.robotId && a2.timestamp == a.timestamp)))
+    this.alerts = this.alerts.concat(alerts.filter((a : {robotId : string , timestamp : any , alertType : string})=>!this.alerts.some(a2=>a2.robotId == a.robotId && a2.timestamp == a.timestamp && a2.alertType == a.alertType)))
   }
 
   updateAlertsInLocalStorage(){
@@ -356,8 +356,8 @@ export class FloorPlanState {
     this.updateAlertsInLocalStorage()
   }
 
-  markAlertAsNoted(robotId: string , id : any){
-    const alert =  this.alerts.filter(a=>a.robotId == robotId && a.timestamp == id)[0]
+  markAlertAsNoted(robotId: string , id : any , type : string){
+    const alert =  this.alerts.filter(a=>a.robotId == robotId && a.timestamp == id && a.alertType == type)[0]
     if(alert){
       alert.noted = true
       this.updateAlertsInLocalStorage()
