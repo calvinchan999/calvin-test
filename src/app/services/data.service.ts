@@ -15,6 +15,7 @@ import { DatePipe } from '@angular/common'
 import { ConfigService } from './config.service';
 import { HttpEventType, HttpHeaders, HttpParams } from '@angular/common/http';
 import { RobotStateTypes, DropListBuilding, DropListFloorplan, DropListMap, DropListPointIcon, DropListRobot, JFloorPlan, JTask, RobotProfile as RobotProfile, RobotStatusARCS, SaveRecordResp, TaskItem, JFloorPlan3DSettings, RobotProfileResp } from './data.models';
+import { HttpResponse } from '@microsoft/signalr';
 
 export const ObjectTypes = ['ROBOT','FLOOR_PLAN' , 'FLOOR_PLAN_POINT' , 'MAP' , 'MAP_POINT' , 'TASK' , 'OPERATION' , 'MISSION']
 export type syncStatus = 'TRANSFERRED' | 'TRANSFERRING' | 'MALFUNCTION'
@@ -409,8 +410,12 @@ export class DataService {
     return resp?.result
   }
 
-  generatingReport = false
+  generatingReport : {type : string , queryParams : {} , requestId ? : string | null} | null = null
   async exportReport(reportType : string  , queryParams : object){
+    this.generatingReport = {
+      type : reportType,
+      queryParams : queryParams
+    }
     const urlMap = {
       task : 'export/v1/completed_task',
       robot_event : 'export/v1/robot_event',
@@ -426,13 +431,41 @@ export class DataService {
     if(Object.values(queryParams).filter(v=>v!=null).length > 0){
       let param = new HttpParams()
       Object.keys(queryParams).filter(k=>queryParams[k]!=null).forEach(k=> {
-        param.set(k , queryParams[k])
+        let object = queryParams[k] instanceof Date ? this.datePipe.transform(<Date>queryParams[k],'yyyy-MM-dd HH:mm:ss') : queryParams[k]
+        param = param.set(k , object)
       })
       url = `${url}?${param.toString()}`
     }
-    let result = await this.httpSrv.http.get(`${this.util.getAPIUrl()}/rv/report?endpoint=` + encodeURIComponent( '/' + url)).toPromise()
-    this.generatingReport = true
-    console.log(result)
+
+    let resp : any = await this.httpSrv.http.get(`${this.util.getAPIUrl()}/rv?endpoint=` + encodeURIComponent( '/' + url) , { observe :'response', responseType: 'blob'}).toPromise()
+    if(resp.headers?.get('id')?.toString() != null){
+        this.generatingReport.requestId = resp.headers.get('id')?.toString()
+        console.log('polling start : ' +  this.generatingReport.requestId  )
+        resp = await this.polling(resp.headers.get('id')?.toString())
+        console.log('polling ended') 
+    }else{
+      console.log('no need polling')
+    }
+    const a = document.createElement('a')
+    const objectUrl = URL.createObjectURL(resp.body)
+    a.href = objectUrl
+    const contentDisposition = resp.headers?.get('content-disposition');
+    console.log('content-disposition : ' + contentDisposition.toString())
+    a.download = contentDisposition.split(';')[1].split('filename')[1].split('=')[1].trim().split('"').join('');
+    a.click();
+    this.uiSrv.showNotificationBar('Report exported successfully', 'success' , undefined , undefined , true)
+    this.generatingReport = null
+  }
+
+  async polling(reportId: string) {
+    let resp: any = await this.httpSrv.http.get(`${this.util.getAPIUrl()}/rv?endpoint=` + encodeURIComponent('/export/v1/polling?' + new HttpParams().set('id', reportId).toString()) , { observe :'response', responseType: 'blob'}).toPromise()
+    if(resp.headers?.get('id')?.toString() != null){
+      this.generatingReport.requestId = resp.headers.get('id')?.toString()
+      console.log('polling continue : ' +  this.generatingReport.requestId  )
+      return  await this.polling(resp.headers.get('id')?.toString())
+    } else {
+      return resp
+    }
   }
 
 

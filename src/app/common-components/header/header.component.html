@@ -7,6 +7,10 @@
             <h1> {{ app == 'STANDALONE'? (dataSrv.robotProfile? dataSrv.robotProfile.robotCode : '')   : ('Agnostic Robotic Control System (ARCS)' | label : uiSrv.langPack ) }} </h1>
         </div>
 
+        <div class="report-exporting" *ngIf="dataSrv.generatingReport">
+            <a class="k-icon mdi mdi-file-download-outline"  (click)="router.navigate(['/home'] , {queryParams : {selectedTab : 'report_export'}})" [matTooltip] = "('Generating Report '| label : uiSrv.langPack)  + ( dataSrv.generatingReport.requestId ? ((' - Request Id : ' | label : uiSrv.langPack ) +  dataSrv.generatingReport.requestId) : '' )"></a>
+        </div>
+
         <div class="alert topnav" *ngIf="mqSrv.data.unreadMsgCnt.value > 0" [matTooltip]="('You have' | label : uiSrv.langPack  ) + ' ' + mqSrv.data.unreadMsgCnt.value + ' ' + ('unread notification' | label : uiSrv.langPack )">
             <a class="k-icon mdi mdi-alert"  (click)="router.navigate([ util.standaloneApp ? '/control' : '/home'] , {queryParams : {selectedTab : 'robot_event'}})">
                 <kendo-badge rounded="medium" themeColor="warning" position="edge" [align] = "{ vertical: 'bottom', horizontal: 'end' }">{{mqSrv.data.unreadMsgCnt.value}}</kendo-badge>

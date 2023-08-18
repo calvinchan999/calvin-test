@@ -21,7 +21,8 @@ import { MapService } from 'src/app/services/map.service';
 
 @Component({
     selector: 'app-header-component',
-    templateUrl: './header.component.html'
+    templateUrl: './header.component.html',
+    styleUrls: ['./header.component.scss']
 })
 
 export class HeaderComponent {

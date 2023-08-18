@@ -72,9 +72,18 @@ export class ArcsReportExportComponent implements OnInit {
   
 
   async ngOnInit() {
+    let ticket = this.uiSrv.loadAsyncBegin()
     const DDL = await this.dataSrv.getDropLists(['robots', 'robotEventTypes', 'types', 'floorplans'])
     Object.keys(DDL.option).forEach(k => this.dropdownOptions[k] = JSON.parse(JSON.stringify(DDL.option[k])))
     this.dropdownData = JSON.parse(JSON.stringify(DDL.data)) 
+
+    if(this.dataSrv.generatingReport!=null){
+      this.reportType = this.dataSrv.generatingReport.type
+      Object.keys(this.dataSrv.generatingReport.queryParams).forEach(k=>{
+        this.cfg[this.reportType].filters[k] = this.dataSrv.generatingReport.queryParams[k]
+      })
+    }
+    this.uiSrv.loadAsyncDone(ticket)
   }
 
   async genReport(){

@@ -1,0 +1,14 @@
+.report-exporting .mdi::after {
+    content: "\F04E6";
+    color: limegreen;
+    animation: rotate 3s linear infinite;
+    font-size: 26px;
+    margin-left: -20px ;
+    margin-top: 20px 
+}
+
+@keyframes rotate {
+    to {
+        transform: rotate(-360deg);
+    }
+}

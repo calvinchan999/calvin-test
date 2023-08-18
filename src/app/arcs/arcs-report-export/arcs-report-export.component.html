@@ -1,10 +1,15 @@
 <div class="container">
-    <uc-dropdown lab="Report Type" [options] = "dropdownOptions.reportType" [(value)] = "reportType" [allowClear] = "false"></uc-dropdown>
+    <div class="report-type-row">
+        <uc-dropdown [disabled] = "dataSrv.generatingReport" lab="Report Type" [options] = "dropdownOptions.reportType" [(value)] = "reportType" [allowClear] = "false"></uc-dropdown>
+    </div>
+  
     
     <ng-container *ngIf="cfg[reportType]?.layout">
         <ng-container *ngFor = "let item of cfg[reportType]?.layout">
-            <uc-dropdown  *ngIf="item.uc == 'dropdown'"  [lab]="item.text"  [options] = "dropdownOptions[item.optionType]" [(value)] = "cfg[reportType].filters[item.key]"></uc-dropdown>
-            <uc-date-input *ngIf="item.uc == 'datetime'" [lab]="item.text"  [(value)] = "cfg[reportType].filters[item.key]"></uc-date-input>
+            <div class="filter-row">
+                <uc-dropdown [disabled] = "dataSrv.generatingReport" *ngIf="item.uc == 'dropdown'"  [lab]="item.text"  [options] = "dropdownOptions[item.optionType]" [(value)] = "cfg[reportType].filters[item.key]"></uc-dropdown>
+                <uc-date-input  [disabled] = "dataSrv.generatingReport" *ngIf="item.uc == 'datetime'" [lab]="item.text"  [(value)] = "cfg[reportType].filters[item.key]"></uc-date-input>      
+            </div>
         </ng-container>
     </ng-container>
 
@@ -12,4 +17,18 @@
     <div class="button-container" >
         <button kendoButton [disabled] = "dataSrv.generatingReport" (click)="genReport()">{{'Export' | label : uiSrv.langPack}}</button>
     </div>
+
+    <div *ngIf="dataSrv.generatingReport"  class="in-progress-container" >
+        <div class="in-progress-text" > 
+            {{'Report Generation In Progress ...' |  label : uiSrv.langPack}}
+        </div>
+        
+        <div *ngIf="dataSrv.generatingReport?.requestId"  class="request-id">
+            {{'Request Id : ' |  label : uiSrv.langPack}} {{dataSrv.generatingReport.requestId}}
+        </div>
+        <div class="indeterminate-progress-bar" >
+            <div class="indeterminate-progress-bar-value"></div>
+        </div>    
+    </div>
+
 </div>
