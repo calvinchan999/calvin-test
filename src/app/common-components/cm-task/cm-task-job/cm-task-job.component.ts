@@ -2,7 +2,7 @@ import { ChangeDetectorRef, Component, ComponentRef, Input, NgZone, OnInit, View
 import { FormControl, FormGroup, Validators } from '@angular/forms';
 import { DialogRef, DialogService, WindowRef } from '@progress/kendo-angular-dialog';
 import { ListViewComponent } from '@progress/kendo-angular-listview';
-import { filter, take, takeUntil } from 'rxjs/operators';
+import { filter, retry, take, takeUntil } from 'rxjs/operators';
 import { DataService} from 'src/app/services/data.service';
 import { DropListAction, DropListDataset, DropListLocation, FloorPlanDataset, RobotProfile, ShapeJData, JTask, ActionParameter, TaskStateOptions, DropListMission, AUTONOMY } from 'src/app/services/data.models';
 import { RvHttpService } from 'src/app/services/rv-http.service';
@@ -59,9 +59,11 @@ export class CmTaskJobComponent implements OnInit {
     floorPlanCode: new FormControl(null),
     state : new FormControl(null),
     reasonCode : new FormControl(null),
-    reasonMessage : new FormControl(null)
+    reasonMessage : new FormControl(null),
+    robotCount : new FormControl(1)
   })
-
+  maxRobotCount
+  robotExecuteCount = null
   frmGrp2 = new FormGroup({
     loop: new FormControl(1)
   })
@@ -189,6 +191,10 @@ export class CmTaskJobComponent implements OnInit {
   
   ngOnDestroy(){
     this.$onDestroy.next()
+  }
+
+  refreshMaxRobotCount(){
+    this.maxRobotCount = this.dropdownData.robots.filter(r=>!this.frmGrp.controls['robotType'].value || r.robotType == this.frmGrp.controls['robotType'].value).length
   }
 
 
@@ -486,6 +492,11 @@ export class CmTaskJobComponent implements OnInit {
 
   async validate() {
     //TBD with Row With Floorplan but no waypoint selected
+    this.refreshMaxRobotCount()
+    if (this.frmGrp.controls['robotCode'].value == null && this.frmGrp.controls['robotCount'].value > this.maxRobotCount &&  this.frmGrp.controls['robotType'].value !=null) {
+      this.uiSrv.showWarningDialog("Maximum robot count for " + this.dropdownOptions.types.filter(t=>t.value == this.frmGrp.controls['robotType'].value)[0]?.text + ' must not be greater than ' + this.maxRobotCount)
+      return false
+    }
     if(!this.util.validateFrmGrp(this.frmGrp)){
       return false
     }
@@ -535,6 +546,7 @@ export class CmTaskJobComponent implements OnInit {
     return actionParamRegexMatch && this.util.validateFrmGrp(this.frmGrp)
   }
 
+
   getSubmitDataset() : JTask{
     let getActionProperties = (r : FlattenedTaskItem)=>{
       let ret2 = {}
@@ -542,6 +554,8 @@ export class CmTaskJobComponent implements OnInit {
       return ret2
     }
     let body : JTask = {
+      robotCount :!this.frmGrp.controls['robotCode'].value  &&  this.frmGrp.controls['robotType'].value !=null ? this.frmGrp.controls['robotCount'].value : 1,
+      robotExecuteCount : this.robotExecuteCount !== null ? this.robotExecuteCount  : (!this.frmGrp.controls['robotCode'].value ? this.frmGrp.controls['robotCount'].value : 0 ),
       taskItemList: (this.jobListDataMassage()).map((r)=>{
         return {
           actionListTimeout: 0,
@@ -597,6 +611,7 @@ export class CmTaskJobComponent implements OnInit {
     }
   }
   
+
   async saveToDB(){
     this.tabstrip.selectTab(0)
     setTimeout(async()=>{
@@ -605,9 +620,28 @@ export class CmTaskJobComponent implements OnInit {
       }
       let ds = this.getSubmitDataset()
       let url = ((this.isTemplate && !this.isExecuteTemplate )? "api/task/mission/v1" : (`api/task/v1${this.util.arcsApp || !this.frmGrp2.controls['loop'].value ? '' : ('/' + this.frmGrp2.controls['loop'].value)}`))
-      if ((await this.dataSrv.saveRecord( url , ds , this.frmGrp , this.isCreate || this.isExecuteTemplate)).result == true) {
-        this.parent.loadData()
-        this.onClose(false)
+      const resp = await this.dataSrv.saveRecord( url , ds , this.frmGrp , this.isCreate || this.isExecuteTemplate , undefined , false)
+      
+      if (resp.result == true) {
+        const instantExecuteCount = this.util.arcsApp && resp.content && ds.robotExecuteCount > 0 ? Number(resp.content) : null
+        console.log(instantExecuteCount)
+        if(instantExecuteCount !==null && !isNaN(instantExecuteCount) && ds.robotExecuteCount > instantExecuteCount){
+          this.robotExecuteCount = instantExecuteCount
+          if( await this.uiSrv.showConfirmDialog(
+                this.uiSrv.translate('Only ' ) + this.robotExecuteCount + 
+                this.uiSrv.translate(' out of ' ) +  ds.robotExecuteCount + 
+                this.uiSrv.translate(' task can be executed instantly (') + (ds.robotExecuteCount - this.robotExecuteCount )  + 
+                this.uiSrv.translate(' will be queued). Are you sure to continue ?'))){
+            return await this.saveToDB()
+          }else{
+            this.robotExecuteCount = null
+          }
+        }else{
+          this.robotExecuteCount = null
+          this.uiSrv.showNotificationBar('Task created scucessfully')
+          this.parent.loadData()
+          this.onClose(false)
+        }
       }
       this.jobListDataMassage(false)
     })

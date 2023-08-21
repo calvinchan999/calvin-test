@@ -2614,7 +2614,7 @@ export class DataModule{
 
   subscribeFloorPlanAlertState(){
     //TBD : add FloorPlanCodeParam to MQ subscription , this.master.onDestroy also need to change to floorPlanChanged
-    this.master.mqSrv.subscribeMQTTUntil('arcsAiDetectionAlert' , undefined , this.activeFloorPlanCodeChange)
+    // this.master.mqSrv.subscribeMQTTUntil('arcsAiDetectionAlert' , undefined , this.activeFloorPlanCodeChange)
     this.master.mapSrv.floorPlanStateChanged.pipe(filter(d=> d.floorPlanCode == this.activeFloorPlanCode) , takeUntil(this.activeFloorPlanCodeChange)).subscribe(((d: FloorPlanState)=>{
       this.showAlertsOnFloorPlan()
     }))

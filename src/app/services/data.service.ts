@@ -285,7 +285,7 @@ export class DataService {
   }
 
   
-  public async saveRecord(endpoint : string, payload , errorMap = null , isCreate = true, header = undefined) : Promise<SaveRecordResp>{
+  public async saveRecord(endpoint : string, payload , errorMap = null , isCreate = true, header = undefined , showNotification = true) : Promise<SaveRecordResp>{
     let ticket = this.uiSrv.loadAsyncBegin()
     let resp : SaveRecordResp
     try{
@@ -304,8 +304,10 @@ export class DataService {
     }
     resp = resp ? resp : {result : false}
     this.uiSrv.loadAsyncDone(ticket)
-    if (resp?.result == true) {
-      this.uiSrv.showNotificationBar("Save Successful" , 'success' , undefined , undefined, true)
+    if (resp?.result == true ) {
+      if(showNotification){
+        this.uiSrv.showNotificationBar("Save Successful" , 'success' , undefined , undefined, true)
+      }
     } else {
       if (resp?.validationResults) {
         this.util.showErrors(resp.validationResults, errorMap, resp)

@@ -50,9 +50,12 @@
         </div>
         <div class="form-row" *ngIf="util.arcsApp">        
             <uc-dropdown #fpdropdown lab="Robot Type" [frmGrp]="frmGrp" frmCtrl="robotType" [disabled] = 'readonly' [translateOption]="true"
-                         [options]="dropdownOptions.types" (change) = "refreshRobotOptions()">
+                         [options]="dropdownOptions.types" (change) = "refreshRobotOptions(); refreshMaxRobotCount()">
             </uc-dropdown>
-            <uc-dropdown #fpdropdown *ngIf="util.arcsApp" lab="Robot" [frmGrp]="frmGrp" frmCtrl="robotCode"  [disabled] = 'readonly' [showValue]="true"
+            <uc-txtbox *ngIf="((isCreate && !isTemplate) || isExecuteTemplate) && frmGrp.controls['robotCode'].value == null && frmGrp.controls['robotType'].value !== null " lab="Robot Count" [frmGrp]="frmGrp" frmCtrl="robotCount"
+                        [numeric]="true" [numDecimals] = "0" numFormat="n0" [disabled] = 'readonly' [numMax]="maxRobotCount" [numMin]="0">
+            </uc-txtbox>
+            <uc-dropdown #fpdropdown lab="Robot" [frmGrp]="frmGrp" frmCtrl="robotCode"  [disabled] = 'readonly' [showValue]="true"
                         [options]="dropdownOptions.robots" (change) = "refreshRobotType()">
             </uc-dropdown>
             <uc-dropdown *ngIf="!isCreate && !isTemplate" lab="Task Status" [frmGrp]="frmGrp" frmCtrl="state" [disabled] = "parentRow" [options]="dropdownOptions.taskState"></uc-dropdown>

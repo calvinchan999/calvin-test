@@ -851,7 +851,7 @@ export class ThreejsViewportComponent implements OnInit , OnDestroy{
   // }
 
   async subscribeFloorPlanState() {
-    await this.mqSrv.subscribeMQTTUntil('arcsAiDetectionAlert', undefined, this.$mapCodeChanged)
+    // await this.mqSrv.subscribeMQTTUntil('arcsAiDetectionAlert', undefined, this.$mapCodeChanged)
     this.mapSrv.floorPlanStateChanged.pipe(filter(state => state.floorPlanCode == this.floorPlanDataset?.floorPlanCode), takeUntil(this.$mapCodeChanged)).subscribe((state) => {
         this.updateFloorPlanEventMarkers()
     })

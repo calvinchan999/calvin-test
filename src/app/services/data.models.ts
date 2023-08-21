@@ -140,6 +140,7 @@ import { BehaviorSubject } from "rxjs"
   export class SaveRecordResp {
       result : boolean
       msg ? : string
+      content ? : string
       exceptionDetail? : string
       validationResults?:[]
   }
@@ -322,6 +323,8 @@ export class RobotProfileResp {
     reasonCode ? : string
     reasonMessage ? : string
     state? : string
+    robotCount ? : number
+    robotExecuteCount? : number
   }
   
   export class TaskItem{
