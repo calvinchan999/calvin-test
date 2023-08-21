@@ -39,8 +39,11 @@ jobs:
           action: "upload"
           skip_api_build: true
           skip_app_build: true
-          app_location: "dist/rv-arcs-website"
-          api_location: "dist/rv-arcs-website
+          # app_location: "dist/rv-arcs-website/browser"
+          # api_location: "dist/rv-arcs-website/server
+          app_location: '/' # App source code path
+          api_location: 'api' # Api source code path - optional
+          app_artifact_location: 'dist/rv-arcs-website/browser' # Built app content directory - optional
       # - name: Zip File And Create New Directory
       #   run: tar -zcvf fobo-amr-web.tar.gz dist && mkdir ./dist/zip && mv ./fobo-amr-web.tar.gz ./dist/zip
       # - name: Upload to Azure File Container
