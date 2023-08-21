@@ -3,14 +3,14 @@
 	"CLIENT_ID":"11B7ED76-B978-411B-8ECB-36B21220DE3E",
 	"DEBUG_SIGNALR":false,
 	"DEBUG_SIGNALR_TYPE": "",
-	"SIGNALR_URLx":"https://localhost:5001/signalR",
-	"SIGNALR_PORT":"5001",
-	"SIGNALR_ENDPOINT" : "signalR",
+	"SIGNALR_URL":"https://rv-arcs-signalR.azurewebsites.net/signalR",
+	"SIGNALR_PORTx":"5001",
+	"SIGNALR_ENDPOINTx" : "signalR",
 	"PROTOCOL"    : "https",
+	"SERVER_URL": "rv-arcs-api.azurewebsites.net", 
 	"PORT_NO"     : "",
 	"APPLICATION_RV" : "/api",
-	"APPLICATION" : "/arcs_dotnet_api_dev",
-
+	"APPLICATION" : "",
 	"API_KEY"     : "f05914ea33124ba7a6cab301627c8adf",
 	"PAGE_SIZE"   : 10,
 	"PAGE_CONFIG" : {
@@ -164,8 +164,8 @@
 				}
 			},
 			"DELIVERY": {
-				"subType": {
-					"CABINET_DELIVERY": {
+				"subType":{
+					"CABINET_DELIVERY":{
 						"path": "assets/3D/robot_cabinet_delivery.glb",
 						"scale": 0.6,
 						"position": {
@@ -179,28 +179,9 @@
 							"z": 3.14
 						},
 						"toolTipPositionZ": 40,
-						"pointer": {
-							"position": {
-								"x": 0,
-								"y": 6,
-								"z": -13
-							}
+						"pointer":{
+							"position" : {"x" : 0 , "y": 6 , "z" : -13 }
 						}
-					},
-					"NA": {
-						"path": "assets/3D/europa_v3.glb",
-						"scale": 25,
-						"position": {
-							"x": 0,
-							"y": 0,
-							"z": -12.5
-						},
-						"rotate": {
-							"x": 1.57,
-							"y": 3.14,
-							"z": 0
-						},
-						"toolTipPositionZ": 40
 					}
 				},
 				"robotBase": {
@@ -281,7 +262,7 @@
 			}
 		}
 	},
-	"CAMERA_STREAM_URL":"wss://calvinchan999.eastasia.cloudapp.azure.com/",
+	"CAMERA_STREAM_URL":"wss://qmh-openresty.azurewebsites.net/",
 	"IEQ_LEVELS":["Fair" , "Good" , "Excellent"],
 	"IEQ_STANDARD": {		
 		"co2_ppm": [

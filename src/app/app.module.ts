@@ -416,7 +416,7 @@ import { ArcsReportExportComponent } from './arcs/arcs-report-export/arcs-report
         OverlayModule,
         PortalModule,
         ScrollingModule,
-        BrowserModule,
+        BrowserModule.withServerTransition({ appId: 'serverApp' }),
         CommonModule,
         HttpClientModule,
         FormsModule,
@@ -440,7 +440,9 @@ import { ArcsReportExportComponent } from './arcs/arcs-report-export/arcs-report
         DialogModule,
         WindowModule,
         ProgressBarModule,
-        RouterModule.forRoot(routes),
+        RouterModule.forRoot(routes, {
+    initialNavigation: 'enabled'
+}),
         NotificationModule,
         IndicatorsModule,
         NgPixiModule,

@@ -30,7 +30,7 @@
               "@progress/kendo-angular-intl/locales/es/all",
               "@progress/kendo-angular-intl/locales/fr/all"
             ],
-            "outputPath": "dist/rv-arcs-website",
+            "outputPath": "dist/rv-arcs-website/browser",
             "index": "src/index.html",
             "main": "src/main.ts",
             "polyfills": "src/polyfills.ts",
@@ -114,11 +114,59 @@
           "builder": "@angular-devkit/build-angular:tslint",
           "options": {
             "tsConfig": [
-              "tsconfig.app.json"
+              "tsconfig.app.json",
+              "tsconfig.server.json"
             ],
             "exclude": [
               "**/node_modules/**"
             ]
+          }
+        },
+        "server": {
+          "builder": "@angular-devkit/build-angular:server",
+          "options": {
+            "outputPath": "dist/rv-arcs-website/server",
+            "main": "server.ts",
+            "tsConfig": "tsconfig.server.json"
+          },
+          "configurations": {
+            "production": {
+              "outputHashing": "media",
+              "fileReplacements": [
+                {
+                  "replace": "src/environments/environment.ts",
+                  "with": "src/environments/environment.prod.ts"
+                }
+              ],
+              "sourceMap": false,
+              "optimization": true
+            }
+          }
+        },
+        "serve-ssr": {
+          "builder": "@nguniversal/builders:ssr-dev-server",
+          "options": {
+            "browserTarget": "rv-arcs-website:build",
+            "serverTarget": "rv-arcs-website:server"
+          },
+          "configurations": {
+            "production": {
+              "browserTarget": "rv-arcs-website:build:production",
+              "serverTarget": "rv-arcs-website:server:production"
+            }
+          }
+        },
+        "prerender": {
+          "builder": "@nguniversal/builders:prerender",
+          "options": {
+            "browserTarget": "rv-arcs-website:build:production",
+            "serverTarget": "rv-arcs-website:server:production",
+            "routes": [
+              "/"
+            ]
+          },
+          "configurations": {
+            "production": {}
           }
         }
       }
