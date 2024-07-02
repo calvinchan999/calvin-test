@@ -1,6 +1,6 @@
 {
   "name": "rv-arcs-website",
-  "version": "0.0.0",
+  "version": "0.0.2",
   "scripts": {
     "ng": "ng",
     "start": "ng serve",
@@ -19,8 +19,7 @@
     "dev:ssr": "ng run rv-arcs-website:serve-ssr",
     "serve:ssr": "node dist/rv-arcs-website/server/main.js",
     "build:ssr": "npm run set-prod-environment -- azure && node --max-old-space-size=10240 ./node_modules/@angular/cli/bin/ng build --prod --aot && ng run rv-arcs-website:server:production",
-    "prerender": "npm run set-prod-environment -- azure && node --max-old-space-size=10240 ./node_modules/@angular/cli/bin/ng build --prod --aot && ng run rv-arcs-website:prerender",
-    "prerender-arcs": ""
+    "prerender": "npm run set-prod-environment -- azure && node --max-old-space-size=10240 ./node_modules/@angular/cli/bin/ng build --prod --aot && ng run rv-arcs-website:prerender"
   },
   "private": true,
   "dependencies": {
